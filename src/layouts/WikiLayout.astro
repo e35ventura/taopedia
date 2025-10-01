@@ -232,6 +232,28 @@ const pageTitle = title ? `${title} - Taopedia` : 'Taopedia';
             <a href="/wiki/Special:AllPages" style="margin-left: 16px; color: var(--color-base); text-decoration: none; font-size: 13px;">All pages</a>
             <a href="/wiki/Special:RecentChanges" style="margin-left: 16px; color: var(--color-base); text-decoration: none; font-size: 13px;">Recent changes</a>
           </nav>
+          <div class="nav-dropdown-container">
+            <button class="nav-dropdown-toggle" aria-label="Navigation menu">☰</button>
+            <div class="nav-dropdown-menu">
+              <div class="nav-dropdown-section">
+                <h3 class="nav-dropdown-heading">Navigation</h3>
+                <ul class="nav-dropdown-list">
+                  <li><a href="/">Main page</a></li>
+                  <li><a href="/wiki/Special:AllPages">All pages</a></li>
+                  <li><a href="/wiki/Special:Categories">Categories</a></li>
+                  <li><a href="/wiki/Special:RecentChanges">Recent changes</a></li>
+                </ul>
+              </div>
+              <div class="nav-dropdown-section">
+                <h3 class="nav-dropdown-heading">Community</h3>
+                <ul class="nav-dropdown-list">
+                  <li><a href="/wiki/Taopedia:About">About Taopedia</a></li>
+                  <li><a href="/wiki/Taopedia:Help">Help</a></li>
+                  <li><a href="https://github.com/grant/taopedia" target="_blank">Contribute</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </header>
@@ -239,26 +261,7 @@ const pageTitle = title ? `${title} - Taopedia` : 'Taopedia';
     <div class="mw-page-container">
       <div class="mw-content-container">
         <aside class="mw-sidebar">
-          <nav class="mw-sidebar-nav">
-            <div class="mw-sidebar-section">
-              <h3 class="mw-sidebar-heading">Navigation</h3>
-              <ul class="mw-sidebar-list">
-                <li><a href="/">Main page</a></li>
-                <li><a href="/wiki/Special:AllPages">All pages</a></li>
-                <li><a href="/wiki/Special:Categories">Categories</a></li>
-                <li><a href="/wiki/Special:RecentChanges">Recent changes</a></li>
-              </ul>
-            </div>
-            
-            <div class="mw-sidebar-section">
-              <h3 class="mw-sidebar-heading">Community</h3>
-              <ul class="mw-sidebar-list">
-                <li><a href="/wiki/Taopedia:About">About Taopedia</a></li>
-                <li><a href="/wiki/Taopedia:Help">Help</a></li>
-                <li><a href="https://github.com/grant/taopedia" target="_blank">Contribute</a></li>
-              </ul>
-            </div>
-          </nav>
+          <slot name="sidebar" />
         </aside>
 
         <main class="mw-body">
@@ -307,8 +310,115 @@ const pageTitle = title ? `${title} - Taopedia` : 'Taopedia';
     </footer>
 
     <script>
-      // Appearance controls functionality
+      // Navigation dropdown functionality
       document.addEventListener('DOMContentLoaded', function() {
+        const navToggle = document.querySelector('.nav-dropdown-toggle');
+        const navMenu = document.querySelector('.nav-dropdown-menu');
+        
+        if (navToggle && navMenu) {
+          navToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            navMenu.classList.toggle('active');
+          });
+          
+          // Close dropdown when clicking outside
+          document.addEventListener('click', function(e) {
+            if (!navToggle.contains(e.target) && !navMenu.contains(e.target)) {
+              navMenu.classList.remove('active');
+            }
+          });
+        }
+        
+        // TOC collapse/expand functionality
+        const tocToggles = document.querySelectorAll('.toc-toggle');
+        tocToggles.forEach(toggle => {
+          toggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const parentLi = this.closest('li');
+            const parentLevel = parseInt(parentLi.dataset.tocLevel);
+            
+            // Toggle collapsed state
+            parentLi.classList.toggle('collapsed');
+            
+            // Find all subsections
+            let nextLi = parentLi.nextElementSibling;
+            while (nextLi && nextLi.dataset.tocLevel) {
+              const nextLevel = parseInt(nextLi.dataset.tocLevel);
+              
+              // If we hit a same-level or higher-level heading, stop
+              if (nextLevel <= parentLevel) {
+                break;
+              }
+              
+              // Toggle subsection visibility
+              if (parentLi.classList.contains('collapsed')) {
+                nextLi.style.display = 'none';
+              } else {
+                nextLi.style.display = 'flex';
+              }
+              
+              nextLi = nextLi.nextElementSibling;
+            }
+          });
+        });
+        
+        // Active section tracking for TOC
+        const tocLinks = document.querySelectorAll('.toc-list a[href^="#"]');
+        const headings = document.querySelectorAll('.mw-parser-output h2[id], .mw-parser-output h3[id], .mw-parser-output h4[id]');
+        
+        if (tocLinks.length > 0 && headings.length > 0) {
+          // Create a map of heading IDs to TOC items
+          const tocItemMap = new Map();
+          tocLinks.forEach(link => {
+            const id = link.getAttribute('href').substring(1);
+            const li = link.closest('li');
+            if (id && li) {
+              tocItemMap.set(id, li);
+            }
+          });
+          
+          // Function to update active section
+          function updateActiveSection() {
+            let currentSection = null;
+            const scrollPosition = window.scrollY + 100; // Offset for header
+            
+            // Find the current section based on scroll position
+            for (let i = headings.length - 1; i >= 0; i--) {
+              const heading = headings[i];
+              if (heading.offsetTop <= scrollPosition) {
+                currentSection = heading.id;
+                break;
+              }
+            }
+            
+            // Update active class
+            tocItemMap.forEach((li, id) => {
+              if (id === currentSection) {
+                li.classList.add('active');
+              } else {
+                li.classList.remove('active');
+              }
+            });
+          }
+          
+          // Update on scroll with throttling
+          let scrollTimeout;
+          window.addEventListener('scroll', () => {
+            if (scrollTimeout) {
+              window.cancelAnimationFrame(scrollTimeout);
+            }
+            scrollTimeout = window.requestAnimationFrame(() => {
+              updateActiveSection();
+            });
+          });
+          
+          // Update on load
+          updateActiveSection();
+        }
+        
+        // Appearance controls functionality
         const textRadios = document.querySelectorAll('input[name="ap-text"]');
         const widthRadios = document.querySelectorAll('input[name="ap-width"]');
         const articleBody = document.querySelector('.mw-body');

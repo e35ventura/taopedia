@@ -84,6 +84,9 @@ body {
 
 .mw-header-right {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 /* Align header with content when sidebar is hidden */
@@ -144,7 +147,90 @@ body {
   position: relative;
 }
 
-/* Sidebar */
+/* Navigation Dropdown in Header */
+.nav-dropdown-container {
+  position: relative;
+  display: inline-block;
+}
+
+.nav-dropdown-toggle {
+  background: transparent;
+  border: none;
+  border-radius: 2px;
+  padding: 8px;
+  font-size: 20px;
+  cursor: pointer;
+  color: var(--color-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s ease;
+}
+
+.nav-dropdown-toggle:hover {
+  opacity: 0.7;
+}
+
+.nav-dropdown-menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  background: var(--background-color-base);
+  border: 1px solid var(--border-color-subtle);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  min-width: 200px;
+  z-index: 200;
+  border-radius: 2px;
+}
+
+.nav-dropdown-menu.active {
+  display: block;
+}
+
+.nav-dropdown-section {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-color-subtle);
+}
+
+.nav-dropdown-section:last-child {
+  border-bottom: none;
+}
+
+.nav-dropdown-heading {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-base-subtle);
+  padding: 4px 16px;
+  margin: 0 0 4px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.nav-dropdown-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-dropdown-list li {
+  margin: 0;
+}
+
+.nav-dropdown-list a {
+  display: block;
+  padding: 8px 16px;
+  color: var(--color-base);
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.nav-dropdown-list a:hover {
+  background: var(--background-color-interactive);
+  text-decoration: none;
+}
+
+/* Sidebar - TOC Container */
 .mw-sidebar {
   width: var(--width-sidebar);
   flex-shrink: 0;
@@ -152,47 +238,15 @@ body {
   margin-right: 24px;
 }
 
-.mw-sidebar-nav {
+.toc-sidebar {
   position: sticky;
   top: 66px;
+  max-height: calc(100vh - 82px);
+  overflow-y: auto;
 }
 
-.mw-sidebar-section {
-  margin-bottom: 16px;
-}
-
-.mw-sidebar-heading {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-base-subtle);
-  padding: 4px 8px;
-  margin: 0 0 4px 0;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.mw-sidebar-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.mw-sidebar-list li {
-  margin: 0;
-}
-
-.mw-sidebar-list a {
-  display: block;
-  padding: 6px 8px;
-  color: var(--color-base);
-  text-decoration: none;
-  font-size: 13px;
-  border-radius: 2px;
-}
-
-.mw-sidebar-list a:hover {
-  background: var(--background-color-interactive);
-  text-decoration: none;
+.toc-sidebar-inner {
+  padding: 4px 0;
 }
 
 /* Main Content */
@@ -322,6 +376,13 @@ body {
   overflow-y: auto;
   transform: translateX(0);
   transition: transform 0.3s ease;
+  padding: 24px 16px;
+}
+
+.mw-sidebar.mobile-active .toc-sidebar {
+  position: relative;
+  top: 0;
+  max-height: none;
 }
 
 /* Mobile right rail panel */
@@ -502,6 +563,19 @@ body {
   color: var(--color-link);
 }
 
+/* Scroll offset for anchor links (account for fixed header) */
+:target {
+  scroll-margin-top: 70px;
+}
+
+.mw-parser-output h2,
+.mw-parser-output h3,
+.mw-parser-output h4,
+.mw-parser-output h5,
+.mw-parser-output h6 {
+  scroll-margin-top: 70px;
+}
+
 /* Article Title */
 .firstHeading {
   font-family: var(--font-family-serif);
@@ -598,21 +672,24 @@ body {
   line-height: 1.4;
 }
 
-/* Table of Contents */
-.toc {
-  background: var(--background-color-interactive);
-  border: 1px solid var(--border-color-subtle);
-  padding: 16px;
-  margin: 0 0 16px 0;
-  display: inline-block;
-  min-width: 250px;
+/* Table of Contents - in Sidebar */
+.toc-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #c8ccd1;
 }
 
 .toc-title {
-  font-weight: 600;
-  font-size: 14px;
-  margin: 0 0 8px 0;
-  text-align: center;
+  font-weight: 400;
+  font-size: 12px;
+  margin: 0;
+  padding: 6px 0;
+  padding-left: 20px; /* 16px spacer + 4px gap */
+  color: #54595d;
+  line-height: 1.6;
 }
 
 .toc-list {
@@ -622,25 +699,109 @@ body {
 }
 
 .toc-list li {
-  margin: 4px 0;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.toc-item-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .toc-list a {
-  color: var(--color-link);
+  color: #202122;
   text-decoration: none;
-  font-size: 13px;
+  font-size: 12px;
+  padding: 6px 0;
+  line-height: 1.6;
+  transition: color 0.1s ease;
+  flex: 1;
 }
 
 .toc-list a:hover {
-  text-decoration: underline;
+  color: var(--color-link);
+  text-decoration: none;
 }
 
-.toc-list .toc-level-2 {
-  padding-left: 16px;
+/* Active/current section highlight */
+.toc-list li.active > .toc-item-wrapper > a {
+  color: var(--color-link);
+  font-weight: 600;
 }
 
-.toc-list .toc-level-3 {
-  padding-left: 32px;
+.toc-list .toc-number {
+  display: none;
+}
+
+/* TOC Toggle Button */
+.toc-toggle {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  color: #54595d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  transition: color 0.1s ease;
+}
+
+.toc-toggle:hover {
+  color: #202122;
+}
+
+.toc-toggle svg {
+  display: block;
+  transition: transform 0.2s ease;
+}
+
+/* Spacer for items without toggle button */
+.toc-spacer {
+  width: 16px;
+  flex-shrink: 0;
+}
+
+/* Collapsed state - rotate chevron to point right */
+.toc-list li.collapsed .toc-toggle svg {
+  transform: rotate(-90deg);
+}
+
+/* Mark subsections for easier toggling */
+.toc-list li.toc-subsection {
+  transition: all 0.2s ease;
+}
+
+/* TOC Footer - Back to top */
+.toc-footer {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid #c8ccd1;
+}
+
+.toc-back-to-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0;
+  padding-left: 20px; /* 16px spacer + 4px gap */
+  color: #202122;
+  text-decoration: none;
+  font-size: 12px;
+  line-height: 1.6;
+  transition: color 0.1s ease;
+}
+
+.toc-back-to-top:hover {
+  color: var(--color-link);
+}
+
+.toc-back-to-top svg {
+  flex-shrink: 0;
 }
 
 /* Infobox */

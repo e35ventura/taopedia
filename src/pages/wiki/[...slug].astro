@@ -39,6 +39,55 @@ const historyUrl = `/wiki/${slug}/history`;
 ---
 
 <WikiLayout title={page.data.title} description={page.data.summary}>
+  {headings.length > 1 && (
+    <div slot="sidebar" class="toc-sidebar">
+      <div class="toc-sidebar-inner">
+        <div class="toc-header">
+          <div class="toc-title">Contents</div>
+        </div>
+        <ul class="toc-list">
+          {headings.map((heading, index) => {
+            // Check if this heading has subsections (next heading has greater depth)
+            const hasSubsections = index < headings.length - 1 && headings[index + 1].depth > heading.depth;
+            const isSubsection = heading.depth > 2;
+            const parentLevel = heading.depth === 2 ? 0 : (heading.depth - 2) * 16;
+            
+            return (
+              <li 
+                class={`toc-level-${heading.depth}${isSubsection ? ' toc-subsection' : ''}`} 
+                data-toc-level={heading.depth}
+                style={`padding-left: ${parentLevel}px;`}
+              >
+                <div class="toc-item-wrapper">
+                  {hasSubsections ? (
+                    <button class="toc-toggle" aria-label="Toggle subsections" data-slug={heading.slug}>
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </button>
+                  ) : (
+                    <span class="toc-spacer"></span>
+                  )}
+                  <a href={`#${heading.slug}`} class={hasSubsections ? 'has-subsections' : ''}>
+                    <span class="toc-number">{index + 1}</span> {heading.text}
+                  </a>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+        <div class="toc-footer">
+          <a href="#" class="toc-back-to-top">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 9V3M6 3L3 6M6 3L9 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Back to top
+          </a>
+        </div>
+      </div>
+    </div>
+  )}
+
   <div class="mw-body-content">
     <nav class="mw-article-toolbar">
       <a href={`/wiki/${slug}`} class="active">Article</a>
@@ -52,21 +101,6 @@ const historyUrl = `/wiki/${slug}/history`;
     {page.data.summary && (
       <div class="mw-article-summary" style="font-style: italic; margin-bottom: 16px; color: var(--color-base-subtle);">
         {page.data.summary}
-      </div>
-    )}
-
-    {headings.length > 1 && (
-      <div class="toc">
-        <div class="toc-title">Contents</div>
-        <ul class="toc-list">
-          {headings.map((heading, index) => (
-            <li class={`toc-level-${heading.depth}`}>
-              <a href={`#${heading.slug}`}>
-                <span class="toc-number">{index + 1}</span> {heading.text}
-              </a>
-            </li>
-          ))}
-        </ul>
       </div>
     )}
 
