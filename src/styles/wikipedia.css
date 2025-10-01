@@ -268,30 +268,46 @@ body {
 
 .mw-right-rail-inner {
   position: sticky;
-  top: 66px; /* align with header + spacing */
-  border: 1px solid var(--border-color-subtle);
-  background: var(--background-color-base);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  top: 66px;
+  padding: 4px 0;
 }
 
 .mw-right-rail .panel-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--border-color-subtle);
-  font-weight: 600;
-  font-size: 13px;
+  padding: 6px 0;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #c8ccd1;
+  font-weight: 400;
+  font-size: 12px;
+  color: #54595d;
+}
+
+.mw-right-rail .panel-header button {
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  padding: 0;
+  cursor: pointer;
+  color: #54595d;
+  text-decoration: underline;
+}
+
+.mw-right-rail .panel-header button:hover {
+  color: #202122;
 }
 
 .mw-right-rail .panel-section {
-  padding: 8px 12px;
+  padding: 12px 0;
 }
 
 .mw-right-rail .panel-section h4 {
-  margin: 0 0 6px 0;
+  margin: 0 0 8px 0;
   font-size: 12px;
-  color: var(--color-base-subtle);
+  color: #54595d;
+  font-weight: 400;
   text-transform: none;
 }
 
@@ -300,13 +316,14 @@ body {
   align-items: center;
   gap: 8px;
   margin: 6px 0;
-  font-size: 13px;
+  font-size: 12px;
+  color: #202122;
 }
 
 .mw-right-rail .divider {
   height: 1px;
-  background: var(--border-color-subtle);
-  margin: 8px 0;
+  background: #c8ccd1;
+  margin: 0;
 }
 
 /* Sidebar and right rail toggle buttons (hidden by default) */
