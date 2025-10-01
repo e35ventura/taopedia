@@ -1,0 +1,44 @@
+---
+title: Earth
+categories: ["Astronomy", "Science", "Planets"]
+summary: Earth is the third planet from the Sun and the only known place in the universe where life exists.
+---
+
+**Earth** is the third planet from the Sun and the only known astronomical object known to harbor life. About 29.2% of Earth's surface is land consisting of continents and islands, while the remaining 70.8% is covered with water.
+
+## Physical Characteristics
+
+Earth is the fifth-largest planet in the Solar System. It has an equatorial diameter of about 12,742 kilometers and a mass of approximately 5.97 × 10²⁴ kg.
+
+### Atmosphere
+
+Earth's atmosphere consists mainly of nitrogen (78%) and oxygen (21%), with trace amounts of other gases. This atmosphere is essential for life and protects the surface from harmful solar radiation.
+
+### Gravity
+
+The [[Gravity]] of Earth gives weight to physical objects and is approximately 9.8 m/s² at the surface. This gravitational force keeps the atmosphere in place and the Moon in orbit.
+
+## Life on Earth
+
+Earth is the only known place in the universe where life exists. Life on Earth arose at least 3.5 billion years ago, and has since evolved into millions of species through the process of evolution.
+
+## Moon
+
+Earth has one natural satellite, the [[Moon]], which orbits Earth at an average distance of about 384,400 km. The Moon's gravitational influence produces the ocean tides and slightly lengthens Earth's day.
+
+## History of Study
+
+Ancient civilizations believed Earth was flat, but the concept of a spherical Earth emerged in ancient Greek philosophy. [[Isaac Newton]] explained how [[Gravity]] keeps planets in orbit around the Sun.
+
+## See also
+
+- [[Moon]]
+- [[Solar System]]
+- [[Gravity]]
+- [[Astronomy]]
+- [[Physics]]
+
+## References
+
+1. Williams, David R. (2004). "Earth Fact Sheet". NASA.
+2. Yoder, Charles F. (1995). "Astrometric and Geodetic Properties of Earth and the Solar System".

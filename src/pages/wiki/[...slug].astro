@@ -1,0 +1,99 @@
+---
+import { getCollection } from 'astro:content';
+import WikiLayout from '../../layouts/WikiLayout.astro';
+
+export async function getStaticPaths() {
+  const pages = await getCollection('pages');
+  return pages.map((page) => {
+    // Remove /index.md from the slug
+    const slug = page.id.replace(/\/index\.md$/, '');
+    return {
+      params: { slug },
+      props: { page, slug },
+    };
+  });
+}
+
+const { page, slug } = Astro.props;
+const { Content, headings } = await page.render();
+
+// Load backlinks data
+let backlinks = [];
+try {
+  const backlinkData = await import('../../../public/data/backlinks.json');
+  backlinks = backlinkData.default[slug] || [];
+} catch (e) {
+  // Backlinks not yet generated
+}
+
+// Load slug map for broken link detection
+let slugMap = {};
+try {
+  const slugData = await import('../../../public/data/slugmap.json');
+  slugMap = slugData.default;
+} catch (e) {
+  // Slug map not yet generated
+}
+const editUrl = `https://github.com/grant/taopedia/edit/main/src/content/pages/${slug}/index.md`;
+const historyUrl = `/wiki/${slug}/history`;
+---
+
+<WikiLayout title={page.data.title} description={page.data.summary}>
+  <div class="mw-body-content">
+    <nav class="mw-article-toolbar">
+      <a href={`/wiki/${slug}`} class="active">Article</a>
+      <a href={historyUrl}>History</a>
+      <a href={editUrl} target="_blank">Edit</a>
+      <a href={`/wiki/${slug}/backlinks`}>What links here</a>
+    </nav>
+
+    <h1 class="firstHeading">{page.data.title}</h1>
+
+    {page.data.summary && (
+      <div class="mw-article-summary" style="font-style: italic; margin-bottom: 16px; color: var(--color-base-subtle);">
+        {page.data.summary}
+      </div>
+    )}
+
+    {headings.length > 1 && (
+      <div class="toc">
+        <div class="toc-title">Contents</div>
+        <ul class="toc-list">
+          {headings.map((heading, index) => (
+            <li class={`toc-level-${heading.depth}`}>
+              <a href={`#${heading.slug}`}>
+                <span class="toc-number">{index + 1}</span> {heading.text}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
+
+    <div class="mw-parser-output">
+      <Content />
+    </div>
+
+    {page.data.categories && page.data.categories.length > 0 && (
+      <div class="catlinks">
+        <span class="catlinks-label">Categories:</span>
+        {page.data.categories.map((cat: string) => (
+          <a href={`/wiki/Category/${cat.replace(/ /g, '_')}`}>{cat}</a>
+        ))}
+      </div>
+    )}
+
+    {backlinks.length > 0 && (
+      <details style="margin-top: 24px; padding: 12px; background: var(--background-color-interactive); border: 1px solid var(--border-color-subtle); font-size: 13px;">
+        <summary style="cursor: pointer; font-weight: 600;">What links here ({backlinks.length})</summary>
+        <ul style="margin: 8px 0 0 0; padding: 0 0 0 20px;">
+          {backlinks.map((link: any) => (
+            <li>
+              <a href={`/wiki/${link.from}`}>{link.fromTitle}</a>
+            </li>
+          ))}
+        </ul>
+      </details>
+    )}
+  </div>
+</WikiLayout>

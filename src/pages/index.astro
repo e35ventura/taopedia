@@ -1,16 +1,617 @@
 ---
+import '../styles/wikipedia.css';
+import { getCollection } from 'astro:content';
 
+const pages = await getCollection('pages');
+
+// Load categories
+let categoryIndex = {};
+try {
+  const categoryData = await import('../../public/data/categories.json');
+  categoryIndex = categoryData.default;
+} catch (e) {
+  // Categories not yet generated
+}
+
+// Get top categories for the portal
+const topCategories = Object.entries(categoryIndex)
+  .sort((a: any, b: any) => b[1].length - a[1].length)
+  .slice(0, 10);
 ---
 
+<!doctype html>
 <html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Taopedia</title>
+    <meta name="description" content="The Free Encyclopedia" />
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: var(--font-family-sans);
+        background: #f6f6f6;
+        overflow: hidden; /* avoid page scroll */
+      }
+
+      @keyframes label-in {
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      /* Subtle orbiting dots */
+      .portal-orbit { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+      .portal-orbit .dot {
+        position: absolute;
+        top: 50%; left: 50%;
+        width: 6px; height: 6px;
+        background: rgba(51,102,204,0.35);
+        border-radius: 50%;
+        filter: blur(0.5px);
+        transform-origin: -250px 0; /* orbit radius */
+        transform: rotate(0deg) translateX(250px);
+        animation: orbit var(--dur, 16s) linear infinite;
+      }
+      @keyframes orbit { to { transform: rotate(360deg) translateX(250px); } }
+
+      /* Magnetic hover pull (consumed via CSS vars set in JS) */
+      .portal-lang-link a {
+        transform: translate(var(--pull-x, 0), var(--pull-y, 0));
+        transition: transform 180ms ease, text-decoration-color 180ms ease;
+      }
+      .portal-lang-link a:hover { text-decoration: underline; }
+
+      /* Reduced motion: freeze rotation & orbit */
+      @media (prefers-reduced-motion: reduce) {
+        .portal-globe::after { animation: none; }
+        .portal-orbit .dot { animation: none; }
+      }
+      
+      .portal-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 8px 12px;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+      }
+      
+      .portal-header {
+        text-align: center;
+        margin-bottom: 8px;
+      }
+      
+      .portal-logo {
+        font-family: var(--font-family-serif);
+        font-size: 48px;
+        font-weight: 400;
+        color: #000;
+        text-decoration: none;
+        letter-spacing: 0.5px;
+        display: block;
+        margin-bottom: 4px;
+      }
+      
+      .logo-letter-large {
+        font-size: 1.2em;
+        font-weight: 500;
+      }
+      
+      .portal-tagline {
+        font-size: 16px;
+        color: #54595d;
+        font-style: italic;
+      }
+      
+      .portal-scale { /* scales content to fit viewport */
+        --scale: calc( min(86vmin, 600px) / 600 );
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .portal-content {
+        position: relative;
+        width: 600px;
+        height: 600px;
+        margin: 0;
+        transform: scale(var(--scale));
+        transform-origin: center;
+      }
+
+      /* Solar flare canvas behind the logo */
+      .portal-sun {
+        position: absolute;
+        inset: 0;
+        z-index: 0; /* behind globe and links */
+        pointer-events: none;
+      }
+      
+      .portal-languages {
+        display: none;
+      }
+      
+      .portal-lang-link {
+        position: absolute;
+        text-align: center;
+        width: 140px;
+        opacity: 0;
+        transform: translateY(8px);
+        animation: label-in 600ms ease-out forwards;
+      }
+      
+      .portal-lang-link a {
+        color: #3366cc;
+        text-decoration: none;
+        font-size: 16px;
+        font-weight: 600;
+        display: block;
+        margin-bottom: 2px;
+      }
+      
+      .portal-lang-link a:hover {
+        text-decoration: underline;
+      }
+      
+      .portal-lang-count {
+        font-size: 13px;
+        color: #54595d;
+      }
+      
+      .portal-globe {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 200px;
+        height: 200px;
+        background: transparent;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: none;
+        font-size: 80px;
+        color: #000;
+        font-weight: 600;
+        font-family: var(--font-family-serif);
+        flex-shrink: 0;
+        z-index: 10;
+        overflow: visible;
+      }
+
+      /* Elegant aura: radial inner glow + rotating conic-gradient ring */
+      .portal-globe::before {
+        content: "";
+        position: absolute;
+        top: 50%; left: 50%;
+        width: 240px; height: 240px;
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+        background: radial-gradient(closest-side, rgba(255,255,255,0.85), rgba(255,255,255,0) 70%);
+        pointer-events: none; z-index: 0;
+      }
+      .portal-globe::after {
+        content: "";
+        position: absolute;
+        top: 50%; left: 50%;
+        width: 270px; height: 270px;
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+        background: conic-gradient(from 0deg, rgba(51,102,204,0.35), rgba(51,102,204,0) 40%, rgba(51,102,204,0.35) 80%, rgba(51,102,204,0.35));
+        filter: blur(6px);
+        animation: spin 12s linear infinite;
+        pointer-events: none; z-index: 0;
+      }
+      @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+      
+      .portal-search {
+        width: 100%;
+        max-width: 500px;
+        margin-top: 4px;
+      }
+      
+      .portal-search form {
+        display: flex;
+        gap: 0;
+      }
+      
+      .portal-search input {
+        flex: 1;
+        padding: 12px 16px;
+        border: 1px solid #a2a9b1;
+        border-right: none;
+        font-size: 14px;
+        font-family: var(--font-family-sans);
+      }
+      
+      .portal-search input:focus {
+        outline: none;
+        border-color: #3366cc;
+      }
+      
+      .portal-search button {
+        padding: 12px 24px;
+        background: #3366cc;
+        color: white;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+      }
+      
+      .portal-search button:hover {
+        background: #2952a3;
+      }
+      
+      .portal-footer {
+        margin-top: 4px;
+        text-align: center;
+        font-size: 12px;
+        color: #54595d;
+      }
+      
+      .portal-footer a {
+        color: #3366cc;
+        text-decoration: none;
+        margin: 0 8px;
+      }
+      
+      /* ===== RESPONSIVE BREAKPOINTS ===== */
+      
+      /* Large desktop (1400px+): Scale up */
+      @media (min-width: 1400px) {
+        .portal-logo {
+          font-size: 64px;
+        }
+        
+        .logo-letter-large {
+          font-size: 1.25em;
+        }
+        .portal-tagline {
+          font-size: 20px;
+        }
+        .portal-search {
+          max-width: 600px;
+        }
+        .portal-search input {
+          padding: 14px 18px;
+          font-size: 16px;
+        }
+        .portal-search button {
+          padding: 14px 28px;
+          font-size: 16px;
+        }
+        .portal-footer {
+          font-size: 13px;
+        }
+      }
+      
+      /* Desktop (1024px - 1399px): Default scale */
+      @media (min-width: 1024px) and (max-width: 1399px) {
+        .portal-logo {
+          font-size: 48px;
+        }
+        .portal-tagline {
+          font-size: 16px;
+        }
+      }
+      
+      /* Tablet landscape (768px - 1023px) */
+      @media (max-width: 1023px) {
+        .portal-logo {
+          font-size: 40px;
+        }
+        
+        .logo-letter-large {
+          font-size: 1.2em;
+        }
+        .portal-tagline {
+          font-size: 15px;
+        }
+        .portal-search {
+          max-width: 450px;
+        }
+        .portal-search input {
+          padding: 10px 14px;
+          font-size: 14px;
+        }
+        .portal-search button {
+          padding: 10px 20px;
+          font-size: 14px;
+        }
+        .portal-footer {
+          font-size: 11px;
+        }
+        .portal-footer a {
+          margin: 0 6px;
+        }
+      }
+      
+      /* Tablet portrait & mobile landscape (600px - 767px) */
+      @media (max-width: 767px) {
+        .portal-container {
+          padding: 8px 16px;
+          gap: 8px;
+        }
+        .portal-header {
+          margin-bottom: 4px;
+        }
+        .portal-logo {
+          font-size: 36px;
+        }
+        
+        .logo-letter-large {
+          font-size: 1.15em;
+        }
+        .portal-tagline {
+          font-size: 14px;
+        }
+        .portal-scale {
+          --scale: calc(min(90vmin, 400px) / 600);
+        }
+        .portal-search {
+          max-width: 100%;
+        }
+        .portal-search input {
+          padding: 10px 12px;
+          font-size: 13px;
+        }
+        .portal-search button {
+          padding: 10px 18px;
+          font-size: 13px;
+        }
+        .portal-footer {
+          font-size: 11px;
+          margin-top: 8px;
+        }
+        .portal-footer a {
+          margin: 0 4px;
+          display: inline-block;
+        }
+      }
+      
+      /* Mobile (400px - 599px) */
+      @media (max-width: 599px) {
+        .portal-container {
+          padding: 6px 12px;
+          gap: 6px;
+        }
+        .portal-logo {
+          font-size: 32px;
+          margin-bottom: 2px;
+        }
+        
+        .logo-letter-large {
+          font-size: 1.1em;
+        }
+        .portal-tagline {
+          font-size: 13px;
+        }
+        .portal-scale {
+          --scale: calc(min(92vmin, 350px) / 600);
+        }
+        .portal-lang-link {
+          width: 90px;
+        }
+        .portal-lang-link a {
+          font-size: 13px;
+        }
+        .portal-lang-count {
+          font-size: 11px;
+        }
+        .portal-search {
+          margin-top: 2px;
+        }
+        .portal-search input {
+          padding: 9px 10px;
+          font-size: 13px;
+        }
+        .portal-search button {
+          padding: 9px 16px;
+          font-size: 13px;
+        }
+        .portal-footer {
+          font-size: 10px;
+          margin-top: 6px;
+        }
+        .portal-footer a {
+          margin: 0 3px;
+        }
+      }
+      
+      /* Small mobile (under 400px) */
+      @media (max-width: 399px) {
+        .portal-container {
+          padding: 4px 8px;
+          gap: 4px;
+        }
+        .portal-logo {
+          font-size: 28px;
+          letter-spacing: 0.3px;
+        }
+        
+        .logo-letter-large {
+          font-size: 1.1em;
+        }
+        .portal-tagline {
+          font-size: 12px;
+        }
+        .portal-scale {
+          --scale: calc(min(95vmin, 300px) / 600);
+        }
+        .portal-lang-link {
+          width: 80px;
+        }
+        .portal-lang-link a {
+          font-size: 12px;
+        }
+        .portal-lang-count {
+          font-size: 10px;
+        }
+        .portal-search input {
+          padding: 8px;
+          font-size: 12px;
+        }
+        .portal-search button {
+          padding: 8px 12px;
+          font-size: 12px;
+        }
+        .portal-footer {
+          font-size: 9px;
+          margin-top: 4px;
+        }
+        .portal-footer a {
+          margin: 0 2px;
+          font-size: 9px;
+        }
+      }
+      
+      /* Very small mobile (under 320px) */
+      @media (max-width: 319px) {
+        .portal-logo {
+          font-size: 24px;
+        }
+        
+        .logo-letter-large {
+          font-size: 1.05em;
+        }
+        .portal-tagline {
+          font-size: 11px;
+        }
+        .portal-footer a {
+          display: block;
+          margin: 4px 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="portal-container">
+      <div class="portal-header">
+        <a href="/" class="portal-logo">
+          <span class="logo-letter-large">T</span>AOPEDI<span class="logo-letter-large">A</span>
+        </a>
+        <div class="portal-tagline">The Free Encyclopedia</div>
+      </div>
+      
+      <div class="portal-content">
+        <!-- Solar flare animation canvas -->
+        <canvas class="portal-sun" width="600" height="600"></canvas>
+        <!-- Center globe -->
+        <div class="portal-globe">
+          <img src="/logo.svg" alt="Taopedia logo" style="position: relative; z-index: 1; width: 80px; height: auto;" />
+        </div>
+        
+        <!-- Categories arranged in a circle -->
+        {topCategories.slice(0, 10).map(([cat, articles]: [string, any], index: number) => {
+          const angle = (index * 360 / 10) - 90; // Start from top
+          const radius = 250;
+          const x = 300 + radius * Math.cos(angle * Math.PI / 180);
+          const y = 300 + radius * Math.sin(angle * Math.PI / 180);
+          
+          return (
+            <div 
+              class="portal-lang-link" 
+              style={`left: ${x - 70}px; top: ${y - 30}px;`}
+            >
+              <a href={`/wiki/Category/${cat.replace(/ /g, '_')}`}>{cat}</a>
+              <div class="portal-lang-count">{articles.length} article{articles.length !== 1 ? 's' : ''}</div>
+            </div>
+          );
+        })}
+      </div>
+
+      <style>
+        @media (prefers-reduced-motion: no-preference) {
+          .portal-sun {
+            animation: solar-flare 12s ease-out infinite;
+          }
+        }
+        @keyframes solar-flare {
+          0% {
+            transform: scale(0.5);
+          }
+          100% {
+            transform: scale(1);
+          }
+        }
+      </style>
+
+      <canvas class="portal-sun" width="600" height="600"></canvas>
+      <script>
+        const canvas = document.querySelector('.portal-sun');
+        const ctx = canvas.getContext('2d');
+        const particles = [];
+        const numParticles = 1000;
+        const particleSize = 2;
+        const particleSpeed = 0.5;
+        const particleLifetime = 100;
+        const particleColor = 'rgba(255,255,255,0.5)';
+        const particleSpread = 200;
+        const particleSpreadSpeed = 0.5;
+
+        for (let i = 0; i < numParticles; i++) {
+          particles.push({
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            vx: (Math.random() - 0.5) * particleSpeed,
+            vy: (Math.random() - 0.5) * particleSpeed,
+            age: 0,
+          });
+        }
+
+        function update() {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+          for (let i = 0; i < particles.length; i++) {
+            const particle = particles[i];
+            particle.x += particle.vx;
+            particle.y += particle.vy;
+            particle.age++;
+
+            if (particle.age > particleLifetime) {
+              particle.x = canvas.width / 2;
+              particle.y = canvas.height / 2;
+              particle.vx = (Math.random() - 0.5) * particleSpeed;
+              particle.vy = (Math.random() - 0.5) * particleSpeed;
+              particle.age = 0;
+            }
+
+            ctx.fillStyle = particleColor;
+            ctx.beginPath();
+            ctx.arc(particle.x, particle.y, particleSize, 0, 2 * Math.PI);
+            ctx.fill();
+          }
+
+          requestAnimationFrame(update);
+        }
+
+        update();
+      </script>
+
+      <div class="portal-search">
+        <form action="/search" method="get">
+          <input 
+            type="search" 
+            name="q" 
+            aria-label="Search"
+          />
+          <button type="submit">Search</button>
+        </form>
+      </div>
+      
+      <div class="portal-footer">
+        <a href="/wiki/Taopedia:About">About</a>
+        <a href="https://github.com/grant/taopedia" target="_blank">Contribute</a>
+        <a href="/wiki/Special:AllPages">Browse articles</a>
+        <div style="margin-top: 16px;">
+          made possible by gittensor
+        </div>
+      </div>
+    </div>
+  </body>
 </html>

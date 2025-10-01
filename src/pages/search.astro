@@ -1,0 +1,97 @@
+---
+import WikiLayout from '../layouts/WikiLayout.astro';
+
+const searchQuery = Astro.url.searchParams.get('q') || '';
+---
+
+<WikiLayout title={searchQuery ? `Search results for "${searchQuery}"` : 'Search'}>
+  <div class="mw-body-content">
+    <h1 class="firstHeading">Search results</h1>
+
+    <form action="/search" method="get" style="margin: 24px 0;">
+      <input 
+        type="search" 
+        name="q" 
+        value={searchQuery}
+        class="mw-search-input" 
+        placeholder="Search Taopedia" 
+        style="width: 100%; max-width: 600px; padding: 12px; font-size: 16px;"
+        autofocus
+      />
+      <button 
+        type="submit"
+        style="margin-left: 8px; padding: 12px 24px; background: var(--color-link); color: white; border: none; border-radius: 2px; cursor: pointer; font-size: 14px; font-weight: 600;"
+      >
+        Search
+      </button>
+    </form>
+
+    <div id="search-results" style="margin-top: 32px;">
+      {searchQuery && (
+        <p style="font-size: 14px; color: var(--color-base-subtle);">
+          Searching for "<strong>{searchQuery}</strong>"...
+        </p>
+      )}
+    </div>
+  </div>
+
+  <script is:inline>
+    // Pagefind integration - runs after build
+    const searchQuery = new URLSearchParams(window.location.search).get('q');
+    const resultsContainer = document.getElementById('search-results');
+
+    if (searchQuery && resultsContainer) {
+      // Check if pagefind is available
+      fetch('/pagefind/pagefind.js', { method: 'HEAD' })
+        .then(response => {
+          if (!response.ok) {
+            resultsContainer.innerHTML = '<p>Search index not available. Please rebuild the site with <code>npm run build</code>.</p>';
+            return;
+          }
+          
+          // Load pagefind dynamically
+          const script = document.createElement('script');
+          script.src = '/pagefind/pagefind.js';
+          script.onload = async function() {
+            const pagefind = await window.pagefind;
+            await pagefind.init();
+            const results = await pagefind.search(searchQuery);
+
+            if (results.results.length === 0) {
+              resultsContainer.innerHTML = '<p>No results found.</p>';
+              return;
+            }
+
+            resultsContainer.innerHTML = '<p style="font-size: 14px; margin-bottom: 16px;">Found <strong>' + results.results.length + '</strong> result(s)</p>';
+
+            for (const result of results.results) {
+              const data = await result.data();
+              
+              const resultEl = document.createElement('div');
+              resultEl.style.cssText = 'padding: 16px; border: 1px solid var(--border-color-subtle); margin-bottom: 12px; background: var(--background-color-interactive);';
+              
+              resultEl.innerHTML = 
+                '<h3 style="margin: 0 0 8px 0;">' +
+                  '<a href="' + data.url + '" style="color: var(--color-link); text-decoration: none; font-size: 18px;">' +
+                    (data.meta.title || 'Untitled') +
+                  '</a>' +
+                '</h3>' +
+                '<p style="font-size: 14px; color: var(--color-base); margin: 0;">' +
+                  (data.excerpt || 'No excerpt available.') +
+                '</p>' +
+                '<div style="font-size: 12px; color: var(--color-base-subtle); margin-top: 8px;">' +
+                  data.url +
+                '</div>';
+              
+              resultsContainer.appendChild(resultEl);
+            }
+          };
+          document.head.appendChild(script);
+        })
+        .catch(err => {
+          console.error('Pagefind check failed:', err);
+          resultsContainer.innerHTML = '<p>Search not available.</p>';
+        });
+    }
+  </script>
+</WikiLayout>

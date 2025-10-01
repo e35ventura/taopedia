@@ -3,6 +3,11 @@ dist/
 # generated types
 .astro/
 
+# generated build data
+public/data/
+public/history/
+public/pagefind/
+
 # dependencies
 node_modules/
 

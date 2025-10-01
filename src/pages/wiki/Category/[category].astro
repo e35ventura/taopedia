@@ -1,0 +1,202 @@
+---
+import WikiLayout from '../../../layouts/WikiLayout.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const pages = await getCollection('pages');
+  
+  // Extract all unique categories
+  const categories = new Set();
+  pages.forEach(page => {
+    page.data.categories?.forEach(cat => categories.add(cat));
+  });
+  
+  return Array.from(categories).map(category => ({
+    params: { category: category.replace(/ /g, '_') },
+    props: { categoryName: category }
+  }));
+}
+
+const { category } = Astro.params;
+const { categoryName } = Astro.props;
+
+// Get all pages in this category
+const pages = await getCollection('pages');
+const categoryPages = pages.filter(page => 
+  page.data.categories?.includes(categoryName)
+);
+
+const pageTitle = `Category:${categoryName}`;
+---
+
+<WikiLayout title={pageTitle}>
+  <div class="mw-body-content">
+    <div class="mw-article-toolbar">
+      <a href="#" class="active">Category</a>
+      <a href="#">Discussion</a>
+    </div>
+
+    <h1 class="firstHeading">Category:{categoryName}</h1>
+    
+    <div class="mw-parser-output">
+      <p>This category contains articles related to <strong>{categoryName}</strong>.</p>
+      
+      {categoryPages.length > 0 ? (
+        <>
+          <h2>Articles in category "{categoryName}"</h2>
+          <p>The following {categoryPages.length} page{categoryPages.length !== 1 ? 's are' : ' is'} in this category.</p>
+          
+          <div class="category-pages">
+            <ul>
+              {categoryPages.map(page => (
+                <li>
+                  <a href={`/wiki/${page.slug}`} class="card-link">
+                    <h3 class="card-title">{page.data.title}</h3>
+                    {page.data.summary && (
+                      <p class="category-page-summary">{page.data.summary}</p>
+                    )}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </>
+      ) : (
+        <p>This category is currently empty.</p>
+      )}
+      
+      <h2>Subcategories</h2>
+      <p>This category has no subcategories.</p>
+    </div>
+  </div>
+</WikiLayout>
+
+<style>
+  .category-pages ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+  }
+  
+  .category-pages li {
+    background: var(--background-color-interactive);
+    border: 1px solid var(--border-color-subtle);
+    border-radius: 0; /* Sharp edges for Wikipedia style */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+    overflow: hidden;
+  }
+  
+  .category-pages li:hover {
+    border-color: var(--color-link);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    background: #f8f9fa;
+  }
+  
+  .card-link {
+    display: flex;
+    flex-direction: column;
+    min-height: 120px;
+    padding: 16px;
+    text-decoration: none;
+    color: inherit;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .card-link:hover {
+    text-decoration: none;
+  }
+  
+  .card-title {
+    font-weight: 600;
+    color: var(--color-link);
+    font-size: 16px;
+    line-height: 1.3;
+    margin: 0 0 8px 0;
+    flex-shrink: 0;
+  }
+  
+  .category-page-summary {
+    color: var(--color-base-subtle);
+    font-size: 13px;
+    line-height: 1.4;
+    flex: 1;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  /* Allow more text to show when text size is large */
+  .mw-body.text-large .category-page-summary {
+    -webkit-line-clamp: 4;
+  }
+  
+  /* Responsive breakpoints */
+  @media (max-width: 900px) {
+    .category-pages ul {
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+    }
+    
+    .card-link {
+      min-height: 110px;
+      padding: 14px;
+    }
+    
+    .card-title {
+      font-size: 15px;
+    }
+    
+    .category-page-summary {
+      font-size: 12px;
+    }
+  }
+  
+  @media (max-width: 600px) {
+    .category-pages ul {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    
+    .card-link {
+      min-height: 100px;
+      padding: 12px;
+    }
+    
+    .card-title {
+      font-size: 14px;
+    }
+    
+    .category-page-summary {
+      font-size: 12px;
+      -webkit-line-clamp: 2;
+    }
+  }
+  
+  @media (max-width: 400px) {
+    .category-pages ul {
+      gap: 8px;
+    }
+    
+    .card-link {
+      min-height: 90px;
+      padding: 10px;
+    }
+    
+    .card-title {
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+    
+    .category-page-summary {
+      font-size: 11px;
+    }
+  }
+</style>

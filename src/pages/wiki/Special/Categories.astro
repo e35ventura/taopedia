@@ -1,0 +1,96 @@
+---
+import WikiLayout from '../../../layouts/WikiLayout.astro';
+import { getCollection } from 'astro:content';
+
+const pages = await getCollection('pages');
+
+// Build category index
+const categoryIndex = {};
+pages.forEach(page => {
+  page.data.categories?.forEach(cat => {
+    if (!categoryIndex[cat]) {
+      categoryIndex[cat] = [];
+    }
+    categoryIndex[cat].push(page);
+  });
+});
+
+const sortedCategories = Object.entries(categoryIndex)
+  .sort(([a], [b]) => a.localeCompare(b));
+---
+
+<WikiLayout title="Categories">
+  <div class="mw-body-content">
+    <div class="mw-article-toolbar">
+      <a href="#" class="active">Special page</a>
+    </div>
+
+    <h1 class="firstHeading">Categories</h1>
+    
+    <div class="mw-parser-output">
+      <p>This special page shows all categories in Taopedia.</p>
+      
+      <div class="categories-list">
+        <h2>All Categories ({sortedCategories.length})</h2>
+        <ul>
+          {sortedCategories.map(([categoryName, categoryPages]) => (
+            <li>
+              <a href={`/wiki/Category/${categoryName.replace(/ /g, '_')}`}>
+                {categoryName}
+              </a>
+              <span class="category-count">
+                ({categoryPages.length} page{categoryPages.length !== 1 ? 's' : ''})
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  </div>
+</WikiLayout>
+
+<style>
+  .categories-list ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    columns: 3;
+    column-gap: 24px;
+  }
+  
+  .categories-list li {
+    margin: 8px 0;
+    break-inside: avoid;
+    padding: 8px;
+    background: var(--background-color-interactive);
+    border-radius: 4px;
+  }
+  
+  .categories-list a {
+    font-weight: 600;
+    color: var(--color-link);
+    text-decoration: none;
+  }
+  
+  .categories-list a:hover {
+    text-decoration: underline;
+  }
+  
+  .category-count {
+    color: var(--color-base-subtle);
+    font-size: 13px;
+    margin-left: 8px;
+  }
+  
+  @media (max-width: 900px) {
+    .categories-list ul {
+      columns: 2;
+    }
+  }
+  
+  @media (max-width: 600px) {
+    .categories-list ul {
+      columns: 1;
+    }
+  }
+</style>

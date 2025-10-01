@@ -1,0 +1,58 @@
+---
+title: Physics
+categories: ["Science", "Physics"]
+summary: Physics is the natural science that studies matter, energy, and the fundamental forces of nature.
+---
+
+**Physics** is the natural science that studies matter, its fundamental constituents, its motion and behavior through space and time, and the related entities of energy and force. Physics is one of the most fundamental scientific disciplines.
+
+## Branches of Physics
+
+### Classical Physics
+
+Classical physics includes the traditional branches that were developed before the early 20th century:
+
+- **Mechanics**: Study of motion and forces, pioneered by [[Isaac Newton]]
+- **Thermodynamics**: Study of heat, energy, and work
+- **Electromagnetism**: Study of electric and magnetic fields
+- **Optics**: Study of light and its properties
+
+### Modern Physics
+
+Modern physics developed in the 20th century:
+
+- **Quantum Mechanics**: Study of physical phenomena at microscopic scales
+- **Relativity**: [[Albert Einstein]]'s theories of special and general relativity
+- **Particle Physics**: Study of elementary particles and fundamental forces
+- **Astrophysics**: Application of physics to celestial objects and phenomena
+
+## Fundamental Forces
+
+Physics recognizes four fundamental forces:
+
+1. **Gravity**: Described by [[Isaac Newton]] and later by [[Albert Einstein]]'s [[General Relativity]]
+2. **Electromagnetism**: Governs electric and magnetic interactions
+3. **Strong Nuclear Force**: Holds atomic nuclei together
+4. **Weak Nuclear Force**: Responsible for radioactive decay
+
+## History
+
+The history of physics spans thousands of years, from ancient philosophy to modern experimental science:
+
+- Ancient Greek philosophers like [[Aristotle]] proposed early physical theories
+- [[Isaac Newton]] revolutionized physics with his laws of motion and [[Gravity]]
+- [[Albert Einstein]] introduced relativity, changing our understanding of space and time
+- Quantum mechanics emerged in the early 20th century
+
+## See also
+
+- [[Gravity]]
+- [[Isaac Newton]]
+- [[Albert Einstein]]
+- [[Mathematics]]
+- [[Science]]
+
+## References
+
+1. Feynman, Richard P. (1963). *The Feynman Lectures on Physics*.
+2. Halliday, David; Resnick, Robert; Walker, Jearl (2013). *Fundamentals of Physics*.
