@@ -94,6 +94,9 @@ const historyUrl = `/wiki/${slug}/history`;
       <a href={historyUrl}>History</a>
       <a href={editUrl} target="_blank">Edit</a>
       <a href={`/wiki/${slug}/backlinks`}>What links here</a>
+      <span class="toolbar-spacer"></span>
+      <button class="sidebar-toggle toolbar-toggle" aria-label="Toggle navigation">☰</button>
+      <button class="right-rail-toggle toolbar-toggle" aria-label="Toggle appearance settings">⚙</button>
     </nav>
 
     <h1 class="firstHeading">{page.data.title}</h1>

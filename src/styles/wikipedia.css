@@ -560,6 +560,7 @@ body {
   gap: 0;
   border-bottom: 1px solid var(--border-color-subtle);
   margin-bottom: 16px;
+  align-items: center;
 }
 
 .mw-article-toolbar a {
@@ -578,6 +579,48 @@ body {
 .mw-article-toolbar a.active {
   border-bottom-color: var(--color-link);
   color: var(--color-link);
+}
+
+/* Toolbar controls placement */
+.mw-article-toolbar .toolbar-spacer {
+  flex: 1 1 auto;
+}
+
+/* Override global toggle button styles when inside the toolbar */
+.mw-article-toolbar .sidebar-toggle,
+.mw-article-toolbar .right-rail-toggle {
+  /* display controlled by breakpoints below to mirror aside visibility */
+  position: static;               /* no fixed positioning in toolbar */
+  width: auto;
+  height: auto;
+  padding: 6px 10px;
+  margin-left: 8px;
+  font-size: 14px;
+  line-height: 1;
+  border: 1px solid var(--border-color-subtle);
+  border-bottom: none;            /* match tab look */
+  background: transparent;
+  border-radius: 3px 3px 0 0;
+  cursor: pointer;
+}
+
+.mw-article-toolbar .sidebar-toggle:hover,
+.mw-article-toolbar .right-rail-toggle:hover {
+  background: var(--background-color-interactive);
+}
+
+/* Show only when the corresponding aside is hidden by layout breakpoints */
+@media (max-width: 1700px) {
+  .mw-article-toolbar .right-rail-toggle { display: inline-flex; }
+}
+
+@media (max-width: 1500px) {
+  .mw-article-toolbar .sidebar-toggle { display: inline-flex; }
+}
+
+@media (max-width: 900px) {
+  .mw-article-toolbar .sidebar-toggle,
+  .mw-article-toolbar .right-rail-toggle { display: inline-flex; }
 }
 
 /* Scroll offset for anchor links (account for fixed header) */
