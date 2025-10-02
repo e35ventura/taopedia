@@ -5,10 +5,45 @@ const searchQuery = Astro.url.searchParams.get('q') || '';
 ---
 
 <WikiLayout title={searchQuery ? `Search results for "${searchQuery}"` : 'Search'}>
+  <div slot="sidebar" class="toc-sidebar">
+    <div class="toc-sidebar-inner">
+      <div class="toc-header">
+        <div class="toc-title">Search</div>
+        <button class="toc-hide" type="button" aria-label="Hide search navigation">hide</button>
+      </div>
+      <ul class="toc-list">
+        <li class="toc-level-2" data-toc-level="2" style="padding-left: 0px;">
+          <div class="toc-item-wrapper">
+            <span class="toc-spacer"></span>
+            <a href="#search-form" class="">
+              <span class="toc-number">1</span> Search
+            </a>
+          </div>
+        </li>
+        <li class="toc-level-2" data-toc-level="2" style="padding-left: 0px;">
+          <div class="toc-item-wrapper">
+            <span class="toc-spacer"></span>
+            <a href="#search-results" class="">
+              <span class="toc-number">2</span> Results
+            </a>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
   <div class="mw-body-content">
+    <nav class="mw-article-toolbar">
+      <a href="/search" class="active">Search</a>
+      <a href="/wiki/Special:AllPages">All pages</a>
+      <span class="toolbar-spacer"></span>
+      <button class="sidebar-toggle toolbar-toggle" aria-label="Toggle navigation">☰</button>
+      <button class="right-rail-toggle toolbar-toggle" aria-label="Toggle appearance settings">⚙</button>
+    </nav>
+
     <h1 class="firstHeading">Search results</h1>
 
-    <form action="/search" method="get" style="margin: 24px 0;">
+    <form id="search-form" action="/search" method="get" style="margin: 24px 0;">
       <input 
         type="search" 
         name="q" 

@@ -90,6 +90,18 @@ body {
 }
 
 /* Align header with content when sidebar is hidden */
+@media (max-width: 1500px) {
+  .mw-header-left {
+    width: 0;
+    padding-left: 0;
+  }
+  /* Keep the search area aligned with content padding */
+  .mw-header-center {
+    padding-left: 24px; /* matches .mw-body left padding */
+    padding-right: 24px;
+  }
+}
+
 @media (max-width: 900px) {
   .mw-header-left {
     width: 0;
@@ -141,10 +153,9 @@ body {
 .mw-content-container {
   max-width: var(--width-layout-max);
   margin: 0 auto;
-  display: flex;
-  justify-content: center;
   padding: 0 var(--padding-horizontal-page);
   position: relative;
+  min-height: calc(100vh - 50px);
 }
 
 /* Collapsed states (desktop): hide asides and let toolbar icons appear */
@@ -157,6 +168,23 @@ body.right-rail-collapsed .mw-right-rail {
   opacity: 0;
   pointer-events: none;
   transform: translateX(100%);
+}
+
+/* Clear collapsed transforms on mobile to allow overlay positioning */
+@media (max-width: 900px) {
+  body.sidebar-collapsed .mw-sidebar:not(.mobile-active),
+  body.right-rail-collapsed .mw-right-rail:not(.mobile-active) {
+    opacity: 0;
+    pointer-events: none;
+  }
+  
+  body.sidebar-collapsed .mw-sidebar:not(.mobile-active) {
+    transform: translateX(-100%);
+  }
+  
+  body.right-rail-collapsed .mw-right-rail:not(.mobile-active) {
+    transform: translateX(100%);
+  }
 }
 
 /* When collapsed by class, force toolbar toggles visible regardless of breakpoint */
@@ -248,46 +276,51 @@ body.right-rail-collapsed .mw-article-toolbar .right-rail-toggle { display: inli
 
 /* Sidebar - TOC Container */
 .mw-sidebar {
+  position: fixed;
+  left: max(var(--padding-horizontal-page), calc((100vw - var(--width-layout-max)) / 2));
+  top: 50px;
+  bottom: 0;
   width: var(--width-sidebar);
-  flex-shrink: 0;
   padding: 16px 8px;
-  margin-right: 24px;
   transition: opacity 0.3s ease, transform 0.3s ease;
+  z-index: 10;
+  overflow-y: auto;
 }
 
 .toc-sidebar {
-  position: sticky;
-  top: 66px;
-  max-height: calc(100vh - 82px);
-  overflow-y: auto;
+  height: 100%;
 }
 
 .toc-sidebar-inner {
   padding: 4px 0;
 }
 
-/* Main Content */
+/* Main Content - Always centered regardless of sidebars */
 .mw-body {
-  flex: 0 0 auto;
-  min-width: 0;
+  margin: 0 auto;
   padding: 0;
   max-width: var(--width-content-max);
   width: var(--width-content-max);
+  position: relative;
+  z-index: 1;
 }
 
 /* Right Rail (appears to the right of the article) */
 .mw-right-rail {
+  position: fixed;
+  right: max(var(--padding-horizontal-page), calc((100vw - var(--width-layout-max)) / 2));
+  top: 50px;
+  bottom: 0;
   width: var(--width-right-rail);
-  flex-shrink: 0;
   padding: 16px 0 16px 8px;
-  margin-left: 24px;
   transition: opacity 0.3s ease, transform 0.3s ease;
+  z-index: 10;
+  overflow-y: auto;
 }
 
 .mw-right-rail-inner {
-  position: sticky;
-  top: 66px;
   padding: 4px 0;
+  height: 100%;
 }
 
 .mw-right-rail .panel-header {
@@ -398,9 +431,9 @@ body.right-rail-collapsed .mw-article-toolbar .right-rail-toggle { display: inli
   display: block;
 }
 
-/* Mobile sidebar panel */
+/* Mobile sidebar panel - works for mobile and mid-size screens */
 .mw-sidebar.mobile-active {
-  position: fixed;
+  position: fixed !important;
   left: 0;
   top: 50px;
   bottom: 0;
@@ -409,9 +442,18 @@ body.right-rail-collapsed .mw-article-toolbar .right-rail-toggle { display: inli
   box-shadow: 2px 0 8px rgba(0,0,0,0.2);
   z-index: 100;
   overflow-y: auto;
-  transform: translateX(0);
+  transform: translateX(0) !important;
   transition: transform 0.3s ease;
   padding: 24px 16px;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* Mid-size screen adjustments for sidebar overlay */
+@media (min-width: 901px) and (max-width: 1500px) {
+  .mw-sidebar.mobile-active {
+    width: 320px; /* Slightly wider on mid-size screens */
+  }
 }
 
 .mw-sidebar.mobile-active .toc-sidebar {
@@ -420,9 +462,9 @@ body.right-rail-collapsed .mw-article-toolbar .right-rail-toggle { display: inli
   max-height: none;
 }
 
-/* Mobile right rail panel */
+/* Mobile right rail panel - works for mobile and mid-size screens */
 .mw-right-rail.mobile-active {
-  position: fixed;
+  position: fixed !important;
   right: 0;
   top: 50px;
   bottom: 0;
@@ -431,14 +473,25 @@ body.right-rail-collapsed .mw-article-toolbar .right-rail-toggle { display: inli
   box-shadow: -2px 0 8px rgba(0,0,0,0.2);
   z-index: 100;
   overflow-y: auto;
-  transform: translateX(0);
+  transform: translateX(0) !important;
   transition: transform 0.3s ease;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* Mid-size screen adjustments for right rail overlay */
+@media (min-width: 901px) and (max-width: 1700px) {
+  .mw-right-rail.mobile-active {
+    width: 340px; /* Slightly wider on mid-size screens */
+  }
 }
 
 /* Collapse sidebars on smaller screens or when article is wide */
 @media (max-width: 1700px) {
   .mw-right-rail:not(.mobile-active) {
-    display: none;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(100%);
   }
   
   .right-rail-toggle {
@@ -448,7 +501,9 @@ body.right-rail-collapsed .mw-article-toolbar .right-rail-toggle { display: inli
 
 @media (max-width: 1500px) {
   .mw-sidebar:not(.mobile-active) {
-    display: none;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-100%);
   }
   
   .sidebar-toggle {
@@ -555,16 +610,19 @@ body.right-rail-collapsed .mw-article-toolbar .right-rail-toggle { display: inli
   .mw-body.width-narrow {
     max-width: min(720px, calc(100vw - 48px));
     width: min(720px, calc(100vw - 48px));
+    margin: 0 auto;
   }
   
   .mw-body.width-standard {
     max-width: min(960px, calc(100vw - 48px));
     width: min(960px, calc(100vw - 48px));
+    margin: 0 auto;
   }
   
   .mw-body.width-wide {
     max-width: min(960px, calc(100vw - 48px));
     width: min(960px, calc(100vw - 48px));
+    margin: 0 auto;
   }
 }
 
@@ -1015,23 +1073,27 @@ body.right-rail-collapsed .mw-article-toolbar .right-rail-toggle { display: inli
 @media (max-width: 900px) {
   .mw-sidebar:not(.mobile-active),
   .mw-right-rail:not(.mobile-active) {
-    display: none;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-100%);
   }
   
-  .mw-content-container {
-    justify-content: flex-start;
+  .mw-right-rail:not(.mobile-active) {
+    transform: translateX(100%);
   }
   
   .mw-body {
-    width: 100%;
-    max-width: 100%;
+    width: calc(100vw - 48px);
+    max-width: calc(100vw - 48px);
+    margin: 0 auto;
   }
   
   .mw-body.width-narrow,
   .mw-body.width-standard,
   .mw-body.width-wide {
-    width: 100%;
-    max-width: 100%;
+    width: calc(100vw - 48px);
+    max-width: calc(100vw - 48px);
+    margin: 0 auto;
   }
   
   .sidebar-toggle,

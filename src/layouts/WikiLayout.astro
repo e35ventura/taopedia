@@ -430,8 +430,10 @@ const pageTitle = title ? `${title} - Taopedia` : 'Taopedia';
         const tocHideBtn = document.querySelector('.toc-hide');
         const rightRailHideBtn = document.querySelector('.mw-right-rail .panel-header button');
         
-        // Helper: is mobile layout
+        // Helper functions for responsive behavior
         function isMobile() { return window.matchMedia('(max-width: 900px)').matches; }
+        function isMidSize() { return window.matchMedia('(min-width: 901px) and (max-width: 1500px)').matches; }
+        function isRightRailHidden() { return window.matchMedia('(max-width: 1700px)').matches; }
 
         // Toggle sidebar
         if (sidebarToggle && sidebar && sidebarOverlay) {
@@ -440,8 +442,12 @@ const pageTitle = title ? `${title} - Taopedia` : 'Taopedia';
               // Mobile panel behavior
               sidebar.classList.toggle('mobile-active');
               sidebarOverlay.classList.toggle('active');
+            } else if (isMidSize()) {
+              // Mid-size: use mobile-style overlay but with desktop styling
+              sidebar.classList.toggle('mobile-active');
+              sidebarOverlay.classList.toggle('active');
             } else {
-              // Desktop collapse behavior
+              // Large desktop: collapse behavior
               document.body.classList.toggle('sidebar-collapsed');
             }
           });
@@ -456,9 +462,15 @@ const pageTitle = title ? `${title} - Taopedia` : 'Taopedia';
         if (rightRailToggle && rightRail && rightRailOverlay) {
           rightRailToggle.addEventListener('click', function() {
             if (isMobile()) {
+              // Mobile panel behavior
+              rightRail.classList.toggle('mobile-active');
+              rightRailOverlay.classList.toggle('active');
+            } else if (isRightRailHidden()) {
+              // Mid-size or mobile: use overlay behavior
               rightRail.classList.toggle('mobile-active');
               rightRailOverlay.classList.toggle('active');
             } else {
+              // Large desktop: collapse behavior
               document.body.classList.toggle('right-rail-collapsed');
             }
           });
@@ -469,36 +481,53 @@ const pageTitle = title ? `${title} - Taopedia` : 'Taopedia';
           });
         }
 
-        // TOC hide button collapses sidebar on desktop
+        // TOC hide button collapses sidebar
         if (tocHideBtn) {
           tocHideBtn.addEventListener('click', function() {
-            if (isMobile()) {
+            if (isMobile() || isMidSize()) {
               sidebar.classList.remove('mobile-active');
               sidebarOverlay.classList.remove('active');
+            } else {
+              document.body.classList.add('sidebar-collapsed');
             }
-            document.body.classList.add('sidebar-collapsed');
           });
         }
 
-        // Right rail panel hide button collapses right rail on desktop
+        // Right rail panel hide button collapses right rail
         if (rightRailHideBtn) {
           rightRailHideBtn.addEventListener('click', function() {
-            if (isMobile()) {
+            if (isMobile() || isRightRailHidden()) {
               rightRail.classList.remove('mobile-active');
               rightRailOverlay.classList.remove('active');
+            } else {
+              document.body.classList.add('right-rail-collapsed');
             }
-            document.body.classList.add('right-rail-collapsed');
           });
         }
 
-        // Clear collapse classes at responsive breakpoints if needed
+        // Clear collapse classes and overlays when switching between responsive modes
         const mq900 = window.matchMedia('(max-width: 900px)');
-        mq900.addEventListener('change', () => {
-          if (mq900.matches) {
-            // entering mobile: collapse classes not needed
-            document.body.classList.remove('sidebar-collapsed', 'right-rail-collapsed');
+        const mq1500 = window.matchMedia('(max-width: 1500px)');
+        const mq1700 = window.matchMedia('(max-width: 1700px)');
+        
+        function handleResponsiveChange() {
+          // Clear any active overlays and collapse states when switching modes
+          sidebar.classList.remove('mobile-active');
+          rightRail.classList.remove('mobile-active');
+          sidebarOverlay.classList.remove('active');
+          rightRailOverlay.classList.remove('active');
+          
+          if (mq900.matches || mq1500.matches) {
+            document.body.classList.remove('sidebar-collapsed');
           }
-        });
+          if (mq900.matches || mq1700.matches) {
+            document.body.classList.remove('right-rail-collapsed');
+          }
+        }
+        
+        mq900.addEventListener('change', handleResponsiveChange);
+        mq1500.addEventListener('change', handleResponsiveChange);
+        mq1700.addEventListener('change', handleResponsiveChange);
         
         // Set initial state
         articleBody.classList.add('text-standard', 'width-standard');
