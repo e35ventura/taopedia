@@ -147,6 +147,22 @@ body {
   position: relative;
 }
 
+/* Collapsed states (desktop): hide asides and let toolbar icons appear */
+body.sidebar-collapsed .mw-sidebar { 
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-100%);
+}
+body.right-rail-collapsed .mw-right-rail { 
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(100%);
+}
+
+/* When collapsed by class, force toolbar toggles visible regardless of breakpoint */
+body.sidebar-collapsed .mw-article-toolbar .sidebar-toggle { display: inline-flex !important; }
+body.right-rail-collapsed .mw-article-toolbar .right-rail-toggle { display: inline-flex !important; }
+
 /* Navigation Dropdown in Header */
 .nav-dropdown-container {
   position: relative;
@@ -236,6 +252,7 @@ body {
   flex-shrink: 0;
   padding: 16px 8px;
   margin-right: 24px;
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .toc-sidebar {
@@ -264,6 +281,7 @@ body {
   flex-shrink: 0;
   padding: 16px 0 16px 8px;
   margin-left: 24px;
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .mw-right-rail-inner {
@@ -740,6 +758,16 @@ body {
   margin-bottom: 8px;
   padding-bottom: 8px;
   border-bottom: 1px solid #c8ccd1;
+}
+
+.toc-header .toc-title { flex: 1 1 auto; }
+.toc-header .toc-hide {
+  border: 1px solid var(--border-color-subtle);
+  background: var(--background-color-interactive);
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 2px;
+  cursor: pointer;
 }
 
 .toc-title {

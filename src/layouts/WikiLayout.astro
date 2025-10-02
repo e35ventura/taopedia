@@ -427,12 +427,23 @@ const pageTitle = title ? `${title} - Taopedia` : 'Taopedia';
         const rightRailToggle = document.querySelector('.right-rail-toggle');
         const rightRail = document.querySelector('.mw-right-rail');
         const rightRailOverlay = document.querySelector('.right-rail-overlay');
+        const tocHideBtn = document.querySelector('.toc-hide');
+        const rightRailHideBtn = document.querySelector('.mw-right-rail .panel-header button');
         
+        // Helper: is mobile layout
+        function isMobile() { return window.matchMedia('(max-width: 900px)').matches; }
+
         // Toggle sidebar
         if (sidebarToggle && sidebar && sidebarOverlay) {
           sidebarToggle.addEventListener('click', function() {
-            sidebar.classList.toggle('mobile-active');
-            sidebarOverlay.classList.toggle('active');
+            if (isMobile()) {
+              // Mobile panel behavior
+              sidebar.classList.toggle('mobile-active');
+              sidebarOverlay.classList.toggle('active');
+            } else {
+              // Desktop collapse behavior
+              document.body.classList.toggle('sidebar-collapsed');
+            }
           });
           
           sidebarOverlay.addEventListener('click', function() {
@@ -444,8 +455,12 @@ const pageTitle = title ? `${title} - Taopedia` : 'Taopedia';
         // Toggle right rail
         if (rightRailToggle && rightRail && rightRailOverlay) {
           rightRailToggle.addEventListener('click', function() {
-            rightRail.classList.toggle('mobile-active');
-            rightRailOverlay.classList.toggle('active');
+            if (isMobile()) {
+              rightRail.classList.toggle('mobile-active');
+              rightRailOverlay.classList.toggle('active');
+            } else {
+              document.body.classList.toggle('right-rail-collapsed');
+            }
           });
           
           rightRailOverlay.addEventListener('click', function() {
@@ -453,6 +468,37 @@ const pageTitle = title ? `${title} - Taopedia` : 'Taopedia';
             rightRailOverlay.classList.remove('active');
           });
         }
+
+        // TOC hide button collapses sidebar on desktop
+        if (tocHideBtn) {
+          tocHideBtn.addEventListener('click', function() {
+            if (isMobile()) {
+              sidebar.classList.remove('mobile-active');
+              sidebarOverlay.classList.remove('active');
+            }
+            document.body.classList.add('sidebar-collapsed');
+          });
+        }
+
+        // Right rail panel hide button collapses right rail on desktop
+        if (rightRailHideBtn) {
+          rightRailHideBtn.addEventListener('click', function() {
+            if (isMobile()) {
+              rightRail.classList.remove('mobile-active');
+              rightRailOverlay.classList.remove('active');
+            }
+            document.body.classList.add('right-rail-collapsed');
+          });
+        }
+
+        // Clear collapse classes at responsive breakpoints if needed
+        const mq900 = window.matchMedia('(max-width: 900px)');
+        mq900.addEventListener('change', () => {
+          if (mq900.matches) {
+            // entering mobile: collapse classes not needed
+            document.body.classList.remove('sidebar-collapsed', 'right-rail-collapsed');
+          }
+        });
         
         // Set initial state
         articleBody.classList.add('text-standard', 'width-standard');
