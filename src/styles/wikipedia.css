@@ -277,7 +277,7 @@ body.right-rail-collapsed .mw-article-toolbar .right-rail-toggle { display: inli
 /* Sidebar - TOC Container */
 .mw-sidebar {
   position: fixed;
-  left: max(var(--padding-horizontal-page), calc((100vw - var(--width-layout-max)) / 2));
+  left: max(16px, calc((100vw - var(--width-layout-max)) / 2 + 16px));
   top: 50px;
   bottom: 0;
   width: var(--width-sidebar);
@@ -285,6 +285,39 @@ body.right-rail-collapsed .mw-article-toolbar .right-rail-toggle { display: inli
   transition: opacity 0.3s ease, transform 0.3s ease;
   z-index: 10;
   overflow-y: auto;
+}
+
+/* Closer positioning on larger screens */
+@media (min-width: 1400px) {
+  .mw-sidebar {
+    left: calc((100vw - var(--width-content-max)) / 2 - var(--width-sidebar) - 32px);
+  }
+  
+  .mw-right-rail {
+    right: calc((100vw - var(--width-content-max)) / 2 - var(--width-right-rail) - 32px);
+  }
+}
+
+/* Even closer on very large screens */
+@media (min-width: 1800px) {
+  .mw-sidebar {
+    left: calc((100vw - var(--width-content-max)) / 2 - var(--width-sidebar) - 24px);
+  }
+  
+  .mw-right-rail {
+    right: calc((100vw - var(--width-content-max)) / 2 - var(--width-right-rail) - 24px);
+  }
+}
+
+/* Moderate spacing on medium-large screens */
+@media (min-width: 1200px) and (max-width: 1399px) {
+  .mw-sidebar {
+    left: calc((100vw - var(--width-layout-max)) / 2 + 8px);
+  }
+  
+  .mw-right-rail {
+    right: calc((100vw - var(--width-layout-max)) / 2 + 8px);
+  }
 }
 
 .toc-sidebar {
@@ -308,7 +341,7 @@ body.right-rail-collapsed .mw-article-toolbar .right-rail-toggle { display: inli
 /* Right Rail (appears to the right of the article) */
 .mw-right-rail {
   position: fixed;
-  right: max(var(--padding-horizontal-page), calc((100vw - var(--width-layout-max)) / 2));
+  right: max(16px, calc((100vw - var(--width-layout-max)) / 2 + 16px));
   top: 50px;
   bottom: 0;
   width: var(--width-right-rail);
@@ -669,20 +702,39 @@ body.right-rail-collapsed .mw-article-toolbar .right-rail-toggle { display: inli
   position: static;               /* no fixed positioning in toolbar */
   width: auto;
   height: auto;
-  padding: 6px 10px;
-  margin-left: 8px;
-  font-size: 14px;
+  padding: 8px 10px;
+  margin-left: 10px;
+  font-size: 20px;
   line-height: 1;
-  border: 1px solid var(--border-color-subtle);
-  border-bottom: none;            /* match tab look */
-  background: transparent;
-  border-radius: 3px 3px 0 0;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none;
   cursor: pointer;
+  color: #54595d;
+  opacity: 0.7;
+  transition: opacity 0.2s ease, color 0.2s ease;
+  font-weight: 400;
+}
+
+/* Remove left margin when sidebar toggle is first element */
+.mw-article-toolbar .sidebar-toggle:first-child {
+  margin-left: 0;
+  margin-right: 12px;
 }
 
 .mw-article-toolbar .sidebar-toggle:hover,
 .mw-article-toolbar .right-rail-toggle:hover {
-  background: var(--background-color-interactive);
+  color: var(--color-link);
+  opacity: 1;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.mw-article-toolbar .sidebar-toggle:active,
+.mw-article-toolbar .right-rail-toggle:active {
+  opacity: 0.5;
 }
 
 /* Show only when the corresponding aside is hidden by layout breakpoints */

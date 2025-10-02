@@ -34,10 +34,10 @@ const searchQuery = Astro.url.searchParams.get('q') || '';
 
   <div class="mw-body-content">
     <nav class="mw-article-toolbar">
+      <button class="sidebar-toggle toolbar-toggle" aria-label="Toggle navigation">☰</button>
       <a href="/search" class="active">Search</a>
       <a href="/wiki/Special:AllPages">All pages</a>
       <span class="toolbar-spacer"></span>
-      <button class="sidebar-toggle toolbar-toggle" aria-label="Toggle navigation">☰</button>
       <button class="right-rail-toggle toolbar-toggle" aria-label="Toggle appearance settings">⚙</button>
     </nav>
 
