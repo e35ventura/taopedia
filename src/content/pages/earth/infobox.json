@@ -1,6 +1,7 @@
 {
   "title": "Earth",
-  "caption": "Key facts about Earth",
+  "caption": "The Blue Marble (Apollo 17)",
+  "image": "https://commons.wikimedia.org/wiki/Special:FilePath/The%20Earth%20seen%20from%20Apollo%2017.jpg",
   "rows": [
     { "label": "Type", "value": "Terrestrial planet" },
     { "label": "Orbital period", "value": "~365.25 days" },

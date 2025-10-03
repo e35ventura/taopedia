@@ -1,6 +1,7 @@
 {
   "title": "Gravity",
-  "caption": "Key facts about gravity",
+  "caption": "Spacetime curvature (relativistic gravity)",
+  "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Relativistic%20gravity%20field%20(physics).svg",
   "rows": [
     { "label": "Nature", "value": "Fundamental interaction" },
     { "label": "Described by", "value": "Newton's universal gravitation; Einstein's general relativity" },

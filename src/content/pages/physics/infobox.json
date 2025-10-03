@@ -1,6 +1,7 @@
 {
   "title": "Physics",
-  "caption": "Key facts about the field of physics",
+  "caption": "Atom diagram (schematic)",
+  "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Atom%20Diagram.svg",
   "rows": [
     { "label": "Field", "value": "Natural science" },
     { "label": "Branches", "value": "Classical mechanics; Electromagnetism; Thermodynamics; Optics; Quantum mechanics; Relativity; Particle physics; Astrophysics" },

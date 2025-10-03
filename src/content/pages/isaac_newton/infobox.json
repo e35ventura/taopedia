@@ -1,6 +1,7 @@
 {
   "title": "Isaac Newton",
-  "caption": "Key facts about Isaac Newton",
+  "caption": "Portrait of Sir Isaac Newton (Charles Jervas)",
+  "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Portrait%20of%20Isaac%20Newton%20(1642-1727)%20-%20Charles%20Jervas.jpg",
   "rows": [
     { "label": "Occupation", "value": "Mathematician; Physicist; Astronomer" },
     { "label": "Born", "value": "25 December 1642 (OS) / 4 January 1643 (NS)" },
