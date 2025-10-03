@@ -17,6 +17,24 @@ export async function getStaticPaths() {
 const { page, slug } = Astro.props;
 const { Content, headings } = await page.render();
 
+// Try to load per-article infobox.json if present
+const infoboxModules = import.meta.glob('../../content/pages/**/infobox.json', { eager: true }) as Record<string, any>;
+let infobox: any = null;
+for (const [p, mod] of Object.entries(infoboxModules)) {
+  if (p.endsWith(`/${slug}/infobox.json`)) {
+    infobox = (mod && (mod.default ?? mod)) as any;
+    break;
+  }
+}
+
+// Compose a unified infobox object with fallback to frontmatter
+const ib = {
+  title: infobox?.title ?? page.data.infoboxTitle,
+  image: infobox?.image ?? page.data.infoboxImage,
+  caption: infobox?.caption ?? page.data.infoboxCaption,
+  rows: infobox?.rows ?? page.data.infoboxRows,
+};
+
 // Load backlinks data
 let backlinks = [];
 try {
@@ -109,6 +127,32 @@ const historyUrl = `/wiki/${slug}/history`;
     )}
 
     <div class="mw-parser-output">
+      {/** Infobox (prefer per-article file) */}
+      {(ib.title || ib.image || (ib.rows && ib.rows.length > 0)) && (
+        <aside class="infobox">
+          {ib.title && (
+            <div class="infobox-title">{ib.title}</div>
+          )}
+          {ib.image && (
+            <img class="infobox-image" src={ib.image} alt={ib.title || page.data.title} />
+          )}
+          {ib.caption && (
+            <div style="font-size: 12px; padding: 6px 12px; color: #54595d;">{ib.caption}</div>
+          )}
+          {ib.rows && ib.rows.length > 0 && (
+            <table class="infobox-table">
+              <tbody>
+                {ib.rows.map((row: { label: string; value: string }) => (
+                  <tr>
+                    <th>{row.label}</th>
+                    <td set:html={row.value} />
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </aside>
+      )}
       <Content />
     </div>
 
@@ -135,3 +179,4 @@ const historyUrl = `/wiki/${slug}/history`;
     )}
   </div>
 </WikiLayout>
+

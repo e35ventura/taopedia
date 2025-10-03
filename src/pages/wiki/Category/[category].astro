@@ -154,19 +154,15 @@ const pageTitle = `Category:${categoryName}`;
     color: var(--color-base-subtle);
     font-size: 13px;
     line-height: 1.4;
-    flex: 1;
+    /* Let content size naturally and wrap as needed */
+    flex: 0 0 auto;
     margin: 0;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow-wrap: anywhere; /* allows breaking long words/URLs */
+    word-break: break-word;  /* fallback for other engines */
+    hyphens: auto;
   }
   
-  /* Allow more text to show when text size is large */
-  .mw-body.text-large .category-page-summary {
-    -webkit-line-clamp: 4;
-  }
+  /* When text size is large, let it continue to wrap without truncation */
   
   /* Responsive breakpoints */
   @media (max-width: 900px) {
@@ -206,7 +202,6 @@ const pageTitle = `Category:${categoryName}`;
     
     .category-page-summary {
       font-size: 12px;
-      -webkit-line-clamp: 2;
     }
   }
   

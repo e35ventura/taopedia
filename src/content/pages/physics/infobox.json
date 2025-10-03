@@ -1,0 +1,9 @@
+{
+  "title": "Physics",
+  "caption": "Key facts about the field of physics",
+  "rows": [
+    { "label": "Field", "value": "Natural science" },
+    { "label": "Branches", "value": "Classical mechanics; Electromagnetism; Thermodynamics; Optics; Quantum mechanics; Relativity; Particle physics; Astrophysics" },
+    { "label": "Fundamental forces", "value": "Gravity; Electromagnetism; Strong nuclear; Weak nuclear" }
+  ]
+}

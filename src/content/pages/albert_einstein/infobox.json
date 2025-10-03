@@ -1,0 +1,11 @@
+{
+  "title": "Albert Einstein",
+  "caption": "Key facts about Albert Einstein",
+  "rows": [
+    { "label": "Occupation", "value": "Theoretical physicist" },
+    { "label": "Born", "value": "14 March 1879" },
+    { "label": "Died", "value": "18 April 1955" },
+    { "label": "Known for", "value": "Special relativity; General relativity; Photoelectric effect; E = mc²" },
+    { "label": "Nationality", "value": "German-born; later American citizen" }
+  ]
+}

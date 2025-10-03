@@ -10,6 +10,18 @@ const pages = defineCollection({
     redirects: z.array(z.string()).optional(),
     draft: z.boolean().optional().default(false),
     featured: z.boolean().optional().default(false),
+    // Optional Wikipedia-like infobox metadata
+    infoboxTitle: z.string().optional(),
+    infoboxImage: z.string().optional(), // URL or public path for now
+    infoboxCaption: z.string().optional(),
+    infoboxRows: z
+      .array(
+        z.object({
+          label: z.string(),
+          value: z.string(),
+        })
+      )
+      .optional(),
   }),
 });
 

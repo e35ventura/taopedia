@@ -1,0 +1,11 @@
+{
+  "title": "Earth",
+  "caption": "Key facts about Earth",
+  "rows": [
+    { "label": "Type", "value": "Terrestrial planet" },
+    { "label": "Orbital period", "value": "~365.25 days" },
+    { "label": "Moons", "value": "1 (Moon)" },
+    { "label": "Equatorial diameter", "value": "~12,742 km" },
+    { "label": "Mass", "value": "5.97 × 10^24 kg" }
+  ]
+}
