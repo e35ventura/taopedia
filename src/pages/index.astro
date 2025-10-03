@@ -143,6 +143,12 @@ const featuredPage = pages[Math.floor(Math.random() * pages.length)];
         height: auto;
       }
 
+      /* Match header style for larger T and A letters */
+      .logo-letter-large {
+        font-size: 1.2em;
+        font-weight: 500;
+      }
+
       .portal-tagline {
         font-size: 16px;
         color: #54595d;
@@ -456,7 +462,9 @@ const featuredPage = pages[Math.floor(Math.random() * pages.length)];
       <!-- Header -->
       <div class="portal-header">
         <a href="/" class="portal-logo">
-          TAOPEDIA
+          <span class="portal-logo-text">
+            <span class="logo-letter-large">T</span>AOPEDI<span class="logo-letter-large">A</span>
+          </span>
         </a>
         <div class="portal-tagline">The Free Encyclopedia</div>
       </div>
