@@ -90,6 +90,8 @@ const historyUrl = `/wiki/${slug}/history`;
   )}
 
   <div class="mw-body-content">
+    <h1 class="firstHeading">{page.data.title}</h1>
+
     <nav class="mw-article-toolbar">
       <button class="sidebar-toggle toolbar-toggle" aria-label="Toggle navigation">☰</button>
       <a href={`/wiki/${slug}`} class="active">Article</a>
@@ -99,8 +101,6 @@ const historyUrl = `/wiki/${slug}/history`;
       <span class="toolbar-spacer"></span>
       <button class="right-rail-toggle toolbar-toggle" aria-label="Toggle appearance settings">⚙</button>
     </nav>
-
-    <h1 class="firstHeading">{page.data.title}</h1>
 
     {page.data.summary && (
       <div class="mw-article-summary" style="font-style: italic; margin-bottom: 16px; color: var(--color-base-subtle);">

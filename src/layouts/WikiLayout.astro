@@ -433,7 +433,20 @@ const pageTitle = title ? `${title} - Taopedia` : 'Taopedia';
         // Helper functions for responsive behavior
         function isMobile() { return window.matchMedia('(max-width: 900px)').matches; }
         function isMidSize() { return window.matchMedia('(min-width: 901px) and (max-width: 1500px)').matches; }
-        function isRightRailHidden() { return window.matchMedia('(max-width: 1700px)').matches; }
+        function currentWidthMode() {
+          if (document.body.classList.contains('content-width-wide')) return 'wide';
+          if (document.body.classList.contains('content-width-narrow')) return 'narrow';
+          return 'standard';
+        }
+        function rightRailThresholdPx() {
+          const mode = currentWidthMode();
+          if (mode === 'wide') return 1850;    // Needs more room for 1200px article + rails
+          if (mode === 'narrow') return 1350;  // 720px article
+          return 1500;                          // 960px article (default)
+        }
+        function isRightRailHidden() {
+          return window.matchMedia(`(max-width: ${rightRailThresholdPx()}px)`).matches;
+        }
 
         // Toggle sidebar
         if (sidebarToggle && sidebar && sidebarOverlay) {
@@ -507,8 +520,9 @@ const pageTitle = title ? `${title} - Taopedia` : 'Taopedia';
 
         // Clear collapse classes and overlays when switching between responsive modes
         const mq900 = window.matchMedia('(max-width: 900px)');
+        const mq1350 = window.matchMedia('(max-width: 1350px)');
         const mq1500 = window.matchMedia('(max-width: 1500px)');
-        const mq1700 = window.matchMedia('(max-width: 1700px)');
+        const mq1850 = window.matchMedia('(max-width: 1850px)');
         
         function handleResponsiveChange() {
           // Clear any active overlays and collapse states when switching modes
@@ -520,17 +534,19 @@ const pageTitle = title ? `${title} - Taopedia` : 'Taopedia';
           if (mq900.matches || mq1500.matches) {
             document.body.classList.remove('sidebar-collapsed');
           }
-          if (mq900.matches || mq1700.matches) {
+          if (mq900.matches || mq1350.matches || mq1850.matches) {
             document.body.classList.remove('right-rail-collapsed');
           }
         }
         
         mq900.addEventListener('change', handleResponsiveChange);
+        mq1350.addEventListener('change', handleResponsiveChange);
         mq1500.addEventListener('change', handleResponsiveChange);
-        mq1700.addEventListener('change', handleResponsiveChange);
+        mq1850.addEventListener('change', handleResponsiveChange);
         
         // Set initial state
         articleBody.classList.add('text-standard', 'width-standard');
+        document.body.classList.add('content-width-standard');
         
         // Text size controls
         textRadios.forEach(radio => {
@@ -553,8 +569,10 @@ const pageTitle = title ? `${title} - Taopedia` : 'Taopedia';
             if (this.checked) {
               // Remove all width classes
               articleBody.classList.remove('width-narrow', 'width-standard', 'width-wide');
+              document.body.classList.remove('content-width-narrow', 'content-width-standard', 'content-width-wide');
               // Add the selected width class
               articleBody.classList.add('width-' + this.value);
+              document.body.classList.add('content-width-' + this.value);
               
               // Store preference in localStorage
               localStorage.setItem('taopedia-width', this.value);
@@ -580,6 +598,8 @@ const pageTitle = title ? `${title} - Taopedia` : 'Taopedia';
             savedRadio.checked = true;
             articleBody.classList.remove('width-narrow', 'width-standard', 'width-wide');
             articleBody.classList.add('width-' + savedWidth);
+            document.body.classList.remove('content-width-narrow', 'content-width-standard', 'content-width-wide');
+            document.body.classList.add('content-width-' + savedWidth);
           }
         }
       });
