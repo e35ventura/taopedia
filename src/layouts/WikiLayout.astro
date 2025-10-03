@@ -522,19 +522,22 @@ const pageTitle = title ? `${title} - Taopedia` : 'Taopedia';
         const mq900 = window.matchMedia('(max-width: 900px)');
         const mq1350 = window.matchMedia('(max-width: 1350px)');
         const mq1500 = window.matchMedia('(max-width: 1500px)');
+        const mq1700 = window.matchMedia('(max-width: 1700px)');
         const mq1850 = window.matchMedia('(max-width: 1850px)');
         
         function handleResponsiveChange() {
-          // Clear any active overlays and collapse states when switching modes
+          // Always clear active overlays when switching modes
           sidebar.classList.remove('mobile-active');
           rightRail.classList.remove('mobile-active');
           sidebarOverlay.classList.remove('active');
           rightRailOverlay.classList.remove('active');
-          
-          if (mq900.matches || mq1500.matches) {
+
+          // If we're in any overlay mode for the sidebar (<=1500) clear collapsed state
+          if (isMobile() || mq1500.matches) {
             document.body.classList.remove('sidebar-collapsed');
           }
-          if (mq900.matches || mq1350.matches || mq1850.matches) {
+          // If right rail should be overlay (based on dynamic threshold), clear collapsed state
+          if (isMobile() || isRightRailHidden()) {
             document.body.classList.remove('right-rail-collapsed');
           }
         }
@@ -542,6 +545,7 @@ const pageTitle = title ? `${title} - Taopedia` : 'Taopedia';
         mq900.addEventListener('change', handleResponsiveChange);
         mq1350.addEventListener('change', handleResponsiveChange);
         mq1500.addEventListener('change', handleResponsiveChange);
+        mq1700.addEventListener('change', handleResponsiveChange);
         mq1850.addEventListener('change', handleResponsiveChange);
         
         // Set initial state
