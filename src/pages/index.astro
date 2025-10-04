@@ -15,14 +15,25 @@ try {
 
 // Get top categories for the circular portal and full list for the grid
 const topCategories = Object.entries(categoryIndex)
-  .sort((a: any, b: any) => b[1].length - a[1].length)
+  .sort((a: any, b: any) => {
+    const diff = b[1].length - a[1].length;
+    if (diff !== 0) return diff;
+    return String(a[0]).localeCompare(String(b[0]));
+  })
   .slice(0, 12);
 
 const allCategories = Object.entries(categoryIndex)
-  .sort((a: any, b: any) => b[1].length - a[1].length);
+  .sort((a: any, b: any) => {
+    const diff = b[1].length - a[1].length;
+    if (diff !== 0) return diff;
+    return String(a[0]).localeCompare(String(b[0]));
+  });
 
-// Get a random featured article
-const featuredPage = pages[Math.floor(Math.random() * pages.length)];
+// Configurable counts
+const categoryGridCount = 6; // show top N categories in the grid
+
+// Pick 2 random featured articles
+const featuredPages = [...pages].sort(() => 0.5 - Math.random()).slice(0, 2);
 ---
 
 <!doctype html>
@@ -228,6 +239,21 @@ const featuredPage = pages[Math.floor(Math.random() * pages.length)];
         gap: 12px;
       }
 
+      .see-more {
+        margin-top: 12px;
+        text-align: right;
+      }
+
+      .see-more a {
+        color: #3366cc;
+        font-weight: 600;
+        text-decoration: none;
+      }
+
+      .see-more a:hover {
+        text-decoration: underline;
+      }
+
       .category-item {
         padding: 8px 12px;
         background: #f8f9fa;
@@ -257,35 +283,35 @@ const featuredPage = pages[Math.floor(Math.random() * pages.length)];
         color: #54595d;
       }
 
-      /* Featured article */
-      .featured-article {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
+      /* Featured articles */
+      .featured-list {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
       }
 
-      .featured-article h3 {
+      .featured-item h3 {
         margin: 0;
         font-size: 18px;
       }
 
-      .featured-article h3 a {
+      .featured-item h3 a {
         color: #3366cc;
         text-decoration: none;
       }
 
-      .featured-article h3 a:hover {
+      .featured-item h3 a:hover {
         text-decoration: underline;
       }
 
-      .featured-article p {
+      .featured-item p {
         margin: 0;
         color: #202122;
         line-height: 1.6;
         font-size: 14px;
       }
 
-      .featured-article .read-more {
+      .featured-item .read-more {
         color: #3366cc;
         text-decoration: none;
         font-size: 14px;
@@ -520,25 +546,32 @@ const featuredPage = pages[Math.floor(Math.random() * pages.length)];
         <div class="portal-section">
           <h2>Browse by Category</h2>
           <div class="categories-grid">
-            {allCategories.map(([cat, articles]: [string, any]) => (
+            {topCategories.slice(0, categoryGridCount).map(([cat, articles]: [string, any]) => (
               <div class="category-item">
                 <a href={`/wiki/Category/${cat.replace(/ /g, '_')}`}>{cat}</a>
                 <div class="category-count">{articles.length} article{articles.length !== 1 ? 's' : ''}</div>
               </div>
             ))}
           </div>
+          <div class="see-more">
+            <a href="/wiki/Special/Categories" aria-label="See all categories">See all categories →</a>
+          </div>
         </div>
 
         <!-- Featured article -->
-        {featuredPage && (
+        {featuredPages.length > 0 && (
           <div class="portal-section">
-            <h2>Featured Article</h2>
-            <div class="featured-article">
-              <h3><a href={`/wiki/${featuredPage.slug}`}>{featuredPage.data.title}</a></h3>
-              {featuredPage.data.summary && (
-                <p>{featuredPage.data.summary}</p>
-              )}
-              <a href={`/wiki/${featuredPage.slug}`} class="read-more">Read more →</a>
+            <h2>Featured Articles</h2>
+            <div class="featured-list">
+              {featuredPages.map((fp) => (
+                <div class="featured-item">
+                  <h3><a href={`/wiki/${fp.slug}`}>{fp.data.title}</a></h3>
+                  {fp.data.summary && (
+                    <p>{fp.data.summary}</p>
+                  )}
+                  <a href={`/wiki/${fp.slug}`} class="read-more">Read more →</a>
+                </div>
+              ))}
             </div>
           </div>
         )}

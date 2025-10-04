@@ -36,13 +36,18 @@ const ib = {
 };
 
 // Load backlinks data
-let backlinks = [];
+let backlinks = [] as any[];
 try {
   const backlinkData = await import('../../../public/data/backlinks.json');
   backlinks = backlinkData.default[slug] || [];
 } catch (e) {
   // Backlinks not yet generated
 }
+
+// Deduplicate backlinks by source slug
+const uniqueBacklinks = Array.from(
+  new Map(backlinks.map((b: any) => [b.from, b])).values()
+);
 
 // Load slug map for broken link detection
 let slugMap = {};
@@ -170,11 +175,11 @@ const historyUrl = `/wiki/${slug}/history`;
       </div>
     )}
 
-    {backlinks.length > 0 && (
+    {uniqueBacklinks.length > 0 && (
       <details style="margin-top: 24px; padding: 12px; background: var(--background-color-interactive); border: 1px solid var(--border-color-subtle); font-size: 13px;">
-        <summary style="cursor: pointer; font-weight: 600;">What links here ({backlinks.length})</summary>
+        <summary style="cursor: pointer; font-weight: 600;">What links here ({uniqueBacklinks.length})</summary>
         <ul style="margin: 8px 0 0 0; padding: 0 0 0 20px;">
-          {backlinks.map((link: any) => (
+          {uniqueBacklinks.map((link: any) => (
             <li>
               <a href={`/wiki/${link.from}`}>{link.fromTitle}</a>
             </li>
@@ -185,3 +190,25 @@ const historyUrl = `/wiki/${slug}/history`;
   </div>
 </WikiLayout>
 
+<script is:inline>
+  // Unlink wiki links that point to non-existent pages
+  // slugMap is loaded on the server above; serialize it for client-side checks
+  const __slugMap = /** @type {Record<string, any>} */ (JSON.parse('{JSON.stringify(slugMap)}'));
+  document.addEventListener('DOMContentLoaded', () => {
+    const container = document.querySelector('.mw-parser-output');
+    if (!container) return;
+    const anchors = container.querySelectorAll('a.internal');
+    anchors.forEach((a) => {
+      const href = a.getAttribute('href') || '';
+      // Expect /wiki/<slug>
+      const m = href.match(/^\/wiki\/(.+)$/);
+      const slug = m ? m[1] : null;
+      const isMissing = !slug || !Object.prototype.hasOwnProperty.call(__slugMap, slug);
+      if (isMissing) {
+        const span = document.createElement('span');
+        span.textContent = a.textContent || '';
+        a.replaceWith(span);
+      }
+    });
+  });
+</script>

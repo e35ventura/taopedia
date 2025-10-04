@@ -1,20 +1,35 @@
-// @ts-check
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
+import remarkWikiLink from 'remark-wiki-link';
 
 // https://astro.build/config
 export default defineConfig({
   site: 'https://taopedia.org',
-  integrations: [mdx()],
+  integrations: [
+    mdx({
+      remarkPlugins: [
+        [
+          remarkWikiLink,
+          {
+            pageResolver: (name) => [name.toLowerCase().replace(/ /g, '_')],
+            hrefTemplate: (permalink) => `/wiki/${permalink}`,
+          },
+        ],
+      ],
+    }),
+  ],
   markdown: {
     remarkPlugins: [
-      ['remark-wiki-link', { 
-        pageResolver: (name) => [name.toLowerCase().replace(/ /g, '_')],
-        hrefTemplate: (permalink) => `/wiki/${permalink}`
-      }]
+      [
+        remarkWikiLink,
+        {
+          pageResolver: (name) => [name.toLowerCase().replace(/ /g, '_')],
+          hrefTemplate: (permalink) => `/wiki/${permalink}`,
+        },
+      ],
     ],
     shikiConfig: {
-      theme: 'github-light'
-    }
-  }
+      theme: 'github-light',
+    },
+  },
 });

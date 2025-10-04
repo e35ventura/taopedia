@@ -26,7 +26,7 @@ const categoryPages = pages.filter(page =>
   page.data.categories?.includes(categoryName)
 );
 
-const pageTitle = `Category:${categoryName}`;
+const pageTitle = `Category: ${categoryName}`;
 ---
 
 <WikiLayout title={pageTitle}>
@@ -66,7 +66,7 @@ const pageTitle = `Category:${categoryName}`;
       <button class="right-rail-toggle toolbar-toggle" aria-label="Toggle appearance settings">⚙</button>
     </nav>
 
-    <h1 class="firstHeading">Category:{categoryName}</h1>
+    <h1 class="firstHeading">Category: {categoryName}</h1>
     
     <div class="mw-parser-output">
       <p>This category contains articles related to <strong>{categoryName}</strong>.</p>
