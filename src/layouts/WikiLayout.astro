@@ -178,6 +178,52 @@ const pageTitle = title ? `${title} - Taopedia` : 'Taopedia';
           font-size: 1.1em;
         }
       }
+
+      /* Shared UI components */
+      .categories-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-top: 8px;
+      }
+      .category-item {
+        padding: 8px 12px;
+        background: var(--background-color-interactive);
+        border: 1px solid var(--border-color-subtle);
+        border-radius: 2px;
+      }
+      .category-item a {
+        color: var(--color-link);
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .category-item a:hover { text-decoration: underline; }
+      .category-count { font-size: 12px; color: var(--color-base-subtle); margin-top: 2px; }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+      }
+      .stat-item {
+        text-align: center;
+        padding: 16px;
+        background: var(--background-color-interactive);
+        border: 1px solid var(--border-color-subtle);
+        border-radius: 2px;
+      }
+      .stat-number {
+        font-size: 28px;
+        font-weight: 600;
+        color: var(--color-link);
+        font-family: var(--font-family-serif);
+      }
+      .stat-label { font-size: 12px; color: var(--color-base-subtle); margin-top: 4px; }
+
+      @media (max-width: 768px) {
+        .categories-grid { grid-template-columns: 1fr; }
+        .stats-grid { grid-template-columns: 1fr; }
+      }
     </style>
   </head>
   <body>

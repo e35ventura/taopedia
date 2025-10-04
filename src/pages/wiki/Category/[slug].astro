@@ -1,0 +1,130 @@
+---
+import { getCollection } from 'astro:content';
+import WikiLayout from '../../../layouts/WikiLayout.astro';
+
+// Helper to normalize category names to URL slugs used elsewhere
+function catToSlug(name: string): string {
+  return name.replace(/ /g, '_');
+}
+
+export async function getStaticPaths() {
+  const pages = await getCollection('pages');
+
+  // Collect unique category names from all pages
+  const categorySet = new Set<string>();
+  for (const page of pages) {
+    const cats: string[] = Array.isArray(page.data.categories) ? page.data.categories : [];
+    for (const c of cats) categorySet.add(c);
+  }
+
+  const categories = Array.from(categorySet.values());
+
+  return categories.map((name) => ({
+    params: { slug: catToSlug(name) },
+    props: { categoryName: name },
+  }));
+}
+
+const { categoryName } = Astro.props as { categoryName: string };
+const allPages = await getCollection('pages');
+
+// Build page list for this category
+const articles = allPages
+  .filter((p) => Array.isArray(p.data.categories) && p.data.categories.includes(categoryName))
+  .map((p) => {
+    // Derive article slug similar to [...slug].astro
+    const slug = p.id.replace(/\/(index)\.(md|mdx)$/i, '');
+    return {
+      title: p.data.title as string,
+      summary: (p.data.summary as string) || '',
+      url: `/wiki/${slug}`,
+    };
+  })
+  .sort((a, b) => a.title.localeCompare(b.title));
+
+const pageTitle = `Category: ${categoryName}`;
+---
+
+<WikiLayout title={pageTitle} description={`Pages in category ${categoryName}`}> 
+  <style>
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin: 0 0 16px 0;
+    }
+    .stat-item {
+      text-align: center;
+      padding: 16px;
+      background: var(--background-color-interactive);
+      border: 1px solid var(--border-color-subtle);
+      border-radius: 2px;
+    }
+    .stat-number {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--color-link);
+      font-family: var(--font-family-serif);
+    }
+    .stat-label {
+      font-size: 12px;
+      color: var(--color-base-subtle);
+      margin-top: 4px;
+    }
+    .article-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .article-item {
+      padding: 12px;
+      border: 1px solid var(--border-color-subtle);
+      background: var(--background-color-interactive);
+      border-radius: 2px;
+    }
+    .article-item a {
+      color: var(--color-link);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .article-item a:hover { text-decoration: underline; }
+    .article-summary { font-size: 14px; color: var(--color-base); margin-top: 4px; }
+    .article-url { font-size: 12px; color: var(--color-base-subtle); margin-top: 6px; }
+    @media (max-width: 768px) { .stats-grid { grid-template-columns: 1fr; } }
+  </style>
+  <div class="mw-body-content">
+    <h1 class="firstHeading">{pageTitle}</h1>
+
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-number">{articles.length}</div>
+        <div class="stat-label">Articles</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">1</div>
+        <div class="stat-label">Category</div>
+      </div>
+    </div>
+
+    {articles.length === 0 ? (
+      <p>No pages are currently filed under this category.</p>
+    ) : (
+      <ul class="article-list">
+        {articles.map((a) => (
+          <li class="article-item">
+            <div>
+              <a href={a.url}>{a.title}</a>
+            </div>
+            {a.summary && (
+              <div class="article-summary">{a.summary}</div>
+            )}
+            <div class="article-url">{a.url}</div>
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+</WikiLayout>

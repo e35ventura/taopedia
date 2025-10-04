@@ -158,11 +158,15 @@ const historyUrl = `/wiki/${slug}/history`;
     </div>
 
     {page.data.categories && page.data.categories.length > 0 && (
-      <div class="catlinks">
-        <span class="catlinks-label">Categories:</span>
-        {page.data.categories.map((cat: string) => (
-          <a href={`/wiki/Category/${cat.replace(/ /g, '_')}`}>{cat}</a>
-        ))}
+      <div style="margin-top: 24px;">
+        <div style="font-weight: 600; margin-bottom: 8px;">Categories</div>
+        <div class="categories-grid">
+          {page.data.categories.map((cat: string) => (
+            <div class="category-item">
+              <a href={`/wiki/Category/${cat.replace(/ /g, '_')}`}>{cat}</a>
+            </div>
+          ))}
+        </div>
       </div>
     )}
 

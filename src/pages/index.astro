@@ -13,10 +13,13 @@ try {
   // Categories not yet generated
 }
 
-// Get top categories for the portal
+// Get top categories for the circular portal and full list for the grid
 const topCategories = Object.entries(categoryIndex)
   .sort((a: any, b: any) => b[1].length - a[1].length)
   .slice(0, 12);
+
+const allCategories = Object.entries(categoryIndex)
+  .sort((a: any, b: any) => b[1].length - a[1].length);
 
 // Get a random featured article
 const featuredPage = pages[Math.floor(Math.random() * pages.length)];
@@ -517,7 +520,7 @@ const featuredPage = pages[Math.floor(Math.random() * pages.length)];
         <div class="portal-section">
           <h2>Browse by Category</h2>
           <div class="categories-grid">
-            {topCategories.map(([cat, articles]: [string, any]) => (
+            {allCategories.map(([cat, articles]: [string, any]) => (
               <div class="category-item">
                 <a href={`/wiki/Category/${cat.replace(/ /g, '_')}`}>{cat}</a>
                 <div class="category-count">{articles.length} article{articles.length !== 1 ? 's' : ''}</div>
