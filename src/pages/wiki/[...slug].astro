@@ -5,8 +5,8 @@ import WikiLayout from '../../layouts/WikiLayout.astro';
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
   return pages.map((page) => {
-    // Remove /index.md from the slug
-    const slug = page.id.replace(/\/index\.md$/, '');
+    // Remove /index.md or /index.mdx from the slug
+    const slug = page.id.replace(/\/index\.(md|mdx)$/, '');
     return {
       params: { slug },
       props: { page, slug },
@@ -27,12 +27,12 @@ for (const [p, mod] of Object.entries(infoboxModules)) {
   }
 }
 
-// Compose a unified infobox object with fallback to frontmatter
+// Compose a unified infobox object, preferring frontmatter over per-folder JSON
 const ib = {
-  title: infobox?.title ?? page.data.infoboxTitle,
-  image: infobox?.image ?? page.data.infoboxImage,
-  caption: infobox?.caption ?? page.data.infoboxCaption,
-  rows: infobox?.rows ?? page.data.infoboxRows,
+  title: page.data.infoboxTitle ?? infobox?.title,
+  image: page.data.coverImage ?? page.data.infoboxImage ?? infobox?.image,
+  caption: page.data.infoboxCaption ?? infobox?.caption,
+  rows: page.data.infoboxRows ?? infobox?.rows,
 };
 
 // Load backlinks data
@@ -52,7 +52,8 @@ try {
 } catch (e) {
   // Slug map not yet generated
 }
-const editUrl = `https://github.com/grant/taopedia/edit/main/src/content/pages/${slug}/index.md`;
+const ext = page.id.endsWith('.mdx') ? 'mdx' : 'md';
+const editUrl = `https://github.com/grant/taopedia/edit/main/src/content/pages/${slug}/index.${ext}`;
 const historyUrl = `/wiki/${slug}/history`;
 ---
 

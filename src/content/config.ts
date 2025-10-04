@@ -22,6 +22,8 @@ const pages = defineCollection({
         })
       )
       .optional(),
+    // Optional cover image for infobox when using frontmatter in MD/MDX
+    coverImage: z.string().optional(),
   }),
 });
 
