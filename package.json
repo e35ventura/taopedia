@@ -5,12 +5,13 @@
   "scripts": {
     "dev": "astro dev",
     "build": "npm run prebuild && astro build && npm run postbuild",
-    "prebuild": "node scripts/generate-history.js && node scripts/build-linkgraph.js",
+    "prebuild": "node scripts/fetch-content.mjs && node scripts/generate-history.js && node scripts/build-linkgraph.js",
     "postbuild": "npx pagefind --site dist",
     "preview": "astro preview",
     "astro": "astro"
   },
   "dependencies": {
+    "@astrojs/netlify": "^6.0.3",
     "astro": "^5.14.1",
     "@astrojs/mdx": "^4.3.1",
     "pagefind": "^1.2.2",

@@ -1,4 +1,5 @@
 ---
+export const prerender = false;
 import { getCollection } from 'astro:content';
 import WikiLayout from '../../../layouts/WikiLayout.astro';
 
@@ -7,25 +8,8 @@ function catToSlug(name: string): string {
   return name.replace(/ /g, '_');
 }
 
-export async function getStaticPaths() {
-  const pages = await getCollection('pages');
-
-  // Collect unique category names from all pages
-  const categorySet = new Set<string>();
-  for (const page of pages) {
-    const cats: string[] = Array.isArray(page.data.categories) ? page.data.categories : [];
-    for (const c of cats) categorySet.add(c);
-  }
-
-  const categories = Array.from(categorySet.values());
-
-  return categories.map((name) => ({
-    params: { slug: catToSlug(name) },
-    props: { categoryName: name },
-  }));
-}
-
-const { categoryName } = Astro.props as { categoryName: string };
+const { slug = '' } = Astro.params as { slug?: string };
+const categoryName = slug.replace(/_/g, ' ');
 const allPages = await getCollection('pages');
 
 // Build page list for this category

@@ -27,3 +27,9 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# local cache used by content fetch script
+.cache/
+
+# do not track in-repo articles; fetched from external repo at build time
+src/content/pages/

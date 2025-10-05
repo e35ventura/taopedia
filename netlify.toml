@@ -13,5 +13,10 @@
   to = "/wiki/:splat"
   status = 200
 
+[[redirects]]
+  from = "/api/warm"
+  to = "/.netlify/functions/warm"
+  status = 200
+
 [build.environment]
   NODE_VERSION = "20"

@@ -2,19 +2,15 @@
 import { getCollection } from 'astro:content';
 import WikiLayout from '../../layouts/WikiLayout.astro';
 
-export async function getStaticPaths() {
-  const pages = await getCollection('pages');
-  return pages.map((page) => {
-    // Remove /index.md or /index.mdx from the slug
-    const slug = page.id.replace(/\/index\.(md|mdx)$/, '');
-    return {
-      params: { slug },
-      props: { page, slug },
-    };
-  });
-}
+export const prerender = false;
 
-const { page, slug } = Astro.props;
+// Resolve the requested article on-demand via the URL param
+const { slug = '' } = Astro.params as { slug?: string };
+const allPages = await getCollection('pages');
+const page = allPages.find((p) => p.id === `${slug}/index.mdx` || p.id === `${slug}/index.md`);
+if (!page) {
+  throw new Error('Not Found');
+}
 const { Content, headings } = await page.render();
 
 // Try to load per-article infobox.json if present
