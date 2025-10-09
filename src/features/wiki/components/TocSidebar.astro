@@ -1,0 +1,56 @@
+---
+// src/features/wiki/components/TocSidebar.astro
+// Reusable Table of Contents sidebar. Pass an array of headings
+// with shape: { depth: number; slug: string; text: string }
+interface Heading { depth: number; slug: string; text: string }
+interface Props { title?: string; headings: Heading[] }
+const { title = 'Contents', headings } = Astro.props as Props;
+---
+
+{headings && headings.length > 0 && (
+  <div slot="sidebar" class="toc-sidebar">
+    <div class="toc-sidebar-inner">
+      <div class="toc-header">
+        <div class="toc-title">{title}</div>
+        <button class="toc-hide" type="button" aria-label="Hide table of contents">hide</button>
+      </div>
+      <ul class="toc-list">
+        {headings.map((heading, index) => {
+          const hasSubsections = index < headings.length - 1 && headings[index + 1].depth > heading.depth;
+          const isSubsection = heading.depth > 2;
+          const pad = heading.depth === 2 ? 0 : (heading.depth - 2) * 16;
+          return (
+            <li
+              class={`toc-level-${heading.depth}${isSubsection ? ' toc-subsection' : ''}`}
+              data-toc-level={heading.depth}
+              style={`padding-left: ${pad}px;`}
+            >
+              <div class="toc-item-wrapper">
+                {hasSubsections ? (
+                  <button class="toc-toggle" aria-label="Toggle subsections" data-slug={heading.slug}>
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </button>
+                ) : (
+                  <span class="toc-spacer"></span>
+                )}
+                <a href={`#${heading.slug}`} class={hasSubsections ? 'has-subsections' : ''}>
+                  <span class="toc-number">{index + 1}</span> {heading.text}
+                </a>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+      <div class="toc-footer">
+        <a href="#" class="toc-back-to-top" aria-label="Back to top">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 9V3M6 3L3 6M6 3L9 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Back to top
+        </a>
+      </div>
+    </div>
+  </div>
+)}

@@ -1,0 +1,21 @@
+---
+// src/features/wiki/components/ArticleToolbar.astro
+// Toolbar for article pages (Article | History | Edit | What links here)
+interface Props {
+  slug: string;
+  historyUrl: string;
+  editUrl: string;
+  showWhatLinksHere?: boolean;
+}
+const { slug, historyUrl, editUrl, showWhatLinksHere = true } = Astro.props as Props;
+---
+
+<nav class="mw-article-toolbar">
+  <button class="sidebar-toggle toolbar-toggle" aria-label="Toggle navigation">☰</button>
+  <a href={`/wiki/${slug}`} class="active">Article</a>
+  <a href={historyUrl}>History</a>
+  <a href={editUrl} target="_blank" rel="noopener noreferrer">Edit</a>
+  {showWhatLinksHere && <a href={`/wiki/${slug}/backlinks`}>What links here</a>}
+  <span class="toolbar-spacer"></span>
+  <button class="right-rail-toggle toolbar-toggle" aria-label="Toggle appearance settings">⚙</button>
+</nav>

@@ -1,0 +1,16 @@
+---
+// src/features/wiki/layouts/ArticleLayout.astro
+// Thin wrapper around BaseLayout for article pages.
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+const { title, description } = Astro.props as Props;
+---
+
+<BaseLayout title={title} description={description}>
+  <slot name="sidebar" slot="sidebar" />
+  <slot />
+</BaseLayout>

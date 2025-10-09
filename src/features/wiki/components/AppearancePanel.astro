@@ -1,0 +1,44 @@
+---
+// src/features/wiki/components/AppearancePanel.astro
+// Encapsulates the right-rail Appearance UI. Behavior (toggles, persistence)
+// is handled by the parent layout script.
+---
+
+<aside class="mw-right-rail">
+  <div class="mw-right-rail-inner">
+    <div class="panel-header">
+      <span>Appearance</span>
+      <button
+        type="button"
+        style="border: 1px solid var(--border-color-subtle); background: var(--background-color-interactive); font-size: 12px; padding: 2px 6px; border-radius: 2px; cursor: pointer;"
+      >
+        hide
+      </button>
+    </div>
+
+    <div class="panel-section">
+      <h4>Text</h4>
+      <label class="option"><input type="radio" name="ap-text" value="small" /> Small</label>
+      <label class="option"><input type="radio" name="ap-text" value="standard" checked /> Standard</label>
+      <label class="option"><input type="radio" name="ap-text" value="large" /> Large</label>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="panel-section">
+      <h4>Width</h4>
+      <label class="option"><input type="radio" name="ap-width" value="narrow" /> Narrow</label>
+      <label class="option"><input type="radio" name="ap-width" value="standard" checked /> Standard</label>
+      <label class="option"><input type="radio" name="ap-width" value="wide" /> Wide</label>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="panel-section">
+      <h4>Color (beta)</h4>
+      <label class="option"><input type="radio" name="ap-color" /> Automatic</label>
+      <label class="option"><input type="radio" name="ap-color" checked /> Light</label>
+      <label class="option"><input type="radio" name="ap-color" /> Dark</label>
+    </div>
+  </div>
+</aside>

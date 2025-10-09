@@ -1,0 +1,16 @@
+---
+// src/features/wiki/layouts/CategoryLayout.astro
+// Thin wrapper around BaseLayout for category or special listing pages.
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+const { title, description } = Astro.props as Props;
+---
+
+<BaseLayout title={title} description={description}>
+  <slot name="sidebar" slot="sidebar" />
+  <slot />
+</BaseLayout>

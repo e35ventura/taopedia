@@ -1,0 +1,308 @@
+---
+// src/features/wiki/layouts/BaseLayout.astro
+// Shared page chrome for wiki pages (articles, categories, specials).
+// Provides header, sidebar, right rail, footer, and client behavior
+// for TOC toggles, sidebar/right-rail toggles, and appearance controls.
+
+import '../../styles/wikipedia.css';
+import AppearancePanel from '../components/AppearancePanel.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+const pageTitle = title ? `${title} - Taopedia` : 'Taopedia';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{pageTitle}</title>
+    {description && <meta name="description" content={description} />}
+    <meta property="og:title" content={pageTitle} />
+    {description && <meta property="og:description" content={description} />}
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Taopedia" />
+  </head>
+  <body>
+    <!-- Overlays -->
+    <div class="sidebar-overlay"></div>
+    <div class="right-rail-overlay"></div>
+
+    <!-- Header -->
+    <header class="mw-header">
+      <div class="mw-header-content">
+        <div class="mw-header-left">
+          <a href="/" class="mw-logo">
+            <div class="header-logo-container">
+              <div class="header-globe">
+                <img src="/logo.svg" alt="Taopedia logo" class="header-logo-img" />
+              </div>
+            </div>
+            <span class="header-logo-text">
+              <span class="logo-letter-large">T</span>AOPEDI<span class="logo-letter-large">A</span>
+            </span>
+          </a>
+        </div>
+
+        <div class="mw-header-center">
+          <div class="mw-header-center-inner">
+            <div class="mw-search-container">
+              <form action="/search" method="get" style="position: relative;">
+                <svg class="search-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; opacity: 0.5;">
+                  <path d="M7 12C9.76142 12 12 9.76142 12 7C12 4.23858 9.76142 2 7 2C4.23858 2 2 4.23858 2 7C2 9.76142 4.23858 12 7 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <input type="search" name="q" class="mw-search-input" placeholder="Search Taopedia" aria-label="Search" style="padding-left: 36px;" />
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <div class="mw-header-right">
+          <nav>
+            <a href="/wiki/Special:AllPages" style="margin-left: 16px; color: var(--color-base); text-decoration: none; font-size: 13px;">All pages</a>
+            <a href="/wiki/Special:RecentChanges" style="margin-left: 16px; color: var(--color-base); text-decoration: none; font-size: 13px;">Recent changes</a>
+            <a href="/wiki/Special:Categories" style="margin-left: 16px; color: var(--color-base); text-decoration: none; font-size: 13px;">Categories</a>
+          </nav>
+          <div class="nav-dropdown-container">
+            <button class="nav-dropdown-toggle" aria-label="Navigation menu">☰</button>
+            <div class="nav-dropdown-menu">
+              <div class="nav-dropdown-section">
+                <h3 class="nav-dropdown-heading">Navigation</h3>
+                <ul class="nav-dropdown-list">
+                  <li><a href="/">Main page</a></li>
+                  <li><a href="/wiki/Special:AllPages">All pages</a></li>
+                  <li><a href="/wiki/Special:Categories">Categories</a></li>
+                  <li><a href="/wiki/Special:RecentChanges">Recent changes</a></li>
+                </ul>
+              </div>
+              <div class="nav-dropdown-section">
+                <h3 class="nav-dropdown-heading">Community</h3>
+                <ul class="nav-dropdown-list">
+                  <li><a href="/wiki/Taopedia:About">About Taopedia</a></li>
+                  <li><a href="/wiki/Taopedia:Help">Help</a></li>
+                  <li><a href="https://github.com/grant/taopedia" target="_blank">Contribute</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main page container -->
+    <div class="mw-page-container">
+      <div class="mw-content-container">
+        <aside class="mw-sidebar">
+          <slot name="sidebar" />
+        </aside>
+
+        <main class="mw-body">
+          <slot />
+        </main>
+
+        <AppearancePanel />
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="mw-footer">
+      <div class="mw-footer-links">
+        <a href="/wiki/Taopedia:About">About Taopedia</a>
+        <a href="/wiki/Taopedia:Privacy">Privacy policy</a>
+        <a href="/wiki/Taopedia:Disclaimer">Disclaimers</a>
+        <a href="https://github.com/grant/taopedia" target="_blank">Source code</a>
+        <span style="margin-left: auto;">Content available under <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a></span>
+      </div>
+    </footer>
+
+    <!-- Behavior: sidebar/right-rail toggles, TOC helpers, appearance persistence -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const navToggle = document.querySelector('.nav-dropdown-toggle');
+        const navMenu = document.querySelector('.nav-dropdown-menu');
+        if (navToggle && navMenu) {
+          navToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            navMenu.classList.toggle('active');
+          });
+          document.addEventListener('click', function(e) {
+            if (!navToggle.contains(e.target) && !navMenu.contains(e.target)) {
+              navMenu.classList.remove('active');
+            }
+          });
+        }
+
+        const articleBody = document.querySelector('.mw-body');
+        const sidebarToggle = document.querySelector('.sidebar-toggle');
+        const sidebar = document.querySelector('.mw-sidebar');
+        const sidebarOverlay = document.querySelector('.sidebar-overlay');
+        const rightRailToggle = document.querySelector('.right-rail-toggle');
+        const rightRail = document.querySelector('.mw-right-rail');
+        const rightRailOverlay = document.querySelector('.right-rail-overlay');
+        const tocHideBtn = document.querySelector('.toc-hide');
+        const rightRailHideBtn = document.querySelector('.mw-right-rail .panel-header button');
+        const textRadios = document.querySelectorAll('input[name="ap-text"]');
+        const widthRadios = document.querySelectorAll('input[name="ap-width"]');
+
+        function isMobile() { return window.matchMedia('(max-width: 900px)').matches; }
+        function isMidSize() { return window.matchMedia('(min-width: 901px) and (max-width: 1500px)').matches; }
+        function currentWidthMode() {
+          if (document.body.classList.contains('content-width-wide')) return 'wide';
+          if (document.body.classList.contains('content-width-narrow')) return 'narrow';
+          return 'standard';
+        }
+        function rightRailThresholdPx() {
+          const mode = currentWidthMode();
+          if (mode === 'wide') return 1850;
+          if (mode === 'narrow') return 1350;
+          return 1500;
+        }
+        function isRightRailHidden() { return window.matchMedia(`(max-width: ${rightRailThresholdPx()}px)`).matches; }
+
+        // Sidebar toggle
+        if (sidebarToggle && sidebar && sidebarOverlay) {
+          sidebarToggle.addEventListener('click', function() {
+            if (isMobile() || isMidSize()) {
+              sidebar.classList.toggle('mobile-active');
+              sidebarOverlay.classList.toggle('active');
+            } else {
+              document.body.classList.toggle('sidebar-collapsed');
+            }
+          });
+          sidebarOverlay.addEventListener('click', function() {
+            sidebar.classList.remove('mobile-active');
+            sidebarOverlay.classList.remove('active');
+          });
+        }
+
+        // Right rail toggle
+        if (rightRailToggle && rightRail && rightRailOverlay) {
+          rightRailToggle.addEventListener('click', function() {
+            if (isMobile() || isRightRailHidden()) {
+              rightRail.classList.toggle('mobile-active');
+              rightRailOverlay.classList.toggle('active');
+            } else {
+              document.body.classList.toggle('right-rail-collapsed');
+            }
+          });
+          rightRailOverlay.addEventListener('click', function() {
+            rightRail.classList.remove('mobile-active');
+            rightRailOverlay.classList.remove('active');
+          });
+        }
+
+        // TOC hide button collapses sidebar
+        if (tocHideBtn) {
+          tocHideBtn.addEventListener('click', function() {
+            if (isMobile() || isMidSize()) {
+              sidebar.classList.remove('mobile-active');
+              sidebarOverlay.classList.remove('active');
+            } else {
+              document.body.classList.add('sidebar-collapsed');
+            }
+          });
+        }
+
+        // Right rail panel hide button collapses right rail
+        if (rightRailHideBtn) {
+          rightRailHideBtn.addEventListener('click', function() {
+            if (isMobile() || isRightRailHidden()) {
+              rightRail.classList.remove('mobile-active');
+              rightRailOverlay.classList.remove('active');
+            } else {
+              document.body.classList.add('right-rail-collapsed');
+            }
+          });
+        }
+
+        // Responsive mode transitions
+        const mq900 = window.matchMedia('(max-width: 900px)');
+        const mq1350 = window.matchMedia('(max-width: 1350px)');
+        const mq1500 = window.matchMedia('(max-width: 1500px)');
+        const mq1700 = window.matchMedia('(max-width: 1700px)');
+        const mq1850 = window.matchMedia('(max-width: 1850px)');
+        function handleResponsiveChange() {
+          sidebar?.classList.remove('mobile-active');
+          rightRail?.classList.remove('mobile-active');
+          sidebarOverlay?.classList.remove('active');
+          rightRailOverlay?.classList.remove('active');
+          if (isMobile() || mq1500.matches) {
+            document.body.classList.remove('sidebar-collapsed');
+          }
+          if (isMobile() || isRightRailHidden()) {
+            document.body.classList.remove('right-rail-collapsed');
+          }
+        }
+        mq900.addEventListener('change', handleResponsiveChange);
+        mq1350.addEventListener('change', handleResponsiveChange);
+        mq1500.addEventListener('change', handleResponsiveChange);
+        mq1700.addEventListener('change', handleResponsiveChange);
+        mq1850.addEventListener('change', handleResponsiveChange);
+
+        // Defaults
+        articleBody?.classList.add('text-standard', 'width-standard');
+        document.body.classList.add('content-width-standard');
+
+        // Text size persistence
+        textRadios.forEach(r => {
+          r.addEventListener('change', function() {
+            // @ts-ignore
+            if (this.checked) {
+              articleBody?.classList.remove('text-small', 'text-standard', 'text-large');
+              // @ts-ignore
+              articleBody?.classList.add('text-' + this.value);
+              // @ts-ignore
+              localStorage.setItem('taopedia-text-size', this.value);
+            }
+          });
+        });
+        const savedTextSize = localStorage.getItem('taopedia-text-size');
+        if (savedTextSize) {
+          const savedRadio = document.querySelector(`input[name="ap-text"][value="${savedTextSize}"]`);
+          if (savedRadio) {
+            // @ts-ignore
+            savedRadio.checked = true;
+            articleBody?.classList.remove('text-small', 'text-standard', 'text-large');
+            articleBody?.classList.add('text-' + savedTextSize);
+          }
+        }
+
+        // Width persistence
+        widthRadios.forEach(r => {
+          r.addEventListener('change', function() {
+            // @ts-ignore
+            if (this.checked) {
+              articleBody?.classList.remove('width-narrow', 'width-standard', 'width-wide');
+              document.body.classList.remove('content-width-narrow', 'content-width-standard', 'content-width-wide');
+              // @ts-ignore
+              articleBody?.classList.add('width-' + this.value);
+              // @ts-ignore
+              document.body.classList.add('content-width-' + this.value);
+              // @ts-ignore
+              localStorage.setItem('taopedia-width', this.value);
+            }
+          });
+        });
+        const savedWidth = localStorage.getItem('taopedia-width');
+        if (savedWidth) {
+          const savedRadio = document.querySelector(`input[name="ap-width"][value="${savedWidth}"]`);
+          if (savedRadio) {
+            // @ts-ignore
+            savedRadio.checked = true;
+            articleBody?.classList.remove('width-narrow', 'width-standard', 'width-wide');
+            articleBody?.classList.add('width-' + savedWidth);
+            document.body.classList.remove('content-width-narrow', 'content-width-standard', 'content-width-wide');
+            document.body.classList.add('content-width-' + savedWidth);
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
