@@ -48,7 +48,12 @@ function walkDirectory(dir, fileList = []) {
     const stat = fs.statSync(filePath);
     if (stat.isDirectory()) {
       walkDirectory(filePath, fileList);
-    } else if (file === 'index.md' || file.endsWith('.md')) {
+    } else if (
+      file === 'index.md' ||
+      file === 'index.mdx' ||
+      file.endsWith('.md') ||
+      file.endsWith('.mdx')
+    ) {
       fileList.push(filePath);
     }
   });

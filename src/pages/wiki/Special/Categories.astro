@@ -20,40 +20,12 @@ const sortedCategories = Object.entries(categoryIndex)
 ---
 
 <WikiLayout title="Categories">
-  <div slot="sidebar" class="toc-sidebar">
-    <div class="toc-sidebar-inner">
-      <div class="toc-header">
-        <div class="toc-title">Navigation</div>
-        <button class="toc-hide" type="button" aria-label="Hide navigation">hide</button>
-      </div>
-      <ul class="toc-list">
-        <li class="toc-level-2" data-toc-level="2" style="padding-left: 0px;">
-          <div class="toc-item-wrapper">
-            <span class="toc-spacer"></span>
-            <a href="#categories" class="">
-              <span class="toc-number">1</span> Categories
-            </a>
-          </div>
-        </li>
-      </ul>
-    </div>
-  </div>
-
   <div class="mw-body-content">
-    <nav class="mw-article-toolbar">
-      <button class="sidebar-toggle toolbar-toggle" aria-label="Toggle navigation">☰</button>
-      <a href="#" class="active">Special page</a>
-      <span class="toolbar-spacer"></span>
-      <button class="right-rail-toggle toolbar-toggle" aria-label="Toggle appearance settings">⚙</button>
-    </nav>
-
-    <h1 class="firstHeading">Categories</h1>
+    <h1 class="firstHeading">Topics</h1>
     
     <div class="mw-parser-output">
-      <p>This special page shows all categories in Taopedia.</p>
-      
       <div class="categories-list">
-        <h2 id="categories">All Categories ({sortedCategories.length})</h2>
+        <h2 id="categories">All Topics ({sortedCategories.length})</h2>
         <ul>
           {sortedCategories.map(([categoryName, categoryPages]) => (
             <li>

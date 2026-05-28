@@ -5,8 +5,8 @@ import WikiLayout from '../../../layouts/WikiLayout.astro';
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
   return pages.map((page) => {
-    // Remove /index.md from the slug
-    const slug = page.id.replace(/\/index\.md$/, '');
+    // Remove /index.md or /index.mdx from the slug
+    const slug = page.id.replace(/\/index\.(md|mdx)$/, '');
     return {
       params: { slug },
       props: { page, slug },
@@ -32,8 +32,6 @@ const articleUrl = `/wiki/${slug}`;
     <nav class="mw-article-toolbar">
       <a href={articleUrl}>Article</a>
       <a href={`/wiki/${slug}/history`} class="active">History</a>
-      <a href={`https://github.com/grant/taopedia/edit/main/src/content/pages/${slug}/index.md`} target="_blank">Edit</a>
-      <a href={`/wiki/${slug}/backlinks`}>What links here</a>
     </nav>
 
     <h1 class="firstHeading">Revision history of "{page.data.title}"</h1>
@@ -66,13 +64,6 @@ const articleUrl = `/wiki/${slug}`;
               {revision.message || '(no message)'}
             </div>
             <div style="font-size: 12px;">
-              <a 
-                href={`https://github.com/grant/taopedia/commit/${revision.sha}`}
-                target="_blank"
-                style="color: var(--color-link); text-decoration: none; margin-right: 12px;"
-              >
-                View diff
-              </a>
               <code style="background: var(--background-color-neutral); padding: 2px 6px; border-radius: 2px; font-size: 11px;">
                 {revision.sha.substring(0, 7)}
               </code>
@@ -81,11 +72,5 @@ const articleUrl = `/wiki/${slug}`;
         ))}
       </ul>
     )}
-
-    <p style="margin-top: 24px; padding: 12px; background: var(--background-color-interactive); border: 1px solid var(--border-color-subtle); font-size: 13px;">
-      <strong>Note:</strong> To edit this article, create a pull request on 
-      <a href={`https://github.com/grant/taopedia/edit/main/src/content/pages/${slug}/index.md`} target="_blank">GitHub</a>.
-      Once merged to main, your changes will appear here.
-    </p>
   </div>
 </WikiLayout>

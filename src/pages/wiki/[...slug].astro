@@ -2,15 +2,18 @@
 import { getCollection } from 'astro:content';
 import WikiLayout from '../../layouts/WikiLayout.astro';
 
-export const prerender = false;
-
-// Resolve the requested article on-demand via the URL param
-const { slug = '' } = Astro.params as { slug?: string };
-const allPages = await getCollection('pages');
-const page = allPages.find((p) => p.id === `${slug}/index.mdx` || p.id === `${slug}/index.md`);
-if (!page) {
-  throw new Error('Not Found');
+export async function getStaticPaths() {
+  const pages = await getCollection('pages');
+  return pages.map((page) => {
+    const slug = page.id.replace(/\/index\.(md|mdx)$/, '');
+    return {
+      params: { slug },
+      props: { page, slug },
+    };
+  });
 }
+
+const { page, slug } = Astro.props;
 const { Content, headings } = await page.render();
 
 // Try to load per-article infobox.json if present
@@ -31,20 +34,6 @@ const ib = {
   rows: page.data.infoboxRows ?? infobox?.rows,
 };
 
-// Load backlinks data
-let backlinks = [] as any[];
-try {
-  const backlinkData = await import('../../../public/data/backlinks.json');
-  backlinks = backlinkData.default[slug] || [];
-} catch (e) {
-  // Backlinks not yet generated
-}
-
-// Deduplicate backlinks by source slug
-const uniqueBacklinks = Array.from(
-  new Map(backlinks.map((b: any) => [b.from, b])).values()
-);
-
 // Load slug map for broken link detection
 let slugMap = {};
 try {
@@ -53,8 +42,6 @@ try {
 } catch (e) {
   // Slug map not yet generated
 }
-const ext = page.id.endsWith('.mdx') ? 'mdx' : 'md';
-const editUrl = `https://github.com/grant/taopedia/edit/main/src/content/pages/${slug}/index.${ext}`;
 const historyUrl = `/wiki/${slug}/history`;
 ---
 
@@ -116,10 +103,7 @@ const historyUrl = `/wiki/${slug}/history`;
       <button class="sidebar-toggle toolbar-toggle" aria-label="Toggle navigation">☰</button>
       <a href={`/wiki/${slug}`} class="active">Article</a>
       <a href={historyUrl}>History</a>
-      <a href={editUrl} target="_blank">Edit</a>
-      <a href={`/wiki/${slug}/backlinks`}>What links here</a>
       <span class="toolbar-spacer"></span>
-      <button class="right-rail-toggle toolbar-toggle" aria-label="Toggle appearance settings">⚙</button>
     </nav>
 
     {page.data.summary && (
@@ -159,29 +143,12 @@ const historyUrl = `/wiki/${slug}/history`;
     </div>
 
     {page.data.categories && page.data.categories.length > 0 && (
-      <div style="margin-top: 24px;">
-        <div style="font-weight: 600; margin-bottom: 8px;">Categories</div>
-        <div class="categories-grid">
-          {page.data.categories.map((cat: string) => (
-            <div class="category-item">
-              <a href={`/wiki/Category/${cat.replace(/ /g, '_')}`}>{cat}</a>
-            </div>
-          ))}
-        </div>
+      <div class="article-topics">
+        <span>Topics</span>
+        {page.data.categories.map((cat: string) => (
+          <a href={`/wiki/Category/${cat.replace(/ /g, '_')}`}>{cat}</a>
+        ))}
       </div>
-    )}
-
-    {uniqueBacklinks.length > 0 && (
-      <details style="margin-top: 24px; padding: 12px; background: var(--background-color-interactive); border: 1px solid var(--border-color-subtle); font-size: 13px;">
-        <summary style="cursor: pointer; font-weight: 600;">What links here ({uniqueBacklinks.length})</summary>
-        <ul style="margin: 8px 0 0 0; padding: 0 0 0 20px;">
-          {uniqueBacklinks.map((link: any) => (
-            <li>
-              <a href={`/wiki/${link.from}`}>{link.fromTitle}</a>
-            </li>
-          ))}
-        </ul>
-      </details>
     )}
   </div>
 </WikiLayout>

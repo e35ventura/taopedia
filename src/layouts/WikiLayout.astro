@@ -23,116 +23,65 @@ const pageTitle = title ? `${title} - Taopedia` : 'Taopedia';
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Taopedia" />
     <style>
-      /* Header Logo Animation Styles */
       .mw-logo {
         display: flex;
         align-items: center;
         text-decoration: none;
         font-size: 16px;
-        font-weight: 600;
         color: var(--color-base);
         margin-right: 32px;
       }
       
       .header-logo-container {
-        position: relative;
-        width: 40px;
-        height: 40px;
-        margin-right: 8px;
-      }
-      
-      .header-globe {
-        position: relative;
-        width: 40px;
-        height: 40px;
-        background: transparent;
-        border-radius: 50%;
+        width: 34px;
+        height: 34px;
+        margin-right: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
-        overflow: visible;
-        z-index: 10;
       }
       
-      /* Elegant aura: radial inner glow + rotating conic-gradient ring */
-      .header-globe::before {
-        content: "";
-        position: absolute;
-        top: 50%; left: 50%;
-        width: 48px; height: 48px;
-        transform: translate(-50%, -50%);
-        border-radius: 50%;
-        background: radial-gradient(closest-side, rgba(255,255,255,0.85), rgba(255,255,255,0) 70%);
-        pointer-events: none; z-index: 0;
-      }
-      
-      .header-globe::after {
-        content: "";
-        position: absolute;
-        top: 50%; left: 50%;
-        width: 54px; height: 54px;
-        transform: translate(-50%, -50%);
-        border-radius: 50%;
-        background: conic-gradient(from 0deg, rgba(51,102,204,0.35), rgba(51,102,204,0) 40%, rgba(51,102,204,0.35) 80%, rgba(51,102,204,0.35));
-        filter: blur(3px);
-        animation: header-spin 12s linear infinite;
-        pointer-events: none; z-index: 0;
-      }
-      
-      @keyframes header-spin { 
-        to { transform: translate(-50%, -50%) rotate(360deg); } 
+      .header-globe {
+        width: 34px;
+        height: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
       
       .header-logo-img {
-        position: relative;
-        z-index: 1;
-        width: 24px;
+        width: 28px;
         height: auto;
+        display: block;
       }
       
       .header-logo-text {
         font-family: var(--font-family-serif);
         font-weight: 400;
-        letter-spacing: 0.5px;
+        letter-spacing: 0;
         text-transform: uppercase;
+        line-height: 1;
       }
       
       .logo-letter-large {
         font-size: 1.2em;
         font-weight: 500;
       }
-      
-      /* Reduced motion: freeze rotation */
-      @media (prefers-reduced-motion: reduce) {
-        .header-globe::after { 
-          animation: none; 
-        }
-      }
-      
+
       /* Responsive scaling */
       @media (max-width: 768px) {
         .header-logo-container {
-          width: 36px;
-          height: 36px;
+          width: 30px;
+          height: 30px;
         }
         
         .header-globe {
-          width: 36px;
-          height: 36px;
-        }
-        
-        .header-globe::before {
-          width: 42px; 
-          height: 42px;
-        }
-        
-        .header-globe::after {
-          width: 48px; 
-          height: 48px;
+          width: 30px;
+          height: 30px;
         }
         
         .header-logo-img {
-          width: 20px;
+          width: 24px;
         }
         
         .mw-logo {
@@ -146,27 +95,17 @@ const pageTitle = title ? `${title} - Taopedia` : 'Taopedia';
       
       @media (max-width: 480px) {
         .header-logo-container {
-          width: 32px;
-          height: 32px;
+          width: 28px;
+          height: 28px;
         }
         
         .header-globe {
-          width: 32px;
-          height: 32px;
-        }
-        
-        .header-globe::before {
-          width: 38px; 
-          height: 38px;
-        }
-        
-        .header-globe::after {
-          width: 42px; 
-          height: 42px;
+          width: 28px;
+          height: 28px;
         }
         
         .header-logo-img {
-          width: 18px;
+          width: 22px;
         }
         
         .mw-logo {
@@ -227,11 +166,10 @@ const pageTitle = title ? `${title} - Taopedia` : 'Taopedia';
     </style>
   </head>
   <body>
-    <!-- Sidebar/right-rail toggles are placed within page toolbars now -->
+    <!-- Sidebar toggle is placed within article toolbars on narrow screens. -->
     
     <!-- Overlays -->
     <div class="sidebar-overlay"></div>
-    <div class="right-rail-overlay"></div>
     
     <header class="mw-header">
       <div class="mw-header-content">
@@ -243,8 +181,8 @@ const pageTitle = title ? `${title} - Taopedia` : 'Taopedia';
               </div>
             </div>
             <span class="header-logo-text">
-            <span class="logo-letter-large">T</span>AOPEDI<span class="logo-letter-large">A</span>
-          </span>
+              <span class="logo-letter-large">T</span>AOPEDI<span class="logo-letter-large">A</span>
+            </span>
           </a>
         </div>
         
@@ -269,34 +207,10 @@ const pageTitle = title ? `${title} - Taopedia` : 'Taopedia';
           </div>
         </div>
         
-        <div class="mw-header-right">
-          <nav>
-            <a href="/wiki/Special:AllPages" style="margin-left: 16px; color: var(--color-base); text-decoration: none; font-size: 13px;">All pages</a>
-            <a href="/wiki/Special:RecentChanges" style="margin-left: 16px; color: var(--color-base); text-decoration: none; font-size: 13px;">Recent changes</a>
-          </nav>
-          <div class="nav-dropdown-container">
-            <button class="nav-dropdown-toggle" aria-label="Navigation menu">☰</button>
-            <div class="nav-dropdown-menu">
-              <div class="nav-dropdown-section">
-                <h3 class="nav-dropdown-heading">Navigation</h3>
-                <ul class="nav-dropdown-list">
-                  <li><a href="/">Main page</a></li>
-                  <li><a href="/wiki/Special:AllPages">All pages</a></li>
-                  <li><a href="/wiki/Special:Categories">Categories</a></li>
-                  <li><a href="/wiki/Special:RecentChanges">Recent changes</a></li>
-                </ul>
-              </div>
-              <div class="nav-dropdown-section">
-                <h3 class="nav-dropdown-heading">Community</h3>
-                <ul class="nav-dropdown-list">
-                  <li><a href="/wiki/Taopedia:About">About Taopedia</a></li>
-                  <li><a href="/wiki/Taopedia:Help">Help</a></li>
-                  <li><a href="https://github.com/grant/taopedia" target="_blank">Contribute</a></li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
+        <nav class="mw-header-right" aria-label="Primary">
+          <a href="/wiki/Special/AllPages">Articles</a>
+          <a href="/wiki/Special/Categories">Topics</a>
+        </nav>
       </div>
     </header>
 
@@ -309,68 +223,19 @@ const pageTitle = title ? `${title} - Taopedia` : 'Taopedia';
         <main class="mw-body">
           <slot />
         </main>
-
-        <aside class="mw-right-rail">
-          <div class="mw-right-rail-inner">
-            <div class="panel-header">
-              <span>Appearance</span>
-              <button type="button" style="border: 1px solid var(--border-color-subtle); background: var(--background-color-interactive); font-size: 12px; padding: 2px 6px; border-radius: 2px; cursor: pointer;">hide</button>
-            </div>
-            <div class="panel-section">
-              <h4>Text</h4>
-              <label class="option"><input type="radio" name="ap-text" value="small" /> Small</label>
-              <label class="option"><input type="radio" name="ap-text" value="standard" checked /> Standard</label>
-              <label class="option"><input type="radio" name="ap-text" value="large" /> Large</label>
-            </div>
-            <div class="divider"></div>
-            <div class="panel-section">
-              <h4>Width</h4>
-              <label class="option"><input type="radio" name="ap-width" value="narrow" /> Narrow</label>
-              <label class="option"><input type="radio" name="ap-width" value="standard" checked /> Standard</label>
-              <label class="option"><input type="radio" name="ap-width" value="wide" /> Wide</label>
-            </div>
-            <div class="divider"></div>
-            <div class="panel-section">
-              <h4>Color (beta)</h4>
-              <label class="option"><input type="radio" name="ap-color" /> Automatic</label>
-              <label class="option"><input type="radio" name="ap-color" checked /> Light</label>
-              <label class="option"><input type="radio" name="ap-color" /> Dark</label>
-            </div>
-          </div>
-        </aside>
       </div>
     </div>
 
     <footer class="mw-footer">
       <div class="mw-footer-links">
-        <a href="/wiki/Taopedia:About">About Taopedia</a>
-        <a href="/wiki/Taopedia:Privacy">Privacy policy</a>
-        <a href="/wiki/Taopedia:Disclaimer">Disclaimers</a>
-        <a href="https://github.com/grant/taopedia" target="_blank">Source code</a>
+        <a href="/wiki/Special/AllPages">Articles</a>
+        <a href="/wiki/Special/Categories">Topics</a>
         <span style="margin-left: auto;">Content available under <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a></span>
       </div>
     </footer>
 
     <script>
-      // Navigation dropdown functionality
       document.addEventListener('DOMContentLoaded', function() {
-        const navToggle = document.querySelector('.nav-dropdown-toggle');
-        const navMenu = document.querySelector('.nav-dropdown-menu');
-        
-        if (navToggle && navMenu) {
-          navToggle.addEventListener('click', function(e) {
-            e.stopPropagation();
-            navMenu.classList.toggle('active');
-          });
-          
-          // Close dropdown when clicking outside
-          document.addEventListener('click', function(e) {
-            if (!navToggle.contains(e.target) && !navMenu.contains(e.target)) {
-              navMenu.classList.remove('active');
-            }
-          });
-        }
-        
         // TOC collapse/expand functionality
         const tocToggles = document.querySelectorAll('.toc-toggle');
         tocToggles.forEach(toggle => {
@@ -460,39 +325,17 @@ const pageTitle = title ? `${title} - Taopedia` : 'Taopedia';
           updateActiveSection();
         }
         
-        // Appearance controls functionality
-        const textRadios = document.querySelectorAll('input[name="ap-text"]');
-        const widthRadios = document.querySelectorAll('input[name="ap-width"]');
         const articleBody = document.querySelector('.mw-body');
         
         // Sidebar toggle functionality
         const sidebarToggle = document.querySelector('.sidebar-toggle');
         const sidebar = document.querySelector('.mw-sidebar');
         const sidebarOverlay = document.querySelector('.sidebar-overlay');
-        
-        const rightRailToggle = document.querySelector('.right-rail-toggle');
-        const rightRail = document.querySelector('.mw-right-rail');
-        const rightRailOverlay = document.querySelector('.right-rail-overlay');
         const tocHideBtn = document.querySelector('.toc-hide');
-        const rightRailHideBtn = document.querySelector('.mw-right-rail .panel-header button');
         
         // Helper functions for responsive behavior
         function isMobile() { return window.matchMedia('(max-width: 900px)').matches; }
         function isMidSize() { return window.matchMedia('(min-width: 901px) and (max-width: 1500px)').matches; }
-        function currentWidthMode() {
-          if (document.body.classList.contains('content-width-wide')) return 'wide';
-          if (document.body.classList.contains('content-width-narrow')) return 'narrow';
-          return 'standard';
-        }
-        function rightRailThresholdPx() {
-          const mode = currentWidthMode();
-          if (mode === 'wide') return 1850;    // Needs more room for 1200px article + rails
-          if (mode === 'narrow') return 1350;  // 720px article
-          return 1500;                          // 960px article (default)
-        }
-        function isRightRailHidden() {
-          return window.matchMedia(`(max-width: ${rightRailThresholdPx()}px)`).matches;
-        }
 
         // Toggle sidebar
         if (sidebarToggle && sidebar && sidebarOverlay) {
@@ -517,29 +360,6 @@ const pageTitle = title ? `${title} - Taopedia` : 'Taopedia';
           });
         }
         
-        // Toggle right rail
-        if (rightRailToggle && rightRail && rightRailOverlay) {
-          rightRailToggle.addEventListener('click', function() {
-            if (isMobile()) {
-              // Mobile panel behavior
-              rightRail.classList.toggle('mobile-active');
-              rightRailOverlay.classList.toggle('active');
-            } else if (isRightRailHidden()) {
-              // Mid-size or mobile: use overlay behavior
-              rightRail.classList.toggle('mobile-active');
-              rightRailOverlay.classList.toggle('active');
-            } else {
-              // Large desktop: collapse behavior
-              document.body.classList.toggle('right-rail-collapsed');
-            }
-          });
-          
-          rightRailOverlay.addEventListener('click', function() {
-            rightRail.classList.remove('mobile-active');
-            rightRailOverlay.classList.remove('active');
-          });
-        }
-
         // TOC hide button collapses sidebar
         if (tocHideBtn) {
           tocHideBtn.addEventListener('click', function() {
@@ -552,106 +372,27 @@ const pageTitle = title ? `${title} - Taopedia` : 'Taopedia';
           });
         }
 
-        // Right rail panel hide button collapses right rail
-        if (rightRailHideBtn) {
-          rightRailHideBtn.addEventListener('click', function() {
-            if (isMobile() || isRightRailHidden()) {
-              rightRail.classList.remove('mobile-active');
-              rightRailOverlay.classList.remove('active');
-            } else {
-              document.body.classList.add('right-rail-collapsed');
-            }
-          });
-        }
-
         // Clear collapse classes and overlays when switching between responsive modes
         const mq900 = window.matchMedia('(max-width: 900px)');
-        const mq1350 = window.matchMedia('(max-width: 1350px)');
         const mq1500 = window.matchMedia('(max-width: 1500px)');
-        const mq1700 = window.matchMedia('(max-width: 1700px)');
-        const mq1850 = window.matchMedia('(max-width: 1850px)');
         
         function handleResponsiveChange() {
           // Always clear active overlays when switching modes
-          sidebar.classList.remove('mobile-active');
-          rightRail.classList.remove('mobile-active');
-          sidebarOverlay.classList.remove('active');
-          rightRailOverlay.classList.remove('active');
+          sidebar?.classList.remove('mobile-active');
+          sidebarOverlay?.classList.remove('active');
 
           // If we're in any overlay mode for the sidebar (<=1500) clear collapsed state
           if (isMobile() || mq1500.matches) {
             document.body.classList.remove('sidebar-collapsed');
           }
-          // If right rail should be overlay (based on dynamic threshold), clear collapsed state
-          if (isMobile() || isRightRailHidden()) {
-            document.body.classList.remove('right-rail-collapsed');
-          }
         }
         
         mq900.addEventListener('change', handleResponsiveChange);
-        mq1350.addEventListener('change', handleResponsiveChange);
         mq1500.addEventListener('change', handleResponsiveChange);
-        mq1700.addEventListener('change', handleResponsiveChange);
-        mq1850.addEventListener('change', handleResponsiveChange);
         
         // Set initial state
-        articleBody.classList.add('text-standard', 'width-standard');
+        articleBody?.classList.add('text-standard', 'width-standard');
         document.body.classList.add('content-width-standard');
-        
-        // Text size controls
-        textRadios.forEach(radio => {
-          radio.addEventListener('change', function() {
-            if (this.checked) {
-              // Remove all text size classes
-              articleBody.classList.remove('text-small', 'text-standard', 'text-large');
-              // Add the selected text size class
-              articleBody.classList.add('text-' + this.value);
-              
-              // Store preference in localStorage
-              localStorage.setItem('taopedia-text-size', this.value);
-            }
-          });
-        });
-        
-        // Width controls
-        widthRadios.forEach(radio => {
-          radio.addEventListener('change', function() {
-            if (this.checked) {
-              // Remove all width classes
-              articleBody.classList.remove('width-narrow', 'width-standard', 'width-wide');
-              document.body.classList.remove('content-width-narrow', 'content-width-standard', 'content-width-wide');
-              // Add the selected width class
-              articleBody.classList.add('width-' + this.value);
-              document.body.classList.add('content-width-' + this.value);
-              
-              // Store preference in localStorage
-              localStorage.setItem('taopedia-width', this.value);
-            }
-          });
-        });
-        
-        // Load saved preferences
-        const savedTextSize = localStorage.getItem('taopedia-text-size');
-        if (savedTextSize) {
-          const savedRadio = document.querySelector(`input[name="ap-text"][value="${savedTextSize}"]`);
-          if (savedRadio) {
-            savedRadio.checked = true;
-            articleBody.classList.remove('text-small', 'text-standard', 'text-large');
-            articleBody.classList.add('text-' + savedTextSize);
-          }
-        }
-        
-        const savedWidth = localStorage.getItem('taopedia-width');
-        if (savedWidth) {
-          const savedRadio = document.querySelector(`input[name="ap-width"][value="${savedWidth}"]`);
-          if (savedRadio) {
-            savedRadio.checked = true;
-            articleBody.classList.remove('width-narrow', 'width-standard', 'width-wide');
-            articleBody.classList.add('width-' + savedWidth);
-            document.body.classList.remove('content-width-narrow', 'content-width-standard', 'content-width-wide');
-            document.body.classList.add('content-width-' + savedWidth);
-          }
-        }
       });
     </script>
   </body>

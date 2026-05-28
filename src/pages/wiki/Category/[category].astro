@@ -30,73 +30,30 @@ const pageTitle = `Category: ${categoryName}`;
 ---
 
 <WikiLayout title={pageTitle}>
-  <div slot="sidebar" class="toc-sidebar">
-    <div class="toc-sidebar-inner">
-      <div class="toc-header">
-        <div class="toc-title">Navigation</div>
-        <button class="toc-hide" type="button" aria-label="Hide navigation">hide</button>
-      </div>
-      <ul class="toc-list">
-        <li class="toc-level-2" data-toc-level="2" style="padding-left: 0px;">
-          <div class="toc-item-wrapper">
-            <span class="toc-spacer"></span>
-            <a href="#articles" class="">
-              <span class="toc-number">1</span> Articles
-            </a>
-          </div>
-        </li>
-        <li class="toc-level-2" data-toc-level="2" style="padding-left: 0px;">
-          <div class="toc-item-wrapper">
-            <span class="toc-spacer"></span>
-            <a href="#subcategories" class="">
-              <span class="toc-number">2</span> Subcategories
-            </a>
-          </div>
-        </li>
-      </ul>
-    </div>
-  </div>
-
   <div class="mw-body-content">
-    <nav class="mw-article-toolbar">
-      <button class="sidebar-toggle toolbar-toggle" aria-label="Toggle navigation">☰</button>
-      <a href="#" class="active">Category</a>
-      <a href="#">Discussion</a>
-      <span class="toolbar-spacer"></span>
-      <button class="right-rail-toggle toolbar-toggle" aria-label="Toggle appearance settings">⚙</button>
-    </nav>
-
-    <h1 class="firstHeading">Category: {categoryName}</h1>
+    <h1 class="firstHeading">{categoryName}</h1>
     
     <div class="mw-parser-output">
-      <p>This category contains articles related to <strong>{categoryName}</strong>.</p>
+      <p>{categoryPages.length} article{categoryPages.length !== 1 ? 's' : ''} in this topic.</p>
       
       {categoryPages.length > 0 ? (
-        <>
-          <h2 id="articles">Articles in category "{categoryName}"</h2>
-          <p>The following {categoryPages.length} page{categoryPages.length !== 1 ? 's are' : ' is'} in this category.</p>
-          
-          <div class="category-pages">
-            <ul>
-              {categoryPages.map(page => (
-                <li>
-                  <a href={`/wiki/${page.slug}`} class="card-link">
-                    <h3 class="card-title">{page.data.title}</h3>
-                    {page.data.summary && (
-                      <p class="category-page-summary">{page.data.summary}</p>
-                    )}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </>
+        <div class="category-pages">
+          <ul>
+            {categoryPages.map(page => (
+              <li>
+                <a href={`/wiki/${page.slug}`} class="card-link">
+                  <h3 class="card-title">{page.data.title}</h3>
+                  {page.data.summary && (
+                    <p class="category-page-summary">{page.data.summary}</p>
+                  )}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
       ) : (
-        <p>This category is currently empty.</p>
+        <p>This topic is currently empty.</p>
       )}
-      
-      <h2 id="subcategories">Subcategories</h2>
-      <p>This category has no subcategories.</p>
     </div>
   </div>
 </WikiLayout>

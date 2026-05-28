@@ -3,115 +3,283 @@ import WikiLayout from '../../../layouts/WikiLayout.astro';
 import { getCollection } from 'astro:content';
 
 const pages = await getCollection('pages');
-const sortedPages = pages.sort((a, b) => a.data.title.localeCompare(b.data.title));
+const sortedPages = [...pages].sort((a, b) => a.data.title.localeCompare(b.data.title));
+
+const categoryIndex = new Map<string, typeof pages>();
+for (const page of sortedPages) {
+  for (const category of page.data.categories ?? []) {
+    const existing = categoryIndex.get(category) ?? [];
+    existing.push(page);
+    categoryIndex.set(category, existing);
+  }
+}
+
+const priorityTopics = ['Bittensor', 'Wallets', 'Subnets', 'Staking', 'Consensus', 'Tokenomics'];
+const topicFilters = priorityTopics
+  .map((topic) => [topic, categoryIndex.get(topic)] as const)
+  .filter((entry): entry is readonly [string, typeof pages] => Boolean(entry[1]));
+
+const groupedArticles = topicFilters.map(([topic, topicPages]) => ({
+  topic,
+  pages: [...topicPages].sort((a, b) => a.data.title.localeCompare(b.data.title)),
+}));
 ---
 
-<WikiLayout title="All pages">
-  <div slot="sidebar" class="toc-sidebar">
-    <div class="toc-sidebar-inner">
-      <div class="toc-header">
-        <div class="toc-title">Navigation</div>
-        <button class="toc-hide" type="button" aria-label="Hide navigation">hide</button>
-      </div>
-      <ul class="toc-list">
-        <li class="toc-level-2" data-toc-level="2" style="padding-left: 0px;">
-          <div class="toc-item-wrapper">
-            <span class="toc-spacer"></span>
-            <a href="#articles" class="">
-              <span class="toc-number">1</span> Articles
-            </a>
-          </div>
-        </li>
-      </ul>
-    </div>
-  </div>
-
+<WikiLayout title="Articles">
   <div class="mw-body-content">
-    <nav class="mw-article-toolbar">
-      <button class="sidebar-toggle toolbar-toggle" aria-label="Toggle navigation">☰</button>
-      <a href="#" class="active">Special page</a>
-      <span class="toolbar-spacer"></span>
-      <button class="right-rail-toggle toolbar-toggle" aria-label="Toggle appearance settings">⚙</button>
-    </nav>
+    <h1 class="firstHeading">Articles</h1>
 
-    <h1 class="firstHeading">All pages</h1>
-    
-    <div class="mw-parser-output">
-      <p>This special page shows all pages in Taopedia.</p>
-      
-      <div class="all-pages">
-        <h2 id="articles">Articles ({sortedPages.length})</h2>
-        <ul>
-          {sortedPages.map(page => (
-            <li>
-              <a href={`/wiki/${page.slug}`}>{page.data.title}</a>
-              {page.data.summary && (
-                <span class="page-summary"> – {page.data.summary}</span>
-              )}
-              {page.data.categories && page.data.categories.length > 0 && (
-                <div class="page-categories">
-                  Categories: {page.data.categories.map((cat, index) => (
-                    <>
-                      <a href={`/wiki/Category/${cat.replace(/ /g, '_')}`}>{cat}</a>
-                      {index < page.data.categories.length - 1 && ', '}
-                    </>
-                  ))}
-                </div>
-              )}
-            </li>
+    <div class="article-directory">
+      <div class="directory-tools">
+        <label class="directory-search">
+          <span>Filter articles</span>
+          <input type="search" id="article-filter" placeholder="Search by title, summary, or topic..." />
+        </label>
+
+        <div class="topic-filter" aria-label="Topic filters">
+          <button type="button" class="active" data-topic="all">All</button>
+          {topicFilters.map(([topic, topicPages]) => (
+            <button type="button" data-topic={topic}>{topic} <span>{topicPages.length}</span></button>
           ))}
-        </ul>
+        </div>
+      </div>
+
+      <p class="directory-count">
+        <strong>{sortedPages.length}</strong> articles across <strong>{categoryIndex.size}</strong> topics
+      </p>
+
+      <div class="featured-directory">
+        {sortedPages.slice(0, 3).map((page) => (
+          <a
+            class="article-card"
+            href={`/wiki/${page.slug}`}
+            data-article-card
+            data-title={page.data.title.toLowerCase()}
+            data-summary={(page.data.summary ?? '').toLowerCase()}
+            data-topics={(page.data.categories ?? []).join('|')}
+          >
+            <strong>{page.data.title}</strong>
+            {page.data.summary && <span>{page.data.summary}</span>}
+          </a>
+        ))}
+      </div>
+
+      <div class="article-groups">
+        {groupedArticles.map(({ topic, pages }) => (
+          <section class="article-group" data-article-group data-topic={topic}>
+            <div class="article-group-heading">
+              <h2>{topic}</h2>
+              <a href={`/wiki/Category/${topic.replace(/ /g, '_')}`}>View topic</a>
+            </div>
+            <ul>
+              {pages.map((page) => (
+                <li
+                  data-article-card
+                  data-title={page.data.title.toLowerCase()}
+                  data-summary={(page.data.summary ?? '').toLowerCase()}
+                  data-topics={(page.data.categories ?? []).join('|')}
+                >
+                  <a href={`/wiki/${page.slug}`}>{page.data.title}</a>
+                  {page.data.summary && <span>{page.data.summary}</span>}
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
       </div>
     </div>
   </div>
+
+  <script is:inline>
+    const searchInput = document.getElementById('article-filter');
+    const topicButtons = Array.from(document.querySelectorAll('[data-topic]'));
+    const articleCards = Array.from(document.querySelectorAll('[data-article-card]'));
+    const groups = Array.from(document.querySelectorAll('[data-article-group]'));
+    let selectedTopic = 'all';
+
+    function normalize(value) {
+      return (value || '').toLowerCase();
+    }
+
+    function applyFilters() {
+      const query = normalize(searchInput?.value);
+
+      articleCards.forEach((card) => {
+        const topics = card.dataset.topics || '';
+        const text = `${card.dataset.title || ''} ${card.dataset.summary || ''} ${topics}`.toLowerCase();
+        const matchesTopic = selectedTopic === 'all' || topics.split('|').includes(selectedTopic);
+        const matchesQuery = !query || text.includes(query);
+        card.hidden = !(matchesTopic && matchesQuery);
+      });
+
+      groups.forEach((group) => {
+        const visibleItems = group.querySelectorAll('[data-article-card]:not([hidden])').length;
+        const matchesGroupTopic = selectedTopic === 'all' || group.dataset.topic === selectedTopic;
+        group.hidden = !matchesGroupTopic || visibleItems === 0;
+      });
+    }
+
+    topicButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        selectedTopic = button.dataset.topic || 'all';
+        topicButtons.forEach((btn) => btn.classList.toggle('active', btn === button));
+        applyFilters();
+      });
+    });
+
+    searchInput?.addEventListener('input', applyFilters);
+  </script>
 </WikiLayout>
 
 <style>
-  .all-pages ul {
-    list-style: none;
+  .article-directory {
+    display: grid;
+    gap: 24px;
+  }
+
+  .directory-tools {
+    display: grid;
+    gap: 14px;
+    padding: 16px;
+    border: 1px solid var(--border-color-subtle);
+    background: var(--background-color-interactive);
+  }
+
+  .directory-search span {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--color-base-subtle);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .directory-search input {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid var(--border-color-base);
+    font: inherit;
+  }
+
+  .topic-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .topic-filter button {
+    padding: 7px 10px;
+    border: 1px solid var(--border-color-subtle);
+    background: white;
+    color: var(--color-base);
+    cursor: pointer;
+    font: inherit;
+    font-size: 13px;
+  }
+
+  .topic-filter button.active,
+  .topic-filter button:hover {
+    border-color: var(--color-link);
+    color: var(--color-link);
+  }
+
+  .topic-filter span {
+    color: var(--color-base-subtle);
+    font-size: 12px;
+  }
+
+  .directory-count {
+    margin: 0;
+    color: var(--color-base-subtle);
+    font-size: 13px;
+  }
+
+  .featured-directory {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .article-card {
+    display: block;
+    padding: 14px;
+    border: 1px solid var(--border-color-subtle);
+    background: var(--background-color-base);
+    text-decoration: none;
+  }
+
+  .article-card strong,
+  .article-group li a {
+    color: var(--color-link);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .article-card span,
+  .article-group li span {
+    display: block;
+    margin-top: 5px;
+    color: var(--color-base-subtle);
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .article-card:hover,
+  .article-group li:hover {
+    border-color: var(--color-link);
+  }
+
+  .article-groups {
+    display: grid;
+    gap: 22px;
+  }
+
+  .article-group {
+    padding-top: 4px;
+  }
+
+  .article-group-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    border-bottom: 1px solid var(--border-color-subtle);
+    margin-bottom: 10px;
+  }
+
+  .article-group-heading h2 {
+    margin: 0;
+    border: 0;
+  }
+
+  .article-group-heading a {
+    color: var(--color-link);
+    font-size: 13px;
+    text-decoration: none;
+  }
+
+  .article-group ul {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
     margin: 0;
     padding: 0;
+    list-style: none;
   }
-  
-  .all-pages li {
-    margin: 12px 0;
+
+  .article-group li {
     padding: 12px;
+    border: 1px solid var(--border-color-subtle);
     background: var(--background-color-interactive);
-    border-radius: 4px;
-    border-left: 3px solid var(--color-link);
   }
-  
-  .all-pages li > a {
-    font-weight: 600;
-    color: var(--color-link);
-    text-decoration: none;
-    font-size: 16px;
+
+  [hidden] {
+    display: none !important;
   }
-  
-  .all-pages li > a:hover {
-    text-decoration: underline;
-  }
-  
-  .page-summary {
-    color: var(--color-base-subtle);
-    font-size: 14px;
-    display: block;
-    margin-top: 4px;
-  }
-  
-  .page-categories {
-    margin-top: 8px;
-    font-size: 12px;
-    color: var(--color-base-subtle);
-  }
-  
-  .page-categories a {
-    color: var(--color-link);
-    text-decoration: none;
-    font-size: 12px;
-  }
-  
-  .page-categories a:hover {
-    text-decoration: underline;
+
+  @media (max-width: 780px) {
+    .featured-directory,
+    .article-group ul {
+      grid-template-columns: 1fr;
+    }
   }
 </style>

@@ -3,6 +3,11 @@ dist/
 # generated types
 .astro/
 
+# local sync/cache data
+.cache/
+.netlify/
+src/content/pages/
+
 # generated build data
 public/data/
 public/history/
