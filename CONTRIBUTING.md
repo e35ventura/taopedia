@@ -11,7 +11,7 @@ https://github.com/e35ventura/taopedia-articles
 
 ## Before You Start
 
-Create an issue or pull request for meaningful app changes. Keep changes focused so reviews are straightforward.
+Create an issue or pull request for meaningful app changes. Contributor pull requests should target `test`, not `main`. Keep changes focused so reviews are straightforward.
 
 Use Node.js 22.12 or newer.
 
@@ -42,4 +42,4 @@ For local article sync, place `taopedia-articles` next to this repository or set
 
 ## Deployment
 
-Merging to `main` triggers the Netlify production deploy for this app. Article-only changes should be made in `taopedia-articles`; merged article changes are picked up by the next site rebuild.
+Merging to `test` validates changes without updating production. Maintainers promote `test` to `main` with the release workflow when changes are ready. Merging to `main` triggers the Netlify production deploy for this app. Article-only changes should be made in `taopedia-articles`; merged article changes are picked up by the next site rebuild.

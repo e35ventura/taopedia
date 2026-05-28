@@ -1,0 +1,28 @@
+name: PR source check
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  pr-source-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enforce source branch for production
+        run: |
+          if [ "${{ github.event.pull_request.head.repo.full_name }}" != "${{ github.repository }}" ]; then
+            echo "::error::PRs into main must come from the test branch in this repository."
+            echo "::error::Open contributor PRs against test instead."
+            exit 1
+          fi
+
+          if [ "${{ github.event.pull_request.head.ref }}" != "test" ]; then
+            echo "::error::PRs into main must originate from test. Head is '${{ github.event.pull_request.head.ref }}'."
+            echo "::error::Open contributor PRs against test instead."
+            exit 1
+          fi
+
+          echo "PR source is test in this repository."

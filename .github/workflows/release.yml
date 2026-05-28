@@ -1,0 +1,50 @@
+name: Release test to main
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Show what would happen without pushing
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout test
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: test
+
+      - name: Verify main is ancestor of test
+        run: |
+          git fetch origin main:refs/remotes/origin/main
+          git fetch origin test:refs/remotes/origin/test
+          if ! git merge-base --is-ancestor origin/main origin/test; then
+            echo "::error::main is not an ancestor of test. Rebase or merge main into test before promoting."
+            exit 1
+          fi
+          ahead=$(git rev-list --count origin/main..origin/test)
+          echo "main is behind test by $ahead commit(s)."
+          echo "AHEAD=$ahead" >> "$GITHUB_ENV"
+
+      - name: Promote main to test
+        if: ${{ !inputs.dry_run }}
+        run: |
+          git push origin refs/remotes/origin/test:refs/heads/main
+          echo "::notice::Promoted $AHEAD commit(s) from test to main."
+
+      - name: Dry run summary
+        if: ${{ inputs.dry_run }}
+        run: |
+          echo "DRY RUN: would fast-forward main to $(git rev-parse origin/test)"
+          git log --oneline origin/main..origin/test | head -50

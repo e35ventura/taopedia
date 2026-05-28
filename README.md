@@ -100,6 +100,8 @@ taopedia/
 
 ## Deployment
 
+Contributor pull requests should target `test`. Production `main` is promoted from `test` after review.
+
 Netlify builds this repository from `main`.
 
 Current settings:
