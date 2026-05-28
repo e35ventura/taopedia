@@ -107,7 +107,7 @@ Current settings:
 ```txt
 Build command: git fetch --unshallow || true && npm run build
 Publish directory: dist
-Node version: 20
+Node version: 22
 ```
 
 Article changes are deployed after they are reviewed, merged, and the site rebuild completes.

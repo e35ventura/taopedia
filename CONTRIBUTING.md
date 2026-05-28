@@ -13,7 +13,7 @@ https://github.com/e35ventura/taopedia-articles
 
 Create an issue or pull request for meaningful app changes. Keep changes focused so reviews are straightforward.
 
-Use Node.js 20 or newer.
+Use Node.js 22.12 or newer.
 
 ```bash
 npm install
