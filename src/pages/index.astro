@@ -4,6 +4,8 @@ import { getCollection } from 'astro:content';
 
 const pages = await getCollection('pages');
 const sortedPages = [...pages].sort((a, b) => a.data.title.localeCompare(b.data.title));
+const getPageSlug = (page: { id: string }) =>
+  page.id.replace(/\/index\.(md|mdx)$/, '').replace(/\/index$/, '').replace(/\.(md|mdx)$/, '');
 
 const categoryIndex = new Map<string, typeof pages>();
 for (const page of pages) {
@@ -26,7 +28,7 @@ const featuredSlugs = [
   'mining_and_validating',
 ];
 const featuredPages = featuredSlugs
-  .map((slug) => pages.find((page) => page.slug === slug))
+  .map((slug) => pages.find((page) => getPageSlug(page) === slug))
   .filter(Boolean);
 ---
 
@@ -393,7 +395,7 @@ const featuredPages = featuredSlugs
         </div>
         <div class="article-grid">
           {featuredPages.map((page) => (
-            <a class="article-card" href={`/wiki/${page.slug}`}>
+            <a class="article-card" href={`/wiki/${getPageSlug(page)}`}>
               <strong>{page.data.title}</strong>
               {page.data.summary && <span>{page.data.summary}</span>}
             </a>
@@ -408,7 +410,7 @@ const featuredPages = featuredSlugs
         </div>
         <ul class="article-list">
           {sortedPages.map((page) => (
-            <li><a href={`/wiki/${page.slug}`}>{page.data.title}</a></li>
+            <li><a href={`/wiki/${getPageSlug(page)}`}>{page.data.title}</a></li>
           ))}
         </ul>
       </section>

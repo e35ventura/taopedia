@@ -4,6 +4,8 @@ import { getCollection } from 'astro:content';
 
 const pages = await getCollection('pages');
 const sortedPages = [...pages].sort((a, b) => a.data.title.localeCompare(b.data.title));
+const getPageSlug = (page: { id: string }) =>
+  page.id.replace(/\/index\.(md|mdx)$/, '').replace(/\/index$/, '').replace(/\.(md|mdx)$/, '');
 
 const categoryIndex = new Map<string, typeof pages>();
 for (const page of sortedPages) {
@@ -52,7 +54,7 @@ const groupedArticles = topicFilters.map(([topic, topicPages]) => ({
         {sortedPages.slice(0, 3).map((page) => (
           <a
             class="article-card"
-            href={`/wiki/${page.slug}`}
+            href={`/wiki/${getPageSlug(page)}`}
             data-article-card
             data-title={page.data.title.toLowerCase()}
             data-summary={(page.data.summary ?? '').toLowerCase()}
@@ -79,7 +81,7 @@ const groupedArticles = topicFilters.map(([topic, topicPages]) => ({
                   data-summary={(page.data.summary ?? '').toLowerCase()}
                   data-topics={(page.data.categories ?? []).join('|')}
                 >
-                  <a href={`/wiki/${page.slug}`}>{page.data.title}</a>
+                  <a href={`/wiki/${getPageSlug(page)}`}>{page.data.title}</a>
                   {page.data.summary && <span>{page.data.summary}</span>}
                 </li>
               ))}

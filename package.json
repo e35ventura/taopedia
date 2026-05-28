@@ -5,22 +5,22 @@
   "scripts": {
     "predev": "node scripts/sync-articles.js",
     "dev": "astro dev",
-    "build": "npm run prebuild && astro build && npm run postbuild",
+    "build": "astro build",
     "prebuild": "node scripts/sync-articles.js && node scripts/generate-history.js && node scripts/build-linkgraph.js",
     "postbuild": "npx pagefind --site dist",
     "preview": "astro preview",
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^5.14.1",
-    "@astrojs/mdx": "^4.3.1",
-    "pagefind": "^1.2.2",
+    "@astrojs/mdx": "^5.0.6",
+    "astro": "^6.3.8",
     "gray-matter": "^4.0.3",
-    "remark-wiki-link": "^2.0.1",
-    "unified": "^11.0.5",
+    "pagefind": "^1.2.2",
+    "rehype-stringify": "^10.0.1",
     "remark-parse": "^11.0.0",
     "remark-rehype": "^11.1.1",
-    "rehype-stringify": "^10.0.1"
+    "remark-wiki-link": "^2.0.1",
+    "unified": "^11.0.5"
   },
   "devDependencies": {
     "@types/node": "^22.10.5",

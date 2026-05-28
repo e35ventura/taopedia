@@ -22,6 +22,8 @@ const { categoryName } = Astro.props;
 
 // Get all pages in this category
 const pages = await getCollection('pages');
+const getPageSlug = (page: { id: string }) =>
+  page.id.replace(/\/index\.(md|mdx)$/, '').replace(/\/index$/, '').replace(/\.(md|mdx)$/, '');
 const categoryPages = pages.filter(page => 
   page.data.categories?.includes(categoryName)
 );
@@ -41,7 +43,7 @@ const pageTitle = `Category: ${categoryName}`;
           <ul>
             {categoryPages.map(page => (
               <li>
-                <a href={`/wiki/${page.slug}`} class="card-link">
+                <a href={`/wiki/${getPageSlug(page)}`} class="card-link">
                   <h3 class="card-title">{page.data.title}</h3>
                   {page.data.summary && (
                     <p class="category-page-summary">{page.data.summary}</p>

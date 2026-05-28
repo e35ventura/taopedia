@@ -5,8 +5,7 @@ import WikiLayout from '../../../layouts/WikiLayout.astro';
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
   return pages.map((page) => {
-    // Remove /index.md or /index.mdx from the slug
-    const slug = page.id.replace(/\/index\.(md|mdx)$/, '');
+    const slug = page.id.replace(/\/index\.(md|mdx)$/, '').replace(/\/index$/, '').replace(/\.(md|mdx)$/, '');
     return {
       params: { slug },
       props: { page, slug },

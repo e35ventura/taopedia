@@ -4,11 +4,13 @@ import { getCollection } from 'astro:content';
 
 const searchQuery = Astro.url.searchParams.get('q') || '';
 const pages = await getCollection('pages');
+const getPageSlug = (page: { id: string }) =>
+  page.id.replace(/\/index\.(md|mdx)$/, '').replace(/\/index$/, '').replace(/\.(md|mdx)$/, '');
 const searchEntries = pages
   .map((page) => ({
     title: page.data.title,
     summary: page.data.summary ?? '',
-    url: `/wiki/${page.slug}`,
+    url: `/wiki/${getPageSlug(page)}`,
     categories: page.data.categories ?? [],
   }))
   .sort((a, b) => a.title.localeCompare(b.title));
@@ -42,14 +44,31 @@ const searchEntries = pages
       const item = document.createElement('a');
       item.className = 'search-result-item';
       item.href = entry.url;
-      const topics = (entry.categories || [])
-        .map((category) => `<span class="search-topic">${category}</span>`)
-        .join('');
-      item.innerHTML = `
-        <span class="search-title">${entry.title}</span>
-        ${entry.summary ? `<span class="search-summary">${entry.summary}</span>` : ''}
-        ${topics ? `<span class="search-topics">${topics}</span>` : ''}
-      `;
+
+      const title = document.createElement('span');
+      title.className = 'search-title';
+      title.textContent = entry.title;
+      item.appendChild(title);
+
+      if (entry.summary) {
+        const summary = document.createElement('span');
+        summary.className = 'search-summary';
+        summary.textContent = entry.summary;
+        item.appendChild(summary);
+      }
+
+      if (entry.categories?.length) {
+        const topics = document.createElement('span');
+        topics.className = 'search-topics';
+        entry.categories.forEach((category) => {
+          const topic = document.createElement('span');
+          topic.className = 'search-topic';
+          topic.textContent = category;
+          topics.appendChild(topic);
+        });
+        item.appendChild(topics);
+      }
+
       return item;
     }
 
@@ -64,9 +83,9 @@ const searchEntries = pages
 
       const status = document.createElement('p');
       status.className = 'search-status';
-      status.innerHTML = matches.length
-        ? `Found <strong>${matches.length}</strong> result${matches.length === 1 ? '' : 's'} for "<strong>${searchQuery}</strong>"`
-        : `No results found for "<strong>${searchQuery}</strong>"`;
+      status.textContent = matches.length
+        ? `Found ${matches.length} result${matches.length === 1 ? '' : 's'} for "${searchQuery}"`
+        : `No results found for "${searchQuery}"`;
       resultsContainer.appendChild(status);
 
       const list = document.createElement('div');

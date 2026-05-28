@@ -36,9 +36,16 @@ export const handler = async (event) => {
     if (slugs.length === 0) {
       return { statusCode: 400, body: 'No slugs provided' };
     }
+    if (slugs.length > 25) {
+      return { statusCode: 400, body: 'Too many slugs' };
+    }
 
     const results = [];
     for (const slug of slugs) {
+      if (typeof slug !== 'string' || !/^[a-z0-9][a-z0-9_/-]*$/i.test(slug)) {
+        results.push({ slug, status: 'skipped', message: 'Invalid slug' });
+        continue;
+      }
       const url = `${siteUrl.replace(/\/$/, '')}/wiki/${slug}`;
       try {
         const res = await fetch(url, { method: 'GET', headers: { 'User-Agent': 'taopedia-warm/1.0' } });

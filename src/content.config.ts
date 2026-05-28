@@ -1,7 +1,9 @@
-import { defineCollection, z } from 'astro:content';
+import { defineCollection } from 'astro:content';
+import { glob } from 'astro/loaders';
+import { z } from 'astro/zod';
 
 const pages = defineCollection({
-  type: 'content',
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/pages' }),
   schema: z.object({
     title: z.string(),
     slug: z.string().optional(),
@@ -10,9 +12,8 @@ const pages = defineCollection({
     redirects: z.array(z.string()).optional(),
     draft: z.boolean().optional().default(false),
     featured: z.boolean().optional().default(false),
-    // Optional Wikipedia-like infobox metadata
     infoboxTitle: z.string().optional(),
-    infoboxImage: z.string().optional(), // URL or public path for now
+    infoboxImage: z.string().optional(),
     infoboxCaption: z.string().optional(),
     infoboxRows: z
       .array(
@@ -22,18 +23,8 @@ const pages = defineCollection({
         })
       )
       .optional(),
-    // Optional cover image for infobox when using frontmatter in MD/MDX
     coverImage: z.string().optional(),
   }),
 });
 
-const categories = defineCollection({
-  type: 'content',
-  schema: z.object({
-    name: z.string(),
-    slug: z.string().optional(),
-    description: z.string().optional(),
-  }),
-});
-
-export const collections = { pages, categories };
+export const collections = { pages };

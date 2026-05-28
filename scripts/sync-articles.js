@@ -14,6 +14,20 @@ const articlesRoot = process.env.TAOPEDIA_ARTICLES_DIR
 const cacheArticlesRoot = path.join(projectRoot, '.cache', 'taopedia-articles');
 let sourceRoot = path.join(articlesRoot, 'content', 'pages');
 const targetRoot = path.join(projectRoot, 'src', 'content', 'pages');
+const allowedAssetExtensions = new Set(['.avif', '.gif', '.jpg', '.jpeg', '.json', '.png', '.webp']);
+const maxAssetBytes = 5 * 1024 * 1024;
+const unsafeContentPatterns = [
+  { pattern: /^\s*import\s/m, reason: 'MDX imports are not allowed in article content' },
+  { pattern: /^\s*export\s/m, reason: 'MDX exports are not allowed in article content' },
+  { pattern: /<\s*script[\s>]/i, reason: 'script tags are not allowed in article content' },
+  { pattern: /<\s*\/\s*script\s*>/i, reason: 'script tags are not allowed in article content' },
+  { pattern: /<\s*(iframe|object|embed|link|meta|style)\b/i, reason: 'active HTML elements are not allowed in article content' },
+  { pattern: /\son[a-z]+\s*=/i, reason: 'inline event handlers are not allowed in article content' },
+  { pattern: /\bjavascript\s*:/i, reason: 'javascript: URLs are not allowed in article content' },
+  { pattern: /\bdata\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
+  { pattern: /\bset:html\b/i, reason: 'raw HTML injection directives are not allowed in article content' },
+  { pattern: /\bclient:[a-z-]+\b/i, reason: 'client directives are not allowed in article content' },
+];
 
 const alwaysInclude = new Set(['taopedia']);
 const bittensorCategories = new Set([
@@ -42,6 +56,20 @@ function toCategories(data) {
   return Array.from(new Set(categories));
 }
 
+function validateSlug(slug) {
+  if (!/^[a-z0-9][a-z0-9_-]*$/.test(slug)) {
+    throw new Error(`Unsafe article slug "${slug}". Use lowercase letters, numbers, underscores, and hyphens.`);
+  }
+}
+
+function validateArticleContent(slug, content) {
+  for (const { pattern, reason } of unsafeContentPatterns) {
+    if (pattern.test(content)) {
+      throw new Error(`Unsafe article content in "${slug}": ${reason}`);
+    }
+  }
+}
+
 function copyDir(src, dest) {
   fs.mkdirSync(dest, { recursive: true });
   for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
@@ -50,6 +78,14 @@ function copyDir(src, dest) {
     if (entry.isDirectory()) {
       copyDir(srcPath, destPath);
     } else if (entry.isFile() && entry.name !== 'index.mdx') {
+      const ext = path.extname(entry.name).toLowerCase();
+      if (!allowedAssetExtensions.has(ext)) {
+        throw new Error(`Unsupported asset type in "${srcPath}". Allowed: ${Array.from(allowedAssetExtensions).join(', ')}`);
+      }
+      const stat = fs.statSync(srcPath);
+      if (stat.size > maxAssetBytes) {
+        throw new Error(`Asset too large in "${srcPath}". Maximum size is ${maxAssetBytes} bytes.`);
+      }
       fs.copyFileSync(srcPath, destPath);
     }
   }
@@ -80,11 +116,14 @@ for (const entry of fs.readdirSync(sourceRoot, { withFileTypes: true })) {
   if (!entry.isDirectory()) continue;
 
   const slug = entry.name;
+  validateSlug(slug);
   const sourceDir = path.join(sourceRoot, slug);
   const sourceFile = path.join(sourceDir, 'index.mdx');
   if (!fs.existsSync(sourceFile)) continue;
 
-  const parsed = matter(fs.readFileSync(sourceFile, 'utf8'));
+  const raw = fs.readFileSync(sourceFile, 'utf8');
+  validateArticleContent(slug, raw);
+  const parsed = matter(raw);
   if (!isBittensorArticle(slug, parsed.data)) continue;
 
   const data = { ...parsed.data, categories: toCategories(parsed.data) };
