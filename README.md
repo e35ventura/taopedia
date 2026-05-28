@@ -1,13 +1,13 @@
 # Taopedia
 
-A Wikipedia clone built with **Astro**, **Markdown-in-repo**, and **Netlify**. Content lives as Markdown files in the repository, enabling collaborative editing via GitHub Pull Requests.
+A Bittensor knowledge base built with **Astro**, **MDX articles**, and **Netlify**. The application lives in this repository, while public article contributions live in [`taopedia-articles`](https://github.com/e35ventura/taopedia-articles).
 
 **Live site:** https://taopedia.org
 
 ## 🎯 Features
 
 - ✅ **Exact Wikipedia styling** - Vector 2022 skin replication
-- ✅ **Markdown-based content** - Articles stored as `.md` files in `src/content/pages/`
+- ✅ **MDX-based content** - Articles are synced from `e35ventura/taopedia-articles`
 - ✅ **Git-powered revisions** - Full history tracked automatically via Git
 - ✅ **[[Wiki Links]]** - Internal link syntax with automatic resolution
 - ✅ **Static site generation** - Pre-rendered pages for maximum speed
@@ -22,10 +22,10 @@ A Wikipedia clone built with **Astro**, **Markdown-in-repo**, and **Netlify**. C
 
 ### Content Model
 
-Articles are stored as Markdown files with frontmatter:
+Articles are authored in the companion article repository and synced into this app at build time:
 
 ```
-src/content/pages/{slug}/index.md
+../taopedia-articles/content/pages/{slug}/index.mdx
 ```
 
 Example:
@@ -44,10 +44,11 @@ See also [[Isaac Newton]] and [[Albert Einstein]].
 
 ### Build Pipeline
 
-1. **Git History Extraction** - `scripts/generate-history.js` runs `git log` on each article to build revision JSON
-2. **Link Graph** - `scripts/build-linkgraph.js` parses `[[Wiki Links]]` and generates backlinks
-3. **Astro Build** - Static site generation with MDX rendering
-4. **Pagefind** - Search index generation from built HTML
+1. **Article Sync** - `scripts/sync-articles.js` copies Bittensor-focused MDX articles from `taopedia-articles`
+2. **Git History Extraction** - `scripts/generate-history.js` builds revision JSON
+3. **Link Graph** - `scripts/build-linkgraph.js` parses `[[Wiki Links]]` and generates backlinks
+4. **Astro Build** - Static site generation with MDX rendering
+5. **Pagefind** - Search index generation from built HTML
 
 ### No Runtime Dependencies
 
