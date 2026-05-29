@@ -70,9 +70,9 @@ export function renderOgImage({ title, description, label = 'Bittensor Knowledge
   <rect width="${width}" height="${height}" fill="#f8f9fa"/>
   <rect x="40" y="40" width="1120" height="550" fill="#ffffff" stroke="#a2a9b1" stroke-width="2"/>
   <rect x="40" y="40" width="1120" height="10" fill="#36c"/>
-  <image href="${logoDataUri}" x="94" y="78" width="78" height="82" preserveAspectRatio="xMidYMid meet"/>
-  <text x="188" y="120" font-family="Georgia, 'Times New Roman', serif" font-size="48" font-weight="700" fill="#202122">TAOPEDIA</text>
-  <text x="190" y="160" font-family="Arial, sans-serif" font-size="24" font-weight="500" fill="#54595d">${escapeHtml(label)}</text>
+  <image href="${logoDataUri}" x="92" y="76" width="78" height="84" preserveAspectRatio="xMinYMin meet"/>
+  <text x="190" y="120" font-family="Georgia, 'Times New Roman', serif" font-size="48" font-weight="700" fill="#202122">TAOPEDIA</text>
+  <text x="192" y="160" font-family="Arial, sans-serif" font-size="24" font-weight="500" fill="#54595d">${escapeHtml(label)}</text>
   <line x1="92" y1="194" x2="1108" y2="194" stroke="#a2a9b1" stroke-width="2"/>
   ${titleSvg}
   ${descriptionSvg}
