@@ -1,0 +1,25 @@
+name: UI / UX
+description: Suggest a visual, layout, or usability improvement.
+labels: ["ui-ux"]
+body:
+  - type: textarea
+    id: page
+    attributes:
+      label: Page or area
+      description: Link the page or describe the area.
+    validations:
+      required: true
+  - type: textarea
+    id: issue
+    attributes:
+      label: What feels off?
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested improvement
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots

@@ -1,0 +1,11 @@
+name: Security
+description: Do not file public security reports.
+labels: ["security"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please do not report security vulnerabilities in a public issue.
+
+        Use GitHub private vulnerability reporting if enabled, or contact the maintainers privately.
+        Do not include secrets, tokens, build hook URLs, wallet seeds, private keys, or exploit details in public.

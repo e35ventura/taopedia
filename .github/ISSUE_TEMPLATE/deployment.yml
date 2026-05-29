@@ -1,0 +1,19 @@
+name: Deployment
+description: Report build, Netlify, CI, or release workflow issues.
+labels: ["deployment"]
+body:
+  - type: textarea
+    id: issue
+    attributes:
+      label: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or links
+      description: Include public logs or links only. Do not paste secrets.
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
