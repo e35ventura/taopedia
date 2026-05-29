@@ -1,6 +1,6 @@
 # Taopedia
 
-Taopedia is a Bittensor-focused knowledge base built with Astro and deployed on Netlify.
+Taopedia is a Bittensor-focused knowledge base built with Astro.
 
 This repository contains the website application: layouts, routing, search, build scripts, and deployment config. Article content is maintained in the companion repository:
 
@@ -8,7 +8,7 @@ https://github.com/e35ventura/taopedia-articles
 
 ## How The Two Repositories Work
 
-- `taopedia` is the Astro app that Netlify builds and hosts.
+- `taopedia` is the Astro app for the website.
 - `taopedia-articles` is the public MDX content repo where contributors add and edit articles.
 - During `npm run dev` and `npm run build`, `scripts/sync-articles.js` copies Bittensor-focused articles from `taopedia-articles` into `src/content/pages`.
 - `src/content/pages` is generated build content and is intentionally ignored by Git in this repo.
