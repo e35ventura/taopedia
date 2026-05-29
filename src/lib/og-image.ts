@@ -66,12 +66,12 @@ export function renderOgImage({ title, description, label = 'Bittensor Knowledge
   <rect width="${width}" height="${height}" fill="#f8f9fa"/>
   <rect x="40" y="40" width="1120" height="550" fill="#ffffff" stroke="#a2a9b1" stroke-width="2"/>
   <rect x="40" y="40" width="1120" height="10" fill="#36c"/>
-  <g transform="translate(92 86)">
+  <g transform="translate(94 78) scale(0.72)">
     <path d="M44.8 81.3V30.8C44.8 17.9 34.6 7.8 21.8 7.8V89C21.8 100.8 30.9 111 42.7 111.7C48.8 112 54.5 110.4 59.1 107.4C47 106.3 44.8 99.7 44.8 81.3Z" fill="#202122"/>
     <path d="M17.8 0C8 0 0 8 0 17.8H89.6C99.4 17.8 107.4 9.8 107.4 0H17.8Z" fill="#202122"/>
   </g>
-  <text x="220" y="126" font-family="Georgia, 'Times New Roman', serif" font-size="48" font-weight="700" fill="#202122">TAOPEDIA</text>
-  <text x="222" y="166" font-family="Arial, sans-serif" font-size="24" font-weight="500" fill="#54595d">${escapeHtml(label)}</text>
+  <text x="188" y="120" font-family="Georgia, 'Times New Roman', serif" font-size="48" font-weight="700" fill="#202122">TAOPEDIA</text>
+  <text x="190" y="160" font-family="Arial, sans-serif" font-size="24" font-weight="500" fill="#54595d">${escapeHtml(label)}</text>
   <line x1="92" y1="194" x2="1108" y2="194" stroke="#a2a9b1" stroke-width="2"/>
   ${titleSvg}
   ${descriptionSvg}
