@@ -1,6 +1,7 @@
 ---
 import '../styles/wikipedia.css';
 import { getCollection } from 'astro:content';
+import Seo from '../components/Seo.astro';
 
 const pages = await getCollection('pages');
 const sortedPages = [...pages].sort((a, b) => a.data.title.localeCompare(b.data.title));
@@ -37,9 +38,12 @@ const featuredPages = featuredSlugs
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <title>Taopedia - Bittensor Knowledge Base</title>
-    <meta name="description" content="A Bittensor-focused knowledge base for TAO, subnets, wallets, staking, mining, validation, and consensus." />
+    <Seo
+      title="Bittensor Knowledge Base"
+      description="A Bittensor-focused knowledge base for TAO, subnets, wallets, staking, mining, validation, and consensus."
+      image="/og/taopedia.png"
+      path="/"
+    />
     <style>
       body {
         margin: 0;

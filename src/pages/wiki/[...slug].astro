@@ -45,7 +45,13 @@ try {
 const historyUrl = `/wiki/${slug}/history`;
 ---
 
-<WikiLayout title={page.data.title} description={page.data.summary}>
+<WikiLayout
+  title={page.data.title}
+  description={page.data.summary}
+  image={`/og/${slug}.png`}
+  type="article"
+  path={`/wiki/${slug}`}
+>
   {headings.length > 1 && (
     <div slot="sidebar" class="toc-sidebar">
       <div class="toc-sidebar-inner">

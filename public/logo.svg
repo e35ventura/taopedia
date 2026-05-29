@@ -1,11 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Generator: Adobe Illustrator 24.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-  	viewBox="0 0 21.6 23.1" style="enable-background:new 0 0 21.6 23.1;" xml:space="preserve">
-<style type="text/css">
-  	.st0{fill:#292929;}
-</style>
-<path class="st0" d="M13.1,17.7V8.3c0-2.4-1.9-4.3-4.3-4.3v15.1c0,2.2,1.7,4,3.9,4c0.1,0,0.1,0,0.2,0c1,0.1,2.1-0.2,2.9-0.9
-  	C13.3,22,13.1,20.5,13.1,17.7L13.1,17.7z"/>
-<path class="st0" d="M3.9,0C1.8,0,0,1.8,0,4h17.6c2.2,0,3.9-1.8,3.9-4C21.6,0,3.9,0,3.9,0z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 112" role="img" aria-labelledby="title">
+  <title id="title">Taopedia mark</title>
+  <path d="M44.8 81.3V30.8C44.8 17.9 34.6 7.8 21.8 7.8V89C21.8 100.8 30.9 111 42.7 111.7C48.8 112 54.5 110.4 59.1 107.4C47 106.3 44.8 99.7 44.8 81.3Z" fill="#202122"/>
+  <path d="M17.8 0C8 0 0 8 0 17.8H89.6C99.4 17.8 107.4 9.8 107.4 0H17.8Z" fill="#202122"/>
 </svg>
