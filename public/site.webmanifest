@@ -1,0 +1,21 @@
+{
+  "name": "Taopedia",
+  "short_name": "Taopedia",
+  "description": "A Bittensor-focused knowledge base for TAO, subnets, wallets, staking, mining, validation, and consensus.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3366cc",
+  "icons": [
+    {
+      "src": "/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}
