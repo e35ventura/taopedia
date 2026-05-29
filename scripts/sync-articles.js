@@ -30,19 +30,11 @@ const unsafeContentPatterns = [
 ];
 
 const alwaysInclude = new Set(['taopedia']);
-const bittensorCategories = new Set([
-  'Bittensor',
-  'Consensus',
-  'Staking',
-  'Subnets',
-  'Tokenomics',
-  'Wallets',
-]);
 
 function isBittensorArticle(slug, data) {
   if (alwaysInclude.has(slug)) return true;
   const tags = Array.isArray(data.tags) ? data.tags : [];
-  return tags.includes('Bittensor') || bittensorCategories.has(data.category);
+  return tags.includes('Bittensor');
 }
 
 function toCategories(data) {

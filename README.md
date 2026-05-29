@@ -70,13 +70,12 @@ npm run preview
 
 Most content work should happen in `taopedia-articles`, not here.
 
-Articles are included on Taopedia when they are Bittensor-focused. The sync script includes articles when:
+Articles are included on Taopedia when they are marked as Bittensor-scoped. The sync script includes articles when:
 
 - the slug is `taopedia`;
-- `tags` includes `Bittensor`;
-- or `category` is one of `Bittensor`, `Consensus`, `Staking`, `Subnets`, `Tokenomics`, or `Wallets`.
+- or `tags` includes `Bittensor`.
 
-Article front matter in `taopedia-articles` uses `category` and `tags`; the app converts those fields into Astro `categories` during sync.
+Article front matter in `taopedia-articles` uses `category` for the primary topic and `tags` for scope/detail. The app converts those fields into Astro `categories` during sync.
 
 ## Project Structure
 
