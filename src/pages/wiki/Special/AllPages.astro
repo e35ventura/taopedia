@@ -94,7 +94,7 @@ const groupedArticles = topicFilters.map(([topic, topicPages]) => ({
 
   <script is:inline>
     const searchInput = document.getElementById('article-filter');
-    const topicButtons = Array.from(document.querySelectorAll('[data-topic]'));
+    const topicButtons = Array.from(document.querySelectorAll('.topic-filter button[data-topic]'));
     const articleCards = Array.from(document.querySelectorAll('[data-article-card]'));
     const groups = Array.from(document.querySelectorAll('[data-article-group]'));
     let selectedTopic = 'all';
