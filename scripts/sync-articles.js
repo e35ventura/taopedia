@@ -21,13 +21,54 @@ const unsafeContentPatterns = [
   { pattern: /^\s*export\s/m, reason: 'MDX exports are not allowed in article content' },
   { pattern: /<\s*script[\s>]/i, reason: 'script tags are not allowed in article content' },
   { pattern: /<\s*\/\s*script\s*>/i, reason: 'script tags are not allowed in article content' },
-  { pattern: /<\s*(iframe|object|embed|link|meta|style)\b/i, reason: 'active HTML elements are not allowed in article content' },
+  { pattern: /<\s*(base|iframe|object|embed|link|meta|style)\b/i, reason: 'active HTML elements are not allowed in article content' },
   { pattern: /\son[a-z]+\s*=/i, reason: 'inline event handlers are not allowed in article content' },
   { pattern: /\bjavascript\s*:/i, reason: 'javascript: URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
   { pattern: /\bset:html\b/i, reason: 'raw HTML injection directives are not allowed in article content' },
   { pattern: /\bclient:[a-z-]+\b/i, reason: 'client directives are not allowed in article content' },
 ];
+
+// Dangerous URL schemes that must not appear once obfuscation is stripped away.
+const unsafeUrlSchemes = [
+  { pattern: /javascript:/i, reason: 'javascript: URLs are not allowed in article content' },
+  { pattern: /vbscript:/i, reason: 'vbscript: URLs are not allowed in article content' },
+  { pattern: /data:text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
+];
+
+// Named HTML entities an attacker can use to hide a scheme from a substring scan.
+const namedEntities = {
+  colon: ':',
+  tab: '\t',
+  newline: '\n',
+  sol: '/',
+  lpar: '(',
+  rpar: ')',
+};
+
+// Decode the HTML entities a browser would resolve before acting on a URL, so
+// e.g. "javascript&#58;" or "data&#x3a;text/html" cannot slip past the scan.
+function decodeEntities(value) {
+  return value
+    .replace(/&#x([0-9a-f]+);?/gi, (_, hex) => safeFromCodePoint(parseInt(hex, 16)))
+    .replace(/&#(\d+);?/g, (_, dec) => safeFromCodePoint(parseInt(dec, 10)))
+    .replace(/&([a-z][a-z0-9]*);/gi, (match, name) => namedEntities[name.toLowerCase()] ?? match);
+}
+
+function safeFromCodePoint(code) {
+  if (!Number.isFinite(code) || code < 0 || code > 0x10ffff) return '';
+  try {
+    return String.fromCodePoint(code);
+  } catch {
+    return '';
+  }
+}
+
+// Browsers ignore ASCII whitespace/control characters embedded inside a URL
+// scheme (e.g. "java\tscript:"), so remove them before scanning for schemes.
+function stripSchemeNoise(value) {
+  return value.replace(/[\u0000-\u0020]+/g, '');
+}
 
 const alwaysInclude = new Set(['taopedia']);
 
@@ -57,6 +98,15 @@ function validateSlug(slug) {
 function validateArticleContent(slug, content) {
   for (const { pattern, reason } of unsafeContentPatterns) {
     if (pattern.test(content)) {
+      throw new Error(`Unsafe article content in "${slug}": ${reason}`);
+    }
+  }
+
+  // Defeat entity- and whitespace-obfuscated URL schemes (e.g. "javascript&#58;"
+  // or "java\tscript:") by scanning the form a browser would actually resolve.
+  const normalized = stripSchemeNoise(decodeEntities(content));
+  for (const { pattern, reason } of unsafeUrlSchemes) {
+    if (pattern.test(normalized)) {
       throw new Error(`Unsafe article content in "${slug}": ${reason}`);
     }
   }
