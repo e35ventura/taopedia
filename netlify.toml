@@ -9,30 +9,6 @@
   status = 200
 
 [[redirects]]
-  from = "/wiki/special/categories"
-  to = "/wiki/Special/Categories"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "/wiki/special/categories/"
-  to = "/wiki/Special/Categories/"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "/wiki/special/allpages"
-  to = "/wiki/Special/AllPages"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "/wiki/special/allpages/"
-  to = "/wiki/Special/AllPages/"
-  status = 301
-  force = true
-
-[[redirects]]
   from = "/wiki/*"
   to = "/wiki/:splat"
   status = 200

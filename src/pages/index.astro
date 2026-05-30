@@ -351,8 +351,8 @@ const featuredPages = featuredSlugs
           </span>
         </a>
         <nav class="home-nav" aria-label="Primary">
-          <a href="/wiki/Special/AllPages">Articles</a>
-          <a href="/wiki/Special/Categories">Topics</a>
+          <a href="/wiki/special/allpages">Articles</a>
+          <a href="/wiki/special/categories">Topics</a>
         </nav>
       </header>
 
@@ -370,7 +370,7 @@ const featuredPages = featuredSlugs
           <div class="search-suggestions" aria-label="Suggested searches">
             <span>{pages.length} articles</span>
             <a href="/wiki/wallets">wallets</a>
-            <a href="/wiki/Category/Staking">staking</a>
+            <a href="/wiki/category/Staking">staking</a>
             <a href="/wiki/yuma_consensus">Yuma Consensus</a>
             <a href="/wiki/dynamic_tao">Dynamic TAO</a>
           </div>
@@ -380,11 +380,11 @@ const featuredPages = featuredSlugs
       <section class="home-section">
         <div class="section-heading">
           <h2>Start With A Topic</h2>
-          <a href="/wiki/Special/Categories">All topics</a>
+          <a href="/wiki/special/categories">All topics</a>
         </div>
         <div class="topic-grid">
           {topicCategories.map(([category, categoryPages]) => (
-            <a class="topic-link" href={`/wiki/Category/${category.replace(/ /g, '_')}`}>
+            <a class="topic-link" href={`/wiki/category/${category.replace(/ /g, '_')}`}>
               <strong>{category}</strong>
               <span>{categoryPages.length} article{categoryPages.length !== 1 ? 's' : ''}</span>
             </a>
@@ -395,7 +395,7 @@ const featuredPages = featuredSlugs
       <section class="home-section">
         <div class="section-heading">
           <h2>Core Articles</h2>
-          <a href="/wiki/Special/AllPages">All articles</a>
+          <a href="/wiki/special/allpages">All articles</a>
         </div>
         <div class="article-grid">
           {featuredPages.map((page) => (
