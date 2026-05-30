@@ -93,6 +93,9 @@ if (!fs.existsSync(sourceRoot)) {
       'https://github.com/e35ventura/taopedia-articles.git',
       cacheArticlesRoot,
     ], { stdio: 'inherit' });
+  } else {
+    execFileSync('git', ['-C', cacheArticlesRoot, 'fetch', '--depth=1', 'origin', articlesRepoRef], { stdio: 'inherit' });
+    execFileSync('git', ['-C', cacheArticlesRoot, 'checkout', '--detach', 'FETCH_HEAD'], { stdio: 'inherit' });
   }
   sourceRoot = path.join(cacheArticlesRoot, 'content', 'pages');
 }
