@@ -32,6 +32,7 @@ const unsafeContentPatterns = [
 const alwaysInclude = new Set(['taopedia']);
 
 function isBittensorArticle(slug, data) {
+  if (data.draft === true) return false;
   if (alwaysInclude.has(slug)) return true;
   const tags = Array.isArray(data.tags) ? data.tags : [];
   return tags.includes('Bittensor');
