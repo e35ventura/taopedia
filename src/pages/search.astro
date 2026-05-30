@@ -40,7 +40,60 @@ const searchEntries = pages
       return (value || '').toLowerCase();
     }
 
-    function renderResult(entry) {
+    function setStatus(text) {
+      if (!resultsContainer) return null;
+      resultsContainer.innerHTML = '';
+      const status = document.createElement('p');
+      status.className = 'search-status';
+      status.textContent = text;
+      resultsContainer.appendChild(status);
+      return status;
+    }
+
+    function countLabel(query, count) {
+      return count
+        ? `Found ${count} result${count === 1 ? '' : 's'} for "${query}"`
+        : `No results found for "${query}"`;
+    }
+
+    function appendTopics(item, categories) {
+      if (!categories || !categories.length) return;
+      const topics = document.createElement('span');
+      topics.className = 'search-topics';
+      categories.forEach((category) => {
+        const topic = document.createElement('span');
+        topic.className = 'search-topic';
+        topic.textContent = category;
+        topics.appendChild(topic);
+      });
+      item.appendChild(topics);
+    }
+
+    // Pagefind result: title + highlighted excerpt (excerpt HTML is sanitized by Pagefind).
+    function renderPagefindResult(data) {
+      const item = document.createElement('a');
+      item.className = 'search-result-item';
+      item.href = data.url;
+
+      const title = document.createElement('span');
+      title.className = 'search-title';
+      title.textContent = (data.meta && data.meta.title) || data.url;
+      item.appendChild(title);
+
+      if (data.excerpt) {
+        const excerpt = document.createElement('span');
+        excerpt.className = 'search-summary';
+        excerpt.innerHTML = data.excerpt;
+        item.appendChild(excerpt);
+      }
+
+      appendTopics(item, (data.filters && data.filters.category) || []);
+      return item;
+    }
+
+    // Fallback (used during `astro dev`, where no Pagefind index is built):
+    // metadata-only match over title/summary/categories.
+    function renderMetadataResult(entry) {
       const item = document.createElement('a');
       item.className = 'search-result-item';
       item.href = entry.url;
@@ -57,42 +110,62 @@ const searchEntries = pages
         item.appendChild(summary);
       }
 
-      if (entry.categories?.length) {
-        const topics = document.createElement('span');
-        topics.className = 'search-topics';
-        entry.categories.forEach((category) => {
-          const topic = document.createElement('span');
-          topic.className = 'search-topic';
-          topic.textContent = category;
-          topics.appendChild(topic);
-        });
-        item.appendChild(topics);
-      }
-
+      appendTopics(item, entry.categories);
       return item;
     }
 
-    if (searchQuery && resultsContainer) {
-      const query = normalize(searchQuery);
+    function runMetadataSearch(query) {
+      const needle = normalize(query);
       const matches = entries.filter((entry) => {
         const haystack = normalize(`${entry.title} ${entry.summary} ${(entry.categories || []).join(' ')}`);
-        return haystack.includes(query);
+        return haystack.includes(needle);
       });
-
-      resultsContainer.innerHTML = '';
-
-      const status = document.createElement('p');
-      status.className = 'search-status';
-      status.textContent = matches.length
-        ? `Found ${matches.length} result${matches.length === 1 ? '' : 's'} for "${searchQuery}"`
-        : `No results found for "${searchQuery}"`;
-      resultsContainer.appendChild(status);
-
+      setStatus(countLabel(query, matches.length));
       const list = document.createElement('div');
       list.className = 'search-result-list';
-      matches.forEach((entry) => list.appendChild(renderResult(entry)));
+      matches.forEach((entry) => list.appendChild(renderMetadataResult(entry)));
       resultsContainer.appendChild(list);
     }
+
+    async function runPagefindSearch(pagefind, query) {
+      const search = await pagefind.search(query);
+      const data = await Promise.all(search.results.map((result) => result.data()));
+      setStatus(countLabel(query, data.length));
+      const list = document.createElement('div');
+      list.className = 'search-result-list';
+      data.forEach((entry) => list.appendChild(renderPagefindResult(entry)));
+      resultsContainer.appendChild(list);
+    }
+
+    async function loadPagefind() {
+      try {
+        // Path is built into `dist/pagefind/` by the `postbuild` step. Use a
+        // variable so the dev bundler does not try to resolve it at build time.
+        const modulePath = '/pagefind/pagefind.js';
+        const pagefind = await import(modulePath);
+        await pagefind.init();
+        return pagefind;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    async function runSearch(query) {
+      if (!query || !resultsContainer) return;
+      setStatus(`Searching for "${query}"...`);
+      const pagefind = await loadPagefind();
+      if (pagefind) {
+        try {
+          await runPagefindSearch(pagefind, query);
+          return;
+        } catch (error) {
+          // Fall through to metadata search if a query fails at runtime.
+        }
+      }
+      runMetadataSearch(query);
+    }
+
+    runSearch(searchQuery);
   </script>
 
   <style>
