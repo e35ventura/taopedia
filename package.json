@@ -9,7 +9,8 @@
     "prebuild": "node scripts/sync-articles.js && node scripts/generate-history.js && node scripts/build-linkgraph.js",
     "postbuild": "npx pagefind --site dist",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "test:article-slugmap": "node scripts/check-article-slugmap.js"
   },
   "dependencies": {
     "@astrojs/mdx": "^5.0.6",
