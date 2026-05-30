@@ -11,6 +11,7 @@ const defaultArticlesRoot = path.resolve(projectRoot, '..', 'taopedia-articles')
 const articlesRoot = process.env.TAOPEDIA_ARTICLES_DIR
   ? path.resolve(process.env.TAOPEDIA_ARTICLES_DIR)
   : defaultArticlesRoot;
+const articlesRepoRef = process.env.TAOPEDIA_ARTICLES_REF || 'main';
 const cacheArticlesRoot = path.join(projectRoot, '.cache', 'taopedia-articles');
 let sourceRoot = path.join(articlesRoot, 'content', 'pages');
 const targetRoot = path.join(projectRoot, 'src', 'content', 'pages');
@@ -89,6 +90,8 @@ if (!fs.existsSync(sourceRoot)) {
     execFileSync('git', [
       'clone',
       '--depth=1',
+      '--branch',
+      articlesRepoRef,
       'https://github.com/e35ventura/taopedia-articles.git',
       cacheArticlesRoot,
     ], { stdio: 'inherit' });
