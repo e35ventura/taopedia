@@ -16,15 +16,7 @@ for (const page of sortedPages) {
   }
 }
 
-const priorityTopics = ['Bittensor', 'Wallets', 'Subnets', 'Staking', 'Consensus', 'Tokenomics'];
-const topicFilters = priorityTopics
-  .map((topic) => [topic, categoryIndex.get(topic)] as const)
-  .filter((entry): entry is readonly [string, typeof pages] => Boolean(entry[1]));
-
-const groupedArticles = topicFilters.map(([topic, topicPages]) => ({
-  topic,
-  pages: [...topicPages].sort((a, b) => a.data.title.localeCompare(b.data.title)),
-}));
+const topicFilters = Array.from(categoryIndex.entries()).sort(([a], [b]) => a.localeCompare(b));
 ---
 
 <WikiLayout title="Articles">
@@ -50,8 +42,8 @@ const groupedArticles = topicFilters.map(([topic, topicPages]) => ({
         <strong>{sortedPages.length}</strong> articles across <strong>{categoryIndex.size}</strong> topics
       </p>
 
-      <div class="featured-directory">
-        {sortedPages.slice(0, 3).map((page) => (
+      <div class="article-list-grid">
+        {sortedPages.map((page) => (
           <a
             class="article-card"
             href={`/wiki/${getPageSlug(page)}`}
@@ -65,30 +57,6 @@ const groupedArticles = topicFilters.map(([topic, topicPages]) => ({
           </a>
         ))}
       </div>
-
-      <div class="article-groups">
-        {groupedArticles.map(({ topic, pages }) => (
-          <section class="article-group" data-article-group data-topic={topic}>
-            <div class="article-group-heading">
-              <h2>{topic}</h2>
-              <a href={`/wiki/Category/${topic.replace(/ /g, '_')}`}>View topic</a>
-            </div>
-            <ul>
-              {pages.map((page) => (
-                <li
-                  data-article-card
-                  data-title={page.data.title.toLowerCase()}
-                  data-summary={(page.data.summary ?? '').toLowerCase()}
-                  data-topics={(page.data.categories ?? []).join('|')}
-                >
-                  <a href={`/wiki/${getPageSlug(page)}`}>{page.data.title}</a>
-                  {page.data.summary && <span>{page.data.summary}</span>}
-                </li>
-              ))}
-            </ul>
-          </section>
-        ))}
-      </div>
     </div>
   </div>
 
@@ -96,7 +64,6 @@ const groupedArticles = topicFilters.map(([topic, topicPages]) => ({
     const searchInput = document.getElementById('article-filter');
     const topicButtons = Array.from(document.querySelectorAll('[data-topic]'));
     const articleCards = Array.from(document.querySelectorAll('[data-article-card]'));
-    const groups = Array.from(document.querySelectorAll('[data-article-group]'));
     let selectedTopic = 'all';
 
     function normalize(value) {
@@ -112,12 +79,6 @@ const groupedArticles = topicFilters.map(([topic, topicPages]) => ({
         const matchesTopic = selectedTopic === 'all' || topics.split('|').includes(selectedTopic);
         const matchesQuery = !query || text.includes(query);
         card.hidden = !(matchesTopic && matchesQuery);
-      });
-
-      groups.forEach((group) => {
-        const visibleItems = group.querySelectorAll('[data-article-card]:not([hidden])').length;
-        const matchesGroupTopic = selectedTopic === 'all' || group.dataset.topic === selectedTopic;
-        group.hidden = !matchesGroupTopic || visibleItems === 0;
       });
     }
 
@@ -195,7 +156,7 @@ const groupedArticles = topicFilters.map(([topic, topicPages]) => ({
     font-size: 13px;
   }
 
-  .featured-directory {
+  .article-list-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px;
@@ -209,15 +170,13 @@ const groupedArticles = topicFilters.map(([topic, topicPages]) => ({
     text-decoration: none;
   }
 
-  .article-card strong,
-  .article-group li a {
+  .article-card strong {
     color: var(--color-link);
     font-weight: 700;
     text-decoration: none;
   }
 
-  .article-card span,
-  .article-group li span {
+  .article-card span {
     display: block;
     margin-top: 5px;
     color: var(--color-base-subtle);
@@ -225,53 +184,8 @@ const groupedArticles = topicFilters.map(([topic, topicPages]) => ({
     line-height: 1.45;
   }
 
-  .article-card:hover,
-  .article-group li:hover {
+  .article-card:hover {
     border-color: var(--color-link);
-  }
-
-  .article-groups {
-    display: grid;
-    gap: 22px;
-  }
-
-  .article-group {
-    padding-top: 4px;
-  }
-
-  .article-group-heading {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 16px;
-    border-bottom: 1px solid var(--border-color-subtle);
-    margin-bottom: 10px;
-  }
-
-  .article-group-heading h2 {
-    margin: 0;
-    border: 0;
-  }
-
-  .article-group-heading a {
-    color: var(--color-link);
-    font-size: 13px;
-    text-decoration: none;
-  }
-
-  .article-group ul {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .article-group li {
-    padding: 12px;
-    border: 1px solid var(--border-color-subtle);
-    background: var(--background-color-interactive);
   }
 
   [hidden] {
@@ -279,8 +193,7 @@ const groupedArticles = topicFilters.map(([topic, topicPages]) => ({
   }
 
   @media (max-width: 780px) {
-    .featured-directory,
-    .article-group ul {
+    .article-list-grid {
       grid-template-columns: 1fr;
     }
   }
