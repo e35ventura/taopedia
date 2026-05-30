@@ -30,12 +30,10 @@ const unsafeContentPatterns = [
   { pattern: /\bclient:[a-z-]+\b/i, reason: 'client directives are not allowed in article content' },
 ];
 
-const alwaysInclude = new Set(['taopedia']);
+const hiddenTopics = new Set(['Bittensor']);
 
-function isBittensorArticle(slug, data) {
-  if (alwaysInclude.has(slug)) return true;
-  const tags = Array.isArray(data.tags) ? data.tags : [];
-  return tags.includes('Bittensor');
+function isPublishedArticle(data) {
+  return data.draft !== true;
 }
 
 function toCategories(data) {
@@ -44,9 +42,9 @@ function toCategories(data) {
     categories.push(data.category.trim());
   }
   if (Array.isArray(data.tags)) {
-    categories.push(...data.tags.filter((tag) => typeof tag === 'string' && tag.trim()));
+    categories.push(...data.tags.filter((tag) => typeof tag === 'string' && tag.trim() && !hiddenTopics.has(tag.trim())));
   }
-  return Array.from(new Set(categories));
+  return Array.from(new Set(categories.filter((category) => !hiddenTopics.has(category))));
 }
 
 function validateSlug(slug) {
@@ -119,7 +117,7 @@ for (const entry of fs.readdirSync(sourceRoot, { withFileTypes: true })) {
   const raw = fs.readFileSync(sourceFile, 'utf8');
   validateArticleContent(slug, raw);
   const parsed = matter(raw);
-  if (!isBittensorArticle(slug, parsed.data)) continue;
+  if (!isPublishedArticle(parsed.data)) continue;
 
   const data = { ...parsed.data, categories: toCategories(parsed.data) };
   delete data.category;
@@ -132,4 +130,4 @@ for (const entry of fs.readdirSync(sourceRoot, { withFileTypes: true })) {
   synced += 1;
 }
 
-console.log(`Synced ${synced} Bittensor-focused articles from taopedia-articles`);
+console.log(`Synced ${synced} published articles from taopedia-articles`);

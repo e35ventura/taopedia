@@ -17,7 +17,7 @@ for (const page of pages) {
   }
 }
 
-const priorityCategories = ['Bittensor', 'Wallets', 'Subnets', 'Staking', 'Consensus', 'Tokenomics'];
+const priorityCategories = ['Wallets', 'Subnets', 'Mining', 'Staking', 'Consensus', 'Tokenomics'];
 const topicCategories = priorityCategories
   .map((name) => [name, categoryIndex.get(name)] as const)
   .filter((entry): entry is readonly [string, typeof pages] => Boolean(entry[1]));
