@@ -52,6 +52,47 @@ function slugify(text) {
   return text.toLowerCase().replace(/ /g, '_').replace(/[^\w-]/g, '');
 }
 
+function normalizeLinkTarget(rawTarget) {
+  return String(rawTarget || '')
+    .trim()
+    .replace(/^\/+|\/+$/g, '')
+    .split('#')[0];
+}
+
+function buildSlugAliases(slugMap) {
+  const aliases = new Map();
+  for (const [slug, meta] of Object.entries(slugMap)) {
+    const keys = new Set([
+      slug,
+      slug.toLowerCase(),
+      slugify(slug),
+      slugify(slug.replaceAll('_', ' ')),
+      slugify(meta?.title || ''),
+    ]);
+    for (const key of keys) {
+      if (key) aliases.set(key, slug);
+    }
+  }
+  return aliases;
+}
+
+function resolveTargetSlug(rawTarget, slugAliases) {
+  const normalized = normalizeLinkTarget(rawTarget);
+  if (!normalized) return '';
+
+  const candidates = [
+    normalized,
+    normalized.toLowerCase(),
+    slugify(normalized),
+    slugify(normalized.replaceAll('_', ' ')),
+  ];
+  for (const candidate of candidates) {
+    const resolved = slugAliases.get(candidate);
+    if (resolved) return resolved;
+  }
+  return candidates[2];
+}
+
 console.log('Building link graph and backlinks...');
 
 const markdownFiles = walkDirectory(contentDir);
@@ -84,10 +125,18 @@ markdownFiles.forEach(filePath => {
   // Extract wiki links
   const links = extractWikiLinks(body);
   linkGraph[slug] = links.map(link => ({
-    target: slugify(link.target),
+    target: link.target,
     text: link.text,
   }));
 });
+
+const slugAliases = buildSlugAliases(slugMap);
+for (const [fromSlug, links] of Object.entries(linkGraph)) {
+  linkGraph[fromSlug] = links.map(link => ({
+    target: resolveTargetSlug(link.target, slugAliases),
+    text: link.text,
+  })).filter(link => link.target);
+}
 
 // Second pass: build backlinks
 Object.keys(linkGraph).forEach(fromSlug => {
