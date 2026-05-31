@@ -11,6 +11,7 @@ const defaultArticlesRoot = path.resolve(projectRoot, '..', 'taopedia-articles')
 const articlesRoot = process.env.TAOPEDIA_ARTICLES_DIR
   ? path.resolve(process.env.TAOPEDIA_ARTICLES_DIR)
   : defaultArticlesRoot;
+const articlesRepoRef = process.env.TAOPEDIA_ARTICLES_REF || 'main';
 const cacheArticlesRoot = path.join(projectRoot, '.cache', 'taopedia-articles');
 let sourceRoot = path.join(articlesRoot, 'content', 'pages');
 const targetRoot = path.join(projectRoot, 'src', 'content', 'pages');
@@ -71,11 +72,10 @@ function stripSchemeNoise(value) {
 }
 
 const alwaysInclude = new Set(['taopedia']);
+const hiddenTopics = new Set(['Bittensor']);
 
-function isBittensorArticle(slug, data) {
-  if (alwaysInclude.has(slug)) return true;
-  const tags = Array.isArray(data.tags) ? data.tags : [];
-  return tags.includes('Bittensor');
+function isPublishedArticle(data) {
+  return data.draft !== true;
 }
 
 function toCategories(data) {
@@ -84,9 +84,9 @@ function toCategories(data) {
     categories.push(data.category.trim());
   }
   if (Array.isArray(data.tags)) {
-    categories.push(...data.tags.filter((tag) => typeof tag === 'string' && tag.trim()));
+    categories.push(...data.tags.filter((tag) => typeof tag === 'string' && tag.trim() && !hiddenTopics.has(tag.trim())));
   }
-  return Array.from(new Set(categories));
+  return Array.from(new Set(categories.filter((category) => !hiddenTopics.has(category))));
 }
 
 function validateSlug(slug) {
@@ -139,9 +139,14 @@ if (!fs.existsSync(sourceRoot)) {
     execFileSync('git', [
       'clone',
       '--depth=1',
+      '--branch',
+      articlesRepoRef,
       'https://github.com/e35ventura/taopedia-articles.git',
       cacheArticlesRoot,
     ], { stdio: 'inherit' });
+  } else {
+    execFileSync('git', ['-C', cacheArticlesRoot, 'fetch', '--depth=1', 'origin', articlesRepoRef], { stdio: 'inherit' });
+    execFileSync('git', ['-C', cacheArticlesRoot, 'checkout', '--detach', 'FETCH_HEAD'], { stdio: 'inherit' });
   }
   sourceRoot = path.join(cacheArticlesRoot, 'content', 'pages');
 }
@@ -166,7 +171,7 @@ for (const entry of fs.readdirSync(sourceRoot, { withFileTypes: true })) {
   const raw = fs.readFileSync(sourceFile, 'utf8');
   validateArticleContent(slug, raw);
   const parsed = matter(raw);
-  if (!isBittensorArticle(slug, parsed.data)) continue;
+  if (!isPublishedArticle(parsed.data)) continue;
 
   const data = { ...parsed.data, categories: toCategories(parsed.data) };
   delete data.category;
@@ -179,4 +184,4 @@ for (const entry of fs.readdirSync(sourceRoot, { withFileTypes: true })) {
   synced += 1;
 }
 
-console.log(`Synced ${synced} Bittensor-focused articles from taopedia-articles`);
+console.log(`Synced ${synced} published articles from taopedia-articles`);

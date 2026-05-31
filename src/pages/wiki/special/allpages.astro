@@ -16,7 +16,7 @@ for (const page of sortedPages) {
   }
 }
 
-const priorityTopics = ['Bittensor', 'Wallets', 'Subnets', 'Staking', 'Consensus', 'Tokenomics'];
+const priorityTopics = ['Wallets', 'Subnets', 'Mining', 'Staking', 'Consensus', 'Tokenomics'];
 const topicFilters = priorityTopics
   .map((topic) => [topic, categoryIndex.get(topic)] as const)
   .filter((entry): entry is readonly [string, typeof pages] => Boolean(entry[1]));
@@ -71,7 +71,7 @@ const groupedArticles = topicFilters.map(([topic, topicPages]) => ({
           <section class="article-group" data-article-group data-topic={topic}>
             <div class="article-group-heading">
               <h2>{topic}</h2>
-              <a href={`/wiki/Category/${topic.replace(/ /g, '_')}`}>View topic</a>
+              <a href={`/wiki/category/${topic.replace(/ /g, '_')}`}>View topic</a>
             </div>
             <ul>
               {pages.map((page) => (

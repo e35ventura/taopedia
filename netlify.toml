@@ -20,6 +20,13 @@
 
 [build.environment]
   NODE_VERSION = "22"
+  TAOPEDIA_ARTICLES_REF = "main"
+
+[context.branch-deploy.environment]
+  TAOPEDIA_ARTICLES_REF = "test"
+
+[context.deploy-preview.environment]
+  TAOPEDIA_ARTICLES_REF = "test"
 
 [[headers]]
   for = "/*"
