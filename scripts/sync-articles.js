@@ -30,21 +30,33 @@ const unsafeContentPatterns = [
   { pattern: /\bclient:[a-z-]+\b/i, reason: 'client directives are not allowed in article content' },
 ];
 
-const hiddenTopics = new Set(['Bittensor']);
+const hiddenTopics = new Set(['bittensor']);
+
+function normalizeCategoryLabel(value) {
+  return typeof value === 'string' ? value.trim() : '';
+}
 
 function isPublishedArticle(data) {
   return data.draft !== true;
 }
 
 function toCategories(data) {
-  const categories = [];
-  if (typeof data.category === 'string' && data.category.trim()) {
-    categories.push(data.category.trim());
+  const categories = new Map();
+  const addCategory = (rawValue) => {
+    const normalized = normalizeCategoryLabel(rawValue);
+    if (!normalized) return;
+    const key = normalized.toLowerCase();
+    if (hiddenTopics.has(key)) return;
+    if (!categories.has(key)) categories.set(key, normalized);
+  };
+
+  if (typeof data.category === 'string') {
+    addCategory(data.category);
   }
   if (Array.isArray(data.tags)) {
-    categories.push(...data.tags.filter((tag) => typeof tag === 'string' && tag.trim() && !hiddenTopics.has(tag.trim())));
+    for (const tag of data.tags) addCategory(tag);
   }
-  return Array.from(new Set(categories.filter((category) => !hiddenTopics.has(category))));
+  return Array.from(categories.values());
 }
 
 function validateSlug(slug) {
