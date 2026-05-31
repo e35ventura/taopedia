@@ -1,4 +1,4 @@
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -17,24 +17,43 @@ if (!fs.existsSync(outputDir)) {
 
 function getGitHistory(filePath) {
   try {
-    const logOutput = execSync(
-      `git log --follow --pretty=format:"%H|%an|%ae|%at|%s" -- "${filePath}"`,
+    const logOutput = execFileSync(
+      'git',
+      [
+        'log',
+        '--follow',
+        '--pretty=format:%H%x00%an%x00%ae%x00%at%x00%s%x00',
+        '--',
+        filePath,
+      ],
       { encoding: 'utf-8', cwd: projectRoot }
     );
 
     if (!logOutput) return [];
 
-    return logOutput.split('\n').map(line => {
-      const [sha, authorName, authorEmail, timestamp, message] = line.split('|');
-      return {
+    const tokens = logOutput.split('\x00').filter(Boolean);
+    const history = [];
+    for (let i = 0; i < tokens.length; i += 5) {
+      const sha = tokens[i];
+      const authorName = tokens[i + 1];
+      const authorEmail = tokens[i + 2];
+      const timestamp = tokens[i + 3];
+      const message = tokens[i + 4];
+      if (!sha || !timestamp) continue;
+      const parsedTimestamp = parseInt(timestamp, 10);
+      if (!Number.isFinite(parsedTimestamp)) continue;
+
+      history.push({
         sha,
-        authorName,
-        authorEmail,
-        timestamp: parseInt(timestamp, 10),
-        date: new Date(parseInt(timestamp, 10) * 1000).toISOString(),
-        message,
-      };
-    });
+        authorName: authorName || '',
+        authorEmail: authorEmail || '',
+        timestamp: parsedTimestamp,
+        date: new Date(parsedTimestamp * 1000).toISOString(),
+        message: message || '',
+      });
+    }
+
+    return history;
   } catch (error) {
     console.warn(`No git history for ${filePath}:`, error.message);
     return [];
