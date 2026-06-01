@@ -1,0 +1,167 @@
+---
+import WikiLayout from '../../../layouts/WikiLayout.astro';
+
+type LinkGraphEntry = { target: string; text?: string };
+type LinkGraph = Record<string, LinkGraphEntry[]>;
+type SlugMapEntry = { title?: string };
+type SlugMap = Record<string, SlugMapEntry>;
+
+let linkGraph: LinkGraph = {};
+let slugMap: SlugMap = {};
+
+try {
+  const mod = await import('../../../../public/data/linkgraph.json');
+  linkGraph = (mod.default ?? mod) as LinkGraph;
+} catch {
+  // Optional in dev.
+}
+
+try {
+  const mod = await import('../../../../public/data/slugmap.json');
+  slugMap = (mod.default ?? mod) as SlugMap;
+} catch {
+  // Optional.
+}
+
+const existing = new Set(Object.keys(slugMap));
+
+type Wanted = {
+  target: string;
+  count: number;
+  sources: string[];
+};
+
+const wantedMap = new Map<string, { count: number; sources: Set<string> }>();
+
+for (const [from, links] of Object.entries(linkGraph)) {
+  for (const link of links) {
+    const target = (link?.target ?? '').trim();
+    if (!target) continue;
+    if (existing.has(target)) continue;
+    const entry = wantedMap.get(target) ?? { count: 0, sources: new Set<string>() };
+    entry.count += 1;
+    entry.sources.add(from);
+    wantedMap.set(target, entry);
+  }
+}
+
+const wanted: Wanted[] = Array.from(wantedMap.entries())
+  .map(([target, data]) => ({
+    target,
+    count: data.count,
+    sources: Array.from(data.sources).sort().slice(0, 6),
+  }))
+  .sort((a, b) => b.count - a.count || a.target.localeCompare(b.target));
+---
+
+<WikiLayout title="Wanted pages">
+  <div class="mw-body-content">
+    <h1 class="firstHeading">Wanted pages</h1>
+
+    <div class="mw-parser-output">
+      <p class="wp-intro">
+        Pages that are linked from articles but do not exist yet. This is a good “what should we write next?” list.
+      </p>
+
+      {wanted.length === 0 ? (
+        <p>No wanted pages found.</p>
+      ) : (
+        <>
+          <p class="wp-count">
+            <strong>{wanted.length}</strong> missing page{wanted.length !== 1 ? 's' : ''}.
+          </p>
+          <ol class="wp-list">
+            {wanted.map((item) => (
+              <li class="wp-item">
+                <div class="wp-item-title">
+                  <code>{item.target}</code>
+                  <span class="wp-item-count">
+                    {item.count} link{item.count !== 1 ? 's' : ''}
+                  </span>
+                </div>
+                {item.sources.length > 0 ? (
+                  <div class="wp-sources">
+                    <span>Linked from:</span>
+                    <ul>
+                      {item.sources.map((from) => (
+                        <li>
+                          <a href={`/wiki/${from}`}>{slugMap[from]?.title ?? from}</a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </li>
+            ))}
+          </ol>
+        </>
+      )}
+    </div>
+  </div>
+</WikiLayout>
+
+<style>
+  .wp-intro,
+  .wp-count {
+    margin-bottom: 16px;
+    color: var(--color-base-subtle);
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .wp-list {
+    margin: 0;
+    padding-left: 18px;
+    display: grid;
+    gap: 10px;
+  }
+
+  .wp-item {
+    padding: 12px;
+    border: 1px solid var(--border-color-subtle);
+    background: var(--background-color-interactive);
+  }
+
+  .wp-item-title {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: baseline;
+  }
+
+  .wp-item-title code {
+    font-weight: 800;
+  }
+
+  .wp-item-count {
+    color: var(--color-base-subtle);
+    font-size: 12px;
+  }
+
+  .wp-sources {
+    margin-top: 10px;
+    display: grid;
+    gap: 8px;
+    color: var(--color-base-subtle);
+    font-size: 12px;
+  }
+
+  .wp-sources ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .wp-sources a {
+    color: var(--color-link);
+    text-decoration: none;
+    font-weight: 700;
+  }
+
+  .wp-sources a:hover {
+    text-decoration: underline;
+  }
+</style>

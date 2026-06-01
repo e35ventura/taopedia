@@ -1,0 +1,112 @@
+---
+import WikiLayout from '../../../layouts/WikiLayout.astro';
+
+type BacklinkEntry = { from: string; fromTitle?: string };
+type BacklinksIndex = Record<string, BacklinkEntry[]>;
+type SlugMapEntry = { title?: string; summary?: string };
+type SlugMap = Record<string, SlugMapEntry>;
+
+const target = (Astro.url.searchParams.get('target') ?? '').trim();
+
+let backlinksIndex: BacklinksIndex = {};
+let slugMap: SlugMap = {};
+
+try {
+  const mod = await import('../../../../public/data/backlinks.json');
+  backlinksIndex = (mod.default ?? mod) as BacklinksIndex;
+} catch {
+  // Build artifacts may not exist in dev until predev/prebuild runs.
+}
+
+try {
+  const mod = await import('../../../../public/data/slugmap.json');
+  slugMap = (mod.default ?? mod) as SlugMap;
+} catch {
+  // Optional.
+}
+
+const backlinks = target ? backlinksIndex[target] ?? [] : [];
+const targetTitle = target ? (slugMap[target]?.title ?? target) : '';
+const sortedBacklinks = [...backlinks].sort((a, b) =>
+  (a.fromTitle ?? a.from).localeCompare(b.fromTitle ?? b.from)
+);
+---
+
+<WikiLayout title={target ? `What links here: ${targetTitle}` : 'What links here'}>
+  <div class="mw-body-content">
+    <h1 class="firstHeading">What links here</h1>
+
+    <div class="mw-parser-output">
+      <p class="wl-intro">
+        {target ? (
+          <>
+            Pages that link to <a href={`/wiki/${target}`}>{targetTitle}</a>.
+          </>
+        ) : (
+          <>
+            Add a <code>target</code> query parameter to view backlinks, e.g.{' '}
+            <a href="/wiki/special/whatlinkshere?target=taopedia">/wiki/special/whatlinkshere?target=taopedia</a>.
+          </>
+        )}
+      </p>
+
+      {target && sortedBacklinks.length === 0 ? (
+        <p>No pages link to this target yet.</p>
+      ) : null}
+
+      {sortedBacklinks.length > 0 ? (
+        <div class="wl-results">
+          <p class="wl-count">
+            <strong>{sortedBacklinks.length}</strong> page{sortedBacklinks.length !== 1 ? 's' : ''} link here.
+          </p>
+          <ul class="wl-list">
+            {sortedBacklinks.map((entry) => (
+              <li>
+                <a href={`/wiki/${entry.from}`}>{entry.fromTitle ?? entry.from}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+    </div>
+  </div>
+</WikiLayout>
+
+<style>
+  .wl-intro {
+    margin-bottom: 16px;
+    color: var(--color-base-subtle);
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .wl-count {
+    margin: 0 0 10px;
+    color: var(--color-base-subtle);
+    font-size: 13px;
+  }
+
+  .wl-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 8px;
+  }
+
+  .wl-list li {
+    padding: 10px 12px;
+    border: 1px solid var(--border-color-subtle);
+    background: var(--background-color-interactive);
+  }
+
+  .wl-list a {
+    color: var(--color-link);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .wl-list a:hover {
+    text-decoration: underline;
+  }
+</style>

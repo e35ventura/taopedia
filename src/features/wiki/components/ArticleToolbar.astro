@@ -15,7 +15,7 @@ const { slug, historyUrl, editUrl, showWhatLinksHere = true } = Astro.props as P
   <a href={`/wiki/${slug}`} class="active">Article</a>
   <a href={historyUrl}>History</a>
   <a href={editUrl} target="_blank" rel="noopener noreferrer">Edit</a>
-  {showWhatLinksHere && <a href={`/wiki/${slug}/backlinks`}>What links here</a>}
+  {showWhatLinksHere && <a href={`/wiki/special/whatlinkshere?target=${slug}`}>What links here</a>}
   <span class="toolbar-spacer"></span>
   <button class="right-rail-toggle toolbar-toggle" aria-label="Toggle appearance settings">⚙</button>
 </nav>

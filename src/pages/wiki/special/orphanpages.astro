@@ -1,0 +1,97 @@
+---
+import WikiLayout from '../../../layouts/WikiLayout.astro';
+
+type BacklinkEntry = { from: string; fromTitle?: string };
+type BacklinksIndex = Record<string, BacklinkEntry[]>;
+type SlugMapEntry = { title?: string; summary?: string };
+type SlugMap = Record<string, SlugMapEntry>;
+
+let backlinksIndex: BacklinksIndex = {};
+let slugMap: SlugMap = {};
+
+try {
+  const mod = await import('../../../../public/data/backlinks.json');
+  backlinksIndex = (mod.default ?? mod) as BacklinksIndex;
+} catch {
+  // Optional in dev.
+}
+
+try {
+  const mod = await import('../../../../public/data/slugmap.json');
+  slugMap = (mod.default ?? mod) as SlugMap;
+} catch {
+  // Optional.
+}
+
+const orphans = Object.keys(slugMap)
+  .filter((slug) => {
+    const list = backlinksIndex[slug];
+    return !Array.isArray(list) || list.length === 0;
+  })
+  .map((slug) => ({ slug, title: slugMap[slug]?.title ?? slug }))
+  .sort((a, b) => a.title.localeCompare(b.title));
+---
+
+<WikiLayout title="Orphan pages">
+  <div class="mw-body-content">
+    <h1 class="firstHeading">Orphan pages</h1>
+
+    <div class="mw-parser-output">
+      <p class="op-intro">
+        Articles with no incoming links. These pages are harder to discover and usually benefit from being linked from
+        related topics.
+      </p>
+
+      {orphans.length === 0 ? (
+        <p>No orphan pages found.</p>
+      ) : (
+        <>
+          <p class="op-count">
+            <strong>{orphans.length}</strong> orphan page{orphans.length !== 1 ? 's' : ''}.
+          </p>
+          <ul class="op-list">
+            {orphans.map((item) => (
+              <li>
+                <a href={`/wiki/${item.slug}`}>{item.title}</a>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </div>
+  </div>
+</WikiLayout>
+
+<style>
+  .op-intro,
+  .op-count {
+    margin-bottom: 16px;
+    color: var(--color-base-subtle);
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .op-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 8px;
+  }
+
+  .op-list li {
+    padding: 10px 12px;
+    border: 1px solid var(--border-color-subtle);
+    background: var(--background-color-interactive);
+  }
+
+  .op-list a {
+    color: var(--color-link);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .op-list a:hover {
+    text-decoration: underline;
+  }
+</style>
