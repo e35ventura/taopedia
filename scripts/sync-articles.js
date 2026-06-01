@@ -85,16 +85,17 @@ function copyDir(src, dest) {
 if (!fs.existsSync(sourceRoot)) {
   fs.mkdirSync(path.dirname(cacheArticlesRoot), { recursive: true });
   if (!fs.existsSync(cacheArticlesRoot)) {
+    // Full clone (not --depth=1): generate-history.js reads per-article git log
+    // from this checkout, so it needs the complete commit history.
     execFileSync('git', [
       'clone',
-      '--depth=1',
       '--branch',
       articlesRepoRef,
       'https://github.com/e35ventura/taopedia-articles.git',
       cacheArticlesRoot,
     ], { stdio: 'inherit' });
   } else {
-    execFileSync('git', ['-C', cacheArticlesRoot, 'fetch', '--depth=1', 'origin', articlesRepoRef], { stdio: 'inherit' });
+    execFileSync('git', ['-C', cacheArticlesRoot, 'fetch', 'origin', articlesRepoRef], { stdio: 'inherit' });
     execFileSync('git', ['-C', cacheArticlesRoot, 'checkout', '--detach', 'FETCH_HEAD'], { stdio: 'inherit' });
   }
   sourceRoot = path.join(cacheArticlesRoot, 'content', 'pages');

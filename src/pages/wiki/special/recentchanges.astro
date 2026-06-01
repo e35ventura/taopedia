@@ -1,0 +1,169 @@
+---
+import fs from 'node:fs';
+import path from 'node:path';
+import WikiLayout from '../../../layouts/WikiLayout.astro';
+
+// Merged, time-sorted feed produced by scripts/generate-history.js (prebuild).
+// Read with fs (not a static `import`) so a missing file degrades to an empty
+// feed instead of failing the build — the JSON may not exist yet on a fresh
+// `astro dev` that has not run the build pipeline.
+let changes: any[] = [];
+try {
+  const file = path.join(process.cwd(), 'public', 'history', 'recent-changes.json');
+  changes = JSON.parse(fs.readFileSync(file, 'utf-8')).changes || [];
+} catch (e) {
+  console.warn('No recent-changes feed found; run `node scripts/generate-history.js`.');
+}
+
+// Group revisions by calendar day, preserving the most-recent-first ordering.
+const dayKey = (iso: string) =>
+  new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+const groups: { day: string; entries: any[] }[] = [];
+for (const change of changes) {
+  const day = dayKey(change.date);
+  const current = groups[groups.length - 1];
+  if (current && current.day === day) {
+    current.entries.push(change);
+  } else {
+    groups.push({ day, entries: [change] });
+  }
+}
+---
+
+<WikiLayout title="Recent changes" description="Recent edits across Taopedia articles.">
+  <div class="mw-body-content">
+    <nav class="mw-article-toolbar">
+      <button class="sidebar-toggle toolbar-toggle" aria-label="Toggle navigation">☰</button>
+      <a href="/wiki/special/recentchanges" class="active">Recent changes</a>
+      <span class="toolbar-spacer"></span>
+      <a href="/rss.xml">RSS feed</a>
+    </nav>
+
+    <h1 class="firstHeading">Recent changes</h1>
+
+    <p class="rc-intro">
+      The most recent edits across all Taopedia articles, drawn from the Git history.
+      Subscribe via the <a href="/rss.xml">RSS feed</a>.
+    </p>
+
+    {groups.length === 0 ? (
+      <p>No recent changes available yet.</p>
+    ) : (
+      groups.map((group) => (
+        <section class="rc-day">
+          <h2 class="rc-day-heading">{group.day}</h2>
+          <ul class="rc-list">
+            {group.entries.map((change) => (
+              <li class="rc-item">
+                <div class="rc-item-head">
+                  <a class="rc-title" href={`/wiki/${change.slug}`}>{change.title}</a>
+                  <time class="rc-time">
+                    {new Date(change.date).toLocaleTimeString('en-US', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </time>
+                </div>
+                <div class="rc-message">{change.message || '(no message)'}</div>
+                <div class="rc-meta">
+                  <span class="rc-author">{change.authorName}</span>
+                  <span class="rc-sep">·</span>
+                  <a class="rc-history" href={`/wiki/${change.slug}/history`}>history</a>
+                  <span class="rc-sep">·</span>
+                  <code class="rc-sha">{change.sha.substring(0, 7)}</code>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))
+    )}
+  </div>
+</WikiLayout>
+
+<style>
+  .rc-intro {
+    margin-bottom: 20px;
+    color: var(--color-base-subtle);
+    font-size: 14px;
+  }
+
+  .rc-day {
+    margin-bottom: 24px;
+  }
+
+  .rc-day-heading {
+    margin: 0 0 10px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--border-color-subtle);
+    font-size: 16px;
+  }
+
+  .rc-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 8px;
+  }
+
+  .rc-item {
+    padding: 12px;
+    border: 1px solid var(--border-color-subtle);
+    background: var(--background-color-interactive);
+  }
+
+  .rc-item-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 4px;
+  }
+
+  .rc-title {
+    font-weight: 700;
+    color: var(--color-link);
+    text-decoration: none;
+  }
+
+  .rc-title:hover {
+    text-decoration: underline;
+  }
+
+  .rc-time {
+    flex-shrink: 0;
+    font-size: 12px;
+    color: var(--color-base-subtle);
+  }
+
+  .rc-message {
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+
+  .rc-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--color-base-subtle);
+  }
+
+  .rc-meta a {
+    color: var(--color-link);
+    text-decoration: none;
+  }
+
+  .rc-meta a:hover {
+    text-decoration: underline;
+  }
+
+  .rc-sha {
+    background: var(--background-color-neutral);
+    padding: 2px 6px;
+    border-radius: 2px;
+    font-size: 11px;
+  }
+</style>

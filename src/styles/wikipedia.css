@@ -939,6 +939,11 @@ body.sidebar-collapsed .mw-article-toolbar .sidebar-toggle { display: inline-fle
   background: var(--background-color-interactive);
   font-size: 12px;
   color: var(--color-base-subtle);
+  /* Sit above the fixed sidebar (z-index: 10), which spans the full viewport
+     height down the left gutter and would otherwise intercept clicks on the
+     footer links where they overlap. */
+  position: relative;
+  z-index: 20;
 }
 
 .mw-footer-links {
