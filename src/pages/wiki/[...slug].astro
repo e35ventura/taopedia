@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
 import WikiLayout from '../../layouts/WikiLayout.astro';
+import { getRelatedPages, type SlugMap, type Backlinks, type LinkGraph } from '../../lib/related';
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
@@ -35,13 +36,37 @@ const ib = {
 };
 
 // Load slug map for broken link detection
-let slugMap = {};
+let slugMap: SlugMap = {};
 try {
   const slugData = await import('../../../public/data/slugmap.json');
-  slugMap = slugData.default;
+  slugMap = slugData.default as SlugMap;
 } catch (e) {
   // Slug map not yet generated
 }
+
+// Load the link graph and backlinks to compute "Related pages".
+let relatedPages: ReturnType<typeof getRelatedPages> = [];
+try {
+  const [backlinksData, linkGraphData] = await Promise.all([
+    import('../../../public/data/backlinks.json'),
+    import('../../../public/data/linkgraph.json'),
+  ]);
+  relatedPages = getRelatedPages(slug, {
+    slugMap,
+    backlinks: backlinksData.default as Backlinks,
+    linkGraph: linkGraphData.default as LinkGraph,
+  });
+} catch (e) {
+  // Link graph not yet generated (e.g. `astro dev` before a build).
+}
+
+// Some articles hand-curate a "Related articles" section in their body.
+// Where an author has done so, that curated list wins — suppress the
+// auto-generated block to avoid showing two competing related lists.
+const hasManualRelated = headings.some((h) =>
+  /^related(\s+(articles|pages))?$/i.test(h.text.trim())
+);
+
 const historyUrl = `/wiki/${slug}/history`;
 ---
 
@@ -109,6 +134,7 @@ const historyUrl = `/wiki/${slug}/history`;
       <button class="sidebar-toggle toolbar-toggle" aria-label="Toggle navigation">☰</button>
       <a href={`/wiki/${slug}`} class="active">Article</a>
       <a href={historyUrl}>History</a>
+      <a href={`/wiki/${slug}/backlinks`}>What links here</a>
       <span class="toolbar-spacer"></span>
     </nav>
 
@@ -147,6 +173,20 @@ const historyUrl = `/wiki/${slug}/history`;
       )}
       <Content />
     </div>
+
+    {relatedPages.length > 0 && !hasManualRelated && (
+      <section class="related-pages" aria-labelledby="related-heading">
+        <h2 id="related-heading" class="related-heading">See also</h2>
+        <ul class="related-list">
+          {relatedPages.map((rel) => (
+            <li class="related-item">
+              <a href={`/wiki/${rel.slug}`} class="related-link">{rel.title}</a>
+              {rel.summary && <p class="related-summary">{rel.summary}</p>}
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
 
     {page.data.categories && page.data.categories.length > 0 && (
       <div class="article-topics">
