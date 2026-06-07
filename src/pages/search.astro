@@ -2,7 +2,6 @@
 import WikiLayout from '../layouts/WikiLayout.astro';
 import { getCollection } from 'astro:content';
 
-const searchQuery = Astro.url.searchParams.get('q') || '';
 const pages = await getCollection('pages');
 const getPageSlug = (page: { id: string }) =>
   page.id.replace(/\/index\.(md|mdx)$/, '').replace(/\/index$/, '').replace(/\.(md|mdx)$/, '');
@@ -16,16 +15,12 @@ const searchEntries = pages
   .sort((a, b) => a.title.localeCompare(b.title));
 ---
 
-<WikiLayout title={searchQuery ? `Search results for "${searchQuery}"` : 'Search'}>
+<WikiLayout title="Search">
   <div class="mw-body-content">
-    <h1 class="firstHeading">{searchQuery ? 'Search results' : 'Search'}</h1>
+    <h1 class="firstHeading" id="search-heading">Search</h1>
 
     <div id="search-results" class="search-results">
-      {searchQuery ? (
-        <p class="search-status">Searching for "<strong>{searchQuery}</strong>"...</p>
-      ) : (
-        <p class="search-status">Use the search field in the header to find an article.</p>
-      )}
+      <p class="search-status">Use the search field in the header to find an article.</p>
     </div>
   </div>
 
@@ -33,8 +28,14 @@ const searchEntries = pages
   <script is:inline>
     const searchQuery = new URLSearchParams(window.location.search).get('q') || '';
     const resultsContainer = document.getElementById('search-results');
+    const headingEl = document.getElementById('search-heading');
     const dataEl = document.getElementById('search-data');
     const entries = dataEl ? JSON.parse(dataEl.textContent || '[]') : [];
+
+    if (searchQuery) {
+      document.title = `Search results for "${searchQuery}" - Taopedia`;
+      if (headingEl) headingEl.textContent = 'Search results';
+    }
 
     function normalize(value) {
       return (value || '').toLowerCase();
