@@ -68,7 +68,7 @@ function copyDir(src, dest) {
     const destPath = path.join(dest, entry.name);
     if (entry.isDirectory()) {
       copyDir(srcPath, destPath);
-    } else if (entry.isFile() && entry.name !== 'index.mdx') {
+    } else if (entry.isFile() && entry.name !== 'index.mdx' && entry.name !== 'index.md') {
       const ext = path.extname(entry.name).toLowerCase();
       if (!allowedAssetExtensions.has(ext)) {
         throw new Error(`Unsupported asset type in "${srcPath}". Allowed: ${Array.from(allowedAssetExtensions).join(', ')}`);
