@@ -30,6 +30,16 @@ function secretsMatch(received, expected) {
   return timingSafeEqual(secretDigest(received), secretDigest(expected));
 }
 
+function getHeader(headers, name) {
+  const wanted = name.toLowerCase();
+  for (const [key, value] of Object.entries(headers ?? {})) {
+    if (key.toLowerCase() === wanted) {
+      return value;
+    }
+  }
+  return '';
+}
+
 export const handler = async (event) => {
   try {
     if (event.httpMethod !== 'POST') {
@@ -40,7 +50,7 @@ export const handler = async (event) => {
     if (!secret) {
       return { statusCode: 500, body: 'WARM_SECRET not set' };
     }
-    const got = event.headers['x-warm-secret'] || event.headers['X-Warm-Secret'];
+    const got = getHeader(event.headers, 'x-warm-secret');
     if (!secretsMatch(got, secret)) {
       return { statusCode: 401, body: 'Unauthorized' };
     }
