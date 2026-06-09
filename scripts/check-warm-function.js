@@ -100,6 +100,28 @@ try {
   assert.equal(response.json.failed, 0);
   assert.equal(response.json.skipped, 0);
 
+  // A fetch that rejects (e.g. the per-request timeout aborts a slow page) is
+  // recorded as a failed slug, not propagated as a 500.
+  response = await callWarm(['taopedia'], async () => {
+    throw new Error('simulated timeout/abort');
+  });
+  assert.equal(response.statusCode, 502);
+  assert.equal(response.json.warmed, 0);
+  assert.equal(response.json.failed, 1);
+  assert.equal(response.json.results[0].result, 'failed');
+
+  // Each warm request is given an abort signal so a slow page can't stall the batch.
+  let warmFetchOptions;
+  response = await callWarm(['taopedia'], async (_url, options) => {
+    warmFetchOptions = options;
+    return { status: 200, ok: true };
+  });
+  assert.equal(response.statusCode, 200);
+  assert.ok(
+    warmFetchOptions && warmFetchOptions.signal instanceof AbortSignal,
+    'each warm fetch must receive an AbortSignal for the per-request timeout',
+  );
+
   response = await handler({
     httpMethod: 'POST',
     headers: { 'x-warm-secret': 'secret' },
