@@ -71,7 +71,7 @@ const groupedArticles = topicFilters.map(([topic, topicPages]) => ({
           <section class="article-group" data-article-group data-topic={topic}>
             <div class="article-group-heading">
               <h2>{topic}</h2>
-              <a href={`/wiki/category/${topic.replace(/ /g, '_')}`}>View topic</a>
+              <a href={`/wiki/category/${topic.toLowerCase().replace(/ /g, '_')}`}>View topic</a>
             </div>
             <ul>
               {pages.map((page) => (

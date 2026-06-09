@@ -1,31 +1,35 @@
 ---
 import WikiLayout from '../../../layouts/WikiLayout.astro';
 import { getCollection } from 'astro:content';
+import { categorySlug } from '../../../lib/category-slug';
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
-  
-  // Extract all unique categories
-  const categories = new Set();
+
+  // Extract all unique categories, keyed by their lowercase slug
+  const categoryMap = new Map<string, string>();
   pages.forEach(page => {
-    page.data.categories?.forEach(cat => categories.add(cat));
+    page.data.categories?.forEach(cat => {
+      const slug = categorySlug(cat);
+      if (!categoryMap.has(slug)) categoryMap.set(slug, cat);
+    });
   });
-  
-  return Array.from(categories).map(category => ({
-    params: { category: category.replace(/ /g, '_') },
-    props: { categoryName: category }
+
+  return Array.from(categoryMap.entries()).map(([slug, displayName]) => ({
+    params: { category: slug },
+    props: { categoryName: displayName }
   }));
 }
 
 const { category } = Astro.params;
 const { categoryName } = Astro.props;
 
-// Get all pages in this category
+// Get all pages in this category (case-insensitive match so casing drift never drops articles)
 const pages = await getCollection('pages');
 const getPageSlug = (page: { id: string }) =>
   page.id.replace(/\/index\.(md|mdx)$/, '').replace(/\/index$/, '').replace(/\.(md|mdx)$/, '');
-const categoryPages = pages.filter(page => 
-  page.data.categories?.includes(categoryName)
+const categoryPages = pages.filter(page =>
+  page.data.categories?.some(cat => categorySlug(cat) === category)
 );
 
 const pageTitle = `Category: ${categoryName}`;

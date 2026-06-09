@@ -48,6 +48,8 @@ function extractWikiLinks(content) {
   return links;
 }
 
+// Canonical slug form: lowercase, spaces → underscores, strip non-word chars.
+// All category route params, link hrefs, and JSON output keys must match this form.
 function slugify(text) {
   return text.toLowerCase().replace(/ /g, '_').replace(/[^\w-]/g, '');
 }

@@ -152,7 +152,7 @@ const historyUrl = `/wiki/${slug}/history`;
       <div class="article-topics">
         <span>Topics</span>
         {page.data.categories.map((cat: string) => (
-          <a href={`/wiki/category/${cat.replace(/ /g, '_')}`}>{cat}</a>
+          <a href={`/wiki/category/${cat.toLowerCase().replace(/ /g, '_')}`}>{cat}</a>
         ))}
       </div>
     )}

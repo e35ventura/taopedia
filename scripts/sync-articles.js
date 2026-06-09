@@ -39,10 +39,14 @@ function isPublishedArticle(data) {
 function toCategories(data) {
   const categories = [];
   if (typeof data.category === 'string' && data.category.trim()) {
-    categories.push(data.category.trim());
+    categories.push(data.category.trim().toLowerCase());
   }
   if (Array.isArray(data.tags)) {
-    categories.push(...data.tags.filter((tag) => typeof tag === 'string' && tag.trim() && !hiddenTopics.has(tag.trim())));
+    categories.push(
+      ...data.tags
+        .filter((tag) => typeof tag === 'string' && tag.trim() && !hiddenTopics.has(tag.trim()))
+        .map((tag) => tag.trim().toLowerCase()),
+    );
   }
   return Array.from(new Set(categories.filter((category) => !hiddenTopics.has(category))));
 }
