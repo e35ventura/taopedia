@@ -4,6 +4,42 @@ import matter from 'gray-matter';
 
 export const WIKI_LINK_ALIAS_DIVIDER = '|';
 
+export function parseWikiLinkTokens(content) {
+  const value = String(content ?? '');
+  const wikiLinkRegex = /\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g;
+  const tokens = [];
+  let lastIndex = 0;
+  let match;
+
+  while ((match = wikiLinkRegex.exec(value)) !== null) {
+    if (match.index > lastIndex) {
+      tokens.push({ type: 'text', text: value.slice(lastIndex, match.index) });
+    }
+
+    const target = match[1].trim();
+    const label = typeof match[2] === 'string' ? match[2].trim() : '';
+    if (target) {
+      tokens.push({ type: 'link', target, text: label || target });
+    } else {
+      tokens.push({ type: 'text', text: match[0] });
+    }
+
+    lastIndex = wikiLinkRegex.lastIndex;
+  }
+
+  if (lastIndex < value.length) {
+    tokens.push({ type: 'text', text: value.slice(lastIndex) });
+  }
+
+  return tokens;
+}
+
+export function extractWikiLinks(content) {
+  return parseWikiLinkTokens(content)
+    .filter((token) => token.type === 'link')
+    .map(({ target, text }) => ({ target, text }));
+}
+
 export function slugify(text) {
   return String(text || '').toLowerCase().replace(/ /g, '_').replace(/[^\w-]/g, '');
 }
