@@ -18,7 +18,8 @@
     "test:sync-categories": "node scripts/check-sync-categories.js",
     "test:article-image-assets": "node scripts/check-article-image-assets.js",
     "test:robots": "node scripts/check-robots.js",
-    "test:structured-data": "node scripts/check-structured-data.js"
+    "test:structured-data": "node scripts/check-structured-data.js",
+    "test:opensearch": "node scripts/check-opensearch.js"
   },
   "dependencies": {
     "@astrojs/mdx": "^5.0.6",
