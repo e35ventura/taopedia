@@ -16,13 +16,9 @@ export async function getStaticPaths() {
 const { page, slug } = Astro.props;
 
 // Load history data
-let history = [];
-try {
-  const historyData = await import(`../../../../public/history/${slug}.json`);
-  history = historyData.default.history || [];
-} catch (e) {
-  console.warn(`No history found for ${slug}`);
-}
+const historyModules = import.meta.glob('../../../../public/history/**/*.json', { eager: true }) as Record<string, any>;
+const historyData = historyModules[`../../../../public/history/${slug}.json`];
+const history: any[] = historyData?.default?.history || historyData?.history || [];
 const articleUrl = `/wiki/${slug}`;
 ---
 

@@ -31,7 +31,12 @@ export const handler = async (event) => {
     }
 
     const siteUrl = process.env.SITE_URL || 'https://taopedia.org';
-    const body = JSON.parse(event.body || '{}');
+    let body;
+    try {
+      body = JSON.parse(event.body || '{}');
+    } catch {
+      return { statusCode: 400, body: 'Invalid JSON body' };
+    }
     const slugs = Array.isArray(body.slugs) ? body.slugs : [];
     if (slugs.length === 0) {
       return { statusCode: 400, body: 'No slugs provided' };
@@ -43,22 +48,42 @@ export const handler = async (event) => {
     const results = [];
     for (const slug of slugs) {
       if (typeof slug !== 'string' || !/^[a-z0-9][a-z0-9_/-]*$/i.test(slug)) {
-        results.push({ slug, status: 'skipped', message: 'Invalid slug' });
+        results.push({ slug, status: 'skipped', result: 'skipped', message: 'Invalid slug' });
         continue;
       }
       const url = `${siteUrl.replace(/\/$/, '')}/wiki/${slug}`;
       try {
         const res = await fetch(url, { method: 'GET', headers: { 'User-Agent': 'taopedia-warm/1.0' } });
-        results.push({ slug, status: res.status });
+        results.push({
+          slug,
+          status: res.status,
+          result: res.ok ? 'warmed' : 'failed',
+        });
       } catch (e) {
-        results.push({ slug, status: 'error', message: String(e) });
+        results.push({ slug, status: 'error', result: 'failed', message: String(e) });
       }
     }
 
+    const summary = results.reduce(
+      (counts, result) => {
+        counts[result.result] += 1;
+        return counts;
+      },
+      { warmed: 0, failed: 0, skipped: 0 },
+    );
+    const ok = summary.warmed === slugs.length;
+    const statusCode = ok
+      ? 200
+      : summary.warmed > 0
+        ? 207
+        : summary.failed > 0
+          ? 502
+          : 400;
+
     return {
-      statusCode: 200,
+      statusCode,
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ ok: true, count: slugs.length, results }),
+      body: JSON.stringify({ ok, count: slugs.length, ...summary, results }),
     };
   } catch (err) {
     return { statusCode: 500, body: `Error: ${String(err)}` };

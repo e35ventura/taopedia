@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
 import WikiLayout from '../../layouts/WikiLayout.astro';
+import { buildSlugAliases, parseWikiLinkTokens, resolveTargetSlug } from '../../../scripts/wiki-link-resolver.js';
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
@@ -42,7 +43,24 @@ try {
 } catch (e) {
   // Slug map not yet generated
 }
+const slugAliases = buildSlugAliases(slugMap);
+const validSlugs = Object.keys(slugMap);
+
+function renderInfoboxValue(value: string) {
+  return parseWikiLinkTokens(value).map((token) => {
+    if (token.type !== 'link') return token;
+
+    const targetSlug = resolveTargetSlug(token.target, slugAliases);
+    return {
+      ...token,
+      href: `/wiki/${targetSlug}`,
+      exists: Object.prototype.hasOwnProperty.call(slugMap, targetSlug),
+    };
+  });
+}
+
 const historyUrl = `/wiki/${slug}/history`;
+const serializedValidSlugs = JSON.stringify(validSlugs).replace(/</g, '\\u003c');
 ---
 
 <WikiLayout
@@ -102,10 +120,10 @@ const historyUrl = `/wiki/${slug}/history`;
     </div>
   )}
 
-  <div class="mw-body-content">
-    <h1 class="firstHeading">{page.data.title}</h1>
+  <div class="mw-body-content" data-pagefind-body>
+    <h1 class="firstHeading" data-pagefind-meta="title">{page.data.title}</h1>
 
-    <nav class="mw-article-toolbar">
+    <nav class="mw-article-toolbar" data-pagefind-ignore>
       <button class="sidebar-toggle toolbar-toggle" aria-label="Toggle navigation">☰</button>
       <a href={`/wiki/${slug}`} class="active">Article</a>
       <a href={historyUrl}>History</a>
@@ -113,7 +131,7 @@ const historyUrl = `/wiki/${slug}/history`;
     </nav>
 
     {page.data.summary && (
-      <div class="mw-article-summary" style="font-style: italic; margin-bottom: 16px; color: var(--color-base-subtle);">
+      <div class="mw-article-summary" data-pagefind-meta="summary" style="font-style: italic; margin-bottom: 16px; color: var(--color-base-subtle);">
         {page.data.summary}
       </div>
     )}
@@ -137,7 +155,15 @@ const historyUrl = `/wiki/${slug}/history`;
                 {ib.rows.map((row: { label: string; value: string }) => (
                   <tr>
                     <th>{row.label}</th>
-                    <td>{row.value}</td>
+                    <td>
+                      {renderInfoboxValue(row.value).map((part) =>
+                        part.type === 'link' ? (
+                          <a class={part.exists ? 'internal' : 'internal new'} href={part.href}>{part.text}</a>
+                        ) : (
+                          part.text
+                        )
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -149,21 +175,23 @@ const historyUrl = `/wiki/${slug}/history`;
     </div>
 
     {page.data.categories && page.data.categories.length > 0 && (
-      <div class="article-topics">
+      <div class="article-topics" data-pagefind-ignore>
         <span>Topics</span>
         {page.data.categories.map((cat: string) => (
           <a href={`/wiki/category/${cat.toLowerCase().replace(/ /g, '_')}`}>{cat}</a>
+          <a data-pagefind-filter="category" href={`/wiki/category/${cat.replace(/ /g, '_')}`}>{cat}</a>
         ))}
       </div>
     )}
   </div>
 </WikiLayout>
 
+<script type="application/json" id="valid-slugs-data" set:html={serializedValidSlugs} />
 <script is:inline>
   // Unlink wiki links that point to non-existent pages
-  // slugMap is loaded on the server above; serialize it for client-side checks
-  const __slugMap = /** @type {Record<string, any>} */ (JSON.parse('{JSON.stringify(slugMap)}'));
   document.addEventListener('DOMContentLoaded', () => {
+    const validSlugsEl = document.getElementById('valid-slugs-data');
+    const validSlugs = new Set(validSlugsEl ? JSON.parse(validSlugsEl.textContent || '[]') : []);
     const container = document.querySelector('.mw-parser-output');
     if (!container) return;
     const anchors = container.querySelectorAll('a.internal');
@@ -172,7 +200,7 @@ const historyUrl = `/wiki/${slug}/history`;
       // Expect /wiki/<slug>
       const m = href.match(/^\/wiki\/(.+)$/);
       const slug = m ? m[1] : null;
-      const isMissing = !slug || !Object.prototype.hasOwnProperty.call(__slugMap, slug);
+      const isMissing = !slug || !validSlugs.has(slug);
       if (isMissing) {
         const span = document.createElement('span');
         span.textContent = a.textContent || '';
