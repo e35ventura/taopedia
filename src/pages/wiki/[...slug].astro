@@ -68,7 +68,6 @@ const serializedValidSlugs = JSON.stringify(validSlugs).replace(/</g, '\\u003c')
   description={page.data.summary}
   image={`/og/${slug}.png`}
   type="article"
-  path={`/wiki/${slug}`}
 >
   {headings.length > 1 && (
     <div slot="sidebar" class="toc-sidebar">
