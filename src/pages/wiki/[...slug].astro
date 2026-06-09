@@ -102,10 +102,10 @@ const historyUrl = `/wiki/${slug}/history`;
     </div>
   )}
 
-  <div class="mw-body-content">
-    <h1 class="firstHeading">{page.data.title}</h1>
+  <div class="mw-body-content" data-pagefind-body>
+    <h1 class="firstHeading" data-pagefind-meta="title">{page.data.title}</h1>
 
-    <nav class="mw-article-toolbar">
+    <nav class="mw-article-toolbar" data-pagefind-ignore>
       <button class="sidebar-toggle toolbar-toggle" aria-label="Toggle navigation">☰</button>
       <a href={`/wiki/${slug}`} class="active">Article</a>
       <a href={historyUrl}>History</a>
@@ -113,7 +113,7 @@ const historyUrl = `/wiki/${slug}/history`;
     </nav>
 
     {page.data.summary && (
-      <div class="mw-article-summary" style="font-style: italic; margin-bottom: 16px; color: var(--color-base-subtle);">
+      <div class="mw-article-summary" data-pagefind-meta="summary" style="font-style: italic; margin-bottom: 16px; color: var(--color-base-subtle);">
         {page.data.summary}
       </div>
     )}
@@ -149,7 +149,7 @@ const historyUrl = `/wiki/${slug}/history`;
     </div>
 
     {page.data.categories && page.data.categories.length > 0 && (
-      <div class="article-topics">
+      <div class="article-topics" data-pagefind-ignore>
         <span>Topics</span>
         {page.data.categories.map((cat: string) => (
           <a href={`/wiki/category/${cat.replace(/ /g, '_')}`}>{cat}</a>
