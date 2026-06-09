@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
 import WikiLayout from '../../layouts/WikiLayout.astro';
+import { buildSlugAliases, parseWikiLinkTokens, resolveTargetSlug } from '../../../scripts/wiki-link-resolver.js';
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
@@ -42,6 +43,21 @@ try {
 } catch (e) {
   // Slug map not yet generated
 }
+const slugAliases = buildSlugAliases(slugMap);
+
+function renderInfoboxValue(value: string) {
+  return parseWikiLinkTokens(value).map((token) => {
+    if (token.type !== 'link') return token;
+
+    const targetSlug = resolveTargetSlug(token.target, slugAliases);
+    return {
+      ...token,
+      href: `/wiki/${targetSlug}`,
+      exists: Object.prototype.hasOwnProperty.call(slugMap, targetSlug),
+    };
+  });
+}
+
 const historyUrl = `/wiki/${slug}/history`;
 const serializedSlugMap = JSON.stringify(slugMap).replace(/</g, '\\u003c');
 ---
@@ -138,7 +154,15 @@ const serializedSlugMap = JSON.stringify(slugMap).replace(/</g, '\\u003c');
                 {ib.rows.map((row: { label: string; value: string }) => (
                   <tr>
                     <th>{row.label}</th>
-                    <td>{row.value}</td>
+                    <td>
+                      {renderInfoboxValue(row.value).map((part) =>
+                        part.type === 'link' ? (
+                          <a class={part.exists ? 'internal' : 'internal new'} href={part.href}>{part.text}</a>
+                        ) : (
+                          part.text
+                        )
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>

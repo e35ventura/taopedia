@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
 import { fileURLToPath } from 'url';
-import { buildSlugAliases, resolveTargetSlug } from './wiki-link-resolver.js';
+import { buildSlugAliases, extractWikiLinks, resolveTargetSlug } from './wiki-link-resolver.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -34,19 +34,13 @@ function walkDirectory(dir, fileList = []) {
   return fileList;
 }
 
-function extractWikiLinks(content) {
-  // Match [[Wiki Link]] or [[Wiki Link|Display Text]]
-  const wikiLinkRegex = /\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g;
-  const links = [];
-  let match;
-  
-  while ((match = wikiLinkRegex.exec(content)) !== null) {
-    const target = match[1].trim();
-    const text = match[2] ? match[2].trim() : target;
-    links.push({ target, text });
-  }
-  
-  return links;
+function extractInfoboxWikiLinks(rows) {
+  if (!Array.isArray(rows)) return [];
+
+  return rows.flatMap((row) => {
+    if (typeof row?.value !== 'string') return [];
+    return extractWikiLinks(row.value);
+  });
 }
 
 console.log('Building link graph and backlinks...');
@@ -78,8 +72,11 @@ markdownFiles.forEach(filePath => {
     categoryIndex[cat].push(slug);
   });
   
-  // Extract wiki links
-  const links = extractWikiLinks(body);
+  // Extract wiki links from both rendered article body and visible infobox metadata.
+  const links = [
+    ...extractWikiLinks(body),
+    ...extractInfoboxWikiLinks(data.infoboxRows),
+  ];
   linkGraph[slug] = links.map(link => ({
     target: link.target,
     text: link.text,
