@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
 import { fileURLToPath } from 'url';
+import { buildSlugAliases, resolveTargetSlug } from './wiki-link-resolver.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -46,51 +47,6 @@ function extractWikiLinks(content) {
   }
   
   return links;
-}
-
-function slugify(text) {
-  return text.toLowerCase().replace(/ /g, '_').replace(/[^\w-]/g, '');
-}
-
-function normalizeLinkTarget(rawTarget) {
-  return String(rawTarget || '')
-    .trim()
-    .replace(/^\/+|\/+$/g, '')
-    .split('#')[0];
-}
-
-function buildSlugAliases(slugMap) {
-  const aliases = new Map();
-  for (const [slug, meta] of Object.entries(slugMap)) {
-    const keys = new Set([
-      slug,
-      slug.toLowerCase(),
-      slugify(slug),
-      slugify(slug.replaceAll('_', ' ')),
-      slugify(meta?.title || ''),
-    ]);
-    for (const key of keys) {
-      if (key) aliases.set(key, slug);
-    }
-  }
-  return aliases;
-}
-
-function resolveTargetSlug(rawTarget, slugAliases) {
-  const normalized = normalizeLinkTarget(rawTarget);
-  if (!normalized) return '';
-
-  const candidates = [
-    normalized,
-    normalized.toLowerCase(),
-    slugify(normalized),
-    slugify(normalized.replaceAll('_', ' ')),
-  ];
-  for (const candidate of candidates) {
-    const resolved = slugAliases.get(candidate);
-    if (resolved) return resolved;
-  }
-  return candidates[2];
 }
 
 console.log('Building link graph and backlinks...');
