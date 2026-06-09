@@ -70,6 +70,11 @@ const searchEntries = pages
       item.appendChild(topics);
     }
 
+    function normalizeTopics(value) {
+      if (!value) return [];
+      return Array.isArray(value) ? value : [value];
+    }
+
     // Pagefind result: title + highlighted excerpt (excerpt HTML is sanitized by Pagefind).
     function renderPagefindResult(data) {
       const item = document.createElement('a');
@@ -88,7 +93,7 @@ const searchEntries = pages
         item.appendChild(excerpt);
       }
 
-      appendTopics(item, (data.filters && data.filters.category) || []);
+      appendTopics(item, normalizeTopics(data.filters && data.filters.category));
       return item;
     }
 
