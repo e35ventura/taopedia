@@ -11,10 +11,16 @@ assert.equal(
   'article page must not ship the unexpanded slugMap template expression'
 );
 
-const match = html.match(/<script type="application\/json" id="slug-map-data">([^<]*)<\/script>/);
-assert.ok(match, 'article page must include serialized slug map JSON');
+const match = html.match(/<script type="application\/json" id="valid-slugs-data">([^<]*)<\/script>/);
+assert.ok(match, 'article page must include serialized valid slug JSON');
 
-const slugMap = JSON.parse(match[1]);
-assert.ok(slugMap.taopedia, 'serialized slug map must include the taopedia article');
+const validSlugs = JSON.parse(match[1]);
+assert.ok(Array.isArray(validSlugs), 'serialized valid slugs must be an array');
+assert.equal(
+  validSlugs.every((slug) => typeof slug === 'string'),
+  true,
+  'serialized valid slugs must only contain slug strings'
+);
+assert.ok(validSlugs.includes('taopedia'), 'serialized valid slugs must include the taopedia article');
 
-console.log('Article slug map serialization check passed');
+console.log('Article valid slug serialization check passed');
