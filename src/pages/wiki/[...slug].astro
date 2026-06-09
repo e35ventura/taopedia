@@ -43,6 +43,7 @@ try {
   // Slug map not yet generated
 }
 const historyUrl = `/wiki/${slug}/history`;
+const serializedSlugMap = JSON.stringify(slugMap).replace(/</g, '\\u003c');
 ---
 
 <WikiLayout
@@ -159,11 +160,12 @@ const historyUrl = `/wiki/${slug}/history`;
   </div>
 </WikiLayout>
 
+<script type="application/json" id="slug-map-data" set:html={serializedSlugMap} />
 <script is:inline>
   // Unlink wiki links that point to non-existent pages
-  // slugMap is loaded on the server above; serialize it for client-side checks
-  const __slugMap = /** @type {Record<string, any>} */ (JSON.parse('{JSON.stringify(slugMap)}'));
   document.addEventListener('DOMContentLoaded', () => {
+    const slugMapEl = document.getElementById('slug-map-data');
+    const slugMap = slugMapEl ? JSON.parse(slugMapEl.textContent || '{}') : {};
     const container = document.querySelector('.mw-parser-output');
     if (!container) return;
     const anchors = container.querySelectorAll('a.internal');
@@ -172,7 +174,7 @@ const historyUrl = `/wiki/${slug}/history`;
       // Expect /wiki/<slug>
       const m = href.match(/^\/wiki\/(.+)$/);
       const slug = m ? m[1] : null;
-      const isMissing = !slug || !Object.prototype.hasOwnProperty.call(__slugMap, slug);
+      const isMissing = !slug || !Object.prototype.hasOwnProperty.call(slugMap, slug);
       if (isMissing) {
         const span = document.createElement('span');
         span.textContent = a.textContent || '';
