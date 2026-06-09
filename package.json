@@ -15,7 +15,8 @@
     "test:history-parser": "node scripts/check-history-parser.js",
     "test:content-sanitizer": "node scripts/check-content-sanitizer.js",
     "test:sync-article-paths": "node scripts/check-sync-article-paths.js",
-    "test:sync-categories": "node scripts/check-sync-categories.js"
+    "test:sync-categories": "node scripts/check-sync-categories.js",
+    "test:robots": "node scripts/check-robots.js"
   },
   "dependencies": {
     "@astrojs/mdx": "^5.0.6",
