@@ -17,6 +17,7 @@
     "test:sync-article-paths": "node scripts/check-sync-article-paths.js",
     "test:sync-categories": "node scripts/check-sync-categories.js",
     "test:article-image-assets": "node scripts/check-article-image-assets.js",
+    "test:article-script-placement": "node scripts/check-article-script-placement.js",
     "test:robots": "node scripts/check-robots.js"
   },
   "dependencies": {
