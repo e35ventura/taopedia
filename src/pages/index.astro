@@ -2,6 +2,7 @@
 import '../styles/wikipedia.css';
 import { getCollection } from 'astro:content';
 import Seo from '../components/Seo.astro';
+import { categoryHref } from '../../scripts/category-routes.js';
 
 const pages = await getCollection('pages');
 const sortedPages = [...pages].sort((a, b) => a.data.title.localeCompare(b.data.title));
@@ -384,7 +385,7 @@ const featuredPages = featuredSlugs
         </div>
         <div class="topic-grid">
           {topicCategories.map(([category, categoryPages]) => (
-            <a class="topic-link" href={`/wiki/category/${category.replace(/ /g, '_')}`}>
+            <a class="topic-link" href={categoryHref(category)}>
               <strong>{category}</strong>
               <span>{categoryPages.length} article{categoryPages.length !== 1 ? 's' : ''}</span>
             </a>

@@ -1,6 +1,7 @@
 ---
 import WikiLayout from '../../../layouts/WikiLayout.astro';
 import { getCollection } from 'astro:content';
+import { categoryHref } from '../../../../scripts/category-routes.js';
 
 const pages = await getCollection('pages');
 const sortedPages = [...pages].sort((a, b) => a.data.title.localeCompare(b.data.title));
@@ -71,7 +72,7 @@ const groupedArticles = topicFilters.map(([topic, topicPages]) => ({
           <section class="article-group" data-article-group data-topic={topic}>
             <div class="article-group-heading">
               <h2>{topic}</h2>
-              <a href={`/wiki/category/${topic.replace(/ /g, '_')}`}>View topic</a>
+              <a href={categoryHref(topic)}>View topic</a>
             </div>
             <ul>
               {pages.map((page) => (

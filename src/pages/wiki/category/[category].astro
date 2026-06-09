@@ -1,6 +1,7 @@
 ---
 import WikiLayout from '../../../layouts/WikiLayout.astro';
 import { getCollection } from 'astro:content';
+import { categoryToRouteSegment } from '../../../../scripts/category-routes.js';
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
@@ -12,7 +13,7 @@ export async function getStaticPaths() {
   });
   
   return Array.from(categories).map(category => ({
-    params: { category: category.replace(/ /g, '_') },
+    params: { category: categoryToRouteSegment(category) },
     props: { categoryName: category }
   }));
 }
