@@ -89,10 +89,13 @@ markdownFiles.forEach(filePath => {
   }));
 });
 
-// Second pass: build backlinks
+// Second pass: build backlinks (deduplicated per source→target pair)
 Object.keys(linkGraph).forEach(fromSlug => {
+  const seen = new Set();
   linkGraph[fromSlug].forEach(link => {
     const toSlug = link.target;
+    if (seen.has(toSlug)) return;
+    seen.add(toSlug);
     if (!backlinks[toSlug]) {
       backlinks[toSlug] = [];
     }
@@ -102,6 +105,27 @@ Object.keys(linkGraph).forEach(fromSlug => {
     });
   });
 });
+
+// Derive wanted pages: link targets with no matching article slug
+const knownSlugs = new Set(Object.keys(slugMap));
+const wantedCounts = {};
+Object.values(linkGraph).forEach(links => {
+  links.forEach(link => {
+    if (!knownSlugs.has(link.target)) {
+      wantedCounts[link.target] = (wantedCounts[link.target] || 0) + 1;
+    }
+  });
+});
+const wantedPages = Object.entries(wantedCounts)
+  .sort(([, a], [, b]) => b - a)
+  .map(([slug, count]) => ({ slug, count }));
+
+// Derive orphan pages: articles with zero inbound links
+const linkedSlugs = new Set(Object.keys(backlinks));
+const orphanPages = Object.keys(slugMap)
+  .filter(slug => !linkedSlugs.has(slug))
+  .sort()
+  .map(slug => ({ slug, title: slugMap[slug].title }));
 
 // Write outputs
 fs.writeFileSync(
@@ -124,6 +148,18 @@ fs.writeFileSync(
   JSON.stringify(categoryIndex, null, 2)
 );
 
+fs.writeFileSync(
+  path.join(outputDir, 'wantedpages.json'),
+  JSON.stringify(wantedPages, null, 2)
+);
+
+fs.writeFileSync(
+  path.join(outputDir, 'orphanpages.json'),
+  JSON.stringify(orphanPages, null, 2)
+);
+
 console.log(`✓ Built link graph for ${Object.keys(linkGraph).length} pages`);
 console.log(`✓ Generated ${Object.keys(backlinks).length} backlink entries`);
 console.log(`✓ Indexed ${Object.keys(categoryIndex).length} categories`);
+console.log(`✓ Found ${wantedPages.length} wanted pages`);
+console.log(`✓ Found ${orphanPages.length} orphan pages`);

@@ -9,7 +9,8 @@
     "prebuild": "node scripts/sync-articles.js && node scripts/generate-history.js && node scripts/build-linkgraph.js",
     "postbuild": "npx pagefind --site dist",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "check-linkgraph-special": "node -e \"const fs=require('fs');['wantedpages','orphanpages'].forEach(f=>{if(!fs.existsSync('public/data/'+f+'.json'))throw new Error('Missing '+f+'.json — run npm run build first')});console.log('✓ linkgraph special artifacts present')\""
   },
   "dependencies": {
     "@astrojs/mdx": "^5.0.6",

@@ -1,0 +1,57 @@
+---
+import { getCollection } from 'astro:content';
+import WikiLayout from '../../../layouts/WikiLayout.astro';
+import type { BacklinksMap } from '../../../lib/linkgraph';
+
+export async function getStaticPaths() {
+  const pages = await getCollection('pages');
+  return pages.map((page) => {
+    const slug = page.id.replace(/\/index\.(md|mdx)$/, '').replace(/\/index$/, '').replace(/\.(md|mdx)$/, '');
+    return {
+      params: { slug },
+      props: { page, slug },
+    };
+  });
+}
+
+const { page, slug } = Astro.props;
+
+const backlinksModules = import.meta.glob('../../../../public/data/backlinks.json', { eager: true }) as Record<string, { default: BacklinksMap }>;
+const backlinksData: BacklinksMap = Object.values(backlinksModules)[0]?.default ?? {};
+const inbound = backlinksData[slug] ?? [];
+
+const articleUrl = `/wiki/${slug}`;
+---
+
+<WikiLayout title={`Pages linking to "${page.data.title}"`}>
+  <div class="mw-body-content">
+    <nav class="mw-article-toolbar">
+      <a href={articleUrl}>Article</a>
+      <a href={`/wiki/${slug}/history`}>History</a>
+      <a href={`/wiki/${slug}/backlinks`} class="active">What links here</a>
+    </nav>
+
+    <h1 class="firstHeading">Pages linking to "{page.data.title}"</h1>
+
+    <p style="margin-bottom: 16px; font-size: 13px; color: var(--color-base-subtle);">
+      {inbound.length} {inbound.length === 1 ? 'article links' : 'articles link'} to this page.
+    </p>
+
+    {inbound.length === 0 ? (
+      <p>No articles currently link to this page.</p>
+    ) : (
+      <ul style="list-style: none; margin: 0; padding: 0;">
+        {inbound.map((entry) => (
+          <li style="padding: 10px 12px; border: 1px solid var(--border-color-subtle); margin-bottom: 6px; background: var(--background-color-interactive);">
+            <a href={`/wiki/${entry.from}`} style="font-weight: 600; color: var(--color-link); text-decoration: none;">
+              {entry.fromTitle}
+            </a>
+            <span style="font-size: 12px; color: var(--color-base-subtle); margin-left: 8px;">
+              /wiki/{entry.from}
+            </span>
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+</WikiLayout>
