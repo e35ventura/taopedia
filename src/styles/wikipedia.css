@@ -132,6 +132,84 @@ body {
   font-size: 16px;
   font-weight: 600;
   color: var(--color-base);
+  margin-right: 32px;
+}
+
+.header-logo-container {
+  width: 34px;
+  height: 34px;
+  margin-right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-globe {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-logo-img {
+  width: 28px;
+  height: auto;
+  display: block;
+}
+
+.header-logo-text {
+  font-family: var(--font-family-serif);
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.logo-letter-large {
+  font-size: 1.2em;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .header-logo-container,
+  .header-globe {
+    width: 30px;
+    height: 30px;
+  }
+
+  .header-logo-img {
+    width: 24px;
+  }
+
+  .mw-logo {
+    font-size: 14px;
+  }
+
+  .logo-letter-large {
+    font-size: 1.15em;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-logo-container,
+  .header-globe {
+    width: 28px;
+    height: 28px;
+  }
+
+  .header-logo-img {
+    width: 22px;
+  }
+
+  .mw-logo {
+    font-size: 13px;
+    margin-right: 16px;
+  }
+
+  .logo-letter-large {
+    font-size: 1.1em;
+  }
 }
 
 .mw-search-container {
@@ -500,6 +578,71 @@ body.sidebar-collapsed .mw-article-toolbar .sidebar-toggle { display: inline-fle
 
 .mw-body-content {
   padding: 16px 0;
+}
+
+/* Shared UI components */
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.category-item {
+  padding: 8px 12px;
+  background: var(--background-color-interactive);
+  border: 1px solid var(--border-color-subtle);
+  border-radius: 2px;
+}
+
+.category-item a {
+  color: var(--color-link);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.category-item a:hover {
+  text-decoration: underline;
+}
+
+.category-count {
+  font-size: 12px;
+  color: var(--color-base-subtle);
+  margin-top: 2px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.stat-item {
+  text-align: center;
+  padding: 16px;
+  background: var(--background-color-interactive);
+  border: 1px solid var(--border-color-subtle);
+  border-radius: 2px;
+}
+
+.stat-number {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--color-link);
+  font-family: var(--font-family-serif);
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--color-base-subtle);
+  margin-top: 4px;
+}
+
+@media (max-width: 768px) {
+  .categories-grid,
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Article Tabs */
