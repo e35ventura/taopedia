@@ -16,6 +16,7 @@
     "test:content-sanitizer": "node scripts/check-content-sanitizer.js",
     "test:sync-article-paths": "node scripts/check-sync-article-paths.js",
     "test:sync-categories": "node scripts/check-sync-categories.js",
+    "test:sync-json-assets": "node scripts/check-sync-json-assets.js",
     "test:article-image-assets": "node scripts/check-article-image-assets.js",
     "test:robots": "node scripts/check-robots.js",
     "test:structured-data": "node scripts/check-structured-data.js"
