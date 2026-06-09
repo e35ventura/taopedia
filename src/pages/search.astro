@@ -1,18 +1,5 @@
 ---
 import WikiLayout from '../layouts/WikiLayout.astro';
-import { getCollection } from 'astro:content';
-
-const pages = await getCollection('pages');
-const getPageSlug = (page: { id: string }) =>
-  page.id.replace(/\/index\.(md|mdx)$/, '').replace(/\/index$/, '').replace(/\.(md|mdx)$/, '');
-const searchEntries = pages
-  .map((page) => ({
-    title: page.data.title,
-    summary: page.data.summary ?? '',
-    url: `/wiki/${getPageSlug(page)}`,
-    categories: page.data.categories ?? [],
-  }))
-  .sort((a, b) => a.title.localeCompare(b.title));
 ---
 
 <WikiLayout title="Search">
@@ -24,13 +11,11 @@ const searchEntries = pages
     </div>
   </div>
 
-  <script type="application/json" id="search-data" set:html={JSON.stringify(searchEntries)} />
   <script is:inline>
     const searchQuery = new URLSearchParams(window.location.search).get('q') || '';
     const resultsContainer = document.getElementById('search-results');
     const headingEl = document.getElementById('search-heading');
-    const dataEl = document.getElementById('search-data');
-    const entries = dataEl ? JSON.parse(dataEl.textContent || '[]') : [];
+    let metadataEntriesPromise;
 
     if (searchQuery) {
       document.title = `Search results for "${searchQuery}" - Taopedia`;
@@ -73,6 +58,16 @@ const searchEntries = pages
     function normalizeTopics(value) {
       if (!value) return [];
       return Array.isArray(value) ? value : [value];
+    }
+
+    function loadMetadataEntries() {
+      if (!metadataEntriesPromise) {
+        metadataEntriesPromise = fetch('/search-data.json')
+          .then((response) => (response.ok ? response.json() : []))
+          .then((entries) => (Array.isArray(entries) ? entries : []))
+          .catch(() => []);
+      }
+      return metadataEntriesPromise;
     }
 
     // Pagefind result: title + highlighted excerpt (excerpt HTML is sanitized by Pagefind).
@@ -120,7 +115,8 @@ const searchEntries = pages
       return item;
     }
 
-    function runMetadataSearch(query) {
+    async function runMetadataSearch(query) {
+      const entries = await loadMetadataEntries();
       const needle = normalize(query);
       const matches = entries.filter((entry) => {
         const haystack = normalize(`${entry.title} ${entry.summary} ${(entry.categories || []).join(' ')}`);
@@ -168,7 +164,7 @@ const searchEntries = pages
           // Fall through to metadata search if a query fails at runtime.
         }
       }
-      runMetadataSearch(query);
+      await runMetadataSearch(query);
     }
 
     runSearch(searchQuery);
