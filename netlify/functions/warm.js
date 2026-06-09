@@ -47,7 +47,11 @@ export const handler = async (event) => {
 
     const results = [];
     for (const slug of slugs) {
-      if (typeof slug !== 'string' || !/^[a-z0-9][a-z0-9_/-]*$/i.test(slug)) {
+      // Article slugs are lowercase (see sync-articles.js validateSlug), and wiki
+      // routes are case-sensitive, so an uppercase slug can never warm a real
+      // page. Reject it as an invalid (skipped) slug instead of fetching a URL
+      // that is guaranteed to 404 and be counted as a failure.
+      if (typeof slug !== 'string' || !/^[a-z0-9][a-z0-9_/-]*$/.test(slug)) {
         results.push({ slug, status: 'skipped', result: 'skipped', message: 'Invalid slug' });
         continue;
       }
