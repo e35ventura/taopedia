@@ -33,6 +33,26 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
+# Pagefind's fragment/index/filter files are content-hashed (e.g.
+# en_102b8b4.pf_fragment), so a given name's bytes never change — they can be
+# cached immutably like the hashed /_astro assets. The top-level pagefind.js,
+# pagefind-worker.js, pagefind-entry.json and wasm.*.pagefind have stable names
+# and are intentionally left to revalidate so a Pagefind rebuild is picked up.
+[[headers]]
+  for = "/pagefind/fragment/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/pagefind/index/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/pagefind/filter/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
 [[headers]]
   for = "/*"
   [headers.values]
