@@ -7,7 +7,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "prebuild": "node scripts/sync-articles.js && node scripts/generate-history.js && node scripts/build-linkgraph.js",
-    "postbuild": "npx pagefind --site dist",
+    "postbuild": "npx pagefind --site dist && node scripts/prune-pagefind-assets.js",
     "preview": "astro preview",
     "astro": "astro",
     "test:article-slugmap": "node scripts/check-article-slugmap.js",
