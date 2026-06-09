@@ -78,6 +78,47 @@ const { title, description, image, type = 'website', path } = Astro.props;
         <main class="mw-body">
           <slot />
         </main>
+
+        <aside class="mw-appearance" aria-labelledby="appearance-title">
+          <div class="appearance-header">
+            <h2 id="appearance-title">Appearance</h2>
+            <button class="appearance-hide" type="button" aria-label="Hide appearance controls">hide</button>
+          </div>
+
+          <form class="appearance-form">
+            <fieldset>
+              <legend>Text</legend>
+              <label>
+                <input type="radio" name="text-size" value="small" />
+                <span>Small</span>
+              </label>
+              <label>
+                <input type="radio" name="text-size" value="standard" />
+                <span>Standard</span>
+              </label>
+              <label>
+                <input type="radio" name="text-size" value="large" />
+                <span>Large</span>
+              </label>
+            </fieldset>
+
+            <fieldset>
+              <legend>Width</legend>
+              <label>
+                <input type="radio" name="content-width" value="narrow" />
+                <span>Narrow</span>
+              </label>
+              <label>
+                <input type="radio" name="content-width" value="standard" />
+                <span>Standard</span>
+              </label>
+              <label>
+                <input type="radio" name="content-width" value="wide" />
+                <span>Wide</span>
+              </label>
+            </fieldset>
+          </form>
+        </aside>
       </div>
     </div>
 
@@ -181,6 +222,74 @@ const { title, description, image, type = 'website', path } = Astro.props;
         }
         
         const articleBody = document.querySelector('.mw-body');
+        const appearancePanel = document.querySelector('.mw-appearance');
+        const appearanceToggle = document.querySelector('.appearance-toggle');
+        const appearanceHideBtn = document.querySelector('.appearance-hide');
+        const textSizeInputs = document.querySelectorAll('input[name="text-size"]');
+        const contentWidthInputs = document.querySelectorAll('input[name="content-width"]');
+        const textSizes = ['small', 'standard', 'large'];
+        const contentWidths = ['narrow', 'standard', 'wide'];
+
+        function normalizePreference(value, allowedValues, fallback) {
+          return allowedValues.includes(value) ? value : fallback;
+        }
+
+        function setCheckedInput(inputs, value) {
+          inputs.forEach((input) => {
+            input.checked = input.value === value;
+          });
+        }
+
+        function applyTextSize(size) {
+          if (!articleBody) return;
+          const normalized = normalizePreference(size, textSizes, 'standard');
+          textSizes.forEach((textSize) => articleBody.classList.remove(`text-${textSize}`));
+          articleBody.classList.add(`text-${normalized}`);
+          setCheckedInput(textSizeInputs, normalized);
+          localStorage.setItem('taopedia-text-size', normalized);
+        }
+
+        function applyContentWidth(width) {
+          if (!articleBody) return;
+          const normalized = normalizePreference(width, contentWidths, 'standard');
+          contentWidths.forEach((contentWidth) => {
+            articleBody.classList.remove(`width-${contentWidth}`);
+            document.body.classList.remove(`content-width-${contentWidth}`);
+          });
+          articleBody.classList.add(`width-${normalized}`);
+          document.body.classList.add(`content-width-${normalized}`);
+          setCheckedInput(contentWidthInputs, normalized);
+          localStorage.setItem('taopedia-content-width', normalized);
+        }
+
+        const savedTextSize = normalizePreference(localStorage.getItem('taopedia-text-size'), textSizes, 'standard');
+        const savedContentWidth = normalizePreference(localStorage.getItem('taopedia-content-width'), contentWidths, 'standard');
+        applyTextSize(savedTextSize);
+        applyContentWidth(savedContentWidth);
+
+        textSizeInputs.forEach((input) => {
+          input.addEventListener('change', () => applyTextSize(input.value));
+        });
+
+        contentWidthInputs.forEach((input) => {
+          input.addEventListener('change', () => applyContentWidth(input.value));
+        });
+
+        if (appearanceHideBtn && appearancePanel) {
+          appearanceHideBtn.addEventListener('click', () => {
+            appearancePanel.hidden = true;
+            appearanceToggle?.classList.add('visible');
+            appearanceToggle?.setAttribute('aria-expanded', 'false');
+          });
+        }
+
+        if (appearanceToggle && appearancePanel) {
+          appearanceToggle.addEventListener('click', () => {
+            appearancePanel.hidden = false;
+            appearanceToggle.classList.remove('visible');
+            appearanceToggle.setAttribute('aria-expanded', 'true');
+          });
+        }
         
         // Sidebar toggle functionality
         const sidebarToggle = document.querySelector('.sidebar-toggle');
@@ -245,9 +354,6 @@ const { title, description, image, type = 'website', path } = Astro.props;
         mq900.addEventListener('change', handleResponsiveChange);
         mq1500.addEventListener('change', handleResponsiveChange);
         
-        // Set initial state
-        articleBody?.classList.add('text-standard', 'width-standard');
-        document.body.classList.add('content-width-standard');
       });
     </script>
   </body>

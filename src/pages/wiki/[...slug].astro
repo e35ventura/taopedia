@@ -127,6 +127,9 @@ const serializedValidSlugs = JSON.stringify(validSlugs).replace(/</g, '\\u003c')
       <a href={`/wiki/${slug}`} class="active">Article</a>
       <a href={historyUrl}>History</a>
       <span class="toolbar-spacer"></span>
+      <button class="appearance-toggle toolbar-toggle" type="button" aria-label="Show appearance controls" aria-expanded="true">
+        Aa
+      </button>
     </nav>
 
     {page.data.summary && (
