@@ -167,7 +167,7 @@ const serializedValidSlugs = JSON.stringify(validSlugs).replace(/</g, '\\u003c')
               <tbody>
                 {ib.rows.map((row: { label: string; value: string }) => (
                   <tr>
-                    <th>{row.label}</th>
+                    <th scope="row">{row.label}</th>
                     <td>
                       {renderInfoboxValue(row.value).map((part) =>
                         part.type === 'link' ? (
