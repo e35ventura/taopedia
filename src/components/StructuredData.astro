@@ -1,0 +1,30 @@
+---
+import { buildStructuredData, serializeStructuredData } from '../../scripts/structured-data.js';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  type?: 'website' | 'article';
+  canonicalUrl: string;
+  siteDescription?: string;
+}
+
+const { title, description, image, type = 'website', canonicalUrl, siteDescription } = Astro.props;
+
+const siteUrl = new URL('/', Astro.site).toString();
+const imageUrl = image ? new URL(image, Astro.site).toString() : undefined;
+
+const structuredData = buildStructuredData({
+  siteUrl,
+  canonicalUrl,
+  imageUrl,
+  title,
+  description,
+  type,
+  siteDescription,
+});
+const json = serializeStructuredData(structuredData);
+---
+
+<script type="application/ld+json" set:html={json} />
