@@ -14,15 +14,19 @@ function eventFor(slugs) {
 }
 
 async function callWarm(slugs, fetchImpl) {
-  process.env.WARM_SECRET = 'secret';
-  process.env.SITE_URL = 'https://example.test';
-  globalThis.fetch = fetchImpl;
-
-  const response = await handler(eventFor(slugs));
+  const response = await startWarm(slugs, fetchImpl);
   return {
     ...response,
     json: JSON.parse(response.body),
   };
+}
+
+function startWarm(slugs, fetchImpl) {
+  process.env.WARM_SECRET = 'secret';
+  process.env.SITE_URL = 'https://example.test';
+  globalThis.fetch = fetchImpl;
+
+  return handler(eventFor(slugs));
 }
 
 try {
@@ -69,6 +73,30 @@ try {
   assert.equal(response.statusCode, 200);
   assert.equal(response.json.ok, true);
   assert.equal(response.json.warmed, 1);
+  assert.equal(response.json.failed, 0);
+  assert.equal(response.json.skipped, 0);
+
+  const startedUrls = [];
+  const pendingFetches = [];
+  const parallelWarm = startWarm(['taopedia', 'alpha_tokens', 'dynamic_tao'], async (url) => {
+    startedUrls.push(url);
+    return new Promise((resolve) => {
+      pendingFetches.push(() => resolve({ status: 200, ok: true }));
+    });
+  });
+  await Promise.resolve();
+  assert.equal(startedUrls.length, 3);
+  for (const resolveFetch of pendingFetches) {
+    resolveFetch();
+  }
+  const parallelResponse = await parallelWarm;
+  response = {
+    ...parallelResponse,
+    json: JSON.parse(parallelResponse.body),
+  };
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.json.ok, true);
+  assert.equal(response.json.warmed, 3);
   assert.equal(response.json.failed, 0);
   assert.equal(response.json.skipped, 0);
 
