@@ -74,6 +74,30 @@ function validateSlug(slug) {
   }
 }
 
+function isPathInside(rootPath, candidatePath) {
+  const relative = path.relative(rootPath, candidatePath);
+  return relative === ''
+    || (relative !== '..' && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative));
+}
+
+export function assertRegularFileInside(root, filePath, description = 'File') {
+  const stat = fs.lstatSync(filePath);
+  if (stat.isSymbolicLink()) {
+    throw new Error(`${description} must not be a symlink: ${filePath}`);
+  }
+  if (!stat.isFile()) {
+    throw new Error(`${description} must be a regular file: ${filePath}`);
+  }
+
+  const rootRealPath = fs.realpathSync(root);
+  const fileRealPath = fs.realpathSync(filePath);
+  if (!isPathInside(rootRealPath, fileRealPath)) {
+    throw new Error(`${description} must be inside article source root: ${filePath}`);
+  }
+
+  return stat;
+}
+
 function fromCodePoint(codePoint, fallback) {
   return Number.isInteger(codePoint) && codePoint >= 0 && codePoint <= 0x10ffff
     ? String.fromCodePoint(codePoint)
@@ -129,6 +153,9 @@ function copyDir(src, dest) {
   for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
     const srcPath = path.join(src, entry.name);
     const destPath = path.join(dest, entry.name);
+    if (entry.isSymbolicLink()) {
+      throw new Error(`Symlinked article source entry is not allowed: ${srcPath}`);
+    }
     if (entry.isDirectory()) {
       copyDir(srcPath, destPath);
     } else if (entry.isFile() && entry.name !== 'index.mdx' && entry.name !== 'index.md') {
@@ -136,7 +163,7 @@ function copyDir(src, dest) {
       if (!allowedAssetExtensions.has(ext)) {
         throw new Error(`Unsupported asset type in "${srcPath}". Allowed: ${Array.from(allowedAssetExtensions).join(', ')}`);
       }
-      const stat = fs.statSync(srcPath);
+      const stat = assertRegularFileInside(src, srcPath, 'Article asset');
       if (stat.size > maxAssetBytes) {
         throw new Error(`Asset too large in "${srcPath}". Maximum size is ${maxAssetBytes} bytes.`);
       }
@@ -179,7 +206,12 @@ function main() {
     validateSlug(slug);
     const sourceDir = path.join(sourceRoot, slug);
     const sourceFile = path.join(sourceDir, 'index.mdx');
-    if (!fs.existsSync(sourceFile)) continue;
+    try {
+      assertRegularFileInside(sourceRoot, sourceFile, `Article entry "${slug}"`);
+    } catch (error) {
+      if (error?.code === 'ENOENT') continue;
+      throw error;
+    }
 
     const raw = fs.readFileSync(sourceFile, 'utf8');
     validateArticleContent(slug, raw);
