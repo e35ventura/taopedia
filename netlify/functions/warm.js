@@ -15,6 +15,11 @@
     - Fetches `${SITE_URL}/wiki/${slug}` to trigger DPR render for each slug.
 */
 
+// Bound each warm request so one slow or unresponsive page can't stall the whole
+// Promise.all batch up to the Netlify function's execution budget. A request that
+// exceeds this is aborted and recorded as a failed slug; the rest still return.
+const WARM_FETCH_TIMEOUT_MS = 8000;
+
 export const handler = async (event) => {
   try {
     if (event.httpMethod !== 'POST') {
@@ -56,7 +61,11 @@ export const handler = async (event) => {
       }
       const url = `${baseUrl}/wiki/${slug}`;
       try {
-        const res = await fetch(url, { method: 'GET', headers: { 'User-Agent': 'taopedia-warm/1.0' } });
+        const res = await fetch(url, {
+          method: 'GET',
+          headers: { 'User-Agent': 'taopedia-warm/1.0' },
+          signal: AbortSignal.timeout(WARM_FETCH_TIMEOUT_MS),
+        });
         return {
           slug,
           status: res.status,
