@@ -15,10 +15,20 @@
     - Fetches `${SITE_URL}/wiki/${slug}` to trigger DPR render for each slug.
 */
 
+import { createHash, timingSafeEqual } from 'node:crypto';
+
 // Bound each warm request so one slow or unresponsive page can't stall the whole
 // Promise.all batch up to the Netlify function's execution budget. A request that
 // exceeds this is aborted and recorded as a failed slug; the rest still return.
 const WARM_FETCH_TIMEOUT_MS = 8000;
+
+function secretDigest(value) {
+  return createHash('sha256').update(String(value ?? ''), 'utf8').digest();
+}
+
+function secretsMatch(received, expected) {
+  return timingSafeEqual(secretDigest(received), secretDigest(expected));
+}
 
 export const handler = async (event) => {
   try {
@@ -31,7 +41,7 @@ export const handler = async (event) => {
       return { statusCode: 500, body: 'WARM_SECRET not set' };
     }
     const got = event.headers['x-warm-secret'] || event.headers['X-Warm-Secret'];
-    if (got !== secret) {
+    if (!secretsMatch(got, secret)) {
       return { statusCode: 401, body: 'Unauthorized' };
     }
 
