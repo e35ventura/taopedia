@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
 import { fileURLToPath } from 'url';
+import { buildSlugAliases, extractWikiLinks, resolveTargetSlug } from './wiki-link-resolver.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -33,23 +34,13 @@ function walkDirectory(dir, fileList = []) {
   return fileList;
 }
 
-function extractWikiLinks(content) {
-  // Match [[Wiki Link]] or [[Wiki Link|Display Text]]
-  const wikiLinkRegex = /\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g;
-  const links = [];
-  let match;
-  
-  while ((match = wikiLinkRegex.exec(content)) !== null) {
-    const target = match[1].trim();
-    const text = match[2] ? match[2].trim() : target;
-    links.push({ target, text });
-  }
-  
-  return links;
-}
+function extractInfoboxWikiLinks(rows) {
+  if (!Array.isArray(rows)) return [];
 
-function slugify(text) {
-  return text.toLowerCase().replace(/ /g, '_').replace(/[^\w-]/g, '');
+  return rows.flatMap((row) => {
+    if (typeof row?.value !== 'string') return [];
+    return extractWikiLinks(row.value);
+  });
 }
 
 console.log('Building link graph and backlinks...');
@@ -81,21 +72,40 @@ markdownFiles.forEach(filePath => {
     categoryIndex[cat].push(slug);
   });
   
-  // Extract wiki links
-  const links = extractWikiLinks(body);
+  // Extract wiki links from both rendered article body and visible infobox metadata.
+  const links = [
+    ...extractWikiLinks(body),
+    ...extractInfoboxWikiLinks(data.infoboxRows),
+  ];
   linkGraph[slug] = links.map(link => ({
-    target: slugify(link.target),
+    target: link.target,
     text: link.text,
   }));
 });
 
 // Second pass: build backlinks (deduplicated per source→target pair)
+const slugAliases = buildSlugAliases(slugMap);
+for (const [fromSlug, links] of Object.entries(linkGraph)) {
+  linkGraph[fromSlug] = links.map(link => ({
+    target: resolveTargetSlug(link.target, slugAliases),
+    text: link.text,
+  })).filter(link => link.target);
+}
+
+// Second pass: build backlinks
+const backlinkPairs = new Set();
 Object.keys(linkGraph).forEach(fromSlug => {
   const seen = new Set();
   linkGraph[fromSlug].forEach(link => {
     const toSlug = link.target;
     if (seen.has(toSlug)) return;
     seen.add(toSlug);
+    const pairKey = `${toSlug}\0${fromSlug}`;
+    if (backlinkPairs.has(pairKey)) {
+      return;
+    }
+    backlinkPairs.add(pairKey);
+
     if (!backlinks[toSlug]) {
       backlinks[toSlug] = [];
     }

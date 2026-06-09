@@ -29,9 +29,10 @@ const categoryPages = pages.filter(page =>
 );
 
 const pageTitle = `Category: ${categoryName}`;
+const pageDescription = `Taopedia articles about ${categoryName} in the Bittensor knowledge base.`;
 ---
 
-<WikiLayout title={pageTitle}>
+<WikiLayout title={pageTitle} description={pageDescription}>
   <div class="mw-body-content">
     <h1 class="firstHeading">{categoryName}</h1>
     

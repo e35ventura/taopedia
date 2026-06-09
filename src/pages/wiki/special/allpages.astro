@@ -27,7 +27,7 @@ const groupedArticles = topicFilters.map(([topic, topicPages]) => ({
 }));
 ---
 
-<WikiLayout title="Articles">
+<WikiLayout title="Articles" description="Browse the full directory of Taopedia articles in the Bittensor knowledge base.">
   <div class="mw-body-content">
     <h1 class="firstHeading">Articles</h1>
 
@@ -50,7 +50,7 @@ const groupedArticles = topicFilters.map(([topic, topicPages]) => ({
         <strong>{sortedPages.length}</strong> articles across <strong>{categoryIndex.size}</strong> topics
       </p>
 
-      <div class="featured-directory">
+      <div class="featured-directory" data-article-group data-topic="all">
         {sortedPages.slice(0, 3).map((page) => (
           <a
             class="article-card"
@@ -94,7 +94,10 @@ const groupedArticles = topicFilters.map(([topic, topicPages]) => ({
 
   <script is:inline>
     const searchInput = document.getElementById('article-filter');
-    const topicButtons = Array.from(document.querySelectorAll('[data-topic]'));
+    // Only the filter buttons carry click behaviour; the featured-directory
+    // container and the article-group sections also use [data-topic], so scope
+    // the selector to the buttons to avoid binding handlers to whole sections.
+    const topicButtons = Array.from(document.querySelectorAll('.topic-filter button[data-topic]'));
     const articleCards = Array.from(document.querySelectorAll('[data-article-card]'));
     const groups = Array.from(document.querySelectorAll('[data-article-group]'));
     let selectedTopic = 'all';

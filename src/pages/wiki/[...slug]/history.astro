@@ -18,10 +18,15 @@ const { page, slug } = Astro.props;
 const historyModules = import.meta.glob('../../../../public/history/*.json', { eager: true }) as Record<string, { default: { history?: any[] } }>;
 const historyData = historyModules[`../../../../public/history/${slug}.json`];
 const history: any[] = historyData?.default?.history ?? [];
+// Load history data
+const historyModules = import.meta.glob('../../../../public/history/**/*.json', { eager: true }) as Record<string, any>;
+const historyData = historyModules[`../../../../public/history/${slug}.json`];
+const history: any[] = historyData?.default?.history || historyData?.history || [];
 const articleUrl = `/wiki/${slug}`;
+const pageDescription = `Revision history for the Taopedia article "${page.data.title}".`;
 ---
 
-<WikiLayout title={`Revision history of "${page.data.title}"`}>
+<WikiLayout title={`Revision history of "${page.data.title}"`} description={pageDescription}>
   <div class="mw-body-content">
     <nav class="mw-article-toolbar">
       <a href={articleUrl}>Article</a>

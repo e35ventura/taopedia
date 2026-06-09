@@ -1,46 +1,100 @@
 ---
 import WikiLayout from '../layouts/WikiLayout.astro';
-import { getCollection } from 'astro:content';
-
-const searchQuery = Astro.url.searchParams.get('q') || '';
-const pages = await getCollection('pages');
-const getPageSlug = (page: { id: string }) =>
-  page.id.replace(/\/index\.(md|mdx)$/, '').replace(/\/index$/, '').replace(/\.(md|mdx)$/, '');
-const searchEntries = pages
-  .map((page) => ({
-    title: page.data.title,
-    summary: page.data.summary ?? '',
-    url: `/wiki/${getPageSlug(page)}`,
-    categories: page.data.categories ?? [],
-  }))
-  .sort((a, b) => a.title.localeCompare(b.title));
 ---
 
-<WikiLayout title={searchQuery ? `Search results for "${searchQuery}"` : 'Search'}>
+<WikiLayout title="Search" description="Search the Taopedia Bittensor knowledge base for articles on TAO, subnets, staking, mining, validation and consensus.">
   <div class="mw-body-content">
-    <h1 class="firstHeading">{searchQuery ? 'Search results' : 'Search'}</h1>
+    <h1 class="firstHeading" id="search-heading">Search</h1>
 
     <div id="search-results" class="search-results">
-      {searchQuery ? (
-        <p class="search-status">Searching for "<strong>{searchQuery}</strong>"...</p>
-      ) : (
-        <p class="search-status">Use the search field in the header to find an article.</p>
-      )}
+      <p class="search-status">Use the search field in the header to find an article.</p>
     </div>
   </div>
 
-  <script type="application/json" id="search-data" set:html={JSON.stringify(searchEntries)} />
   <script is:inline>
     const searchQuery = new URLSearchParams(window.location.search).get('q') || '';
     const resultsContainer = document.getElementById('search-results');
-    const dataEl = document.getElementById('search-data');
-    const entries = dataEl ? JSON.parse(dataEl.textContent || '[]') : [];
+    const headingEl = document.getElementById('search-heading');
+    let metadataEntriesPromise;
+
+    if (searchQuery) {
+      document.title = `Search results for "${searchQuery}" - Taopedia`;
+      if (headingEl) headingEl.textContent = 'Search results';
+    }
 
     function normalize(value) {
       return (value || '').toLowerCase();
     }
 
-    function renderResult(entry) {
+    function setStatus(text) {
+      if (!resultsContainer) return null;
+      resultsContainer.innerHTML = '';
+      const status = document.createElement('p');
+      status.className = 'search-status';
+      status.textContent = text;
+      resultsContainer.appendChild(status);
+      return status;
+    }
+
+    function countLabel(query, count) {
+      return count
+        ? `Found ${count} result${count === 1 ? '' : 's'} for "${query}"`
+        : `No results found for "${query}"`;
+    }
+
+    function appendTopics(item, categories) {
+      if (!categories || !categories.length) return;
+      const topics = document.createElement('span');
+      topics.className = 'search-topics';
+      categories.forEach((category) => {
+        const topic = document.createElement('span');
+        topic.className = 'search-topic';
+        topic.textContent = category;
+        topics.appendChild(topic);
+      });
+      item.appendChild(topics);
+    }
+
+    function normalizeTopics(value) {
+      if (!value) return [];
+      return Array.isArray(value) ? value : [value];
+    }
+
+    function loadMetadataEntries() {
+      if (!metadataEntriesPromise) {
+        metadataEntriesPromise = fetch('/search-data.json')
+          .then((response) => (response.ok ? response.json() : []))
+          .then((entries) => (Array.isArray(entries) ? entries : []))
+          .catch(() => []);
+      }
+      return metadataEntriesPromise;
+    }
+
+    // Pagefind result: title + highlighted excerpt (excerpt HTML is sanitized by Pagefind).
+    function renderPagefindResult(data) {
+      const item = document.createElement('a');
+      item.className = 'search-result-item';
+      item.href = data.url;
+
+      const title = document.createElement('span');
+      title.className = 'search-title';
+      title.textContent = (data.meta && data.meta.title) || data.url;
+      item.appendChild(title);
+
+      if (data.excerpt) {
+        const excerpt = document.createElement('span');
+        excerpt.className = 'search-summary';
+        excerpt.innerHTML = data.excerpt;
+        item.appendChild(excerpt);
+      }
+
+      appendTopics(item, normalizeTopics(data.filters && data.filters.category));
+      return item;
+    }
+
+    // Fallback (used during `astro dev`, where no Pagefind index is built):
+    // metadata-only match over title/summary/categories.
+    function renderMetadataResult(entry) {
       const item = document.createElement('a');
       item.className = 'search-result-item';
       item.href = entry.url;
@@ -57,42 +111,63 @@ const searchEntries = pages
         item.appendChild(summary);
       }
 
-      if (entry.categories?.length) {
-        const topics = document.createElement('span');
-        topics.className = 'search-topics';
-        entry.categories.forEach((category) => {
-          const topic = document.createElement('span');
-          topic.className = 'search-topic';
-          topic.textContent = category;
-          topics.appendChild(topic);
-        });
-        item.appendChild(topics);
-      }
-
+      appendTopics(item, entry.categories);
       return item;
     }
 
-    if (searchQuery && resultsContainer) {
-      const query = normalize(searchQuery);
+    async function runMetadataSearch(query) {
+      const entries = await loadMetadataEntries();
+      const needle = normalize(query);
       const matches = entries.filter((entry) => {
         const haystack = normalize(`${entry.title} ${entry.summary} ${(entry.categories || []).join(' ')}`);
-        return haystack.includes(query);
+        return haystack.includes(needle);
       });
-
-      resultsContainer.innerHTML = '';
-
-      const status = document.createElement('p');
-      status.className = 'search-status';
-      status.textContent = matches.length
-        ? `Found ${matches.length} result${matches.length === 1 ? '' : 's'} for "${searchQuery}"`
-        : `No results found for "${searchQuery}"`;
-      resultsContainer.appendChild(status);
-
+      setStatus(countLabel(query, matches.length));
       const list = document.createElement('div');
       list.className = 'search-result-list';
-      matches.forEach((entry) => list.appendChild(renderResult(entry)));
+      matches.forEach((entry) => list.appendChild(renderMetadataResult(entry)));
       resultsContainer.appendChild(list);
     }
+
+    async function runPagefindSearch(pagefind, query) {
+      const search = await pagefind.search(query);
+      const data = await Promise.all(search.results.map((result) => result.data()));
+      setStatus(countLabel(query, data.length));
+      const list = document.createElement('div');
+      list.className = 'search-result-list';
+      data.forEach((entry) => list.appendChild(renderPagefindResult(entry)));
+      resultsContainer.appendChild(list);
+    }
+
+    async function loadPagefind() {
+      try {
+        // Path is built into `dist/pagefind/` by the `postbuild` step. Use a
+        // variable so the dev bundler does not try to resolve it at build time.
+        const modulePath = '/pagefind/pagefind.js';
+        const pagefind = await import(modulePath);
+        await pagefind.init();
+        return pagefind;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    async function runSearch(query) {
+      if (!query || !resultsContainer) return;
+      setStatus(`Searching for "${query}"...`);
+      const pagefind = await loadPagefind();
+      if (pagefind) {
+        try {
+          await runPagefindSearch(pagefind, query);
+          return;
+        } catch (error) {
+          // Fall through to metadata search if a query fails at runtime.
+        }
+      }
+      await runMetadataSearch(query);
+    }
+
+    runSearch(searchQuery);
   </script>
 
   <style>
