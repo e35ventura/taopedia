@@ -1,4 +1,6 @@
 ---
+import StructuredData from './StructuredData.astro';
+
 interface Props {
   title?: string;
   description?: string;
@@ -44,3 +46,12 @@ const imageUrl = new URL(image, Astro.site).toString();
 <meta name="twitter:title" content={pageTitle} />
 <meta name="twitter:description" content={description} />
 <meta name="twitter:image" content={imageUrl} />
+
+<StructuredData
+  title={title}
+  description={description}
+  image={image}
+  type={type}
+  canonicalUrl={canonicalUrl}
+  siteDescription={defaultDescription}
+/>
