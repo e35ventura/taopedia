@@ -20,9 +20,10 @@ const historyModules = import.meta.glob('../../../../public/history/**/*.json', 
 const historyData = historyModules[`../../../../public/history/${slug}.json`];
 const history: any[] = historyData?.default?.history || historyData?.history || [];
 const articleUrl = `/wiki/${slug}`;
+const pageDescription = `Revision history for the Taopedia article "${page.data.title}".`;
 ---
 
-<WikiLayout title={`Revision history of "${page.data.title}"`}>
+<WikiLayout title={`Revision history of "${page.data.title}"`} description={pageDescription}>
   <div class="mw-body-content">
     <nav class="mw-article-toolbar">
       <a href={articleUrl}>Article</a>
