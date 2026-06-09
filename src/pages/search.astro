@@ -12,6 +12,7 @@ import WikiLayout from '../layouts/WikiLayout.astro';
   </div>
 
   <script is:inline>
+    const SEARCH_RESULT_BATCH_SIZE = 20;
     const searchQuery = new URLSearchParams(window.location.search).get('q') || '';
     const resultsContainer = document.getElementById('search-results');
     const headingEl = document.getElementById('search-heading');
@@ -58,6 +59,11 @@ import WikiLayout from '../layouts/WikiLayout.astro';
     function normalizeTopics(value) {
       if (!value) return [];
       return Array.isArray(value) ? value : [value];
+    }
+
+    function loadMoreLabel(remainingCount) {
+      const nextCount = Math.min(SEARCH_RESULT_BATCH_SIZE, remainingCount);
+      return `Load ${nextCount} more result${nextCount === 1 ? '' : 's'} (${remainingCount} remaining)`;
     }
 
     function loadMetadataEntries() {
@@ -131,12 +137,56 @@ import WikiLayout from '../layouts/WikiLayout.astro';
 
     async function runPagefindSearch(pagefind, query) {
       const search = await pagefind.search(query);
-      const data = await Promise.all(search.results.map((result) => result.data()));
-      setStatus(countLabel(query, data.length));
+      const totalCount = search.results.length;
+      setStatus(countLabel(query, totalCount));
       const list = document.createElement('div');
       list.className = 'search-result-list';
-      data.forEach((entry) => list.appendChild(renderPagefindResult(entry)));
       resultsContainer.appendChild(list);
+
+      let renderedCount = 0;
+      let loadMoreButton = null;
+
+      function updateLoadMoreButton() {
+        if (!loadMoreButton) return;
+        const remainingCount = totalCount - renderedCount;
+        if (remainingCount <= 0) {
+          loadMoreButton.remove();
+          loadMoreButton = null;
+          return;
+        }
+        loadMoreButton.disabled = false;
+        loadMoreButton.textContent = loadMoreLabel(remainingCount);
+      }
+
+      async function loadNextBatch() {
+        const nextResults = search.results.slice(renderedCount, renderedCount + SEARCH_RESULT_BATCH_SIZE);
+        if (!nextResults.length) return;
+        if (loadMoreButton) {
+          loadMoreButton.disabled = true;
+          loadMoreButton.textContent = 'Loading...';
+        }
+        const data = await Promise.all(nextResults.map((result) => result.data()));
+        data.forEach((entry) => list.appendChild(renderPagefindResult(entry)));
+        renderedCount += data.length;
+        updateLoadMoreButton();
+      }
+
+      await loadNextBatch();
+
+      if (renderedCount < totalCount) {
+        loadMoreButton = document.createElement('button');
+        loadMoreButton.type = 'button';
+        loadMoreButton.className = 'search-load-more';
+        updateLoadMoreButton();
+        loadMoreButton.addEventListener('click', () => {
+          loadNextBatch().catch(() => {
+            if (!loadMoreButton) return;
+            loadMoreButton.disabled = true;
+            loadMoreButton.textContent = 'Could not load more results';
+          });
+        });
+        resultsContainer.appendChild(loadMoreButton);
+      }
     }
 
     async function loadPagefind() {
@@ -229,6 +279,25 @@ import WikiLayout from '../layouts/WikiLayout.astro';
       color: var(--color-base-subtle);
       font-size: 12px;
       line-height: 1.4;
+    }
+
+    :global(.search-load-more) {
+      margin-top: 16px;
+      padding: 8px 12px;
+      border: 1px solid var(--border-color-subtle);
+      background: var(--background-color-interactive);
+      color: var(--color-link);
+      font: inherit;
+      cursor: pointer;
+    }
+
+    :global(.search-load-more:hover) {
+      border-color: var(--color-link);
+    }
+
+    :global(.search-load-more:disabled) {
+      color: var(--color-base-subtle);
+      cursor: default;
     }
   </style>
 </WikiLayout>
