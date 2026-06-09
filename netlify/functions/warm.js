@@ -15,6 +15,8 @@
     - Fetches `${SITE_URL}/wiki/${slug}` to trigger DPR render for each slug.
 */
 
+import { createHash, timingSafeEqual } from 'node:crypto';
+
 // Bound each warm request so one slow or unresponsive page can't stall the whole
 // Promise.all batch up to the Netlify function's execution budget. A request that
 // exceeds this is aborted and recorded as a failed slug; the rest still return.
@@ -30,8 +32,14 @@ export const handler = async (event) => {
     if (!secret) {
       return { statusCode: 500, body: 'WARM_SECRET not set' };
     }
-    const got = event.headers['x-warm-secret'] || event.headers['X-Warm-Secret'];
-    if (got !== secret) {
+    const got = event.headers['x-warm-secret'] || event.headers['X-Warm-Secret'] || '';
+    // Compare the shared secret in constant time so the 401 path can't be used as
+    // a timing oracle to recover WARM_SECRET byte by byte. Both sides are reduced
+    // to fixed-length SHA-256 digests first: timingSafeEqual requires equal-length
+    // inputs (it throws otherwise), and hashing avoids leaking the secret's length
+    // or short-circuiting on the first differing byte.
+    const digest = (value) => createHash('sha256').update(value).digest();
+    if (!timingSafeEqual(digest(got), digest(secret))) {
       return { statusCode: 401, body: 'Unauthorized' };
     }
 

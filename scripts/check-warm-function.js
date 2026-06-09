@@ -129,6 +129,25 @@ try {
   });
   assert.equal(response.statusCode, 400);
   assert.equal(response.body, 'Invalid JSON body');
+
+  // A wrong shared secret is rejected with 401 (constant-time comparison), and a
+  // missing header is treated the same way rather than throwing.
+  process.env.WARM_SECRET = 'secret';
+  response = await handler({
+    httpMethod: 'POST',
+    headers: { 'x-warm-secret': 'wrong-secret' },
+    body: JSON.stringify({ slugs: ['taopedia'] }),
+  });
+  assert.equal(response.statusCode, 401);
+  assert.equal(response.body, 'Unauthorized');
+
+  response = await handler({
+    httpMethod: 'POST',
+    headers: {},
+    body: JSON.stringify({ slugs: ['taopedia'] }),
+  });
+  assert.equal(response.statusCode, 401);
+  assert.equal(response.body, 'Unauthorized');
 } finally {
   if (originalSecret === undefined) {
     delete process.env.WARM_SECRET;
