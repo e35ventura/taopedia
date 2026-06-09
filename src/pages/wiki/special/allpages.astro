@@ -50,7 +50,7 @@ const groupedArticles = topicFilters.map(([topic, topicPages]) => ({
         <strong>{sortedPages.length}</strong> articles across <strong>{categoryIndex.size}</strong> topics
       </p>
 
-      <div class="featured-directory">
+      <div class="featured-directory" data-article-group data-topic="all">
         {sortedPages.slice(0, 3).map((page) => (
           <a
             class="article-card"
