@@ -11,7 +11,8 @@
     "preview": "astro preview",
     "astro": "astro",
     "test:article-slugmap": "node scripts/check-article-slugmap.js",
-    "test:warm-function": "node scripts/check-warm-function.js"
+    "test:warm-function": "node scripts/check-warm-function.js",
+    "test:history-parser": "node scripts/check-history-parser.js"
   },
   "dependencies": {
     "@astrojs/mdx": "^5.0.6",

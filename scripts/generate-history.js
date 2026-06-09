@@ -1,7 +1,7 @@
 import { execFileSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,9 +20,53 @@ const articlesRoot = process.env.TAOPEDIA_ARTICLES_DIR
   : defaultArticlesRoot;
 const cacheArticlesRoot = path.join(projectRoot, '.cache', 'taopedia-articles');
 
-// Ensure output directory exists
-if (!fs.existsSync(outputDir)) {
-  fs.mkdirSync(outputDir, { recursive: true });
+// Records are newline-separated; fields within a record are NUL-separated. NUL
+// cannot appear in a commit subject (%s), so fields never collide, and splitting
+// records on "\n" before fields on "\0" keeps the separator between commits out
+// of the next record's SHA. `%s` is the single-line subject, so a record never
+// contains a stray newline of its own.
+// `%x00` is a git format placeholder that git expands to a NUL byte in its
+// OUTPUT. It must be passed to git as the literal four-character text "%x00";
+// an actual NUL byte in the argument is rejected by execFileSync. FIELD_SEP is
+// the resulting NUL byte we split the output on.
+const FIELD_SEP = '\x00';
+const GIT_LOG_FORMAT = '%H%x00%an%x00%ae%x00%at%x00%s';
+// %H is a full commit hash: 40 hex for SHA-1, 64 for SHA-256 repositories.
+const SHA_PATTERN = /^[0-9a-f]{40,64}$/;
+
+// Parse `git log` output produced with GIT_LOG_FORMAT into revision records.
+// Exported so it can be unit tested without invoking git. Commit subjects may
+// contain any character except NUL (including "|"), and any field may be empty
+// (e.g. a commit with no configured author) without misaligning later fields.
+export function parseGitLog(stdout) {
+  if (!stdout) return [];
+
+  const revisions = [];
+  for (const line of stdout.split('\n')) {
+    if (!line) continue;
+
+    const fields = line.split(FIELD_SEP);
+    if (fields.length < 5) continue;
+
+    const [sha, authorName, authorEmail, rawTimestamp, ...messageParts] = fields;
+    // Guard against a malformed record (e.g. a stray separator leaking into the
+    // SHA) so the history page never renders a broken short hash.
+    if (!SHA_PATTERN.test(sha)) continue;
+
+    const timestamp = Number.parseInt(rawTimestamp, 10);
+    if (!Number.isFinite(timestamp)) continue;
+
+    revisions.push({
+      sha,
+      authorName,
+      authorEmail,
+      timestamp,
+      date: new Date(timestamp * 1000).toISOString(),
+      // The subject is the last field and cannot contain NUL; rejoin defensively.
+      message: messageParts.join(FIELD_SEP),
+    });
+  }
+  return revisions;
 }
 
 function resolveArticlesRepo() {
@@ -54,23 +98,11 @@ function getGitHistory(repo, relativeSourcePath) {
   try {
     const logOutput = execFileSync(
       'git',
-      ['log', '--follow', '--pretty=format:%H|%an|%ae|%at|%s', '--', relativeSourcePath],
+      ['log', '--follow', `--pretty=format:${GIT_LOG_FORMAT}`, '--', relativeSourcePath],
       { cwd: repo, encoding: 'utf-8' }
     );
 
-    if (!logOutput) return [];
-
-    return logOutput.split('\n').map(line => {
-      const [sha, authorName, authorEmail, timestamp, message] = line.split('|');
-      return {
-        sha,
-        authorName,
-        authorEmail,
-        timestamp: parseInt(timestamp, 10),
-        date: new Date(parseInt(timestamp, 10) * 1000).toISOString(),
-        message,
-      };
-    });
+    return parseGitLog(logOutput);
   } catch (error) {
     console.warn(`No git history for ${relativeSourcePath}:`, error.message);
     return [];
@@ -96,38 +128,50 @@ function walkDirectory(dir, fileList = []) {
   return fileList;
 }
 
-console.log('Generating article history from Git...');
-
-const articlesRepo = resolveArticlesRepo();
-if (!articlesRepo) {
-  console.warn(
-    'Article source repository not found; writing empty history. ' +
-      'Place taopedia-articles next to this repo or set TAOPEDIA_ARTICLES_DIR.'
-  );
-} else {
-  ensureFullHistory(articlesRepo);
-}
-
-const markdownFiles = walkDirectory(contentDir);
-
-markdownFiles.forEach(filePath => {
-  const relativePath = path.relative(contentDir, filePath);
-  const slug = path.dirname(relativePath).replace(/\\/g, '/');
-
-  // The generated article is synced from <articles>/content/pages/<slug>/index.mdx,
-  // so query the source repository's history for that path.
-  const sourcePath = path.posix.join('content', 'pages', slug, 'index.mdx');
-  const history = articlesRepo ? getGitHistory(articlesRepo, sourcePath) : [];
-
-  const historyFile = path.join(outputDir, `${slug}.json`);
-  const historyFileDir = path.dirname(historyFile);
-
-  if (!fs.existsSync(historyFileDir)) {
-    fs.mkdirSync(historyFileDir, { recursive: true });
+function main() {
+  // Ensure output directory exists
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir, { recursive: true });
   }
 
-  fs.writeFileSync(historyFile, JSON.stringify({ slug, history }, null, 2));
-  console.log(`  ✓ ${slug} (${history.length} revisions)`);
-});
+  console.log('Generating article history from Git...');
 
-console.log(`✓ Generated history for ${markdownFiles.length} articles`);
+  const articlesRepo = resolveArticlesRepo();
+  if (!articlesRepo) {
+    console.warn(
+      'Article source repository not found; writing empty history. ' +
+        'Place taopedia-articles next to this repo or set TAOPEDIA_ARTICLES_DIR.'
+    );
+  } else {
+    ensureFullHistory(articlesRepo);
+  }
+
+  const markdownFiles = walkDirectory(contentDir);
+
+  markdownFiles.forEach(filePath => {
+    const relativePath = path.relative(contentDir, filePath);
+    const slug = path.dirname(relativePath).replace(/\\/g, '/');
+
+    // The generated article is synced from <articles>/content/pages/<slug>/index.mdx,
+    // so query the source repository's history for that path.
+    const sourcePath = path.posix.join('content', 'pages', slug, 'index.mdx');
+    const history = articlesRepo ? getGitHistory(articlesRepo, sourcePath) : [];
+
+    const historyFile = path.join(outputDir, `${slug}.json`);
+    const historyFileDir = path.dirname(historyFile);
+
+    if (!fs.existsSync(historyFileDir)) {
+      fs.mkdirSync(historyFileDir, { recursive: true });
+    }
+
+    fs.writeFileSync(historyFile, JSON.stringify({ slug, history }, null, 2));
+    console.log(`  ✓ ${slug} (${history.length} revisions)`);
+  });
+
+  console.log(`✓ Generated history for ${markdownFiles.length} articles`);
+}
+
+// Only run the generator when executed directly, so tests can import parseGitLog.
+if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
+  main();
+}
