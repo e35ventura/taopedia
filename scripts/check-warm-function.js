@@ -52,6 +52,21 @@ try {
   assert.equal(response.statusCode, 401);
   assert.equal(response.body, 'Unauthorized');
 
+  response = await handler({
+    httpMethod: 'POST',
+    body: JSON.stringify({ slugs: ['taopedia'] }),
+  });
+  assert.equal(response.statusCode, 401);
+  assert.equal(response.body, 'Unauthorized');
+
+  globalThis.fetch = async () => ({ status: 200, ok: true });
+  response = await handler({
+    httpMethod: 'POST',
+    headers: { 'X-WARM-SECRET': 'secret' },
+    body: JSON.stringify({ slugs: ['taopedia'] }),
+  });
+  assert.equal(response.statusCode, 200);
+
   response = await callWarm(['../bad'], async () => {
     throw new Error('fetch should not be called for invalid slugs');
   });
