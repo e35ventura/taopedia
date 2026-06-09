@@ -36,6 +36,16 @@ try {
   assert.equal(response.json.skipped, 1);
   assert.equal(response.json.results[0].result, 'skipped');
 
+  // Uppercase slugs can never match a lowercase, case-sensitive wiki route, so
+  // they must be rejected as invalid rather than fetched and counted as failed.
+  response = await callWarm(['Uppercase_Slug'], async () => {
+    throw new Error('fetch should not be called for invalid slugs');
+  });
+  assert.equal(response.statusCode, 400);
+  assert.equal(response.json.skipped, 1);
+  assert.equal(response.json.failed, 0);
+  assert.equal(response.json.results[0].result, 'skipped');
+
   response = await callWarm(['missing_article'], async () => ({ status: 404, ok: false }));
   assert.equal(response.statusCode, 502);
   assert.equal(response.json.ok, false);
