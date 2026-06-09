@@ -94,7 +94,10 @@ const groupedArticles = topicFilters.map(([topic, topicPages]) => ({
 
   <script is:inline>
     const searchInput = document.getElementById('article-filter');
-    const topicButtons = Array.from(document.querySelectorAll('[data-topic]'));
+    // Only the filter buttons carry click behaviour; the featured-directory
+    // container and the article-group sections also use [data-topic], so scope
+    // the selector to the buttons to avoid binding handlers to whole sections.
+    const topicButtons = Array.from(document.querySelectorAll('.topic-filter button[data-topic]'));
     const articleCards = Array.from(document.querySelectorAll('[data-article-card]'));
     const groups = Array.from(document.querySelectorAll('[data-article-group]'));
     let selectedTopic = 'all';
