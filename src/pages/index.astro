@@ -31,6 +31,24 @@ const featuredSlugs = [
 const featuredPages = featuredSlugs
   .map((slug) => pages.find((page) => getPageSlug(page) === slug))
   .filter(Boolean);
+
+const alphaGroups = new Map<string, typeof pages>();
+for (const page of sortedPages) {
+  const firstLetter = page.data.title.trim().charAt(0).toUpperCase();
+  const group = /^[A-Z]$/.test(firstLetter) ? firstLetter : '#';
+  const existing = alphaGroups.get(group) ?? [];
+  existing.push(page);
+  alphaGroups.set(group, existing);
+}
+
+const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').filter((letter) => alphaGroups.has(letter));
+const groupedPages = [...alphaGroups.entries()].sort(([a], [b]) => {
+  if (a === '#') return 1;
+  if (b === '#') return -1;
+  return a.localeCompare(b);
+});
+
+const initialLetter = alphabet[0] ?? '#';
 ---
 
 <!doctype html>
@@ -271,26 +289,71 @@ const featuredPages = featuredSlugs
         line-height: 1.45;
       }
 
-      .article-list {
-        columns: 2;
-        column-gap: 40px;
+      .term-panel {
+        padding-top: 4px;
+      }
+
+      .term-group ul {
+        columns: 3;
+        column-gap: 32px;
         margin: 0;
         padding: 0;
         list-style: none;
       }
 
-      .article-list li {
+      .term-group li {
         break-inside: avoid;
-        margin: 0 0 8px;
+        margin: 0 0 9px;
+        line-height: 1.3;
       }
 
-      .article-list a {
+      .term-group a {
         color: var(--color-link);
         text-decoration: none;
       }
 
-      .article-list a:hover {
+      .term-group a:hover {
         text-decoration: underline;
+      }
+
+      .more-terms {
+        margin-top: 18px;
+      }
+
+      .alpha-nav {
+        display: grid;
+        grid-template-columns: repeat(26, minmax(0, 1fr));
+        gap: 4px;
+      }
+
+      .alpha-nav button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 0;
+        width: 100%;
+        height: 34px;
+        padding: 0;
+        border: 1px solid var(--border-color-base);
+        background: var(--background-color-base);
+        color: var(--color-link);
+        font: inherit;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .alpha-nav button:hover,
+      .alpha-nav button.active {
+        border-color: var(--color-link);
+        background: var(--background-color-interactive);
+      }
+
+      .alpha-nav button:disabled {
+        border-color: var(--border-color-subtle);
+        color: var(--color-base-subtle);
+        cursor: not-allowed;
+        opacity: 0.55;
       }
 
       .home-footer {
@@ -335,8 +398,17 @@ const featuredPages = featuredSlugs
           grid-template-columns: 1fr;
         }
 
-        .article-list {
+        .term-group ul {
           columns: 1;
+        }
+
+        .alpha-nav {
+          gap: 2px;
+        }
+
+        .alpha-nav button {
+          height: 30px;
+          font-size: 11px;
         }
       }
     </style>
@@ -407,21 +479,69 @@ const featuredPages = featuredSlugs
         </div>
       </section>
 
-      <section class="home-section">
+      <section class="home-section" id="article-index">
         <div class="section-heading">
-          <h2>Article Index</h2>
-          <a href="/search">Search</a>
+          <h2 id="article-index-title">Articles Beginning With '{initialLetter}'</h2>
+          <a href="/wiki/special/allpages">Open directory</a>
         </div>
-        <ul class="article-list">
-          {sortedPages.map((page) => (
-            <li><a href={`/wiki/${getPageSlug(page)}`}>{page.data.title}</a></li>
+        <div class="term-panel">
+          {groupedPages.map(([letter, letterPages]) => (
+            <section class="term-group" data-letter={letter} hidden={letter !== initialLetter}>
+              <ul>
+                {letterPages.map((page) => (
+                  <li><a href={`/wiki/${getPageSlug(page)}`}>{page.data.title}</a></li>
+                ))}
+              </ul>
+            </section>
           ))}
-        </ul>
+          <div class="more-terms">
+            <nav class="alpha-nav" aria-label="Article index letters">
+              {'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map((letter) => (
+                <button
+                  type="button"
+                  data-index-letter={letter}
+                  aria-pressed={letter === initialLetter ? 'true' : 'false'}
+                  class:list={[letter === initialLetter && 'active']}
+                  disabled={!alphaGroups.has(letter)}
+                >
+                  {letter}
+                </button>
+              ))}
+            </nav>
+          </div>
+        </div>
       </section>
 
       <footer class="home-footer">
         Content is maintained in the Taopedia articles repository and published as a static wiki.
       </footer>
     </main>
+    <script is:inline>
+      const letterButtons = Array.from(document.querySelectorAll('[data-index-letter]'));
+      const letterGroups = Array.from(document.querySelectorAll('[data-letter]'));
+      const indexTitle = document.getElementById('article-index-title');
+
+      function selectLetter(letter) {
+        letterGroups.forEach((group) => {
+          group.hidden = group.dataset.letter !== letter;
+        });
+        letterButtons.forEach((button) => {
+          button.classList.toggle('active', button.dataset.indexLetter === letter);
+          button.setAttribute('aria-pressed', button.dataset.indexLetter === letter ? 'true' : 'false');
+        });
+        if (indexTitle) {
+          indexTitle.textContent = `Articles Beginning With '${letter}'`;
+        }
+      }
+
+      letterButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+          const letter = button.dataset.indexLetter;
+          if (letter) {
+            selectLetter(letter);
+          }
+        });
+      });
+    </script>
   </body>
 </html>
