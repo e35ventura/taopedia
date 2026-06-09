@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
 import WikiLayout from '../../layouts/WikiLayout.astro';
+import { resolveArticleImageSource } from '../../lib/article-image-assets.js';
 import { buildSlugAliases, parseWikiLinkTokens, resolveTargetSlug } from '../../../scripts/wiki-link-resolver.js';
 
 export async function getStaticPaths() {
@@ -20,6 +21,11 @@ const tocHeadings = headings.filter((heading) => heading.depth >= 2 && heading.d
 
 // Try to load per-article infobox.json if present
 const infoboxModules = import.meta.glob('../../content/pages/**/infobox.json', { eager: true }) as Record<string, any>;
+const articleImageAssets = import.meta.glob('../../content/pages/**/*.{avif,gif,jpg,jpeg,png,webp}', {
+  eager: true,
+  query: '?url&no-inline',
+  import: 'default',
+}) as Record<string, string>;
 let infobox: any = null;
 for (const [p, mod] of Object.entries(infoboxModules)) {
   if (p.endsWith(`/${slug}/infobox.json`)) {
@@ -31,7 +37,11 @@ for (const [p, mod] of Object.entries(infoboxModules)) {
 // Compose a unified infobox object, preferring frontmatter over per-folder JSON
 const ib = {
   title: page.data.infoboxTitle ?? infobox?.title,
-  image: page.data.coverImage ?? page.data.infoboxImage ?? infobox?.image,
+  image: resolveArticleImageSource(
+    slug,
+    page.data.coverImage ?? page.data.infoboxImage ?? infobox?.image,
+    articleImageAssets,
+  ),
   caption: page.data.infoboxCaption ?? infobox?.caption,
   rows: page.data.infoboxRows ?? infobox?.rows,
 };
