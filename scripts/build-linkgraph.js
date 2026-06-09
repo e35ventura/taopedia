@@ -92,9 +92,16 @@ for (const [fromSlug, links] of Object.entries(linkGraph)) {
 }
 
 // Second pass: build backlinks
+const backlinkPairs = new Set();
 Object.keys(linkGraph).forEach(fromSlug => {
   linkGraph[fromSlug].forEach(link => {
     const toSlug = link.target;
+    const pairKey = `${toSlug}\0${fromSlug}`;
+    if (backlinkPairs.has(pairKey)) {
+      return;
+    }
+    backlinkPairs.add(pairKey);
+
     if (!backlinks[toSlug]) {
       backlinks[toSlug] = [];
     }
