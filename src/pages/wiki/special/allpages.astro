@@ -39,9 +39,9 @@ const groupedArticles = topicFilters.map(([topic, topicPages]) => ({
         </label>
 
         <div class="topic-filter" aria-label="Topic filters">
-          <button type="button" class="active" data-topic="all">All</button>
+          <button type="button" class="active" data-topic="all" aria-pressed="true">All</button>
           {topicFilters.map(([topic, topicPages]) => (
-            <button type="button" data-topic={topic}>{topic} <span>{topicPages.length}</span></button>
+            <button type="button" data-topic={topic} aria-pressed="false">{topic} <span>{topicPages.length}</span></button>
           ))}
         </div>
       </div>
@@ -127,7 +127,11 @@ const groupedArticles = topicFilters.map(([topic, topicPages]) => ({
     topicButtons.forEach((button) => {
       button.addEventListener('click', () => {
         selectedTopic = button.dataset.topic || 'all';
-        topicButtons.forEach((btn) => btn.classList.toggle('active', btn === button));
+        topicButtons.forEach((btn) => {
+          const isActive = btn === button;
+          btn.classList.toggle('active', isActive);
+          btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        });
         applyFilters();
       });
     });
