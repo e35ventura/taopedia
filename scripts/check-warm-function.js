@@ -30,7 +30,29 @@ function startWarm(slugs, fetchImpl) {
 }
 
 try {
-  let response = await callWarm(['../bad'], async () => {
+  process.env.WARM_SECRET = 'secret';
+  process.env.SITE_URL = 'https://example.test';
+  globalThis.fetch = async () => {
+    throw new Error('fetch should not be called for unauthorized requests');
+  };
+
+  let response = await handler({
+    httpMethod: 'POST',
+    headers: { 'x-warm-secret': 'wrong' },
+    body: JSON.stringify({ slugs: ['taopedia'] }),
+  });
+  assert.equal(response.statusCode, 401);
+  assert.equal(response.body, 'Unauthorized');
+
+  response = await handler({
+    httpMethod: 'POST',
+    headers: {},
+    body: JSON.stringify({ slugs: ['taopedia'] }),
+  });
+  assert.equal(response.statusCode, 401);
+  assert.equal(response.body, 'Unauthorized');
+
+  response = await callWarm(['../bad'], async () => {
     throw new Error('fetch should not be called for invalid slugs');
   });
   assert.equal(response.statusCode, 400);
