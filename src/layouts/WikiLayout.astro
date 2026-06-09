@@ -235,6 +235,26 @@ const { title, description, image, type = 'website', path } = Astro.props;
           return allowedValues.includes(value) ? value : fallback;
         }
 
+        // localStorage access throws when storage is unavailable (privacy modes,
+        // sandboxed/partitioned contexts, cookies disabled) or full. Guard it so
+        // a storage error can't abort this DOMContentLoaded handler and take the
+        // rest of the page's interactivity (sidebar, responsive controls) with it.
+        function readStoredPreference(key) {
+          try {
+            return localStorage.getItem(key);
+          } catch {
+            return null;
+          }
+        }
+
+        function storePreference(key, value) {
+          try {
+            localStorage.setItem(key, value);
+          } catch {
+            // Storage unavailable — the preference just won't persist.
+          }
+        }
+
         function setCheckedInput(inputs, value) {
           inputs.forEach((input) => {
             input.checked = input.value === value;
@@ -247,7 +267,7 @@ const { title, description, image, type = 'website', path } = Astro.props;
           textSizes.forEach((textSize) => articleBody.classList.remove(`text-${textSize}`));
           articleBody.classList.add(`text-${normalized}`);
           setCheckedInput(textSizeInputs, normalized);
-          localStorage.setItem('taopedia-text-size', normalized);
+          storePreference('taopedia-text-size', normalized);
         }
 
         function applyContentWidth(width) {
@@ -260,7 +280,7 @@ const { title, description, image, type = 'website', path } = Astro.props;
           articleBody.classList.add(`width-${normalized}`);
           document.body.classList.add(`content-width-${normalized}`);
           setCheckedInput(contentWidthInputs, normalized);
-          localStorage.setItem('taopedia-content-width', normalized);
+          storePreference('taopedia-content-width', normalized);
           syncAppearanceState();
         }
 
@@ -295,8 +315,8 @@ const { title, description, image, type = 'website', path } = Astro.props;
           appearanceToggle.setAttribute('aria-expanded', appearanceManuallyHidden ? 'false' : 'true');
         }
 
-        const savedTextSize = normalizePreference(localStorage.getItem('taopedia-text-size'), textSizes, 'standard');
-        const savedContentWidth = normalizePreference(localStorage.getItem('taopedia-content-width'), contentWidths, 'standard');
+        const savedTextSize = normalizePreference(readStoredPreference('taopedia-text-size'), textSizes, 'standard');
+        const savedContentWidth = normalizePreference(readStoredPreference('taopedia-content-width'), contentWidths, 'standard');
         applyTextSize(savedTextSize);
         applyContentWidth(savedContentWidth);
         syncAppearanceState();
