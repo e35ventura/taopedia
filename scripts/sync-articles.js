@@ -49,7 +49,7 @@ function isPublishedArticle(data) {
   return data.draft !== true;
 }
 
-function toCategories(data) {
+export function toCategories(data) {
   const categories = new Map();
   const addCategory = (rawValue) => {
     const normalized = normalizeCategoryLabel(rawValue);
@@ -61,6 +61,9 @@ function toCategories(data) {
 
   if (typeof data.category === 'string') {
     addCategory(data.category);
+  }
+  if (Array.isArray(data.categories)) {
+    for (const category of data.categories) addCategory(category);
   }
   if (Array.isArray(data.tags)) {
     for (const tag of data.tags) addCategory(tag);
