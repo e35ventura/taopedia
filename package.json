@@ -10,7 +10,8 @@
     "postbuild": "npx pagefind --site dist",
     "preview": "astro preview",
     "astro": "astro",
-    "test:article-slugmap": "node scripts/check-article-slugmap.js"
+    "test:article-slugmap": "node scripts/check-article-slugmap.js",
+    "test:warm-function": "node scripts/check-warm-function.js"
   },
   "dependencies": {
     "@astrojs/mdx": "^5.0.6",
