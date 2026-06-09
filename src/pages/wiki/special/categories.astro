@@ -1,6 +1,7 @@
 ---
 import WikiLayout from '../../../layouts/WikiLayout.astro';
 import { getCollection } from 'astro:content';
+import { categoryHref } from '../../../../scripts/category-routes.js';
 
 const pages = await getCollection('pages');
 
@@ -29,7 +30,7 @@ const sortedCategories = Object.entries(categoryIndex)
         <ul>
           {sortedCategories.map(([categoryName, categoryPages]) => (
             <li>
-              <a href={`/wiki/category/${categoryName.replace(/ /g, '_')}`}>
+              <a href={categoryHref(categoryName)}>
                 {categoryName}
               </a>
               <span class="category-count">
