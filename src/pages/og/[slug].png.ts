@@ -18,7 +18,7 @@ export async function getStaticPaths() {
 
   return [
     {
-      params: { slug: 'taopedia' },
+      params: { slug: 'home' },
       props: {
         title: 'Bittensor Knowledge Base',
         description:
@@ -26,7 +26,7 @@ export async function getStaticPaths() {
         label: 'Bittensor Knowledge Base',
       },
     },
-    ...articlePaths.filter((path) => path.params.slug !== 'taopedia'),
+    ...articlePaths.filter((path) => path.params.slug !== 'home'),
   ];
 }
 
