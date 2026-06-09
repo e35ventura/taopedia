@@ -229,6 +229,7 @@ const { title, description, image, type = 'website', path } = Astro.props;
         const contentWidthInputs = document.querySelectorAll('input[name="content-width"]');
         const textSizes = ['small', 'standard', 'large'];
         const contentWidths = ['narrow', 'standard', 'wide'];
+        let appearanceManuallyHidden = false;
 
         function normalizePreference(value, allowedValues, fallback) {
           return allowedValues.includes(value) ? value : fallback;
@@ -260,12 +261,45 @@ const { title, description, image, type = 'website', path } = Astro.props;
           document.body.classList.add(`content-width-${normalized}`);
           setCheckedInput(contentWidthInputs, normalized);
           localStorage.setItem('taopedia-content-width', normalized);
+          syncAppearanceState();
+        }
+
+        function appearanceRailFits() {
+          if (!appearancePanel) return false;
+          const wasHidden = appearancePanel.hidden;
+          const hadOverlay = document.body.classList.contains('appearance-overlay-active');
+
+          appearancePanel.hidden = false;
+          document.body.classList.remove('appearance-overlay-active');
+          const rect = appearancePanel.getBoundingClientRect();
+          appearancePanel.hidden = wasHidden;
+          document.body.classList.toggle('appearance-overlay-active', hadOverlay);
+
+          return rect.left >= 16 && rect.right <= window.innerWidth - 16;
+        }
+
+        function syncAppearanceState() {
+          if (!appearancePanel || !appearanceToggle) return;
+          const constrained = !appearanceRailFits();
+
+          if (constrained) {
+            appearancePanel.hidden = !document.body.classList.contains('appearance-overlay-active');
+            appearanceToggle.classList.add('visible');
+            appearanceToggle.setAttribute('aria-expanded', appearancePanel.hidden ? 'false' : 'true');
+            return;
+          }
+
+          document.body.classList.remove('appearance-overlay-active');
+          appearancePanel.hidden = appearanceManuallyHidden;
+          appearanceToggle.classList.toggle('visible', appearanceManuallyHidden);
+          appearanceToggle.setAttribute('aria-expanded', appearanceManuallyHidden ? 'false' : 'true');
         }
 
         const savedTextSize = normalizePreference(localStorage.getItem('taopedia-text-size'), textSizes, 'standard');
         const savedContentWidth = normalizePreference(localStorage.getItem('taopedia-content-width'), contentWidths, 'standard');
         applyTextSize(savedTextSize);
         applyContentWidth(savedContentWidth);
+        syncAppearanceState();
 
         textSizeInputs.forEach((input) => {
           input.addEventListener('change', () => applyTextSize(input.value));
@@ -277,7 +311,9 @@ const { title, description, image, type = 'website', path } = Astro.props;
 
         if (appearanceHideBtn && appearancePanel) {
           appearanceHideBtn.addEventListener('click', () => {
+            appearanceManuallyHidden = true;
             appearancePanel.hidden = true;
+            document.body.classList.remove('appearance-overlay-active');
             appearanceToggle?.classList.add('visible');
             appearanceToggle?.setAttribute('aria-expanded', 'false');
           });
@@ -285,9 +321,18 @@ const { title, description, image, type = 'website', path } = Astro.props;
 
         if (appearanceToggle && appearancePanel) {
           appearanceToggle.addEventListener('click', () => {
-            appearancePanel.hidden = false;
-            appearanceToggle.classList.remove('visible');
-            appearanceToggle.setAttribute('aria-expanded', 'true');
+            appearanceManuallyHidden = false;
+            if (appearanceRailFits()) {
+              document.body.classList.remove('appearance-overlay-active');
+              appearancePanel.hidden = false;
+              appearanceToggle.classList.remove('visible');
+              appearanceToggle.setAttribute('aria-expanded', 'true');
+            } else {
+              document.body.classList.toggle('appearance-overlay-active');
+              appearancePanel.hidden = !document.body.classList.contains('appearance-overlay-active');
+              appearanceToggle.classList.add('visible');
+              appearanceToggle.setAttribute('aria-expanded', appearancePanel.hidden ? 'false' : 'true');
+            }
           });
         }
         
@@ -353,6 +398,7 @@ const { title, description, image, type = 'website', path } = Astro.props;
         
         mq900.addEventListener('change', handleResponsiveChange);
         mq1500.addEventListener('change', handleResponsiveChange);
+        window.addEventListener('resize', syncAppearanceState);
         
       });
     </script>

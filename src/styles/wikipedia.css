@@ -66,11 +66,12 @@ body {
 
 .mw-header-left {
   width: var(--width-sidebar);
-  flex-shrink: 0;
+  flex: 0 0 var(--width-sidebar);
 }
 
 .mw-header-center {
   flex: 1;
+  min-width: 0;
   padding-left: 24px; /* Match main content padding */
   padding-right: 24px;
 }
@@ -103,7 +104,8 @@ body {
 /* Align header with content when sidebar is hidden */
 @media (max-width: 1500px) {
   .mw-header-left {
-    width: 0;
+    width: auto;
+    flex: 0 0 auto;
     padding-left: 0;
   }
   /* Keep the search area aligned with content padding */
@@ -115,7 +117,8 @@ body {
 
 @media (max-width: 900px) {
   .mw-header-left {
-    width: 0;
+    width: auto;
+    flex: 0 0 auto;
     padding-left: 0;
   }
   /* Keep the search area aligned with content padding */
@@ -465,6 +468,20 @@ body.content-width-wide .mw-appearance {
   outline-offset: 2px;
 }
 
+body.appearance-overlay-active .mw-appearance {
+  display: block;
+  position: fixed;
+  top: 96px;
+  right: 24px;
+  width: 180px;
+  max-height: calc(100vh - 120px);
+  padding: 12px;
+  border: 1px solid var(--border-color-subtle);
+  background: var(--background-color-base);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  z-index: 95;
+}
+
 /* Main Content - Always centered regardless of sidebars */
 .mw-body {
   margin: 0 auto;
@@ -729,7 +746,7 @@ body.content-width-wide .mw-appearance {
   }
 
   .appearance-toggle.visible {
-    display: none;
+    display: inline-flex;
   }
 }
 
