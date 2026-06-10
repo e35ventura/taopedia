@@ -15,6 +15,24 @@ const { title, description, image, type = 'website', canonicalUrl, siteDescripti
 const siteUrl = new URL('/', Astro.site).toString();
 const imageUrl = image ? new URL(image, Astro.site).toString() : undefined;
 
+// Article pages carry datePublished/dateModified derived from the source
+// repository's commit history (already generated to public/history/<slug>.json).
+// Revisions are newest-first, so the first record is the latest modification and
+// the last is the original publication.
+const historyModules = import.meta.glob('../../public/history/**/*.json', { eager: true }) as Record<string, any>;
+
+let datePublished: string | undefined;
+let dateModified: string | undefined;
+if (type === 'article') {
+  const slug = new URL(canonicalUrl).pathname.replace(/^\/wiki\//, '').replace(/\/$/, '');
+  const historyData = historyModules[`../../public/history/${slug}.json`];
+  const revisions: any[] = historyData?.default?.history ?? historyData?.history ?? [];
+  if (revisions.length > 0) {
+    dateModified = revisions[0]?.date;
+    datePublished = revisions[revisions.length - 1]?.date;
+  }
+}
+
 const structuredData = buildStructuredData({
   siteUrl,
   canonicalUrl,
@@ -22,6 +40,8 @@ const structuredData = buildStructuredData({
   title,
   description,
   type,
+  datePublished,
+  dateModified,
   siteDescription,
 });
 const json = serializeStructuredData(structuredData);
