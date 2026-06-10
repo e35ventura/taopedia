@@ -152,9 +152,13 @@ const serializedValidSlugs = JSON.stringify(validSlugs).replace(/</g, '\\u003c')
     <div class="mw-parser-output">
       {/** Infobox (prefer per-article file) */}
       {(ib.title || ib.image || (ib.rows && ib.rows.length > 0)) && (
-        <aside class="infobox">
+        <aside
+          class="infobox"
+          aria-labelledby={ib.title ? 'infobox-title' : undefined}
+          aria-label={ib.title ? undefined : 'Infobox'}
+        >
           {ib.title && (
-            <div class="infobox-title">{ib.title}</div>
+            <div class="infobox-title" id="infobox-title">{ib.title}</div>
           )}
           {ib.image && (
             <img class="infobox-image" src={ib.image} alt={ib.title || page.data.title} />
