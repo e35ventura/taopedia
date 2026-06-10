@@ -81,10 +81,10 @@ const serializedValidSlugs = JSON.stringify(validSlugs).replace(/</g, '\\u003c')
   type="article"
 >
   {tocHeadings.length > 1 && (
-    <div slot="sidebar" class="toc-sidebar">
+    <div slot="sidebar" class="toc-sidebar" role="navigation" aria-labelledby="toc-heading">
       <div class="toc-sidebar-inner">
         <div class="toc-header">
-          <div class="toc-title">Contents</div>
+          <div class="toc-title" id="toc-heading">Contents</div>
           <button class="toc-hide" type="button" aria-label="Hide table of contents">hide</button>
         </div>
         <ul class="toc-list">
