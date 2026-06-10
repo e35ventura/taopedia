@@ -12,14 +12,14 @@ assert.match(body, /<ShortName>Taopedia<\/ShortName>/, 'OpenSearch description m
 assert.match(body, /<InputEncoding>UTF-8<\/InputEncoding>/, 'OpenSearch description must use UTF-8');
 assert.match(
   body,
-  /<Url type="text\/html" method="get" template="https:\/\/taopedia\.org\/search\?q=\{searchTerms\}" \/>/,
-  'OpenSearch URL template must target the site search route',
+  /<Url type="text\/html" method="get" template="https:\/\/taopedia\.org\/search\/\?q=\{searchTerms\}" \/>/,
+  'OpenSearch URL template must target the canonical /search/ route',
 );
 
 const normalizedBody = buildOpenSearchDescription({ origin: 'https://taopedia.org/' });
 assert.match(
   normalizedBody,
-  /template="https:\/\/taopedia\.org\/search\?q=\{searchTerms\}"/,
+  /template="https:\/\/taopedia\.org\/search\/\?q=\{searchTerms\}"/,
   'OpenSearch URL template must normalize trailing slashes on the origin',
 );
 

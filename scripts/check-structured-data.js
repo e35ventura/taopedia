@@ -18,8 +18,8 @@ assert.ok(website, 'every page must include a WebSite node');
 assert.equal(website.url, 'https://taopedia.org/', 'WebSite url must be the site root');
 assert.equal(
   website.potentialAction.target.urlTemplate,
-  'https://taopedia.org/search?q={search_term_string}',
-  'SearchAction must target the /search route',
+  'https://taopedia.org/search/?q={search_term_string}',
+  'SearchAction must target the canonical /search/ route',
 );
 assert.equal(
   home['@graph'].some((node) => node['@type'] === 'Article'),
