@@ -27,6 +27,7 @@ const unsafeContentPatterns = [
   { pattern: /\bjavascript\s*:/i, reason: 'javascript: URLs are not allowed in article content' },
   { pattern: /\bvbscript\s*:/i, reason: 'vbscript: URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
+  { pattern: /\bdata\s*:\s*image\/svg\+xml/i, reason: 'SVG data URLs are not allowed in article content' },
   { pattern: /\bset:html\b/i, reason: 'raw HTML injection directives are not allowed in article content' },
   { pattern: /\bclient:[a-z-]+\b/i, reason: 'client directives are not allowed in article content' },
 ];
@@ -39,6 +40,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /javascript\s*:/i, reason: 'javascript: URLs are not allowed in article content' },
   { pattern: /vbscript\s*:/i, reason: 'vbscript: URLs are not allowed in article content' },
   { pattern: /data\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
+  { pattern: /data\s*:\s*image\/svg\+xml/i, reason: 'SVG data URLs are not allowed in article content' },
 ];
 
 // The whitespace-anchored handler pattern above misses handlers that HTML lets
