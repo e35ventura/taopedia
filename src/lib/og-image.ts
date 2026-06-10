@@ -67,7 +67,7 @@ function wrapText(text: string, maxChars: number, maxLines: number) {
     if (lines.length === maxLines) break;
   }
 
-  if (current && lines.length < maxLines) lines.push(current);
+  if (current && lines.length <= maxLines) lines.push(current);
 
   if (lines.length === maxLines && words.join(' ').length > lines.join(' ').length) {
     lines[maxLines - 1] = `${lines[maxLines - 1].replace(/[.,;:!?]?$/, '')}…`;
