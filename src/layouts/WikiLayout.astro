@@ -132,6 +132,15 @@ const { title, description, image, type = 'website', path } = Astro.props;
       </div>
     </footer>
 
+    <script is:inline>
+      document.addEventListener('DOMContentLoaded', function () {
+        const query = new URLSearchParams(window.location.search).get('q');
+        if (!query) return;
+        const searchInput = document.querySelector('.mw-search-input');
+        if (searchInput) searchInput.value = query;
+      });
+    </script>
+
     <script>
       document.addEventListener('DOMContentLoaded', function() {
         // TOC collapse/expand functionality
