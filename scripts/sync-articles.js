@@ -134,6 +134,78 @@ function decodeForSchemeScan(content) {
   return stripUrlObfuscationChars(decoded);
 }
 
+function stripInlineCode(line) {
+  let result = '';
+  let index = 0;
+  while (index < line.length) {
+    if (line[index] !== '`') {
+      result += line[index];
+      index += 1;
+      continue;
+    }
+
+    let tickCount = 1;
+    while (line[index + tickCount] === '`') tickCount += 1;
+    const marker = '`'.repeat(tickCount);
+    const closingIndex = line.indexOf(marker, index + tickCount);
+    if (closingIndex === -1) {
+      result += marker;
+      index += tickCount;
+      continue;
+    }
+
+    result += ' ';
+    index = closingIndex + tickCount;
+  }
+  return result;
+}
+
+function stripMarkdownCode(content) {
+  let inFence = false;
+  let fenceChar = '';
+  let fenceLength = 0;
+
+  return content
+    .split('\n')
+    .map((line) => {
+      const fenceMatch = line.match(/^\s*(`{3,}|~{3,})/);
+      if (inFence) {
+        if (
+          fenceMatch
+          && fenceMatch[1][0] === fenceChar
+          && fenceMatch[1].length >= fenceLength
+        ) {
+          inFence = false;
+        }
+        return '';
+      }
+
+      if (fenceMatch) {
+        inFence = true;
+        fenceChar = fenceMatch[1][0];
+        fenceLength = fenceMatch[1].length;
+        return '';
+      }
+
+      return stripInlineCode(line);
+    })
+    .join('\n');
+}
+
+function hasUnescapedBrace(content) {
+  for (let index = 0; index < content.length; index += 1) {
+    const char = content[index];
+    if (char !== '{' && char !== '}') continue;
+
+    let backslashes = 0;
+    for (let previous = index - 1; previous >= 0 && content[previous] === '\\'; previous -= 1) {
+      backslashes += 1;
+    }
+    if (backslashes % 2 === 0) return true;
+  }
+  return false;
+}
+
 export function validateArticleContent(slug, content) {
   for (const { pattern, reason } of unsafeContentPatterns) {
     if (pattern.test(content)) {
@@ -148,6 +220,12 @@ export function validateArticleContent(slug, content) {
         throw new Error(`Unsafe article content in "${slug}": ${reason}`);
       }
     }
+  }
+
+  const markdownBody = matter(content).content;
+  const expressionScanContent = stripMarkdownCode(markdownBody);
+  if (hasUnescapedBrace(expressionScanContent)) {
+    throw new Error(`Unsafe article content in "${slug}": MDX expressions are not allowed in article content`);
   }
 }
 

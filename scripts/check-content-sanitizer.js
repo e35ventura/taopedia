@@ -28,6 +28,12 @@ rejects(`See [x](java${TAB}script:alert(1)).`, 'tab-split javascript:');
 rejects(`See [x](java${ZERO_WIDTH_SPACE}script:alert(1)).`, 'zero-width javascript:');
 rejects('See [x](&#100;ata:text/html,evil).', 'entity data:text/html');
 
+// MDX expressions execute during rendering and can read build-time data from
+// article source content, so unescaped expression braces are blocked.
+rejects('Intro.\n\n{process.env.SECRET_TOKEN}', 'body MDX expression');
+rejects('Intro.\n\n<span title={process.env.SECRET_TOKEN}>x</span>', 'JSX attribute expression');
+rejects('Intro.\n\nA stray } brace is still MDX expression syntax.', 'stray MDX expression brace');
+
 // Legitimate content passes — guard against false positives.
 accepts(
   '# Staking\n\nStaking locks TAO. Source: [docs](https://docs.bittensor.com/).',
@@ -40,6 +46,22 @@ accepts(
 accepts(
   'Encode an ampersand as &amp; or a snowman as &#9731; without tripping the scanner.',
   'benign entities'
+);
+accepts(
+  'Use escaped braces for literal notation: \\{validator, miner\\}.',
+  'escaped literal braces'
+);
+accepts(
+  'Use `{process.env.SECRET_TOKEN}` as an inline code example.',
+  'inline code braces'
+);
+accepts(
+  '```js\nconst example = { key: "value" };\n```',
+  'fenced code braces'
+);
+accepts(
+  '---\ntitle: "Map {key}"\n---\nBody without expression braces.',
+  'frontmatter braces'
 );
 
 console.log('Content sanitizer check passed');
