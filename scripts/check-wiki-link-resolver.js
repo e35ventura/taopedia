@@ -38,6 +38,18 @@ assert.equal(
 );
 
 assert.equal(
+  normalizeLinkTarget('//taopedia.org/wiki/dynamic_tao/'),
+  'dynamic_tao',
+  'protocol-relative canonical Taopedia article URLs should normalize to the article slug',
+);
+
+assert.equal(
+  normalizeLinkTarget('//www.taopedia.org/wiki/Dynamic%20TAO/#overview'),
+  'Dynamic TAO',
+  'protocol-relative encoded canonical Taopedia article URLs should normalize before alias resolution',
+);
+
+assert.equal(
   resolveTargetSlug('/wiki/dynamic_tao', aliases),
   'dynamic_tao',
   'rendered wiki links should resolve route-prefixed targets to canonical slugs',
@@ -49,10 +61,22 @@ assert.equal(
   'rendered wiki links should resolve canonical article URLs to canonical slugs',
 );
 
+assert.equal(
+  resolveTargetSlug('//taopedia.org/wiki/Dynamic%20TAO/', aliases),
+  'dynamic_tao',
+  'rendered wiki links should resolve protocol-relative canonical URLs to canonical slugs',
+);
+
 assert.deepEqual(
   options.pageResolver('/wiki/Dynamic TAO'),
   ['dynamic_tao', 'Dynamic TAO', 'dynamic tao'],
   'remark wiki-link resolution should try the canonical slug before route-prefixed fallbacks',
+);
+
+assert.deepEqual(
+  options.pageResolver('//taopedia.org/wiki/Dynamic%20TAO/'),
+  ['dynamic_tao', 'Dynamic TAO', 'dynamic tao'],
+  'remark wiki-link resolution should try the canonical slug before protocol-relative URL fallbacks',
 );
 
 console.log('Wiki link resolver route-target check passed');
