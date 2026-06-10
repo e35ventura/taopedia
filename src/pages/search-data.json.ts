@@ -17,7 +17,7 @@ export const GET: APIRoute = async () => {
 
   return new Response(JSON.stringify(searchEntries), {
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/json; charset=utf-8',
     },
   });
 };
