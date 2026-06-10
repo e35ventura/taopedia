@@ -44,11 +44,34 @@ export function slugify(text) {
   return String(text || '').toLowerCase().replace(/ /g, '_').replace(/[^\w-]/g, '');
 }
 
+function decodePathSegment(value) {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
 export function normalizeLinkTarget(rawTarget) {
-  return String(rawTarget || '')
-    .trim()
-    .replace(/^\/+|\/+$/g, '')
-    .split('#')[0];
+  let target = String(rawTarget || '').trim();
+
+  try {
+    const url = new URL(target);
+    const host = url.hostname.toLowerCase();
+    if ((host === 'taopedia.org' || host === 'www.taopedia.org') && url.pathname.toLowerCase().startsWith('/wiki/')) {
+      target = url.pathname + url.hash;
+    }
+  } catch {
+    // Not an absolute URL; keep handling normal wiki-link targets below.
+  }
+
+  const withoutHash = target.trim().split('#')[0];
+  const withoutRoutePrefix = withoutHash
+    .replace(/^\/+/, '')
+    .replace(/^wiki\//i, '')
+    .replace(/\/+$/g, '');
+
+  return withoutRoutePrefix.split('/').map(decodePathSegment).join('/');
 }
 
 export function buildSlugAliases(slugMap) {
