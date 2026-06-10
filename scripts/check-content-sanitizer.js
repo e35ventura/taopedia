@@ -26,6 +26,10 @@ rejects('See [x](data:text/html;base64,PHNjcmlwdD4=).', 'plain data:text/html');
 rejects('Do not evaluate {process.env.SECRET_TOKEN}.', 'plain MDX expression brace');
 rejects('A stray closing brace } is rejected conservatively.', 'stray MDX closing brace');
 rejects(String.raw`Even backslashes do not escape \\{process.env.SECRET_TOKEN}.`, 'double-backslash MDX brace evasion');
+rejects('<UnknownComponent />', 'plain MDX component tag');
+rejects('<Namespace.Component />', 'MDX member-expression component tag');
+rejects('<_PrivateComponent />', 'underscore-prefixed MDX component tag');
+rejects('<foo.Bar />', 'lowercase MDX member-expression component tag');
 
 // Obfuscated dangerous schemes are now blocked too.
 rejects('See [x](java&#115;cript:alert(1)).', 'decimal-entity javascript:');
@@ -69,8 +73,24 @@ accepts(
   'frontmatter braces'
 );
 accepts(
+  '---\ntitle: "Alpha <TAO>"\n---\n\nFrontmatter angle brackets are metadata, not article-body MDX.',
+  'frontmatter angle brackets'
+);
+accepts(
+  '<div class="note">Plain lowercase HTML elements are still allowed.</div>',
+  'lowercase HTML element'
+);
+accepts(
+  '<tao-note>Lowercase custom elements are literal HTML, not MDX components.</tao-note>',
+  'lowercase custom element'
+);
+accepts(
   '```jsx\n{process.env.SECRET_TOKEN}\n```\n',
   'fenced code block with braces'
+);
+accepts(
+  '```jsx\n<UnknownComponent />\n```\n',
+  'fenced code block with MDX component tag'
 );
 accepts(
   '~~~js\n{process.env.SECRET_TOKEN}\n~~~\n',
@@ -81,12 +101,20 @@ accepts(
   'inline code span with braces'
 );
 accepts(
+  'Use `<UnknownComponent />` as an inline code example.',
+  'inline code span with MDX component tag'
+);
+accepts(
   'Emoji before code stays aligned 🧠 `{process.env.SECRET_TOKEN}`.',
   'inline code span after astral Unicode'
 );
 accepts(
   '    {process.env.SECRET_TOKEN}\n',
   'indented code block with braces'
+);
+accepts(
+  '    <UnknownComponent />\n',
+  'indented code block with MDX component tag'
 );
 accepts(
   'A query like [docs](https://example.com/online=1) is fine — a URL path segment is not a handler.',

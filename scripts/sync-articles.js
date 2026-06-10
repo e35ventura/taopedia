@@ -49,6 +49,9 @@ const obfuscatedSchemePatterns = [
 // with quoted values emptied: the URL text inside them is removed, while the
 // closing quote (a real attribute boundary) is preserved so `"x"onclick=` is caught.
 const nonSpaceDelimitedHandlerPattern = /<[^>]*[/"'`]on[a-z]+\s*=/i;
+// Uppercase JSX names and member expressions compile to component references.
+// Article content cannot import/provide components, so these fail at render time.
+const mdxComponentTagPattern = /<\/?\s*(?:[A-Z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*|[a-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)+)\b/;
 
 function emptyQuotedAttributeValues(content) {
   return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
@@ -261,7 +264,11 @@ export function validateArticleContent(slug, content) {
   }
 
   const markdownBody = matter(content).content;
-  if (findUnescapedMdxBrace(stripMarkdownCode(markdownBody))) {
+  const strippedMarkdownBody = stripMarkdownCode(markdownBody);
+  if (mdxComponentTagPattern.test(strippedMarkdownBody)) {
+    throw new Error(`Unsafe article content in "${slug}": MDX component tags are not allowed in article content`);
+  }
+  if (findUnescapedMdxBrace(strippedMarkdownBody)) {
     throw new Error(`Unsafe article content in "${slug}": MDX expression braces are not allowed in article content`);
   }
 }
