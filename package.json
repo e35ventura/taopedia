@@ -21,7 +21,8 @@
     "test:article-script-placement": "node scripts/check-article-script-placement.js",
     "test:robots": "node scripts/check-robots.js",
     "test:structured-data": "node scripts/check-structured-data.js",
-    "test:opensearch": "node scripts/check-opensearch.js"
+    "test:opensearch": "node scripts/check-opensearch.js",
+    "test:search-data": "node scripts/check-search-data.js"
   },
   "dependencies": {
     "@astrojs/mdx": "^5.0.6",

@@ -10,7 +10,7 @@ export const GET: APIRoute = async () => {
     .map((page) => ({
       title: page.data.title,
       summary: page.data.summary ?? '',
-      url: `/wiki/${getPageSlug(page)}`,
+      url: `/wiki/${getPageSlug(page)}/`,
       categories: page.data.categories ?? [],
     }))
     .sort((a, b) => a.title.localeCompare(b.title));
