@@ -234,6 +234,39 @@ body {
   }
 }
 
+@media (max-width: 640px) {
+  .mw-header {
+    height: 98px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .mw-header-content {
+    flex-wrap: wrap;
+    align-content: center;
+    row-gap: 8px;
+  }
+
+  .mw-header-left {
+    order: 1;
+  }
+
+  .mw-header-right {
+    order: 2;
+    margin-left: auto;
+  }
+
+  .mw-header-center {
+    order: 3;
+    flex: 0 0 100%;
+    padding: 0;
+  }
+
+  .mw-header-center-inner {
+    max-width: none;
+  }
+}
+
 .mw-search-container {
   flex: 1;
   max-width: 500px;
@@ -255,6 +288,12 @@ body {
   border-color: #3366cc;
 }
 
+@media (max-width: 640px) {
+  .mw-search-container {
+    max-width: none;
+  }
+}
+
 /* Page Layout */
 .mw-page-container {
   margin-top: 50px;
@@ -267,6 +306,17 @@ body {
   padding: 0 var(--padding-horizontal-page);
   position: relative;
   min-height: calc(100vh - 50px);
+}
+
+@media (max-width: 640px) {
+  .mw-page-container {
+    margin-top: 98px;
+    min-height: calc(100vh - 98px);
+  }
+
+  .mw-content-container {
+    min-height: calc(100vh - 98px);
+  }
 }
 
 /* Collapsed states (desktop): hide asides and let toolbar icons appear */
@@ -572,6 +622,13 @@ body.appearance-overlay-active .mw-appearance {
   padding: 24px 16px;
   opacity: 1 !important;
   pointer-events: auto !important;
+}
+
+@media (max-width: 640px) {
+  .mw-sidebar,
+  .mw-sidebar.mobile-active {
+    top: 98px;
+  }
 }
 
 /* Mid-size screen adjustments for sidebar overlay */
