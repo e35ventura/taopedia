@@ -15,12 +15,27 @@ assert.match(
   /<Url type="text\/html" method="get" template="https:\/\/taopedia\.org\/search\/\?q=\{searchTerms\}" \/>/,
   'OpenSearch URL template must target the canonical /search/ route',
 );
+assert.match(
+  body,
+  /<Image height="16" width="16" type="image\/png">https:\/\/taopedia\.org\/favicon-16x16\.png<\/Image>/,
+  'OpenSearch description must advertise the 16x16 favicon',
+);
+assert.match(
+  body,
+  /<Image height="32" width="32" type="image\/png">https:\/\/taopedia\.org\/favicon-32x32\.png<\/Image>/,
+  'OpenSearch description must advertise the 32x32 favicon',
+);
 
 const normalizedBody = buildOpenSearchDescription({ origin: 'https://taopedia.org/' });
 assert.match(
   normalizedBody,
   /template="https:\/\/taopedia\.org\/search\/\?q=\{searchTerms\}"/,
   'OpenSearch URL template must normalize trailing slashes on the origin',
+);
+assert.match(
+  normalizedBody,
+  /<Image height="16" width="16" type="image\/png">https:\/\/taopedia\.org\/favicon-16x16\.png<\/Image>/,
+  'OpenSearch icon URLs must normalize trailing slashes on the origin',
 );
 
 const escapedBody = buildOpenSearchDescription({
