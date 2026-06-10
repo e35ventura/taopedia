@@ -28,7 +28,7 @@ export function buildOpenSearchDescription({
   description = DEFAULT_DESCRIPTION,
 }) {
   const base = trimTrailingSlash(origin || 'https://taopedia.org');
-  const searchTemplate = `${base}/search?q={searchTerms}`;
+  const searchTemplate = `${base}/search/?q={searchTerms}`;
 
   return [
     '<?xml version="1.0" encoding="UTF-8"?>',
