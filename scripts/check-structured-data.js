@@ -35,6 +35,8 @@ const article = buildStructuredData({
   title: 'TAO',
   description: 'The native token.',
   type: 'article',
+  datePublished: '2024-01-01T00:00:00.000Z',
+  dateModified: '2024-06-01T00:00:00.000Z',
 });
 const articleNode = article['@graph'].find((node) => node['@type'] === 'Article');
 const breadcrumb = article['@graph'].find((node) => node['@type'] === 'BreadcrumbList');
@@ -42,6 +44,23 @@ assert.ok(articleNode, 'article pages must include an Article node');
 assert.equal(articleNode.headline, 'TAO', 'Article headline must be the page title');
 assert.equal(articleNode.url, 'https://taopedia.org/wiki/tao/', 'Article url must be canonical');
 assert.equal(articleNode.image, 'https://taopedia.org/og/tao.png', 'Article must carry the OG image');
+assert.equal(articleNode.datePublished, '2024-01-01T00:00:00.000Z', 'Article must carry datePublished from history');
+assert.equal(articleNode.dateModified, '2024-06-01T00:00:00.000Z', 'Article must carry dateModified from history');
+assert.equal(articleNode.author?.['@type'], 'Organization', 'Article author must be the Taopedia organization');
+assert.equal(articleNode.author?.name, 'Taopedia', 'Article author name must be Taopedia');
+
+// Dates are optional: an article with no commit history must omit them cleanly
+// (no datePublished/dateModified keys) while still carrying the author.
+const articleNoDates = buildStructuredData({
+  siteUrl,
+  canonicalUrl: 'https://taopedia.org/wiki/tao/',
+  title: 'TAO',
+  type: 'article',
+});
+const articleNoDatesNode = articleNoDates['@graph'].find((node) => node['@type'] === 'Article');
+assert.equal('datePublished' in articleNoDatesNode, false, 'datePublished must be omitted when no history exists');
+assert.equal('dateModified' in articleNoDatesNode, false, 'dateModified must be omitted when no history exists');
+assert.equal(articleNoDatesNode.author?.['@type'], 'Organization', 'author must be present even without dates');
 assert.ok(breadcrumb, 'article pages must include a BreadcrumbList');
 assert.equal(breadcrumb.itemListElement.length, 2, 'breadcrumb must list Home and the article');
 assert.equal(breadcrumb.itemListElement[1].item, 'https://taopedia.org/wiki/tao/', 'breadcrumb leaf must be canonical');

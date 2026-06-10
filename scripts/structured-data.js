@@ -22,6 +22,8 @@ export function buildStructuredData({
   title,
   description,
   type = 'website',
+  datePublished,
+  dateModified,
   siteName = SITE_NAME,
   siteDescription = '',
 }) {
@@ -56,6 +58,12 @@ export function buildStructuredData({
       ...(title ? { headline: title, name: title } : {}),
       ...(description ? { description } : {}),
       ...(imageUrl ? { image: imageUrl } : {}),
+      ...(datePublished ? { datePublished } : {}),
+      ...(dateModified ? { dateModified } : {}),
+      // Taopedia articles are collaboratively maintained, so the publisher is
+      // the author. Using the Organization (not individual git committers)
+      // keeps contributor names out of the public head metadata.
+      author: { '@type': 'Organization', name: siteName, url: root },
       inLanguage: 'en',
     });
 
