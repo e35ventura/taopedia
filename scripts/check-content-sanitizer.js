@@ -20,6 +20,8 @@ rejects('Intro.\n\n<  base   href="https://evil.example/">', 'spaced <base>');
 rejects('See [x](javascript:alert(1)).', 'plain javascript:');
 rejects('See [x](vbscript:msgbox(1)).', 'plain vbscript:');
 rejects('See [x](data:text/html;base64,PHNjcmlwdD4=).', 'plain data:text/html');
+rejects('See [x](data:image/svg+xml,<svg></svg>).', 'plain svg data uri');
+rejects('See [x](data:image/svg+xml;base64,PHN2ZyBvbmxvYWQ9YWxlcnQoMSk+).', 'base64 svg data uri (script hidden in blob)');
 
 // MDX expression braces execute at build time in article bodies. They are only
 // allowed when escaped as literal prose or inside Markdown code examples.
@@ -35,6 +37,7 @@ rejects(`See [x](java${TAB}script:alert(1)).`, 'tab-split javascript:');
 rejects(`See [x](java${ZERO_WIDTH_SPACE}script:alert(1)).`, 'zero-width javascript:');
 rejects('See [x](&#100;ata:text/html,evil).', 'entity data:text/html');
 rejects('See [x](vb&#115;cript:msgbox(1)).', 'decimal-entity vbscript:');
+rejects('See [x](&#100;ata:image/svg+xml;base64,PHN2Zz4=).', 'entity-obfuscated svg data uri');
 
 // Inline event handlers are blocked regardless of the attribute delimiter — a
 // slash, or a quote abutting the handler — not just a leading space.
@@ -55,6 +58,10 @@ accepts(
 accepts(
   'VBScript is a legacy Microsoft scripting language, mentioned here only as prose.',
   'benign vbscript keyword (no scheme)'
+);
+accepts(
+  'A raster data URI such as data:image/png;base64,iVBORw0KGgo= is harmless and allowed.',
+  'benign raster data URI (only script-capable data URLs are blocked)'
 );
 accepts(
   'Encode an ampersand as &amp; or a snowman as &#9731; without tripping the scanner.',
