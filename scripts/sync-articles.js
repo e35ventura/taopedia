@@ -152,11 +152,53 @@ export function validateArticleContent(slug, content) {
 }
 
 export function validateArticleJsonAsset(filePath) {
+  let data;
   try {
-    JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
   } catch (error) {
     throw new Error(`Malformed JSON asset in "${filePath}": ${error.message}`);
   }
+
+  if (path.basename(filePath) === 'infobox.json') {
+    validateInfoboxJsonAsset(filePath, data);
+  }
+}
+
+function isPlainObject(value) {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function assertOptionalString(value, fieldName, filePath) {
+  if (value !== undefined && typeof value !== 'string') {
+    throw new Error(`Invalid infobox JSON asset in "${filePath}": ${fieldName} must be a string`);
+  }
+}
+
+export function validateInfoboxJsonAsset(filePath, data) {
+  if (!isPlainObject(data)) {
+    throw new Error(`Invalid infobox JSON asset in "${filePath}": root must be an object`);
+  }
+
+  assertOptionalString(data.title, 'title', filePath);
+  assertOptionalString(data.image, 'image', filePath);
+  assertOptionalString(data.caption, 'caption', filePath);
+
+  if (data.rows === undefined) return;
+  if (!Array.isArray(data.rows)) {
+    throw new Error(`Invalid infobox JSON asset in "${filePath}": rows must be an array`);
+  }
+
+  data.rows.forEach((row, index) => {
+    if (!isPlainObject(row)) {
+      throw new Error(`Invalid infobox JSON asset in "${filePath}": rows[${index}] must be an object`);
+    }
+    if (typeof row.label !== 'string') {
+      throw new Error(`Invalid infobox JSON asset in "${filePath}": rows[${index}].label must be a string`);
+    }
+    if (typeof row.value !== 'string') {
+      throw new Error(`Invalid infobox JSON asset in "${filePath}": rows[${index}].value must be a string`);
+    }
+  });
 }
 
 function copyDir(src, dest) {
