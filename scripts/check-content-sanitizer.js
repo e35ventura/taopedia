@@ -18,6 +18,7 @@ rejects('Intro.\n\n<  base   href="https://evil.example/">', 'spaced <base>');
 
 // Plain dangerous URL schemes remain blocked.
 rejects('See [x](javascript:alert(1)).', 'plain javascript:');
+rejects('See [x](vbscript:msgbox(1)).', 'plain vbscript:');
 rejects('See [x](data:text/html;base64,PHNjcmlwdD4=).', 'plain data:text/html');
 
 // Obfuscated dangerous schemes are now blocked too.
@@ -27,6 +28,7 @@ rejects('See [x](javascript&colon;alert(1)).', 'named-colon javascript:');
 rejects(`See [x](java${TAB}script:alert(1)).`, 'tab-split javascript:');
 rejects(`See [x](java${ZERO_WIDTH_SPACE}script:alert(1)).`, 'zero-width javascript:');
 rejects('See [x](&#100;ata:text/html,evil).', 'entity data:text/html');
+rejects('See [x](vb&#115;cript:msgbox(1)).', 'decimal-entity vbscript:');
 
 // Legitimate content passes — guard against false positives.
 accepts(
@@ -36,6 +38,10 @@ accepts(
 accepts(
   'The word JavaScript appears here, and a base value of 10, without any scheme.',
   'benign keywords (no scheme)'
+);
+accepts(
+  'VBScript is a legacy Microsoft scripting language, mentioned here only as prose.',
+  'benign vbscript keyword (no scheme)'
 );
 accepts(
   'Encode an ampersand as &amp; or a snowman as &#9731; without tripping the scanner.',
