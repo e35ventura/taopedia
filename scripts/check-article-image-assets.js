@@ -109,6 +109,30 @@ assert.equal(
 );
 
 assert.equal(
+  isUnsafeImageUrl('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" onload="alert(1)"/>'),
+  true,
+  'SVG data image URLs should be classified as unsafe',
+);
+
+assert.equal(
+  isUnsafeImageUrl('data:image/svg+xml;base64,PHN2Zz48L3N2Zz4='),
+  true,
+  'base64 SVG data image URLs should be classified as unsafe',
+);
+
+assert.equal(
+  isUnsafeImageUrl('data&colon;image/svg+xml,<svg/>'),
+  true,
+  'entity-obfuscated SVG data image URLs should be classified as unsafe',
+);
+
+assert.equal(
+  isUnsafeImageUrl('data:image/png;base64,AA=='),
+  false,
+  'benign raster data image URLs should not be classified as unsafe schemes',
+);
+
+assert.equal(
   isUnsafeImageUrl('figure&amp;v=1.png'),
   false,
   'benign entities in image strings should not be classified as unsafe schemes',
@@ -136,6 +160,12 @@ assert.equal(
   resolveArticleImageSource('local_asset', 'data&colon;text/html,<script>alert(1)</script>', imageAssets),
   undefined,
   'entity-obfuscated HTML data URLs from infobox JSON should not render as image sources',
+);
+
+assert.equal(
+  resolveArticleImageSource('local_asset', 'data:image/svg+xml,<svg onload=alert(1)/>', imageAssets),
+  undefined,
+  'SVG data URLs from infobox JSON should not render as image sources',
 );
 
 assert.equal(
