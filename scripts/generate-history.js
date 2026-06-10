@@ -164,7 +164,13 @@ function main() {
       fs.mkdirSync(historyFileDir, { recursive: true });
     }
 
-    fs.writeFileSync(historyFile, JSON.stringify({ slug, history }, null, 2));
+    // The history page renders only the author name, date, message, and short
+    // SHA. authorEmail is parsed (and asserted by the parser test) for record
+    // alignment, but it is never displayed — so drop it before writing the
+    // served JSON to avoid publishing contributor emails no page uses.
+    const servedHistory = history.map(({ authorEmail, ...revision }) => revision);
+
+    fs.writeFileSync(historyFile, JSON.stringify({ slug, history: servedHistory }, null, 2));
     console.log(`  ✓ ${slug} (${history.length} revisions)`);
   });
 
