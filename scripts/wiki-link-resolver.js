@@ -56,7 +56,7 @@ export function normalizeLinkTarget(rawTarget) {
   let target = String(rawTarget || '').trim();
 
   try {
-    const url = new URL(target);
+    const url = target.startsWith('//') ? new URL(`https:${target}`) : new URL(target);
     const host = url.hostname.toLowerCase();
     if ((host === 'taopedia.org' || host === 'www.taopedia.org') && url.pathname.toLowerCase().startsWith('/wiki/')) {
       target = url.pathname + url.hash;
