@@ -41,6 +41,19 @@ const obfuscatedSchemePatterns = [
   { pattern: /data\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
 ];
 
+// The whitespace-anchored handler pattern above misses handlers that HTML lets
+// follow an attribute with a non-space delimiter — a slash (`<img src=x/onerror=…>`)
+// or a quote abutting the handler (`<a href="x"onclick=…>`). Browsers still parse
+// these. Detecting them must NOT scan inside quoted attribute values, or a benign
+// URL such as `src="/online=1"` would be flagged. So the scan runs against a copy
+// with quoted values emptied: the URL text inside them is removed, while the
+// closing quote (a real attribute boundary) is preserved so `"x"onclick=` is caught.
+const nonSpaceDelimitedHandlerPattern = /<[^>]*[/"'`]on[a-z]+\s*=/i;
+
+function emptyQuotedAttributeValues(content) {
+  return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
+}
+
 const hiddenTopics = new Set(['bittensor']);
 
 function normalizeCategoryLabel(value) {
@@ -141,6 +154,10 @@ export function validateArticleContent(slug, content) {
     if (pattern.test(content)) {
       throw new Error(`Unsafe article content in "${slug}": ${reason}`);
     }
+  }
+
+  if (nonSpaceDelimitedHandlerPattern.test(emptyQuotedAttributeValues(content))) {
+    throw new Error(`Unsafe article content in "${slug}": inline event handlers are not allowed in article content`);
   }
 
   const decoded = decodeForSchemeScan(content);
