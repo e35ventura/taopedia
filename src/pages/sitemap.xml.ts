@@ -20,6 +20,21 @@ const escapeXml = (value: string) =>
     }
   });
 
+// The build generates per-article revision history at public/history/<slug>.json
+// (scripts/generate-history.js, ordered newest-first), so the newest commit date
+// is each article's last-modified time. Reuse it for <lastmod>; the same glob is
+// used by src/pages/wiki/[...slug]/history.astro.
+const historyModules = import.meta.glob('../../public/history/**/*.json', { eager: true }) as Record<
+  string,
+  { default?: { history?: Array<{ date?: string }> } }
+>;
+
+const lastmodForSlug = (slug: string): string => {
+  const mod = historyModules[`../../public/history/${slug}.json`];
+  const date = mod?.default?.history?.[0]?.date;
+  return typeof date === 'string' ? date : '';
+};
+
 export const GET: APIRoute = async ({ site }) => {
   const origin = (site ?? new URL('https://taopedia.org')).origin;
   const pages = await getCollection('pages');
@@ -29,16 +44,26 @@ export const GET: APIRoute = async ({ site }) => {
   // with the same getPageSlug as the article/search routes). Category, search
   // and per-article history routes are intentionally omitted so every <loc>
   // stays a stable, canonical content URL.
-  const articlePaths = pages.map((page) => `/wiki/${getPageSlug(page)}/`).sort();
-  const paths = [
-    '/',
-    '/wiki/special/allpages/',
-    '/wiki/special/categories/',
-    ...articlePaths,
+  const articleEntries = pages
+    .map((page) => {
+      const slug = getPageSlug(page);
+      return { path: `/wiki/${slug}/`, lastmod: lastmodForSlug(slug) };
+    })
+    .sort((a, b) => a.path.localeCompare(b.path));
+
+  const entries = [
+    { path: '/', lastmod: '' },
+    { path: '/wiki/special/allpages/', lastmod: '' },
+    { path: '/wiki/special/categories/', lastmod: '' },
+    ...articleEntries,
   ];
 
-  const urls = paths
-    .map((path) => `  <url>\n    <loc>${escapeXml(origin + path)}</loc>\n  </url>`)
+  const urls = entries
+    .map(({ path, lastmod }) => {
+      const loc = `    <loc>${escapeXml(origin + path)}</loc>`;
+      const lastmodTag = lastmod ? `\n    <lastmod>${escapeXml(lastmod)}</lastmod>` : '';
+      return `  <url>\n${loc}${lastmodTag}\n  </url>`;
+    })
     .join('\n');
 
   const body =
