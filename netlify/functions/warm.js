@@ -40,6 +40,15 @@ function getHeader(headers, name) {
   return '';
 }
 
+function normalizeSiteOrigin(value) {
+  const raw = String(value ?? '').trim() || 'https://taopedia.org';
+  try {
+    return new URL(raw).origin;
+  } catch {
+    return raw.replace(/\/+$/, '');
+  }
+}
+
 export const handler = async (event) => {
   try {
     if (event.httpMethod !== 'POST') {
@@ -70,7 +79,7 @@ export const handler = async (event) => {
       return { statusCode: 400, body: 'Too many slugs' };
     }
 
-    const baseUrl = siteUrl.replace(/\/$/, '');
+    const baseUrl = normalizeSiteOrigin(siteUrl);
     const warmSlug = async (slug) => {
       // Article slugs are flat, lowercase strings (see sync-articles.js
       // validateSlug), and wiki routes are case-sensitive. Reject impossible
