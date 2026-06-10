@@ -13,17 +13,17 @@ function eventFor(slugs) {
   };
 }
 
-async function callWarm(slugs, fetchImpl) {
-  const response = await startWarm(slugs, fetchImpl);
+async function callWarm(slugs, fetchImpl, siteUrl) {
+  const response = await startWarm(slugs, fetchImpl, siteUrl);
   return {
     ...response,
     json: JSON.parse(response.body),
   };
 }
 
-function startWarm(slugs, fetchImpl) {
+function startWarm(slugs, fetchImpl, siteUrl = 'https://example.test') {
   process.env.WARM_SECRET = 'secret';
-  process.env.SITE_URL = 'https://example.test';
+  process.env.SITE_URL = siteUrl;
   globalThis.fetch = fetchImpl;
 
   return handler(eventFor(slugs));
@@ -169,6 +169,39 @@ try {
   assert.ok(
     warmFetchOptions && warmFetchOptions.signal instanceof AbortSignal,
     'each warm fetch must receive an AbortSignal for the per-request timeout',
+  );
+
+  response = await callWarm(['taopedia'], async (url) => {
+    warmFetchUrl = url;
+    return { status: 200, ok: true };
+  }, 'https://example.test//');
+  assert.equal(response.statusCode, 200);
+  assert.equal(
+    warmFetchUrl,
+    'https://example.test/wiki/taopedia/',
+    'warm fetch should normalize repeated trailing slashes on SITE_URL',
+  );
+
+  response = await callWarm(['taopedia'], async (url) => {
+    warmFetchUrl = url;
+    return { status: 200, ok: true };
+  }, 'https://example.test/deploy-preview/');
+  assert.equal(response.statusCode, 200);
+  assert.equal(
+    warmFetchUrl,
+    'https://example.test/wiki/taopedia/',
+    'warm fetch should use the SITE_URL origin instead of appending to an accidental path',
+  );
+
+  response = await callWarm(['taopedia'], async (url) => {
+    warmFetchUrl = url;
+    return { status: 200, ok: true };
+  }, '   ');
+  assert.equal(response.statusCode, 200);
+  assert.equal(
+    warmFetchUrl,
+    'https://taopedia.org/wiki/taopedia/',
+    'warm fetch should fall back to the default origin when SITE_URL is blank',
   );
 
   response = await handler({
