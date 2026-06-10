@@ -73,15 +73,69 @@ assert.equal(
 );
 
 assert.equal(
+  isUnsafeImageUrl('java&#115;cript:alert(1)'),
+  true,
+  'decimal-entity-obfuscated javascript image URLs should be classified as unsafe',
+);
+
+assert.equal(
+  isUnsafeImageUrl('java&#x73;cript:alert(1)'),
+  true,
+  'hex-entity-obfuscated javascript image URLs should be classified as unsafe',
+);
+
+assert.equal(
+  isUnsafeImageUrl('javascript&colon;alert(1)'),
+  true,
+  'named-colon-obfuscated javascript image URLs should be classified as unsafe',
+);
+
+assert.equal(
+  isUnsafeImageUrl('java&Tab;script:alert(1)'),
+  true,
+  'named-tab-obfuscated javascript image URLs should be classified as unsafe',
+);
+
+assert.equal(
+  isUnsafeImageUrl('vb&#115;cript:msgbox(1)'),
+  true,
+  'decimal-entity-obfuscated vbscript image URLs should be classified as unsafe',
+);
+
+assert.equal(
+  isUnsafeImageUrl('data&colon;text&sol;html,<script>alert(1)</script>'),
+  true,
+  'entity-obfuscated HTML data image URLs should be classified as unsafe',
+);
+
+assert.equal(
+  isUnsafeImageUrl('figure&amp;v=1.png'),
+  false,
+  'benign entities in image strings should not be classified as unsafe schemes',
+);
+
+assert.equal(
   resolveArticleImageSource('local_asset', 'javascript:alert(1)', imageAssets),
   undefined,
   'javascript image URLs from infobox JSON should not render as image sources',
 );
 
 assert.equal(
+  resolveArticleImageSource('local_asset', 'java&#115;cript:alert(1)', imageAssets),
+  undefined,
+  'entity-obfuscated javascript image URLs from infobox JSON should not render as image sources',
+);
+
+assert.equal(
   resolveArticleImageSource('local_asset', 'data:text/html,<script>alert(1)</script>', imageAssets),
   undefined,
   'HTML data URLs from infobox JSON should not render as image sources',
+);
+
+assert.equal(
+  resolveArticleImageSource('local_asset', 'data&colon;text/html,<script>alert(1)</script>', imageAssets),
+  undefined,
+  'entity-obfuscated HTML data URLs from infobox JSON should not render as image sources',
 );
 
 assert.equal(

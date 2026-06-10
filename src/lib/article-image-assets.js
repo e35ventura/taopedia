@@ -27,8 +27,27 @@ function stripUrlObfuscationChars(value) {
   return result;
 }
 
+function fromCodePoint(codePoint, fallback) {
+  return Number.isInteger(codePoint) && codePoint >= 0 && codePoint <= 0x10ffff
+    ? String.fromCodePoint(codePoint)
+    : fallback;
+}
+
+function decodeUrlSchemeObfuscation(value) {
+  return value
+    .replace(/&#x([0-9a-f]+);?/gi, (match, hex) => fromCodePoint(Number.parseInt(hex, 16), match))
+    .replace(/&#(\d+);?/g, (match, dec) => fromCodePoint(Number.parseInt(dec, 10), match))
+    .replace(/&colon;/gi, ':')
+    .replace(/&sol;/gi, '/')
+    .replace(/&(?:tab|newline);/gi, '');
+}
+
 export function isUnsafeImageUrl(value) {
-  return typeof value === 'string' && UNSAFE_IMAGE_URL_PATTERN.test(stripUrlObfuscationChars(value.trim()));
+  if (typeof value !== 'string') return false;
+
+  return UNSAFE_IMAGE_URL_PATTERN.test(
+    stripUrlObfuscationChars(decodeUrlSchemeObfuscation(value.trim())),
+  );
 }
 
 export function normalizeArticleLocalImagePath(value) {
