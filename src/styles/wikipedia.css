@@ -42,6 +42,25 @@ body {
   background: var(--background-color-base);
 }
 
+.skip-link {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 1000;
+  padding: 8px 12px;
+  border: 2px solid var(--color-link);
+  background: var(--background-color-base);
+  color: var(--color-link);
+  font-weight: 700;
+  text-decoration: none;
+  transform: translateY(calc(-100% - 12px));
+  transition: transform 0.15s ease;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
 /* Wikipedia Header */
 .mw-header {
   position: fixed;
