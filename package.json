@@ -33,7 +33,8 @@
     "test:opensearch": "node scripts/check-opensearch.js",
     "test:search-data": "node scripts/check-search-data.js",
     "test:external-links": "node scripts/check-external-links.js",
-    "test:search-prefill": "node scripts/check-search-prefill.js"
+    "test:search-prefill": "node scripts/check-search-prefill.js",
+    "test:csp": "node scripts/check-csp.js"
   },
   "dependencies": {
     "@astrojs/mdx": "^5.0.6",
