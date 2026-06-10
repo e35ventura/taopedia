@@ -1,7 +1,11 @@
 {
   "name": "taopedia",
+  "private": true,
   "type": "module",
   "version": "0.0.1",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "predev": "node scripts/sync-articles.js",
     "dev": "astro dev",
