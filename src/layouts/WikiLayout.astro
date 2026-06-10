@@ -21,6 +21,8 @@ const { title, description, image, type = 'website', path } = Astro.props;
     <Seo title={title} description={description} image={image} type={type} path={path} />
   </head>
   <body>
+    <a href="#content" class="skip-link">Skip to content</a>
+
     <!-- Sidebar toggle is placed within article toolbars on narrow screens. -->
     
     <!-- Overlays -->
@@ -75,7 +77,7 @@ const { title, description, image, type = 'website', path } = Astro.props;
           <slot name="sidebar" />
         </aside>
 
-        <main class="mw-body">
+        <main id="content" class="mw-body" tabindex="-1">
           <slot />
         </main>
 
