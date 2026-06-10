@@ -4,6 +4,7 @@ import remarkWikiLink from 'remark-wiki-link';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { createRemarkWikiLinkOptions, loadSlugMapFromContent } from './scripts/wiki-link-resolver.js';
+import rehypeExternalLinks from './scripts/rehype-external-links.js';
 
 const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 const contentDir = path.join(projectRoot, 'src', 'content', 'pages');
@@ -20,6 +21,7 @@ export default defineConfig({
           wikiLinkOptions,
         ],
       ],
+      rehypePlugins: [rehypeExternalLinks],
     }),
   ],
   markdown: {
@@ -29,6 +31,7 @@ export default defineConfig({
         wikiLinkOptions,
       ],
     ],
+    rehypePlugins: [rehypeExternalLinks],
     shikiConfig: {
       theme: 'github-light',
     },
