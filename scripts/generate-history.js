@@ -69,6 +69,11 @@ export function parseGitLog(stdout) {
   return revisions;
 }
 
+export function resetHistoryOutputDir(dir = outputDir) {
+  fs.rmSync(dir, { recursive: true, force: true });
+  fs.mkdirSync(dir, { recursive: true });
+}
+
 function resolveArticlesRepo() {
   for (const root of [articlesRoot, cacheArticlesRoot]) {
     if (fs.existsSync(path.join(root, 'content', 'pages'))) {
@@ -129,10 +134,7 @@ function walkDirectory(dir, fileList = []) {
 }
 
 function main() {
-  // Ensure output directory exists
-  if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir, { recursive: true });
-  }
+  resetHistoryOutputDir(outputDir);
 
   console.log('Generating article history from Git...');
 
