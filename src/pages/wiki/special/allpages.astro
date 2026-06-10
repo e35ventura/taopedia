@@ -22,10 +22,23 @@ const topicFilters = priorityTopics
   .map((topic) => [topic, categoryIndex.get(topic)] as const)
   .filter((entry): entry is readonly [string, typeof pages] => Boolean(entry[1]));
 
-const groupedArticles = topicFilters.map(([topic, topicPages]) => ({
-  topic,
-  pages: sortPagesByTitle(topicPages),
-}));
+// Articles whose categories include none of the featured topics would
+// otherwise not be rendered anywhere in the directory, so the title filter
+// could never find them. Collect them into a final catch-all group.
+// sortedPages is already title-ordered, so the filtered list stays ordered.
+const featuredTopicSet = new Set(priorityTopics);
+const otherPages = sortedPages.filter(
+  (page) => !(page.data.categories ?? []).some((category) => featuredTopicSet.has(category)),
+);
+
+const groupedArticles = [
+  ...topicFilters.map(([topic, topicPages]) => ({
+    topic,
+    pages: sortPagesByTitle(topicPages),
+    categoryHref: `/wiki/category/${topic.replace(/ /g, '_')}`,
+  })),
+  ...(otherPages.length > 0 ? [{ topic: 'Other topics', pages: otherPages, categoryHref: null }] : []),
+];
 ---
 
 <WikiLayout title="Articles" description="Browse the full directory of Taopedia articles in the Bittensor knowledge base.">
@@ -68,11 +81,11 @@ const groupedArticles = topicFilters.map(([topic, topicPages]) => ({
       </div>
 
       <div class="article-groups">
-        {groupedArticles.map(({ topic, pages }) => (
+        {groupedArticles.map(({ topic, pages, categoryHref }) => (
           <section class="article-group" data-article-group data-topic={topic}>
             <div class="article-group-heading">
               <h2>{topic}</h2>
-              <a href={`/wiki/category/${topic.replace(/ /g, '_')}`}>View topic</a>
+              {categoryHref && <a href={categoryHref}>View topic</a>}
             </div>
             <ul>
               {pages.map((page) => (
