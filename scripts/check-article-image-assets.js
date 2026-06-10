@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {
   hasLocalImagePathTraversal,
+  isUnsafeImageUrl,
   normalizeArticleLocalImagePath,
   resolveArticleImageSource,
 } from '../src/lib/article-image-assets.js';
@@ -9,6 +10,7 @@ const imageAssets = {
   '../../content/pages/local_asset/figure.png': '/_astro/figure.hash.png',
   '../../content/pages/local_asset/images/card.webp': '/_astro/card.hash.webp',
 };
+const TAB = String.fromCharCode(0x09);
 
 assert.equal(
   normalizeArticleLocalImagePath('figure.png'),
@@ -56,6 +58,30 @@ assert.equal(
   resolveArticleImageSource('local_asset', 'data:image/png;base64,AA==', imageAssets),
   'data:image/png;base64,AA==',
   'data image URLs should pass through unchanged',
+);
+
+assert.equal(
+  isUnsafeImageUrl('javascript:alert(1)'),
+  true,
+  'javascript image URLs should be classified as unsafe',
+);
+
+assert.equal(
+  isUnsafeImageUrl(`java${TAB}script:alert(1)`),
+  true,
+  'control-character-obfuscated javascript image URLs should be classified as unsafe',
+);
+
+assert.equal(
+  resolveArticleImageSource('local_asset', 'javascript:alert(1)', imageAssets),
+  undefined,
+  'javascript image URLs from infobox JSON should not render as image sources',
+);
+
+assert.equal(
+  resolveArticleImageSource('local_asset', 'data:text/html,<script>alert(1)</script>', imageAssets),
+  undefined,
+  'HTML data URLs from infobox JSON should not render as image sources',
 );
 
 assert.equal(

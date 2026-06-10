@@ -1,5 +1,6 @@
 const LOCAL_IMAGE_EXTENSION_PATTERN = /\.(?:avif|gif|jpe?g|png|webp)$/i;
 const PASSTHROUGH_IMAGE_URL_PATTERN = /^(?:[a-z][a-z0-9+.-]*:|\/\/|\/)/i;
+const UNSAFE_IMAGE_URL_PATTERN = /^(?:javascript|vbscript)\s*:|^data\s*:\s*text\/html/i;
 
 function decodePathSegments(value) {
   try {
@@ -11,6 +12,23 @@ function decodePathSegments(value) {
 
 export function isPassthroughImageUrl(value) {
   return PASSTHROUGH_IMAGE_URL_PATTERN.test(value);
+}
+
+function stripUrlObfuscationChars(value) {
+  let result = '';
+  for (const char of value) {
+    const code = char.codePointAt(0);
+    const isControl = code <= 0x1f || code === 0x7f;
+    const isZeroWidth = (code >= 0x200b && code <= 0x200d) || code === 0xfeff;
+    if (!isControl && !isZeroWidth) {
+      result += char;
+    }
+  }
+  return result;
+}
+
+export function isUnsafeImageUrl(value) {
+  return typeof value === 'string' && UNSAFE_IMAGE_URL_PATTERN.test(stripUrlObfuscationChars(value.trim()));
 }
 
 export function normalizeArticleLocalImagePath(value) {
@@ -50,6 +68,7 @@ export function resolveArticleImageSource(articleSlug, value, imageAssets) {
 
   const trimmed = value.trim();
   if (!trimmed) return undefined;
+  if (isUnsafeImageUrl(trimmed)) return undefined;
   if (isPassthroughImageUrl(trimmed)) return trimmed;
 
   const localPath = normalizeArticleLocalImagePath(trimmed);
