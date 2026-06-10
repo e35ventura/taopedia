@@ -149,6 +149,97 @@ function decodeForSchemeScan(content) {
   return stripUrlObfuscationChars(decoded);
 }
 
+function blankRange(chars, start, end) {
+  for (let index = start; index < end; index += 1) {
+    if (chars[index] !== '\n' && chars[index] !== '\r') {
+      chars[index] = ' ';
+    }
+  }
+}
+
+function stripMarkdownBlockCode(content, chars) {
+  let inFence = false;
+  let fenceChar = '';
+  let fenceLength = 0;
+
+  for (let lineStart = 0; lineStart < content.length;) {
+    const newlineIndex = content.indexOf('\n', lineStart);
+    const lineEnd = newlineIndex === -1 ? content.length : newlineIndex + 1;
+    const rawLine = content.slice(lineStart, lineEnd);
+    const lineText = rawLine.replace(/\r?\n$/, '');
+
+    if (inFence) {
+      blankRange(chars, lineStart, lineEnd);
+      const closingFence = new RegExp(`^ {0,3}${fenceChar}{${fenceLength},}\\s*$`);
+      if (closingFence.test(lineText)) {
+        inFence = false;
+      }
+      lineStart = lineEnd;
+      continue;
+    }
+
+    const openingFence = lineText.match(/^(?: {0,3})(`{3,}|~{3,})/);
+    if (openingFence) {
+      inFence = true;
+      fenceChar = openingFence[1][0];
+      fenceLength = openingFence[1].length;
+      blankRange(chars, lineStart, lineEnd);
+      lineStart = lineEnd;
+      continue;
+    }
+
+    if (/^(?: {4}|\t)/.test(lineText)) {
+      blankRange(chars, lineStart, lineEnd);
+    }
+
+    lineStart = lineEnd;
+  }
+}
+
+function stripMarkdownInlineCode(content, chars) {
+  for (let index = 0; index < content.length; index += 1) {
+    if (content[index] !== '`' || chars[index] === ' ') continue;
+
+    let tickCount = 1;
+    while (content[index + tickCount] === '`') tickCount += 1;
+
+    const marker = '`'.repeat(tickCount);
+    const closingIndex = content.indexOf(marker, index + tickCount);
+    if (closingIndex === -1) {
+      index += tickCount - 1;
+      continue;
+    }
+
+    blankRange(chars, index, closingIndex + tickCount);
+    index = closingIndex + tickCount - 1;
+  }
+}
+
+function stripMarkdownCode(content) {
+  const chars = content.split('');
+  stripMarkdownBlockCode(content, chars);
+  stripMarkdownInlineCode(content, chars);
+  return chars.join('');
+}
+
+function isEscapedBrace(content, braceIndex) {
+  let backslashes = 0;
+  for (let index = braceIndex - 1; index >= 0 && content[index] === '\\'; index -= 1) {
+    backslashes += 1;
+  }
+  return backslashes % 2 === 1;
+}
+
+function findUnescapedMdxBrace(content) {
+  for (let index = 0; index < content.length; index += 1) {
+    const char = content[index];
+    if ((char === '{' || char === '}') && !isEscapedBrace(content, index)) {
+      return char;
+    }
+  }
+  return null;
+}
+
 export function validateArticleContent(slug, content) {
   for (const { pattern, reason } of unsafeContentPatterns) {
     if (pattern.test(content)) {
@@ -167,6 +258,11 @@ export function validateArticleContent(slug, content) {
         throw new Error(`Unsafe article content in "${slug}": ${reason}`);
       }
     }
+  }
+
+  const markdownBody = matter(content).content;
+  if (findUnescapedMdxBrace(stripMarkdownCode(markdownBody))) {
+    throw new Error(`Unsafe article content in "${slug}": MDX expression braces are not allowed in article content`);
   }
 }
 

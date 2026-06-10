@@ -21,6 +21,12 @@ rejects('See [x](javascript:alert(1)).', 'plain javascript:');
 rejects('See [x](vbscript:msgbox(1)).', 'plain vbscript:');
 rejects('See [x](data:text/html;base64,PHNjcmlwdD4=).', 'plain data:text/html');
 
+// MDX expression braces execute at build time in article bodies. They are only
+// allowed when escaped as literal prose or inside Markdown code examples.
+rejects('Do not evaluate {process.env.SECRET_TOKEN}.', 'plain MDX expression brace');
+rejects('A stray closing brace } is rejected conservatively.', 'stray MDX closing brace');
+rejects(String.raw`Even backslashes do not escape \\{process.env.SECRET_TOKEN}.`, 'double-backslash MDX brace evasion');
+
 // Obfuscated dangerous schemes are now blocked too.
 rejects('See [x](java&#115;cript:alert(1)).', 'decimal-entity javascript:');
 rejects('See [x](java&#x73;cript:alert(1)).', 'hex-entity javascript:');
@@ -53,6 +59,34 @@ accepts(
 accepts(
   'Encode an ampersand as &amp; or a snowman as &#9731; without tripping the scanner.',
   'benign entities'
+);
+accepts(
+  String.raw`Literal braces can be escaped as \{alpha\} in prose.`,
+  'escaped literal MDX braces'
+);
+accepts(
+  '---\ntitle: "Alpha {TAO}"\n---\n\nFrontmatter braces are metadata, not article-body MDX.',
+  'frontmatter braces'
+);
+accepts(
+  '```jsx\n{process.env.SECRET_TOKEN}\n```\n',
+  'fenced code block with braces'
+);
+accepts(
+  '~~~js\n{process.env.SECRET_TOKEN}\n~~~\n',
+  'tilde fenced code block with braces'
+);
+accepts(
+  'Use `{process.env.SECRET_TOKEN}` as an inline code example.',
+  'inline code span with braces'
+);
+accepts(
+  'Emoji before code stays aligned 🧠 `{process.env.SECRET_TOKEN}`.',
+  'inline code span after astral Unicode'
+);
+accepts(
+  '    {process.env.SECRET_TOKEN}\n',
+  'indented code block with braces'
 );
 accepts(
   'A query like [docs](https://example.com/online=1) is fine — a URL path segment is not a handler.',
