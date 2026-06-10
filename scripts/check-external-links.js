@@ -22,8 +22,22 @@ transform(extHttp);
 assert.equal(extHttp.properties.target, '_blank');
 assert.deepEqual(extHttp.properties.rel, ['noopener', 'noreferrer']);
 
+const protocolRelativeExternal = anchor('//example.com/path');
+transform(protocolRelativeExternal);
+assert.equal(
+  protocolRelativeExternal.properties.target,
+  '_blank',
+  'protocol-relative external links must open in a new tab',
+);
+assert.deepEqual(protocolRelativeExternal.properties.rel, ['noopener', 'noreferrer']);
+
 // Internal links (the site host and its subdomains) are left untouched.
-for (const href of ['https://taopedia.org/wiki/axon/', 'https://docs.taopedia.org/x']) {
+for (const href of [
+  'https://taopedia.org/wiki/axon/',
+  'https://docs.taopedia.org/x',
+  '//taopedia.org/wiki/axon/',
+  '//docs.taopedia.org/x',
+]) {
   const a = anchor(href);
   transform(a);
   assert.equal(a.properties.target, undefined, `internal ${href} must not get target`);
@@ -46,8 +60,11 @@ assert.equal(nested.properties.target, '_blank');
 // isExternalHref unit checks.
 assert.equal(isExternalHref('https://example.com'), true);
 assert.equal(isExternalHref('http://example.com'), true);
+assert.equal(isExternalHref('//example.com'), true);
 assert.equal(isExternalHref('https://taopedia.org/x'), false);
 assert.equal(isExternalHref('https://sub.taopedia.org/x'), false);
+assert.equal(isExternalHref('//taopedia.org/x'), false);
+assert.equal(isExternalHref('//sub.taopedia.org/x'), false);
 assert.equal(isExternalHref('/relative'), false);
 assert.equal(isExternalHref('#anchor'), false);
 assert.equal(isExternalHref('mailto:x@y.com'), false);

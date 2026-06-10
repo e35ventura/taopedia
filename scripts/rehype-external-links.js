@@ -17,9 +17,10 @@ const SITE_HOSTNAME = 'taopedia.org';
 
 export function isExternalHref(href) {
   if (typeof href !== 'string') return false;
+  const value = href.trim();
   let url;
   try {
-    url = new URL(href);
+    url = value.startsWith('//') ? new URL(`https:${value}`) : new URL(value);
   } catch {
     return false; // relative path, in-page anchor (#…), or otherwise not absolute
   }
