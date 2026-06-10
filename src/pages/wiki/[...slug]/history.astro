@@ -23,7 +23,11 @@ const articleUrl = `/wiki/${slug}`;
 const pageDescription = `Revision history for the Taopedia article "${page.data.title}".`;
 ---
 
-<WikiLayout title={`Revision history of "${page.data.title}"`} description={pageDescription}>
+<WikiLayout
+  title={`Revision history of "${page.data.title}"`}
+  description={pageDescription}
+  path={`/wiki/${slug}/history/`}
+>
   <div class="mw-body-content">
     <nav class="mw-article-toolbar">
       <a href={articleUrl}>Article</a>

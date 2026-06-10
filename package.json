@@ -29,7 +29,8 @@
     "test:opensearch": "node scripts/check-opensearch.js",
     "test:search-data": "node scripts/check-search-data.js",
     "test:external-links": "node scripts/check-external-links.js",
-    "test:search-prefill": "node scripts/check-search-prefill.js"
+    "test:search-prefill": "node scripts/check-search-prefill.js",
+    "test:article-canonical": "node scripts/check-article-canonical.js"
   },
   "dependencies": {
     "@astrojs/mdx": "^5.0.6",
