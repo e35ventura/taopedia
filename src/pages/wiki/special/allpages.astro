@@ -38,7 +38,7 @@ const groupedArticles = topicFilters.map(([topic, topicPages]) => ({
           <input type="search" id="article-filter" placeholder="Search by title, summary, or topic..." />
         </label>
 
-        <div class="topic-filter" aria-label="Topic filters">
+        <div class="topic-filter" role="group" aria-label="Topic filters">
           <button type="button" class="active" data-topic="all" aria-pressed="true">All</button>
           {topicFilters.map(([topic, topicPages]) => (
             <button type="button" data-topic={topic} aria-pressed="false">{topic} <span>{topicPages.length}</span></button>
