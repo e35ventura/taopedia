@@ -196,28 +196,28 @@ const serializedValidSlugs = JSON.stringify(validSlugs).replace(/</g, '\\u003c')
       </div>
     )}
   </div>
-</WikiLayout>
 
-<script type="application/json" id="valid-slugs-data" set:html={serializedValidSlugs} />
-<script is:inline>
-  // Unlink wiki links that point to non-existent pages
-  document.addEventListener('DOMContentLoaded', () => {
-    const validSlugsEl = document.getElementById('valid-slugs-data');
-    const validSlugs = new Set(validSlugsEl ? JSON.parse(validSlugsEl.textContent || '[]') : []);
-    const container = document.querySelector('.mw-parser-output');
-    if (!container) return;
-    const anchors = container.querySelectorAll('a.internal');
-    anchors.forEach((a) => {
-      const href = a.getAttribute('href') || '';
-      // Expect /wiki/<slug>
-      const m = href.match(/^\/wiki\/(.+)$/);
-      const slug = m ? m[1] : null;
-      const isMissing = !slug || !validSlugs.has(slug);
-      if (isMissing) {
-        const span = document.createElement('span');
-        span.textContent = a.textContent || '';
-        a.replaceWith(span);
-      }
+  <script type="application/json" id="valid-slugs-data" set:html={serializedValidSlugs} />
+  <script is:inline>
+    // Unlink wiki links that point to non-existent pages
+    document.addEventListener('DOMContentLoaded', () => {
+      const validSlugsEl = document.getElementById('valid-slugs-data');
+      const validSlugs = new Set(validSlugsEl ? JSON.parse(validSlugsEl.textContent || '[]') : []);
+      const container = document.querySelector('.mw-parser-output');
+      if (!container) return;
+      const anchors = container.querySelectorAll('a.internal');
+      anchors.forEach((a) => {
+        const href = a.getAttribute('href') || '';
+        // Expect /wiki/<slug>
+        const m = href.match(/^\/wiki\/(.+)$/);
+        const slug = m ? m[1] : null;
+        const isMissing = !slug || !validSlugs.has(slug);
+        if (isMissing) {
+          const span = document.createElement('span');
+          span.textContent = a.textContent || '';
+          a.replaceWith(span);
+        }
+      });
     });
-  });
-</script>
+  </script>
+</WikiLayout>
