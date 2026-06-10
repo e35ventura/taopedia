@@ -30,6 +30,13 @@ rejects(`See [x](java${ZERO_WIDTH_SPACE}script:alert(1)).`, 'zero-width javascri
 rejects('See [x](&#100;ata:text/html,evil).', 'entity data:text/html');
 rejects('See [x](vb&#115;cript:msgbox(1)).', 'decimal-entity vbscript:');
 
+// Inline event handlers are blocked regardless of the attribute delimiter — a
+// slash, or a quote abutting the handler — not just a leading space.
+rejects('<img src=x onerror=alert(1)>', 'space-delimited handler');
+rejects('<img src=x/onerror=alert(1)>', 'slash-delimited handler');
+rejects('<a href="x"onclick=alert(1)>c</a>', 'quote-abutted handler');
+rejects("<p title='a'onmouseover=alert(1)>h</p>", 'single-quote-abutted handler');
+
 // Legitimate content passes — guard against false positives.
 accepts(
   '# Staking\n\nStaking locks TAO. Source: [docs](https://docs.bittensor.com/).',
@@ -46,6 +53,10 @@ accepts(
 accepts(
   'Encode an ampersand as &amp; or a snowman as &#9731; without tripping the scanner.',
   'benign entities'
+);
+accepts(
+  'A query like [docs](https://example.com/online=1) is fine — a URL path segment is not a handler.',
+  'url segment resembling a handler (not inside a tag)'
 );
 
 console.log('Content sanitizer check passed');

@@ -24,6 +24,11 @@ const unsafeContentPatterns = [
   { pattern: /<\s*\/\s*script\s*>/i, reason: 'script tags are not allowed in article content' },
   { pattern: /<\s*(base|iframe|object|embed|link|meta|style)\b/i, reason: 'active HTML elements are not allowed in article content' },
   { pattern: /\son[a-z]+\s*=/i, reason: 'inline event handlers are not allowed in article content' },
+  // The whitespace boundary above misses handlers that HTML lets follow an
+  // attribute with a non-space delimiter — a slash (`<img src=x/onerror=…>`) or
+  // directly after a quoted value (`<a href="x"onclick=…>`). Browsers still
+  // parse these, so reject them when they appear inside a tag.
+  { pattern: /<[^>]*[/"'`]on[a-z]+\s*=/i, reason: 'inline event handlers are not allowed in article content' },
   { pattern: /\bjavascript\s*:/i, reason: 'javascript: URLs are not allowed in article content' },
   { pattern: /\bvbscript\s*:/i, reason: 'vbscript: URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
