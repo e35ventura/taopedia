@@ -84,7 +84,7 @@ const { title, description, image, type = 'website', path } = Astro.props;
         <aside class="mw-appearance" aria-labelledby="appearance-title">
           <div class="appearance-header">
             <h2 id="appearance-title">Appearance</h2>
-            <button class="appearance-hide" type="button" aria-label="Hide appearance controls">hide</button>
+            <button class="appearance-hide" hidden type="button" aria-label="Hide appearance controls">hide</button>
           </div>
 
           <form class="appearance-form">
@@ -319,6 +319,9 @@ const { title, description, image, type = 'website', path } = Astro.props;
 
         const savedTextSize = normalizePreference(readStoredPreference('taopedia-text-size'), textSizes, 'standard');
         const savedContentWidth = normalizePreference(readStoredPreference('taopedia-content-width'), contentWidths, 'standard');
+        if (appearanceHideBtn) {
+          appearanceHideBtn.hidden = !appearanceToggle;
+        }
         applyTextSize(savedTextSize);
         applyContentWidth(savedContentWidth);
         syncAppearanceState();
@@ -331,13 +334,13 @@ const { title, description, image, type = 'website', path } = Astro.props;
           input.addEventListener('change', () => applyContentWidth(input.value));
         });
 
-        if (appearanceHideBtn && appearancePanel) {
+        if (appearanceHideBtn && appearancePanel && appearanceToggle) {
           appearanceHideBtn.addEventListener('click', () => {
             appearanceManuallyHidden = true;
             appearancePanel.hidden = true;
             document.body.classList.remove('appearance-overlay-active');
-            appearanceToggle?.classList.add('visible');
-            appearanceToggle?.setAttribute('aria-expanded', 'false');
+            appearanceToggle.classList.add('visible');
+            appearanceToggle.setAttribute('aria-expanded', 'false');
           });
         }
 
