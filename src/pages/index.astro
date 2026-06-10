@@ -2,9 +2,10 @@
 import '../styles/wikipedia.css';
 import { getCollection } from 'astro:content';
 import Seo from '../components/Seo.astro';
+import { sortPagesByTitle } from '../lib/title-sort.js';
 
 const pages = await getCollection('pages');
-const sortedPages = [...pages].sort((a, b) => a.data.title.localeCompare(b.data.title));
+const sortedPages = sortPagesByTitle(pages);
 const getPageSlug = (page: { id: string }) =>
   page.id.replace(/\/index\.(md|mdx)$/, '').replace(/\/index$/, '').replace(/\.(md|mdx)$/, '');
 

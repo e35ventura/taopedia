@@ -1,6 +1,7 @@
 ---
 import WikiLayout from '../../../layouts/WikiLayout.astro';
 import { getCollection } from 'astro:content';
+import { sortPagesByTitle } from '../../../lib/title-sort.js';
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
@@ -24,8 +25,8 @@ const { categoryName } = Astro.props;
 const pages = await getCollection('pages');
 const getPageSlug = (page: { id: string }) =>
   page.id.replace(/\/index\.(md|mdx)$/, '').replace(/\/index$/, '').replace(/\.(md|mdx)$/, '');
-const categoryPages = pages.filter(page => 
-  page.data.categories?.includes(categoryName)
+const categoryPages = sortPagesByTitle(
+  pages.filter(page => page.data.categories?.includes(categoryName)),
 );
 
 const pageTitle = `Category: ${categoryName}`;
