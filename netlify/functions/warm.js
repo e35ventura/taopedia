@@ -5,14 +5,14 @@
   Request:
     POST /api/warm (via redirects or direct function path)
     Headers: { "x-warm-secret": <WARM_SECRET> }
-    Body JSON: { "slugs": ["albert_einstein", "physics/quantum_mechanics", ...] }
+    Body JSON: { "slugs": ["taopedia", "alpha_tokens", ...] }
 
   Env vars:
     - WARM_SECRET (required): shared secret for auth
     - SITE_URL (optional): origin to warm, default https://taopedia.org
 
   Behavior:
-    - Fetches `${SITE_URL}/wiki/${slug}` to trigger DPR render for each slug.
+    - Fetches `${SITE_URL}/wiki/${slug}/` to trigger DPR render for each slug.
 */
 
 import { createHash, timingSafeEqual } from 'node:crypto';
@@ -72,14 +72,14 @@ export const handler = async (event) => {
 
     const baseUrl = siteUrl.replace(/\/$/, '');
     const warmSlug = async (slug) => {
-      // Article slugs are lowercase (see sync-articles.js validateSlug), and wiki
-      // routes are case-sensitive, so an uppercase slug can never warm a real
-      // page. Reject it as an invalid (skipped) slug instead of fetching a URL
-      // that is guaranteed to 404 and be counted as a failure.
-      if (typeof slug !== 'string' || !/^[a-z0-9][a-z0-9_/-]*$/.test(slug)) {
+      // Article slugs are flat, lowercase strings (see sync-articles.js
+      // validateSlug), and wiki routes are case-sensitive. Reject impossible
+      // route inputs instead of fetching guaranteed 404s and counting them as
+      // warm failures.
+      if (typeof slug !== 'string' || !/^[a-z0-9][a-z0-9_-]*$/.test(slug)) {
         return { slug, status: 'skipped', result: 'skipped', message: 'Invalid slug' };
       }
-      const url = `${baseUrl}/wiki/${slug}`;
+      const url = `${baseUrl}/wiki/${slug}/`;
       try {
         const res = await fetch(url, {
           method: 'GET',

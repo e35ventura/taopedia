@@ -77,10 +77,19 @@ try {
   assert.equal(response.json.skipped, 1);
   assert.equal(response.json.results[0].result, 'skipped');
 
-  // Uppercase slugs can never match a lowercase, case-sensitive wiki route, so
-  // they must be rejected as invalid rather than fetched and counted as failed.
+  // Slugs that cannot match sync-articles.js validateSlug are impossible wiki
+  // article routes, so they must be rejected as invalid rather than fetched and
+  // counted as failed.
   response = await callWarm(['Uppercase_Slug'], async () => {
     throw new Error('fetch should not be called for invalid slugs');
+  });
+  assert.equal(response.statusCode, 400);
+  assert.equal(response.json.skipped, 1);
+  assert.equal(response.json.failed, 0);
+  assert.equal(response.json.results[0].result, 'skipped');
+
+  response = await callWarm(['subnet/one'], async () => {
+    throw new Error('fetch should not be called for nested slugs');
   });
   assert.equal(response.statusCode, 400);
   assert.equal(response.json.skipped, 1);
@@ -96,7 +105,7 @@ try {
   assert.equal(response.json.results[0].result, 'failed');
 
   response = await callWarm(['taopedia', 'missing_article'], async (url) => (
-    url.endsWith('/wiki/taopedia')
+    url.endsWith('/wiki/taopedia/')
       ? { status: 200, ok: true }
       : { status: 404, ok: false }
   ));
@@ -149,11 +158,14 @@ try {
 
   // Each warm request is given an abort signal so a slow page can't stall the batch.
   let warmFetchOptions;
-  response = await callWarm(['taopedia'], async (_url, options) => {
+  let warmFetchUrl;
+  response = await callWarm(['taopedia'], async (url, options) => {
+    warmFetchUrl = url;
     warmFetchOptions = options;
     return { status: 200, ok: true };
   });
   assert.equal(response.statusCode, 200);
+  assert.equal(warmFetchUrl, 'https://example.test/wiki/taopedia/', 'warm fetch should use canonical article URL');
   assert.ok(
     warmFetchOptions && warmFetchOptions.signal instanceof AbortSignal,
     'each warm fetch must receive an AbortSignal for the per-request timeout',
