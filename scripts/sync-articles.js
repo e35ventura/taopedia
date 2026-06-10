@@ -151,6 +151,14 @@ export function validateArticleContent(slug, content) {
   }
 }
 
+export function validateArticleJsonAsset(filePath) {
+  try {
+    JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  } catch (error) {
+    throw new Error(`Malformed JSON asset in "${filePath}": ${error.message}`);
+  }
+}
+
 function copyDir(src, dest) {
   fs.mkdirSync(dest, { recursive: true });
   for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
@@ -169,6 +177,9 @@ function copyDir(src, dest) {
       const stat = assertRegularFileInside(src, srcPath, 'Article asset');
       if (stat.size > maxAssetBytes) {
         throw new Error(`Asset too large in "${srcPath}". Maximum size is ${maxAssetBytes} bytes.`);
+      }
+      if (ext === '.json') {
+        validateArticleJsonAsset(srcPath);
       }
       fs.copyFileSync(srcPath, destPath);
     }
