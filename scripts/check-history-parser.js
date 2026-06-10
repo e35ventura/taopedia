@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict';
-import { parseGitLog } from './generate-history.js';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { parseGitLog, resetHistoryOutputDir } from './generate-history.js';
 
 const FIELD_SEP = '\x00';
 const record = (sha, an, ae, at, msg) => [sha, an, ae, at, msg].join(FIELD_SEP);
@@ -47,5 +50,25 @@ assert.deepEqual(
   [],
   'records whose first field is not a SHA are skipped'
 );
+
+const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'taopedia-history-output-'));
+try {
+  const historyDir = path.join(tempRoot, 'history');
+  const staleNestedDir = path.join(historyDir, 'removed');
+  fs.mkdirSync(staleNestedDir, { recursive: true });
+  fs.writeFileSync(path.join(historyDir, 'stale.json'), '{"slug":"stale"}');
+  fs.writeFileSync(path.join(staleNestedDir, 'old.json'), '{"slug":"removed/old"}');
+
+  resetHistoryOutputDir(historyDir);
+
+  assert.ok(fs.existsSync(historyDir), 'history output directory should be recreated');
+  assert.deepEqual(
+    fs.readdirSync(historyDir),
+    [],
+    'history generator should clear stale JSON files before writing current articles',
+  );
+} finally {
+  fs.rmSync(tempRoot, { recursive: true, force: true });
+}
 
 console.log('History parser check passed');
