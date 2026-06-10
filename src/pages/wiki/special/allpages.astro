@@ -1,9 +1,10 @@
 ---
 import WikiLayout from '../../../layouts/WikiLayout.astro';
 import { getCollection } from 'astro:content';
+import { sortPagesByTitle } from '../../../lib/title-sort.js';
 
 const pages = await getCollection('pages');
-const sortedPages = [...pages].sort((a, b) => a.data.title.localeCompare(b.data.title));
+const sortedPages = sortPagesByTitle(pages);
 const getPageSlug = (page: { id: string }) =>
   page.id.replace(/\/index\.(md|mdx)$/, '').replace(/\/index$/, '').replace(/\.(md|mdx)$/, '');
 
@@ -23,7 +24,7 @@ const topicFilters = priorityTopics
 
 const groupedArticles = topicFilters.map(([topic, topicPages]) => ({
   topic,
-  pages: [...topicPages].sort((a, b) => a.data.title.localeCompare(b.data.title)),
+  pages: sortPagesByTitle(topicPages),
 }));
 ---
 
