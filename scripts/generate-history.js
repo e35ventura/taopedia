@@ -133,6 +133,21 @@ function walkDirectory(dir, fileList = []) {
   return fileList;
 }
 
+// Mirror sync-articles: an article may be authored as index.mdx or index.md in
+// the source repo, so follow the history of whichever file actually exists
+// (preferring index.mdx). Falls back to index.mdx when no source is available.
+export function resolveHistorySourcePath(articlesRepo, slug) {
+  if (articlesRepo) {
+    for (const name of ['index.mdx', 'index.md']) {
+      const relativeSourcePath = path.posix.join('content', 'pages', slug, name);
+      if (fs.existsSync(path.join(articlesRepo, relativeSourcePath))) {
+        return relativeSourcePath;
+      }
+    }
+  }
+  return path.posix.join('content', 'pages', slug, 'index.mdx');
+}
+
 function main() {
   resetHistoryOutputDir(outputDir);
 
@@ -154,9 +169,9 @@ function main() {
     const relativePath = path.relative(contentDir, filePath);
     const slug = path.dirname(relativePath).replace(/\\/g, '/');
 
-    // The generated article is synced from <articles>/content/pages/<slug>/index.mdx,
-    // so query the source repository's history for that path.
-    const sourcePath = path.posix.join('content', 'pages', slug, 'index.mdx');
+    // The generated article is synced from <articles>/content/pages/<slug>/index.{mdx,md},
+    // so query the source repository's history for whichever file exists.
+    const sourcePath = resolveHistorySourcePath(articlesRepo, slug);
     const history = articlesRepo ? getGitHistory(articlesRepo, sourcePath) : [];
 
     const historyFile = path.join(outputDir, `${slug}.json`);
