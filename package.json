@@ -37,7 +37,8 @@
     "test:csp": "node scripts/check-csp.js",
     "test:title-sort": "node scripts/check-title-sort.js",
     "test:allpages-directory": "node scripts/check-allpages-directory.js",
-    "test:og-text-layout": "node scripts/check-og-text-layout.js"
+    "test:og-text-layout": "node scripts/check-og-text-layout.js",
+    "test:404": "node scripts/check-404.js"
   },
   "dependencies": {
     "@astrojs/mdx": "^5.0.6",
