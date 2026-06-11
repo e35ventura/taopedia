@@ -40,7 +40,8 @@
     "test:og-text-layout": "node scripts/check-og-text-layout.js",
     "test:md-article": "node scripts/check-md-article.js",
     "test:history-date": "node scripts/check-history-date.js",
-    "test:home-links": "node scripts/check-home-links.js"
+    "test:home-links": "node scripts/check-home-links.js",
+    "test:security-txt": "node scripts/check-security-txt.js"
   },
   "dependencies": {
     "@astrojs/mdx": "^5.0.6",
