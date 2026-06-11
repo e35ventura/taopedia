@@ -56,12 +56,27 @@ export const GET: APIRoute = async ({ site }) => {
   // of distinct category labels, each routed at /wiki/category/<label_>/ with
   // spaces mapped to underscores. These hub pages are indexable and carry their
   // own canonical + meta description (#58) but were missing from the sitemap.
+  // A hub's content changes exactly when a member article changes, so its
+  // <lastmod> is the newest member lastmod. The dates are ISO-8601 UTC strings
+  // from the same history source as the article entries, so string comparison
+  // orders them correctly.
+  const categoryLastmod = new Map<string, string>();
+  for (const page of pages) {
+    const lastmod = lastmodForSlug(getPageSlug(page));
+    if (!lastmod) continue;
+    for (const category of page.data.categories ?? []) {
+      if (lastmod > (categoryLastmod.get(category) ?? '')) categoryLastmod.set(category, lastmod);
+    }
+  }
   const categoryNames = new Set<string>();
   for (const page of pages) {
     for (const category of page.data.categories ?? []) categoryNames.add(category);
   }
   const categoryEntries = [...categoryNames]
-    .map((category) => ({ path: `/wiki/category/${category.replace(/ /g, '_')}/`, lastmod: '' }))
+    .map((category) => ({
+      path: `/wiki/category/${category.replace(/ /g, '_')}/`,
+      lastmod: categoryLastmod.get(category) ?? '',
+    }))
     .sort((a, b) => a.path.localeCompare(b.path));
 
   const entries = [
