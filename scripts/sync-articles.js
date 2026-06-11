@@ -118,6 +118,27 @@ export function assertRegularFileInside(root, filePath, description = 'File') {
   return stat;
 }
 
+// Articles may be authored as index.mdx or plain Markdown index.md. The content
+// sanitizer rejects every MDX-specific feature, so index.md is a natural source
+// format, and copyDir, the content-collection glob, and the history walker all
+// already accept both. Resolve whichever the directory provides (preferring
+// index.mdx) and run the same security validation, so a valid index.md article
+// is published instead of being silently skipped. Returns null when neither
+// index file exists; other validation failures (symlink, traversal) still throw.
+export function resolveArticleSourceFile(sourceDir, sourceRoot, description = 'Article entry') {
+  for (const name of ['index.mdx', 'index.md']) {
+    const candidate = path.join(sourceDir, name);
+    try {
+      assertRegularFileInside(sourceRoot, candidate, description);
+      return candidate;
+    } catch (error) {
+      if (error?.code === 'ENOENT') continue;
+      throw error;
+    }
+  }
+  return null;
+}
+
 function fromCodePoint(codePoint, fallback) {
   return Number.isInteger(codePoint) && codePoint >= 0 && codePoint <= 0x10ffff
     ? String.fromCodePoint(codePoint)
@@ -378,13 +399,8 @@ function main() {
     const slug = entry.name;
     validateSlug(slug);
     const sourceDir = path.join(sourceRoot, slug);
-    const sourceFile = path.join(sourceDir, 'index.mdx');
-    try {
-      assertRegularFileInside(sourceRoot, sourceFile, `Article entry "${slug}"`);
-    } catch (error) {
-      if (error?.code === 'ENOENT') continue;
-      throw error;
-    }
+    const sourceFile = resolveArticleSourceFile(sourceDir, sourceRoot, `Article entry "${slug}"`);
+    if (!sourceFile) continue;
 
     const raw = fs.readFileSync(sourceFile, 'utf8');
     validateArticleContent(slug, raw);
