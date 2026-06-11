@@ -79,4 +79,25 @@ assert.deepEqual(
   'remark wiki-link resolution should try the canonical slug before protocol-relative URL fallbacks',
 );
 
+// Rendered in-content wiki links must use the canonical trailing-slash URL so
+// they match the article canonical (#61), sitemap (#75/#127) and search data
+// (#92) instead of 301-redirecting on every click.
+assert.equal(
+  options.hrefTemplate('dynamic_tao'),
+  '/wiki/dynamic_tao/',
+  'hrefTemplate must emit the canonical trailing-slash article URL',
+);
+
+// The article page unlink script strips the trailing slash (and any fragment/
+// query) before checking validSlugs, so valid links survive and only genuinely
+// missing targets are unlinked. Mirror that regex here to lock the behavior.
+const unlinkSlug = (href) => {
+  const m = href.match(/^\/wiki\/([^#?]+?)\/?(?:[#?]|$)/);
+  return m ? m[1] : null;
+};
+assert.equal(unlinkSlug('/wiki/dynamic_tao/'), 'dynamic_tao', 'unlink regex must accept the canonical trailing-slash link');
+assert.equal(unlinkSlug('/wiki/dynamic_tao'), 'dynamic_tao', 'unlink regex must still accept a slash-less link');
+assert.equal(unlinkSlug('/wiki/dynamic_tao/#history'), 'dynamic_tao', 'unlink regex must ignore a fragment');
+assert.equal(unlinkSlug('/elsewhere/dynamic_tao/'), null, 'unlink regex must not match non-wiki links');
+
 console.log('Wiki link resolver route-target check passed');

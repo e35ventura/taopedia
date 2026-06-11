@@ -45,7 +45,7 @@ const pageDescription = `Taopedia articles about ${categoryName} in the Bittenso
           <ul>
             {categoryPages.map(page => (
               <li>
-                <a href={`/wiki/${getPageSlug(page)}`} class="card-link">
+                <a href={`/wiki/${getPageSlug(page)}/`} class="card-link">
                   <h3 class="card-title">{page.data.title}</h3>
                   {page.data.summary && (
                     <p class="category-page-summary">{page.data.summary}</p>

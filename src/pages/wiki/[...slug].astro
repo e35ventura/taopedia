@@ -64,13 +64,13 @@ function renderInfoboxValue(value: string) {
     const targetSlug = resolveTargetSlug(token.target, slugAliases);
     return {
       ...token,
-      href: `/wiki/${targetSlug}`,
+      href: `/wiki/${targetSlug}/`,
       exists: Object.prototype.hasOwnProperty.call(slugMap, targetSlug),
     };
   });
 }
 
-const historyUrl = `/wiki/${slug}/history`;
+const historyUrl = `/wiki/${slug}/history/`;
 const serializedValidSlugs = JSON.stringify(validSlugs).replace(/</g, '\\u003c');
 ---
 
@@ -135,7 +135,7 @@ const serializedValidSlugs = JSON.stringify(validSlugs).replace(/</g, '\\u003c')
 
     <nav class="mw-article-toolbar" data-pagefind-ignore>
       <button class="sidebar-toggle toolbar-toggle" aria-label="Toggle navigation">☰</button>
-      <a href={`/wiki/${slug}`} class="active" aria-current="page">Article</a>
+      <a href={`/wiki/${slug}/`} class="active" aria-current="page">Article</a>
       <a href={historyUrl}>History</a>
       <span class="toolbar-spacer"></span>
       <button class="appearance-toggle toolbar-toggle" type="button" aria-label="Show appearance controls" aria-expanded="true">
@@ -212,8 +212,9 @@ const serializedValidSlugs = JSON.stringify(validSlugs).replace(/</g, '\\u003c')
       const anchors = container.querySelectorAll('a.internal');
       anchors.forEach((a) => {
         const href = a.getAttribute('href') || '';
-        // Expect /wiki/<slug>
-        const m = href.match(/^\/wiki\/(.+)$/);
+        // Expect /wiki/<slug>/ (canonical trailing slash); tolerate a missing
+        // slash and ignore any #fragment/?query so the slug matches validSlugs.
+        const m = href.match(/^\/wiki\/([^#?]+?)\/?(?:[#?]|$)/);
         const slug = m ? m[1] : null;
         const isMissing = !slug || !validSlugs.has(slug);
         if (isMissing) {
