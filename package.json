@@ -36,7 +36,8 @@
     "test:search-prefill": "node scripts/check-search-prefill.js",
     "test:csp": "node scripts/check-csp.js",
     "test:title-sort": "node scripts/check-title-sort.js",
-    "test:allpages-directory": "node scripts/check-allpages-directory.js"
+    "test:allpages-directory": "node scripts/check-allpages-directory.js",
+    "test:og-text-layout": "node scripts/check-og-text-layout.js"
   },
   "dependencies": {
     "@astrojs/mdx": "^5.0.6",

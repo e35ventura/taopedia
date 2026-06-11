@@ -1,6 +1,7 @@
 import { Resvg } from '@resvg/resvg-js';
 import fs from 'fs';
 import path from 'path';
+import { escapeHtml, wrapText } from './og-text.js';
 
 const width = 1200;
 const height = 630;
@@ -25,56 +26,6 @@ const FOOTER_BASELINE = 540;
 const FOOTER_GAP = 24; // minimum gap between the last description line and the footer
 const TITLE_DESC_GAP = 116; // gap below the last title line at normal density
 const MIN_TITLE_DESC_GAP = 44; // tightened gap used when the title is tall
-
-function escapeHtml(value: string) {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
-// Break any single word longer than the line budget into hard chunks so an
-// unbroken token (e.g. a long URL or identifier) cannot overflow the card.
-function splitLongWords(words: string[], maxChars: number) {
-  const result: string[] = [];
-  for (const word of words) {
-    if (word.length <= maxChars) {
-      result.push(word);
-      continue;
-    }
-    for (let i = 0; i < word.length; i += maxChars) {
-      result.push(word.slice(i, i + maxChars));
-    }
-  }
-  return result;
-}
-
-function wrapText(text: string, maxChars: number, maxLines: number) {
-  if (maxLines <= 0) return [];
-  const words = splitLongWords(text.split(/\s+/).filter(Boolean), maxChars);
-  const lines: string[] = [];
-  let current = '';
-
-  for (const word of words) {
-    const next = current ? `${current} ${word}` : word;
-    if (next.length <= maxChars) {
-      current = next;
-      continue;
-    }
-    if (current) lines.push(current);
-    current = word;
-    if (lines.length === maxLines) break;
-  }
-
-  if (current && lines.length < maxLines) lines.push(current);
-
-  if (lines.length === maxLines && words.join(' ').length > lines.join(' ').length) {
-    lines[maxLines - 1] = `${lines[maxLines - 1].replace(/[.,;:!?]?$/, '')}…`;
-  }
-
-  return lines;
-}
 
 interface OgImageOptions {
   title: string;
