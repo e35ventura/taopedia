@@ -1,5 +1,6 @@
 [build]
   command = "git fetch --unshallow || true && npm run build"
+  ignore = "node scripts/netlify-ignore-build.js"
   publish = "dist"
   functions = "netlify/functions"
 
