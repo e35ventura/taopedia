@@ -11,7 +11,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "prebuild": "node scripts/sync-articles.js && node scripts/generate-history.js && node scripts/build-linkgraph.js",
-    "postbuild": "npx pagefind --site dist && node scripts/prune-pagefind-assets.js",
+    "postbuild": "npx pagefind --site dist && node scripts/prune-pagefind-assets.js && node scripts/check-page-info.js",
     "preview": "astro preview",
     "astro": "astro",
     "test:article-slugmap": "node scripts/check-article-slugmap.js",
@@ -44,7 +44,8 @@
     "test:404": "node scripts/check-404.js",
     "test:security-txt": "node scripts/check-security-txt.js",
     "test:random-page": "node scripts/check-random-page.js",
-    "test:sitemap": "node scripts/check-sitemap.js"
+    "test:sitemap": "node scripts/check-sitemap.js",
+    "test:page-info": "node scripts/check-page-info.js"
   },
   "dependencies": {
     "@astrojs/mdx": "^5.0.6",
