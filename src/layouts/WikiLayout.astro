@@ -398,6 +398,18 @@ const { title, description, image, type = 'website', path } = Astro.props;
             sidebar.classList.remove('mobile-active');
             sidebarOverlay.classList.remove('active');
           });
+
+          // In the overlay sizes the sidebar covers the article, so close it
+          // when a contents link is tapped; otherwise the section the reader
+          // jumped to stays hidden behind the drawer.
+          tocLinks.forEach(function(link) {
+            link.addEventListener('click', function() {
+              if (isMobile() || isMidSize()) {
+                sidebar.classList.remove('mobile-active');
+                sidebarOverlay.classList.remove('active');
+              }
+            });
+          });
         }
         
         // TOC hide button collapses sidebar

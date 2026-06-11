@@ -41,7 +41,8 @@
     "test:md-article": "node scripts/check-md-article.js",
     "test:history-date": "node scripts/check-history-date.js",
     "test:home-links": "node scripts/check-home-links.js",
-    "test:404": "node scripts/check-404.js"
+    "test:404": "node scripts/check-404.js",
+    "test:toc-drawer": "node scripts/check-toc-drawer.js"
   },
   "dependencies": {
     "@astrojs/mdx": "^5.0.6",
