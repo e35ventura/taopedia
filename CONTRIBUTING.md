@@ -27,8 +27,24 @@ For local article sync, place `taopedia-articles` next to this repository or set
 - Keep app changes separate from article/content changes.
 - Do not commit generated `src/content/pages` output.
 - Run `npm run build` before opening a pull request when code or styling changes.
-- Include screenshots for visible UI changes.
+- Include visual evidence for any UI, layout, styling, responsive, or interaction behavior change.
 - Explain any routing, search, or deployment behavior changes in the PR description.
+
+## Visual Evidence Requirements
+
+Visual or interaction PRs must include author-provided evidence in the PR description before review.
+A Netlify deploy preview link by itself is not enough.
+
+Include screenshots for static visual changes and a short screen recording or GIF for interaction changes.
+For each piece of evidence, include:
+
+- Page URL.
+- Viewport width, especially for responsive changes.
+- Action taken, for interaction changes.
+- Expected before behavior.
+- Expected after behavior.
+
+PRs that change UI, layout, styling, responsive behavior, or user interaction without this evidence may be closed and resubmitted with complete review evidence.
 
 ## App Areas
 
