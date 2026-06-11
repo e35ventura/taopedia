@@ -1,0 +1,26 @@
+---
+import WikiLayout from '../layouts/WikiLayout.astro';
+---
+
+<WikiLayout
+  title="Page not found"
+  description="The requested page does not exist in the Taopedia Bittensor knowledge base."
+>
+  <div class="mw-body-content">
+    <h1 class="firstHeading">Page not found</h1>
+
+    <div class="mw-parser-output">
+      <p>
+        The page you requested does not exist in Taopedia. The article may have
+        been renamed or removed, or the address may be mistyped.
+      </p>
+
+      <ul>
+        <li><a href="/search/">Search Taopedia</a> for the topic you were looking for.</li>
+        <li>Browse the full <a href="/wiki/special/allpages/">article directory</a>.</li>
+        <li>Explore articles grouped by <a href="/wiki/special/categories/">topic</a>.</li>
+        <li>Return to the <a href="/">main page</a>.</li>
+      </ul>
+    </div>
+  </div>
+</WikiLayout>
