@@ -46,7 +46,7 @@ assert.ok(slugs.length > 0, 'no synced articles found; run the build first');
 
 const html = fs.readFileSync(directoryHtml, 'utf8');
 
-const missing = slugs.filter((slug) => !html.includes(`href="/wiki/${slug}"`));
+const missing = slugs.filter((slug) => !html.includes(`href="/wiki/${slug}/"`));
 assert.deepEqual(
   missing,
   [],

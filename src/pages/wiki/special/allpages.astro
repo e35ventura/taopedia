@@ -68,7 +68,7 @@ const groupedArticles = [
         {sortedPages.slice(0, 3).map((page) => (
           <a
             class="article-card"
-            href={`/wiki/${getPageSlug(page)}`}
+            href={`/wiki/${getPageSlug(page)}/`}
             data-article-card
             data-title={page.data.title.toLowerCase()}
             data-summary={(page.data.summary ?? '').toLowerCase()}
@@ -95,7 +95,7 @@ const groupedArticles = [
                   data-summary={(page.data.summary ?? '').toLowerCase()}
                   data-topics={(page.data.categories ?? []).join('|')}
                 >
-                  <a href={`/wiki/${getPageSlug(page)}`}>{page.data.title}</a>
+                  <a href={`/wiki/${getPageSlug(page)}/`}>{page.data.title}</a>
                   {page.data.summary && <span>{page.data.summary}</span>}
                 </li>
               ))}

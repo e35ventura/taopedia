@@ -165,6 +165,6 @@ export function createRemarkWikiLinkOptions(slugMap) {
         slugify(normalized.replaceAll('_', ' ')),
       ].filter(Boolean)));
     },
-    hrefTemplate: (permalink) => `/wiki/${permalink}`,
+    hrefTemplate: (permalink) => `/wiki/${permalink}/`,
   };
 }
