@@ -444,10 +444,10 @@ const initialLetter = alphabet[0] ?? '#';
           </form>
           <div class="search-suggestions" aria-label="Suggested searches">
             <span>{pages.length} articles</span>
-            <a href="/wiki/wallets">wallets</a>
+            <a href="/wiki/wallets/">wallets</a>
             <a href="/wiki/category/Staking">staking</a>
-            <a href="/wiki/yuma_consensus">Yuma Consensus</a>
-            <a href="/wiki/dynamic_tao">Dynamic TAO</a>
+            <a href="/wiki/yuma_consensus/">Yuma Consensus</a>
+            <a href="/wiki/dynamic_tao/">Dynamic TAO</a>
           </div>
         </div>
       </section>
@@ -474,7 +474,7 @@ const initialLetter = alphabet[0] ?? '#';
         </div>
         <div class="article-grid">
           {featuredPages.map((page) => (
-            <a class="article-card" href={`/wiki/${getPageSlug(page)}`}>
+            <a class="article-card" href={`/wiki/${getPageSlug(page)}/`}>
               <strong>{page.data.title}</strong>
               {page.data.summary && <span>{page.data.summary}</span>}
             </a>
@@ -492,7 +492,7 @@ const initialLetter = alphabet[0] ?? '#';
             <section class="term-group" data-letter={letter} hidden={letter !== initialLetter}>
               <ul>
                 {letterPages.map((page) => (
-                  <li><a href={`/wiki/${getPageSlug(page)}`}>{page.data.title}</a></li>
+                  <li><a href={`/wiki/${getPageSlug(page)}/`}>{page.data.title}</a></li>
                 ))}
               </ul>
             </section>

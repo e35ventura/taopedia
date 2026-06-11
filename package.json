@@ -39,7 +39,8 @@
     "test:allpages-directory": "node scripts/check-allpages-directory.js",
     "test:og-text-layout": "node scripts/check-og-text-layout.js",
     "test:md-article": "node scripts/check-md-article.js",
-    "test:history-date": "node scripts/check-history-date.js"
+    "test:history-date": "node scripts/check-history-date.js",
+    "test:home-links": "node scripts/check-home-links.js"
   },
   "dependencies": {
     "@astrojs/mdx": "^5.0.6",
