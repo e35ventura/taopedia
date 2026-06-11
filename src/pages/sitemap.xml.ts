@@ -45,10 +45,18 @@ export const GET: APIRoute = async ({ site }) => {
   // wiki/category/[category].astro so each <loc> matches a built page exactly.
   // Search (robots-disallowed, no unique content) and per-article history
   // routes stay omitted so every <loc> is a stable, canonical content URL.
+  // Each article builds a 1200x630 Open Graph card at /og/<slug>.png that
+  // visually represents the article; surface it to image search via the
+  // image-sitemap namespace (only article URLs carry an image). The card URL is
+  // stable per slug and lives on this origin.
   const articleEntries = pages
     .map((page) => {
       const slug = getPageSlug(page);
-      return { path: `/wiki/${slug}/`, lastmod: lastmodForSlug(slug) };
+      return {
+        path: `/wiki/${slug}/`,
+        lastmod: lastmodForSlug(slug),
+        image: { loc: `${origin}/og/${slug}.png`, title: page.data.title },
+      };
     })
     .sort((a, b) => a.path.localeCompare(b.path));
 
@@ -86,16 +94,22 @@ export const GET: APIRoute = async ({ site }) => {
   ];
 
   const urls = entries
-    .map(({ path, lastmod }) => {
-      const loc = `    <loc>${escapeXml(origin + path)}</loc>`;
-      const lastmodTag = lastmod ? `\n    <lastmod>${escapeXml(lastmod)}</lastmod>` : '';
-      return `  <url>\n${loc}${lastmodTag}\n  </url>`;
+    .map((entry) => {
+      const loc = `    <loc>${escapeXml(origin + entry.path)}</loc>`;
+      const lastmodTag = entry.lastmod ? `\n    <lastmod>${escapeXml(entry.lastmod)}</lastmod>` : '';
+      const image = 'image' in entry ? entry.image : undefined;
+      const imageTag = image
+        ? `\n    <image:image>\n      <image:loc>${escapeXml(image.loc)}</image:loc>` +
+          `\n      <image:title>${escapeXml(image.title)}</image:title>\n    </image:image>`
+        : '';
+      return `  <url>\n${loc}${lastmodTag}${imageTag}\n  </url>`;
     })
     .join('\n');
 
   const body =
     '<?xml version="1.0" encoding="UTF-8"?>\n' +
-    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"' +
+    ' xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n' +
     urls +
     '\n</urlset>\n';
 
