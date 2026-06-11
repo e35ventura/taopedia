@@ -40,10 +40,11 @@ export const GET: APIRoute = async ({ site }) => {
   const pages = await getCollection('pages');
 
   // Canonical, trailing-slash paths that each map 1:1 to a built page: the
-  // homepage, the two special listing pages, and every article route (derived
-  // with the same getPageSlug as the article/search routes). Category, search
-  // and per-article history routes are intentionally omitted so every <loc>
-  // stays a stable, canonical content URL.
+  // homepage, the two special listing pages, every category hub route, and
+  // every article route. Category hubs are derived with the same logic as
+  // wiki/category/[category].astro so each <loc> matches a built page exactly.
+  // Search (robots-disallowed, no unique content) and per-article history
+  // routes stay omitted so every <loc> is a stable, canonical content URL.
   const articleEntries = pages
     .map((page) => {
       const slug = getPageSlug(page);
@@ -51,10 +52,23 @@ export const GET: APIRoute = async ({ site }) => {
     })
     .sort((a, b) => a.path.localeCompare(b.path));
 
+  // Same derivation as wiki/category/[category].astro getStaticPaths: the set
+  // of distinct category labels, each routed at /wiki/category/<label_>/ with
+  // spaces mapped to underscores. These hub pages are indexable and carry their
+  // own canonical + meta description (#58) but were missing from the sitemap.
+  const categoryNames = new Set<string>();
+  for (const page of pages) {
+    for (const category of page.data.categories ?? []) categoryNames.add(category);
+  }
+  const categoryEntries = [...categoryNames]
+    .map((category) => ({ path: `/wiki/category/${category.replace(/ /g, '_')}/`, lastmod: '' }))
+    .sort((a, b) => a.path.localeCompare(b.path));
+
   const entries = [
     { path: '/', lastmod: '' },
     { path: '/wiki/special/allpages/', lastmod: '' },
     { path: '/wiki/special/categories/', lastmod: '' },
+    ...categoryEntries,
     ...articleEntries,
   ];
 
