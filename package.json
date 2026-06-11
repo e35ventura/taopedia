@@ -43,7 +43,8 @@
     "test:home-links": "node scripts/check-home-links.js",
     "test:404": "node scripts/check-404.js",
     "test:security-txt": "node scripts/check-security-txt.js",
-    "test:random-page": "node scripts/check-random-page.js"
+    "test:random-page": "node scripts/check-random-page.js",
+    "test:sitemap": "node scripts/check-sitemap.js"
   },
   "dependencies": {
     "@astrojs/mdx": "^5.0.6",
