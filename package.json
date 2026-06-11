@@ -27,7 +27,11 @@
     "test:structured-data": "node scripts/check-structured-data.js",
     "test:opensearch": "node scripts/check-opensearch.js",
     "test:search-data": "node scripts/check-search-data.js",
-    "test:external-links": "node scripts/check-external-links.js"
+    "test:external-links": "node scripts/check-external-links.js",
+    "test:wiki-links": "node scripts/check-wiki-links.js",
+    "test:unit": "npm run test:content-sanitizer && npm run test:warm-function && npm run test:sync-article-paths && npm run test:article-image-assets && npm run test:external-links && npm run test:history-parser && npm run test:sync-categories && npm run test:sync-json-assets && npm run test:wiki-link-resolver && npm run test:robots && npm run test:structured-data && npm run test:opensearch && npm run test:skip-link && npm run test:linkgraph-infobox",
+    "test:build": "npm run test:history-privacy && npm run test:article-script-placement && npm run test:search-data && npm run test:article-slugmap && npm run test:wiki-links",
+    "test": "npm run test:unit && npm run test:build"
   },
   "dependencies": {
     "@astrojs/mdx": "^5.0.6",
