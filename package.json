@@ -44,7 +44,8 @@
     "test:404": "node scripts/check-404.js",
     "test:security-txt": "node scripts/check-security-txt.js",
     "test:random-page": "node scripts/check-random-page.js",
-    "test:sitemap": "node scripts/check-sitemap.js"
+    "test:sitemap": "node scripts/check-sitemap.js",
+    "test:article-meta": "node scripts/check-article-meta.js"
   },
   "dependencies": {
     "@astrojs/mdx": "^5.0.6",

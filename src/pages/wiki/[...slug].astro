@@ -72,6 +72,21 @@ function renderInfoboxValue(value: string) {
 
 const historyUrl = `/wiki/${slug}/history/`;
 const serializedValidSlugs = JSON.stringify(validSlugs).replace(/</g, '\\u003c');
+
+// Article metadata footer: the last-modified date (newest-first revision from
+// the build-time history at public/history/<slug>.json, same source as the
+// sitemap <lastmod> and the history page) and an estimated reading time from
+// the article body. Shown to readers as a freshness + length signal.
+const articleHistory = import.meta.glob('../../../public/history/**/*.json', { eager: true }) as Record<
+  string,
+  { default?: { history?: Array<{ date?: string }> } }
+>;
+const lastUpdated = articleHistory[`../../../public/history/${slug}.json`]?.default?.history?.[0]?.date ?? '';
+const lastUpdatedLabel = lastUpdated
+  ? new Date(lastUpdated).toLocaleDateString('en-US', { timeZone: 'UTC', year: 'numeric', month: 'long', day: 'numeric' })
+  : '';
+const wordCount = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
+const readingMinutes = Math.max(1, Math.round(wordCount / 200));
 ---
 
 <WikiLayout
@@ -199,6 +214,18 @@ const serializedValidSlugs = JSON.stringify(validSlugs).replace(/</g, '\\u003c')
         ))}
       </div>
     )}
+
+    <div
+      class="mw-article-meta"
+      data-pagefind-ignore
+      style="margin-top: 24px; padding-top: 12px; border-top: 1px solid var(--border-color-subtle); font-size: 13px; color: var(--color-base-subtle);"
+    >
+      {lastUpdatedLabel && (
+        <span>Last updated <time datetime={lastUpdated}>{lastUpdatedLabel}</time> (UTC)</span>
+      )}
+      {lastUpdatedLabel && <span aria-hidden="true"> · </span>}
+      <span>{readingMinutes} min read</span>
+    </div>
   </div>
 
   <script type="application/json" id="valid-slugs-data" set:html={serializedValidSlugs} />
