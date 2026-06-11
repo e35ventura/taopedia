@@ -77,17 +77,10 @@ npm run preview
 The build:
 
 1. Syncs Bittensor-scoped MDX articles from `taopedia-articles`.
-2. Fetches Netlify top-page analytics for the homepage article slot when `NETLIFY_AUTH_TOKEN` is set.
-3. Generates article history data.
-4. Builds link graph and category data.
-5. Builds the static Astro site into `dist`.
-6. Builds the Pagefind search index.
-
-The homepage uses Netlify Web Analytics to show the most-read article from recent top pages. Set
-`NETLIFY_AUTH_TOKEN` in Netlify build environment variables to enable this. Optional settings are
-`NETLIFY_ANALYTICS_DAYS`, `NETLIFY_ANALYTICS_LIMIT`, `NETLIFY_ANALYTICS_TIMEZONE`, and
-`NETLIFY_SITE_ID`. If analytics is unavailable, the homepage falls back to an article with
-`featured: true`.
+2. Generates article history data.
+3. Builds link graph and category data.
+4. Builds the static Astro site into `dist`.
+5. Builds the Pagefind search index.
 
 Articles publish when:
 

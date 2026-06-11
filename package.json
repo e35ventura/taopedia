@@ -10,7 +10,7 @@
     "predev": "node scripts/sync-articles.js",
     "dev": "astro dev",
     "build": "astro build",
-    "prebuild": "node scripts/sync-articles.js && node scripts/fetch-netlify-trending.js && node scripts/generate-history.js && node scripts/build-linkgraph.js",
+    "prebuild": "node scripts/sync-articles.js && node scripts/generate-history.js && node scripts/build-linkgraph.js",
     "postbuild": "npx pagefind --site dist && node scripts/prune-pagefind-assets.js",
     "preview": "astro preview",
     "astro": "astro",

@@ -3,7 +3,6 @@ import '../styles/wikipedia.css';
 import { getCollection } from 'astro:content';
 import Seo from '../components/Seo.astro';
 import { sortPagesByTitle } from '../lib/title-sort.js';
-import trendingPages from '../data/trending-pages.json';
 
 const pages = await getCollection('pages');
 const sortedPages = sortPagesByTitle(pages);
@@ -33,15 +32,6 @@ const featuredSlugs = [
 const featuredPages = featuredSlugs
   .map((slug) => pages.find((page) => getPageSlug(page) === slug))
   .filter(Boolean);
-const pageBySlug = new Map(pages.map((page) => [getPageSlug(page), page]));
-const trendingEntry = trendingPages.entries.find((entry) => pageBySlug.has(entry.slug));
-const trendingArticle = trendingEntry ? pageBySlug.get(trendingEntry.slug) : undefined;
-const featuredArticle = trendingArticle
-  ?? sortedPages.find((page) => page.data.featured)
-  ?? featuredPages[0]
-  ?? sortedPages[0];
-const featuredArticleSlug = featuredArticle ? getPageSlug(featuredArticle) : '';
-const featuredKicker = trendingArticle ? 'Most Read Article' : 'Featured Article';
 
 const alphaGroups = new Map<string, typeof pages>();
 for (const page of sortedPages) {
@@ -84,39 +74,29 @@ const initialLetter = alphabet[0] ?? '#';
       .home-shell {
         max-width: 1080px;
         margin: 0 auto;
-        padding: 28px 31px 56px;
+        padding: 32px 24px 56px;
       }
 
       .home-header {
-        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid var(--border-color-subtle);
       }
 
       .home-brand {
-        display: block;
+        display: inline-flex;
+        align-items: center;
         color: var(--color-base);
         text-decoration: none;
       }
 
-      .brand-kicker {
-        display: block;
-        margin-bottom: 13px;
-        color: #6b6f75;
-        font-size: 11px;
-        letter-spacing: 4px;
-        line-height: 1.2;
-        text-transform: uppercase;
-      }
-
-      .brand-rule {
-        display: block;
-        border-top: 1px solid var(--color-base);
-      }
-
       .brand-word {
         display: block;
-        margin: 10px 0 12px;
         font-family: var(--font-family-serif);
-        font-size: clamp(52px, 7vw, 74px);
+        font-size: 30px;
         line-height: 1;
         letter-spacing: 0;
         text-transform: uppercase;
@@ -129,18 +109,16 @@ const initialLetter = alphabet[0] ?? '#';
 
       .brand-subtitle {
         display: block;
-        margin-top: 11px;
+        margin-top: 3px;
         color: var(--color-base-subtle);
-        font-size: 12px;
+        font-size: 13px;
       }
 
       .home-nav {
-        display: none;
+        display: flex;
         align-items: center;
-        justify-content: center;
         gap: 18px;
-        margin-top: 12px;
-        font-size: 12px;
+        font-size: 13px;
       }
 
       .home-nav a {
@@ -154,11 +132,8 @@ const initialLetter = alphabet[0] ?? '#';
       }
 
       .home-hero {
-        display: flex;
-        justify-content: center;
-        padding: 16px 0 20px;
-        border-bottom: 1px solid var(--border-color-subtle);
-        text-align: center;
+        padding: 44px 0 38px;
+        max-width: 760px;
       }
 
       h1 {
@@ -183,11 +158,10 @@ const initialLetter = alphabet[0] ?? '#';
         display: grid;
         grid-template-columns: auto minmax(0, 1fr) auto;
         align-items: center;
-        width: min(560px, 100%);
-        margin: 0 auto;
+        max-width: 640px;
+        margin-top: 24px;
         border: 1px solid var(--border-color-base);
         background: var(--background-color-base);
-        text-align: left;
       }
 
       .home-search-icon {
@@ -200,7 +174,7 @@ const initialLetter = alphabet[0] ?? '#';
       .home-search input {
         min-width: 0;
         width: 100%;
-        padding: 12px 12px;
+        padding: 14px 12px;
         border: 0;
         font: inherit;
         font-size: 15px;
@@ -214,8 +188,7 @@ const initialLetter = alphabet[0] ?? '#';
 
       .home-search button {
         align-self: stretch;
-        min-width: 83px;
-        padding: 0 20px;
+        padding: 0 22px;
         border: 0;
         border-left: 1px solid var(--border-color-base);
         background: var(--color-link);
@@ -231,10 +204,9 @@ const initialLetter = alphabet[0] ?? '#';
       .search-suggestions {
         display: flex;
         flex-wrap: wrap;
-        justify-content: center;
         gap: 8px;
         max-width: 640px;
-        margin: 12px auto 0;
+        margin-top: 10px;
       }
 
       .search-suggestions span {
@@ -252,103 +224,9 @@ const initialLetter = alphabet[0] ?? '#';
         text-decoration: underline;
       }
 
-      .featured-article {
-        display: grid;
-        grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.95fr);
-        gap: 48px;
-        align-items: center;
-        padding: 32px 0 50px;
-        border-bottom: 1px solid var(--border-color-subtle);
-      }
-
-      .featured-kicker {
-        margin: 0 0 10px;
-        color: #6b6f75;
-        font-size: 12px;
-        letter-spacing: 4px;
-        line-height: 1.2;
-        text-transform: uppercase;
-      }
-
-      .featured-title {
-        margin: 0;
-        font-family: var(--font-family-serif);
-        font-size: 32px;
-        font-weight: 400;
-        line-height: 1.15;
-      }
-
-      .featured-summary {
-        max-width: 650px;
-        margin: 13px 0 16px;
-        color: var(--color-base-subtle);
-        font-size: 16px;
-        line-height: 1.55;
-      }
-
-      .featured-lines {
-        display: grid;
-        gap: 8px;
-        width: min(570px, 100%);
-        margin: 0 0 24px;
-      }
-
-      .featured-lines span {
-        display: block;
-        height: 8px;
-        border-radius: 1px;
-        background: #c8ccd1;
-      }
-
-      .featured-lines span:nth-child(1) {
-        width: 100%;
-      }
-
-      .featured-lines span:nth-child(2) {
-        width: 94%;
-      }
-
-      .featured-lines span:nth-child(3) {
-        width: 73%;
-      }
-
-      .featured-link {
-        display: inline-flex;
-        align-items: center;
-        min-height: 34px;
-        padding: 0 16px;
-        background: var(--color-link);
-        color: #fff;
-        font-size: 13px;
-        font-weight: 700;
-        text-decoration: none;
-      }
-
-      .featured-link:hover {
-        background: #2a4b8d;
-        text-decoration: none;
-      }
-
-      .featured-figure {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 190px;
-        border: 1px dashed var(--border-color-base);
-        background:
-          repeating-linear-gradient(
-            135deg,
-            #f7f8fa 0,
-            #f7f8fa 10px,
-            #edf0f4 10px,
-            #edf0f4 18px
-          );
-        color: var(--color-base-subtle);
-        font-size: 12px;
-      }
-
       .home-section {
         padding: 32px 0;
+        border-top: 1px solid var(--border-color-subtle);
       }
 
       .section-heading {
@@ -487,12 +365,18 @@ const initialLetter = alphabet[0] ?? '#';
       }
 
       @media (max-width: 820px) {
+        .home-header,
+        .home-hero {
+          display: block;
+        }
+
         .home-nav {
+          margin-top: 18px;
           flex-wrap: wrap;
         }
 
         .home-hero {
-          padding: 16px 0 22px;
+          padding-top: 32px;
         }
 
         h1 {
@@ -508,16 +392,6 @@ const initialLetter = alphabet[0] ?? '#';
           padding: 12px;
           border-left: 0;
           border-top: 1px solid var(--border-color-base);
-        }
-
-        .featured-article {
-          grid-template-columns: 1fr;
-          gap: 24px;
-          padding: 28px 0 36px;
-        }
-
-        .featured-figure {
-          min-height: 170px;
         }
 
         .topic-grid,
@@ -546,11 +420,10 @@ const initialLetter = alphabet[0] ?? '#';
     <main id="content" class="home-shell" tabindex="-1">
       <header class="home-header">
         <a href="/" class="home-brand" aria-label="Taopedia home">
-          <span class="brand-kicker">The Bittensor Knowledge Base · Est. 2025</span>
-          <span class="brand-rule" aria-hidden="true"></span>
-          <span class="brand-word"><span class="brand-letter-large">T</span>AOPEDI<span class="brand-letter-large">A</span></span>
-          <span class="brand-rule" aria-hidden="true"></span>
-          <span class="brand-subtitle">{pages.length} reference articles · TAO · subnets · staking · consensus</span>
+          <span>
+            <span class="brand-word"><span class="brand-letter-large">T</span>AOPEDI<span class="brand-letter-large">A</span></span>
+            <span class="brand-subtitle">Bittensor Knowledge Base</span>
+          </span>
         </a>
         <nav class="home-nav" aria-label="Primary">
           <a href="/wiki/special/allpages">Articles</a>
@@ -560,37 +433,23 @@ const initialLetter = alphabet[0] ?? '#';
 
       <section class="home-hero">
         <div>
+          <h1>Bittensor concepts, organized.</h1>
+          <p class="home-intro">Short reference pages for builders, validators, miners, and TAO holders.</p>
           <form class="home-search" action="/search" method="get">
             <svg class="home-search-icon" viewBox="0 0 20 20" aria-hidden="true">
               <path d="M8.5 14.5a6 6 0 1 1 4.24-1.76l3.26 3.26-1.41 1.41-3.26-3.26A5.97 5.97 0 0 1 8.5 14.5Zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" fill="currentColor" />
             </svg>
-            <input type="search" name="q" placeholder={`Search ${pages.length} articles...`} aria-label="Search Taopedia" autocomplete="off" />
+            <input type="search" name="q" placeholder="Search Taopedia" aria-label="Search Taopedia" autocomplete="off" />
             <button type="submit">Search</button>
           </form>
           <div class="search-suggestions" aria-label="Suggested searches">
-            <span>Try</span>
-            <a href="/wiki/dynamic_tao">Dynamic TAO</a>
+            <span>{pages.length} articles</span>
+            <a href="/wiki/wallets">wallets</a>
+            <a href="/wiki/category/Staking">staking</a>
             <a href="/wiki/yuma_consensus">Yuma Consensus</a>
-            <a href="/wiki/wallets_coldkey_hotkey">coldkey vs hotkey</a>
+            <a href="/wiki/dynamic_tao">Dynamic TAO</a>
           </div>
         </div>
-      </section>
-
-      <section class="featured-article" aria-labelledby="featured-article-title">
-        <div>
-          <p class="featured-kicker">{featuredKicker}</p>
-          <h1 id="featured-article-title" class="featured-title">{featuredArticle?.data.title ?? 'Featured Article'}</h1>
-          <p class="featured-summary">
-            {featuredArticle?.data.summary ?? 'A selected Taopedia reference article for the Bittensor knowledge base.'}
-          </p>
-          <div class="featured-lines" aria-hidden="true">
-            <span></span>
-            <span></span>
-            <span></span>
-          </div>
-          {featuredArticleSlug && <a class="featured-link" href={`/wiki/${featuredArticleSlug}`}>Read article →</a>}
-        </div>
-        <div class="featured-figure" aria-label="Diagram placeholder">diagram / figure</div>
       </section>
 
       <section class="home-section">
