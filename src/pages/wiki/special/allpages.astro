@@ -35,7 +35,7 @@ const groupedArticles = [
   ...topicFilters.map(([topic, topicPages]) => ({
     topic,
     pages: sortPagesByTitle(topicPages),
-    categoryHref: `/wiki/category/${topic.replace(/ /g, '_')}`,
+    categoryHref: `/wiki/category/${topic.replace(/ /g, '_')}/`,
   })),
   ...(otherPages.length > 0 ? [{ topic: 'Other topics', pages: otherPages, categoryHref: null }] : []),
 ];

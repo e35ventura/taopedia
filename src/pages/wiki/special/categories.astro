@@ -29,7 +29,7 @@ const sortedCategories = Object.entries(categoryIndex)
         <ul>
           {sortedCategories.map(([categoryName, categoryPages]) => (
             <li>
-              <a href={`/wiki/category/${categoryName.replace(/ /g, '_')}`}>
+              <a href={`/wiki/category/${categoryName.replace(/ /g, '_')}/`}>
                 {categoryName}
               </a>
               <span class="category-count">
