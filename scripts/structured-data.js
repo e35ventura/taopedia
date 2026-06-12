@@ -5,9 +5,10 @@
 //
 // Every page advertises the WebSite entity plus a SearchAction so search engines
 // can offer a sitelinks search box that targets /search. Article pages also
-// describe the Article itself and a Home -> article BreadcrumbList. URLs are
-// passed in already resolved (canonical/image), matching the canonical <link> in
-// Seo.astro, so this function never has to re-derive origins or trailing slashes.
+// describe the Article itself, a Home -> article BreadcrumbList, and a DefinedTerm
+// in the site's glossary (each Taopedia article defines a Bittensor term). URLs
+// are passed in already resolved (canonical/image), matching the canonical <link>
+// in Seo.astro, so this function never has to re-derive origins or trailing slashes.
 
 const SITE_NAME = 'Taopedia';
 
@@ -75,6 +76,29 @@ export function buildStructuredData({
         ...(title ? [{ '@type': 'ListItem', position: 2, name: title, item: canonicalUrl }] : []),
       ],
     });
+
+    // Most articles define a Bittensor term, so describe them as a Schema.org
+    // DefinedTerm in the site's glossary (a DefinedTermSet) so search engines
+    // recognize the page as a term definition. The numbered subnet pages
+    // (/wiki/subnet_<n>/, e.g. subnet_92) are on-chain identity profiles rather
+    // than term definitions, so they are excluded; concept pages like
+    // subnet_creator keep the markup. name is required, so a title must exist.
+    const slug = canonicalUrl.replace(/^.*\/wiki\//, '').replace(/\/$/, '');
+    if (title && !/^subnet_\d/.test(slug)) {
+      graph.push({
+        '@type': 'DefinedTerm',
+        '@id': `${canonicalUrl}#definedterm`,
+        name: title,
+        ...(description ? { description } : {}),
+        url: canonicalUrl,
+        inDefinedTermSet: {
+          '@type': 'DefinedTermSet',
+          '@id': `${root}#glossary`,
+          name: `${siteName} Glossary`,
+          url: root,
+        },
+      });
+    }
   }
 
   return { '@context': 'https://schema.org', '@graph': graph };

@@ -26,6 +26,11 @@ assert.equal(
   false,
   'website pages must not emit an Article node',
 );
+assert.equal(
+  home['@graph'].some((node) => node['@type'] === 'DefinedTerm'),
+  false,
+  'website pages must not emit a DefinedTerm node',
+);
 
 // Article pages: add Article + BreadcrumbList alongside the WebSite node.
 const article = buildStructuredData({
@@ -64,6 +69,60 @@ assert.equal(articleNoDatesNode.author?.['@type'], 'Organization', 'author must 
 assert.ok(breadcrumb, 'article pages must include a BreadcrumbList');
 assert.equal(breadcrumb.itemListElement.length, 2, 'breadcrumb must list Home and the article');
 assert.equal(breadcrumb.itemListElement[1].item, 'https://taopedia.org/wiki/tao/', 'breadcrumb leaf must be canonical');
+
+// Article pages also describe the page as a glossary DefinedTerm (the term is the
+// title, the definition is the description), belonging to the site DefinedTermSet.
+const definedTerm = article['@graph'].find((node) => node['@type'] === 'DefinedTerm');
+assert.ok(definedTerm, 'article pages must include a DefinedTerm node');
+assert.equal(definedTerm.name, 'TAO', 'DefinedTerm name must be the term (page title)');
+assert.equal(definedTerm.description, 'The native token.', 'DefinedTerm must carry the definition (description)');
+assert.equal(definedTerm.url, 'https://taopedia.org/wiki/tao/', 'DefinedTerm url must be canonical');
+assert.equal(definedTerm.inDefinedTermSet?.['@type'], 'DefinedTermSet', 'DefinedTerm must belong to a DefinedTermSet');
+assert.equal(definedTerm.inDefinedTermSet?.name, 'Taopedia Glossary', 'the term set must be the Taopedia Glossary');
+assert.equal(definedTerm.inDefinedTermSet?.url, 'https://taopedia.org/', 'the term set url must be the site root');
+
+// A DefinedTerm requires a name, so it is omitted (not emitted nameless) when no title exists.
+const definedNoTitle = buildStructuredData({
+  siteUrl,
+  canonicalUrl: 'https://taopedia.org/wiki/x/',
+  type: 'article',
+});
+assert.equal(
+  definedNoTitle['@graph'].some((node) => node['@type'] === 'DefinedTerm'),
+  false,
+  'DefinedTerm must be omitted when no title is available',
+);
+
+// Numbered subnet pages (e.g. /wiki/subnet_92/) are on-chain identity profiles,
+// not term definitions, so they emit an Article but NOT a DefinedTerm. Concept
+// pages such as subnet_creator are unaffected (their slug has no leading digit).
+const subnetProfile = buildStructuredData({
+  siteUrl,
+  canonicalUrl: 'https://taopedia.org/wiki/subnet_92/',
+  title: 'Subnet 92: wgmi',
+  description: 'A Bittensor subnet.',
+  type: 'article',
+});
+assert.ok(
+  subnetProfile['@graph'].some((node) => node['@type'] === 'Article'),
+  'numbered-subnet pages still emit an Article node',
+);
+assert.equal(
+  subnetProfile['@graph'].some((node) => node['@type'] === 'DefinedTerm'),
+  false,
+  'numbered-subnet identity pages must not emit a DefinedTerm (profiles, not definitions)',
+);
+const subnetConceptDefined = buildStructuredData({
+  siteUrl,
+  canonicalUrl: 'https://taopedia.org/wiki/subnet_creator/',
+  title: 'Subnet Creator',
+  description: 'Defines a subnet.',
+  type: 'article',
+});
+assert.ok(
+  subnetConceptDefined['@graph'].some((node) => node['@type'] === 'DefinedTerm'),
+  'subnet concept pages (subnet_creator) must keep the DefinedTerm',
+);
 
 // Serialization must neutralize characters that could break out of <script>.
 const serialized = serializeStructuredData(
