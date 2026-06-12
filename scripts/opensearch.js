@@ -29,6 +29,7 @@ export function buildOpenSearchDescription({
 }) {
   const base = trimTrailingSlash(origin || 'https://taopedia.org');
   const searchTemplate = `${base}/search/?q={searchTerms}`;
+  const suggestionsTemplate = `${base}/suggest?q={searchTerms}`;
 
   return [
     '<?xml version="1.0" encoding="UTF-8"?>',
@@ -37,6 +38,7 @@ export function buildOpenSearchDescription({
     `  <Description>${escapeXml(description)}</Description>`,
     `  <InputEncoding>UTF-8</InputEncoding>`,
     `  <Url type="text/html" method="get" template="${escapeXml(searchTemplate)}" />`,
+    `  <Url type="application/x-suggestions+json" method="get" template="${escapeXml(suggestionsTemplate)}" />`,
     '</OpenSearchDescription>',
     '',
   ].join('\n');

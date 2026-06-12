@@ -15,6 +15,11 @@ assert.match(
   /<Url type="text\/html" method="get" template="https:\/\/taopedia\.org\/search\/\?q=\{searchTerms\}" \/>/,
   'OpenSearch URL template must target the canonical /search/ route',
 );
+assert.match(
+  body,
+  /<Url type="application\/x-suggestions\+json" method="get" template="https:\/\/taopedia\.org\/suggest\?q=\{searchTerms\}" \/>/,
+  'OpenSearch description must advertise the /suggest suggestions endpoint',
+);
 
 const normalizedBody = buildOpenSearchDescription({ origin: 'https://taopedia.org/' });
 assert.match(

@@ -19,6 +19,11 @@
   to = "/.netlify/functions/warm"
   status = 200
 
+[[redirects]]
+  from = "/suggest"
+  to = "/.netlify/functions/suggest"
+  status = 200
+
 [build.environment]
   NODE_VERSION = "22"
   TAOPEDIA_ARTICLES_REF = "main"
