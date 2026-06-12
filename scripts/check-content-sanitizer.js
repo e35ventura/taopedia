@@ -3,6 +3,8 @@ import { validateArticleContent } from './sync-articles.js';
 
 const TAB = String.fromCharCode(0x09);
 const ZERO_WIDTH_SPACE = String.fromCharCode(0x200b);
+const SOFT_HYPHEN = String.fromCharCode(0x00ad);
+const WORD_JOINER = String.fromCharCode(0x2060);
 
 function rejects(content, label) {
   assert.throws(() => validateArticleContent('fixture', content), /Unsafe article content/, label);
@@ -22,6 +24,7 @@ rejects('See [x](vbscript:msgbox(1)).', 'plain vbscript:');
 rejects('See [x](data:text/html;base64,PHNjcmlwdD4=).', 'plain data:text/html');
 rejects('See [x](data:image/svg+xml,<svg></svg>).', 'plain svg data uri');
 rejects('See [x](data:image/svg+xml;base64,PHN2ZyBvbmxvYWQ9YWxlcnQoMSk+).', 'base64 svg data uri (script hidden in blob)');
+rejects('See [x](data:application/xhtml+xml;base64,PHNjcmlwdD4=).', 'base64 xhtml data uri (script hidden in blob)');
 
 // MDX expression braces execute at build time in article bodies. They are only
 // allowed when escaped as literal prose or inside Markdown code examples.
@@ -35,9 +38,12 @@ rejects('See [x](java&#x73;cript:alert(1)).', 'hex-entity javascript:');
 rejects('See [x](javascript&colon;alert(1)).', 'named-colon javascript:');
 rejects(`See [x](java${TAB}script:alert(1)).`, 'tab-split javascript:');
 rejects(`See [x](java${ZERO_WIDTH_SPACE}script:alert(1)).`, 'zero-width javascript:');
+rejects(`See [x](java${SOFT_HYPHEN}script:alert(1)).`, 'soft-hyphen javascript:');
+rejects(`See [x](java${WORD_JOINER}script:alert(1)).`, 'word-joiner javascript:');
 rejects('See [x](&#100;ata:text/html,evil).', 'entity data:text/html');
 rejects('See [x](vb&#115;cript:msgbox(1)).', 'decimal-entity vbscript:');
 rejects('See [x](&#100;ata:image/svg+xml;base64,PHN2Zz4=).', 'entity-obfuscated svg data uri');
+rejects('See [x](&#100;ata:application/xhtml+xml;base64,PHNjcmlwdD4=).', 'entity-obfuscated xhtml data uri');
 
 // Inline event handlers are blocked regardless of the attribute delimiter — a
 // slash, or a quote abutting the handler — not just a leading space.

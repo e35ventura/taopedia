@@ -10,6 +10,8 @@
   Env vars:
     - WARM_SECRET (required): shared secret for auth
     - SITE_URL (optional): origin to warm, default https://taopedia.org
+    - WARM_RATE_LIMIT_MAX (optional): max requests per IP per window, default 12
+    - WARM_RATE_LIMIT_WINDOW_MS (optional): rate-limit window in ms, default 60000
 
   Behavior:
     - Fetches `${SITE_URL}/wiki/${slug}/` to trigger DPR render for each slug.
@@ -21,6 +23,16 @@ import { createHash, timingSafeEqual } from 'node:crypto';
 // Promise.all batch up to the Netlify function's execution budget. A request that
 // exceeds this is aborted and recorded as a failed slug; the rest still return.
 const WARM_FETCH_TIMEOUT_MS = 8000;
+const DEFAULT_RATE_LIMIT_MAX = 12;
+const DEFAULT_RATE_LIMIT_WINDOW_MS = 60_000;
+// Hard ceiling on distinct client buckets tracked at once, so the store cannot grow
+// without bound when the spoofable X-Forwarded-For fallback is used (i.e. the trusted
+// x-nf-client-connection-ip header is absent). Override with WARM_RATE_LIMIT_MAX_IPS.
+const DEFAULT_RATE_LIMIT_MAX_IPS = 5000;
+
+// Per-instance fixed-window counter keyed by client IP. Limits blast radius if WARM_SECRET
+// leaks or an attacker hammers the endpoint with bad credentials.
+const rateLimitBuckets = new Map();
 
 function secretDigest(value) {
   return createHash('sha256').update(String(value ?? ''), 'utf8').digest();
@@ -49,10 +61,96 @@ function normalizeSiteOrigin(value) {
   }
 }
 
+function parsePositiveInt(value, fallback) {
+  const parsed = Number.parseInt(String(value ?? ''), 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function getRateLimitConfig() {
+  return {
+    max: parsePositiveInt(process.env.WARM_RATE_LIMIT_MAX, DEFAULT_RATE_LIMIT_MAX),
+    windowMs: parsePositiveInt(process.env.WARM_RATE_LIMIT_WINDOW_MS, DEFAULT_RATE_LIMIT_WINDOW_MS),
+    maxIps: parsePositiveInt(process.env.WARM_RATE_LIMIT_MAX_IPS, DEFAULT_RATE_LIMIT_MAX_IPS),
+  };
+}
+
+function getClientIp(event) {
+  // Prefer Netlify's platform-set connection IP, which reflects the real TCP peer
+  // and cannot be spoofed by a client header. Only fall back to the client-supplied
+  // X-Forwarded-For chain (first hop) when it is absent, so an attacker cannot
+  // sidestep their own bucket by forging XFF.
+  const connectionIp = getHeader(event.headers, 'x-nf-client-connection-ip');
+  if (connectionIp) return String(connectionIp).trim();
+  const forwarded = getHeader(event.headers, 'x-forwarded-for');
+  if (forwarded) {
+    const first = String(forwarded).split(',')[0].trim();
+    if (first) return first;
+  }
+  const clientIp = getHeader(event.headers, 'client-ip');
+  if (clientIp) return String(clientIp).trim();
+  return 'unknown';
+}
+
+// Keep the bucket store hard-bounded at `maxIps` entries so a flood of distinct,
+// client-controlled IP keys cannot grow memory without bound. Reclaim expired
+// buckets first (they carry no live state); if still over the ceiling, evict the
+// oldest-inserted buckets (Map preserves insertion order). Eviction only grants
+// that IP a fresh window — the WARM_SECRET gate remains the primary control.
+function enforceBucketCap(now, maxIps) {
+  if (rateLimitBuckets.size <= maxIps) return;
+  for (const [key, bucket] of rateLimitBuckets) {
+    if (now >= bucket.resetAt) rateLimitBuckets.delete(key);
+  }
+  for (const key of rateLimitBuckets.keys()) {
+    if (rateLimitBuckets.size <= maxIps) break;
+    rateLimitBuckets.delete(key);
+  }
+}
+
+function checkRateLimit(ip) {
+  const { max, windowMs, maxIps } = getRateLimitConfig();
+  const now = Date.now();
+
+  let bucket = rateLimitBuckets.get(ip);
+  if (!bucket || now >= bucket.resetAt) {
+    bucket = { count: 0, resetAt: now + windowMs };
+    // Re-insert so a refreshed key moves to the end of the Map's insertion order,
+    // making eviction least-recently-active first.
+    rateLimitBuckets.delete(ip);
+    rateLimitBuckets.set(ip, bucket);
+    enforceBucketCap(now, maxIps);
+  }
+
+  bucket.count += 1;
+  const allowed = bucket.count <= max;
+  const retryAfterSec = allowed ? 0 : Math.ceil((bucket.resetAt - now) / 1000);
+  return { allowed, retryAfterSec };
+}
+
+export function __resetRateLimitsForTests() {
+  rateLimitBuckets.clear();
+}
+
+export function __rateLimitStoreSizeForTests() {
+  return rateLimitBuckets.size;
+}
+
 export const handler = async (event) => {
   try {
     if (event.httpMethod !== 'POST') {
       return { statusCode: 405, body: 'Method Not Allowed' };
+    }
+
+    const rateLimit = checkRateLimit(getClientIp(event));
+    if (!rateLimit.allowed) {
+      return {
+        statusCode: 429,
+        headers: {
+          'content-type': 'text/plain',
+          'retry-after': String(rateLimit.retryAfterSec),
+        },
+        body: 'Too Many Requests',
+      };
     }
 
     const secret = process.env.WARM_SECRET;
