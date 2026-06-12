@@ -24,6 +24,7 @@ rejects('See [x](vbscript:msgbox(1)).', 'plain vbscript:');
 rejects('See [x](data:text/html;base64,PHNjcmlwdD4=).', 'plain data:text/html');
 rejects('See [x](data:image/svg+xml,<svg></svg>).', 'plain svg data uri');
 rejects('See [x](data:image/svg+xml;base64,PHN2ZyBvbmxvYWQ9YWxlcnQoMSk+).', 'base64 svg data uri (script hidden in blob)');
+rejects('See [x](data:application/xhtml+xml;base64,PHNjcmlwdD4=).', 'base64 xhtml data uri (script hidden in blob)');
 
 // MDX expression braces execute at build time in article bodies. They are only
 // allowed when escaped as literal prose or inside Markdown code examples.
@@ -42,6 +43,7 @@ rejects(`See [x](java${WORD_JOINER}script:alert(1)).`, 'word-joiner javascript:'
 rejects('See [x](&#100;ata:text/html,evil).', 'entity data:text/html');
 rejects('See [x](vb&#115;cript:msgbox(1)).', 'decimal-entity vbscript:');
 rejects('See [x](&#100;ata:image/svg+xml;base64,PHN2Zz4=).', 'entity-obfuscated svg data uri');
+rejects('See [x](&#100;ata:application/xhtml+xml;base64,PHNjcmlwdD4=).', 'entity-obfuscated xhtml data uri');
 
 // Inline event handlers are blocked regardless of the attribute delimiter — a
 // slash, or a quote abutting the handler — not just a leading space.
