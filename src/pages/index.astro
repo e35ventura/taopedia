@@ -426,8 +426,8 @@ const initialLetter = alphabet[0] ?? '#';
           </span>
         </a>
         <nav class="home-nav" aria-label="Primary">
-          <a href="/wiki/special/allpages">Articles</a>
-          <a href="/wiki/special/categories">Topics</a>
+          <a href="/wiki/special/allpages/">Articles</a>
+          <a href="/wiki/special/categories/">Topics</a>
         </nav>
       </header>
 
@@ -455,7 +455,7 @@ const initialLetter = alphabet[0] ?? '#';
       <section class="home-section">
         <div class="section-heading">
           <h2>Start With A Topic</h2>
-          <a href="/wiki/special/categories">All topics</a>
+          <a href="/wiki/special/categories/">All topics</a>
         </div>
         <div class="topic-grid">
           {topicCategories.map(([category, categoryPages]) => (
@@ -470,7 +470,7 @@ const initialLetter = alphabet[0] ?? '#';
       <section class="home-section">
         <div class="section-heading">
           <h2>Core Articles</h2>
-          <a href="/wiki/special/allpages">All articles</a>
+          <a href="/wiki/special/allpages/">All articles</a>
         </div>
         <div class="article-grid">
           {featuredPages.map((page) => (
@@ -485,7 +485,7 @@ const initialLetter = alphabet[0] ?? '#';
       <section class="home-section" id="article-index">
         <div class="section-heading">
           <h2 id="article-index-title">Articles Beginning With '{initialLetter}'</h2>
-          <a href="/wiki/special/allpages">Open directory</a>
+          <a href="/wiki/special/allpages/">Open directory</a>
         </div>
         <div class="term-panel">
           {groupedPages.map(([letter, letterPages]) => (
