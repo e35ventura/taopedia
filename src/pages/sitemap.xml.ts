@@ -1,8 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
-
-const getPageSlug = (page: { id: string }) =>
-  page.id.replace(/\/index\.(md|mdx)$/, '').replace(/\/index$/, '').replace(/\.(md|mdx)$/, '');
+import { getPageSlug, lastmodForSlug } from '../lib/article-history';
 
 const escapeXml = (value: string) =>
   value.replace(/[&<>"']/g, (char) => {
@@ -19,21 +17,6 @@ const escapeXml = (value: string) =>
         return '&apos;';
     }
   });
-
-// The build generates per-article revision history at public/history/<slug>.json
-// (scripts/generate-history.js, ordered newest-first), so the newest commit date
-// is each article's last-modified time. Reuse it for <lastmod>; the same glob is
-// used by src/pages/wiki/[...slug]/history.astro.
-const historyModules = import.meta.glob('../../public/history/**/*.json', { eager: true }) as Record<
-  string,
-  { default?: { history?: Array<{ date?: string }> } }
->;
-
-const lastmodForSlug = (slug: string): string => {
-  const mod = historyModules[`../../public/history/${slug}.json`];
-  const date = mod?.default?.history?.[0]?.date;
-  return typeof date === 'string' ? date : '';
-};
 
 export const GET: APIRoute = async ({ site }) => {
   const origin = (site ?? new URL('https://taopedia.org')).origin;
