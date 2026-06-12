@@ -28,6 +28,7 @@ const unsafeContentPatterns = [
   { pattern: /\bvbscript\s*:/i, reason: 'vbscript: URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*image\/svg\+xml/i, reason: 'SVG data URLs are not allowed in article content' },
+  { pattern: /\bdata\s*:\s*application\/xhtml\+xml/i, reason: 'XHTML data URLs are not allowed in article content' },
   { pattern: /\bset:html\b/i, reason: 'raw HTML injection directives are not allowed in article content' },
   { pattern: /\bclient:[a-z-]+\b/i, reason: 'client directives are not allowed in article content' },
 ];
@@ -41,6 +42,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /vbscript\s*:/i, reason: 'vbscript: URLs are not allowed in article content' },
   { pattern: /data\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
   { pattern: /data\s*:\s*image\/svg\+xml/i, reason: 'SVG data URLs are not allowed in article content' },
+  { pattern: /data\s*:\s*application\/xhtml\+xml/i, reason: 'XHTML data URLs are not allowed in article content' },
 ];
 
 // The whitespace-anchored handler pattern above misses handlers that HTML lets
@@ -149,13 +151,20 @@ function fromCodePoint(codePoint, fallback) {
 // (including tab/newline/CR), DEL, zero-width characters and the BOM — while
 // preserving the ordinary space (U+0020) so plain prose such as "Java Script:"
 // is never collapsed into a false positive.
+// Unicode "default ignorable" format characters (zero-width spaces/joiners, soft
+// hyphen U+00AD, word joiner U+2060, bidi marks, BOM, ...) are invisible and can be
+// used to obfuscate a dangerous scheme: "java" + U+00AD + "script:" collapses to
+// "javascript:" once the ignorable character is dropped. Strip the whole class, not
+// a hand-picked subset of zero-width chars, so the scheme scan cannot be evaded by
+// an ignorable character the original list happened to miss.
+const DEFAULT_IGNORABLE_PATTERN = /\p{Default_Ignorable_Code_Point}/u;
+
 function stripUrlObfuscationChars(value) {
   let result = '';
   for (const char of value) {
     const code = char.codePointAt(0);
     const isControl = code <= 0x1f || code === 0x7f;
-    const isZeroWidth = (code >= 0x200b && code <= 0x200d) || code === 0xfeff;
-    if (!isControl && !isZeroWidth) {
+    if (!isControl && !DEFAULT_IGNORABLE_PATTERN.test(char)) {
       result += char;
     }
   }
