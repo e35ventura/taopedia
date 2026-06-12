@@ -1,0 +1,91 @@
+---
+import WikiLayout from '../../../layouts/WikiLayout.astro';
+import { getCollection } from 'astro:content';
+import { getPageSlug, historyForSlug } from '../../../lib/article-history';
+
+const pages = await getCollection('pages');
+
+// Aggregate the content collection with the build-time revision history (the
+// same source the sitemap <lastmod> and the article footer use) into a content
+// overview.
+let totalWords = 0;
+let totalRevisions = 0;
+let newestDate = '';
+const topicCounts = new Map<string, number>();
+
+for (const page of pages) {
+  totalWords += (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
+  const history = historyForSlug(getPageSlug(page));
+  totalRevisions += history.length;
+  const latest = history[0]?.date ?? '';
+  if (latest > newestDate) newestDate = latest;
+  for (const topic of page.data.categories ?? []) {
+    topicCounts.set(topic, (topicCounts.get(topic) ?? 0) + 1);
+  }
+}
+
+const totalArticles = pages.length;
+const totalTopics = topicCounts.size;
+const averageWords = totalArticles ? Math.round(totalWords / totalArticles) : 0;
+const largestTopic = [...topicCounts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0];
+const newestLabel = newestDate
+  ? new Date(newestDate).toLocaleDateString('en-US', { timeZone: 'UTC', year: 'numeric', month: 'long', day: 'numeric' })
+  : '';
+
+const stats: Array<{ label: string; value: string }> = [
+  { label: 'Articles', value: totalArticles.toLocaleString('en-US') },
+  { label: 'Topics', value: totalTopics.toLocaleString('en-US') },
+  { label: 'Total revisions', value: totalRevisions.toLocaleString('en-US') },
+  { label: 'Total words', value: totalWords.toLocaleString('en-US') },
+  { label: 'Average words per article', value: averageWords.toLocaleString('en-US') },
+];
+if (largestTopic) {
+  stats.push({ label: 'Largest topic', value: `${largestTopic[0]} (${largestTopic[1].toLocaleString('en-US')})` });
+}
+---
+
+<WikiLayout title="Statistics" description="Content statistics for the Taopedia Bittensor knowledge base.">
+  <div class="mw-body-content">
+    <h1 class="firstHeading">Statistics</h1>
+
+    <div class="mw-parser-output">
+      <p>An overview of the Taopedia Bittensor knowledge base.</p>
+
+      <dl class="mw-statistics">
+        {stats.map((stat) => (
+          <div class="mw-statistics-row">
+            <dt>{stat.label}</dt>
+            <dd>{stat.value}</dd>
+          </div>
+        ))}
+        {newestLabel && (
+          <div class="mw-statistics-row">
+            <dt>Most recently updated</dt>
+            <dd><time datetime={newestDate}>{newestLabel}</time> (UTC)</dd>
+          </div>
+        )}
+      </dl>
+    </div>
+  </div>
+</WikiLayout>
+
+<style>
+  .mw-statistics {
+    margin: 16px 0;
+  }
+  .mw-statistics-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color-subtle);
+  }
+  .mw-statistics dt {
+    color: var(--color-base-subtle);
+  }
+  .mw-statistics dd {
+    margin: 0;
+    font-weight: 600;
+    text-align: right;
+  }
+</style>
