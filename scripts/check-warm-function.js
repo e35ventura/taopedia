@@ -1,8 +1,11 @@
 import assert from 'node:assert/strict';
-import { handler } from '../netlify/functions/warm.js';
+import { __resetRateLimitsForTests, __rateLimitStoreSizeForTests, handler } from '../netlify/functions/warm.js';
 
 const originalSecret = process.env.WARM_SECRET;
 const originalSiteUrl = process.env.SITE_URL;
+const originalRateLimitMax = process.env.WARM_RATE_LIMIT_MAX;
+const originalRateLimitWindow = process.env.WARM_RATE_LIMIT_WINDOW_MS;
+const originalRateLimitMaxIps = process.env.WARM_RATE_LIMIT_MAX_IPS;
 const originalFetch = globalThis.fetch;
 
 function eventFor(slugs) {
@@ -30,8 +33,10 @@ function startWarm(slugs, fetchImpl, siteUrl = 'https://example.test') {
 }
 
 try {
+  __resetRateLimitsForTests();
   process.env.WARM_SECRET = 'secret';
   process.env.SITE_URL = 'https://example.test';
+  process.env.WARM_RATE_LIMIT_MAX = '1000';
   globalThis.fetch = async () => {
     throw new Error('fetch should not be called for unauthorized requests');
   };
@@ -211,7 +216,86 @@ try {
   });
   assert.equal(response.statusCode, 400);
   assert.equal(response.body, 'Invalid JSON body');
+
+  __resetRateLimitsForTests();
+  process.env.WARM_RATE_LIMIT_MAX = '2';
+  process.env.WARM_RATE_LIMIT_WINDOW_MS = '60000';
+  globalThis.fetch = async () => ({ status: 200, ok: true });
+
+  const rateLimitedEvent = {
+    httpMethod: 'POST',
+    headers: {
+      'x-warm-secret': 'secret',
+      'x-forwarded-for': '203.0.113.10',
+    },
+    body: JSON.stringify({ slugs: ['taopedia'] }),
+  };
+
+  response = await handler(rateLimitedEvent);
+  assert.equal(response.statusCode, 200, 'first request within rate limit should succeed');
+
+  response = await handler(rateLimitedEvent);
+  assert.equal(response.statusCode, 200, 'second request within rate limit should succeed');
+
+  response = await handler(rateLimitedEvent);
+  assert.equal(response.statusCode, 429);
+  assert.equal(response.body, 'Too Many Requests');
+  assert.equal(response.headers['retry-after'], '60');
+
+  response = await handler({
+    httpMethod: 'POST',
+    headers: {
+      'x-warm-secret': 'wrong',
+      'x-forwarded-for': '203.0.113.10',
+    },
+    body: JSON.stringify({ slugs: ['taopedia'] }),
+  });
+  assert.equal(response.statusCode, 429, 'rate limit should apply before auth checks');
+
+  response = await handler({
+    httpMethod: 'POST',
+    headers: {
+      'x-warm-secret': 'secret',
+      'x-forwarded-for': '203.0.113.11',
+    },
+    body: JSON.stringify({ slugs: ['taopedia'] }),
+  });
+  assert.equal(response.statusCode, 200, 'rate limits should be tracked per client IP');
+
+  // The platform-set connection IP takes precedence over a client-supplied
+  // X-Forwarded-For, so forging XFF cannot let an attacker escape their bucket.
+  __resetRateLimitsForTests();
+  const nfHeaders = (xff) => ({
+    'x-warm-secret': 'secret',
+    'x-nf-client-connection-ip': '198.51.100.7',
+    'x-forwarded-for': xff,
+  });
+  response = await handler({ httpMethod: 'POST', headers: nfHeaders('203.0.113.20'), body: JSON.stringify({ slugs: ['taopedia'] }) });
+  assert.equal(response.statusCode, 200, 'first request from the connection IP succeeds');
+  response = await handler({ httpMethod: 'POST', headers: nfHeaders('203.0.113.21'), body: JSON.stringify({ slugs: ['taopedia'] }) });
+  assert.equal(response.statusCode, 200, 'second request, same connection IP but different XFF, still within limit');
+  response = await handler({ httpMethod: 'POST', headers: nfHeaders('203.0.113.22'), body: JSON.stringify({ slugs: ['taopedia'] }) });
+  assert.equal(response.statusCode, 429, 'forging X-Forwarded-For cannot escape the connection-IP rate-limit bucket');
+
+  // The bucket store must stay hard-bounded under a flood of distinct, unauthenticated,
+  // client-controlled IPs (spoofed X-Forwarded-For, no trusted Netlify header) — it
+  // cannot grow without bound. With the cap at 50, 500 distinct IPs must not exceed it.
+  __resetRateLimitsForTests();
+  process.env.WARM_RATE_LIMIT_MAX_IPS = '50';
+  process.env.WARM_RATE_LIMIT_MAX = '1';
+  for (let i = 0; i < 500; i += 1) {
+    await handler({
+      httpMethod: 'POST',
+      headers: { 'x-forwarded-for': `198.51.100.${i}` },
+      body: JSON.stringify({ slugs: ['taopedia'] }),
+    });
+  }
+  assert.ok(
+    __rateLimitStoreSizeForTests() <= 50,
+    `rate-limit store must stay bounded under many distinct unauthenticated IPs (got ${__rateLimitStoreSizeForTests()})`,
+  );
 } finally {
+  __resetRateLimitsForTests();
   if (originalSecret === undefined) {
     delete process.env.WARM_SECRET;
   } else {
@@ -221,6 +305,21 @@ try {
     delete process.env.SITE_URL;
   } else {
     process.env.SITE_URL = originalSiteUrl;
+  }
+  if (originalRateLimitMax === undefined) {
+    delete process.env.WARM_RATE_LIMIT_MAX;
+  } else {
+    process.env.WARM_RATE_LIMIT_MAX = originalRateLimitMax;
+  }
+  if (originalRateLimitWindow === undefined) {
+    delete process.env.WARM_RATE_LIMIT_WINDOW_MS;
+  } else {
+    process.env.WARM_RATE_LIMIT_WINDOW_MS = originalRateLimitWindow;
+  }
+  if (originalRateLimitMaxIps === undefined) {
+    delete process.env.WARM_RATE_LIMIT_MAX_IPS;
+  } else {
+    process.env.WARM_RATE_LIMIT_MAX_IPS = originalRateLimitMaxIps;
   }
   globalThis.fetch = originalFetch;
 }
