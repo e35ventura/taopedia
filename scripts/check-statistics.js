@@ -11,8 +11,9 @@ assert.ok(fs.existsSync(statsFile), 'dist/wiki/special/statistics/index.html not
 const html = fs.readFileSync(statsFile, 'utf8');
 
 // Count the actual built article pages (catch-all route; exclude the
-// category/special hubs and each article's /history/ subpage) so the page's
-// "Articles" figure can be pinned to reality, not just asserted to be a number.
+// category/special hubs and each article's /history/ and /backlinks/ subpages)
+// so the page's "Articles" figure can be pinned to reality, not just asserted
+// to be a number.
 const countArticles = (dir) => {
   let n = 0;
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -22,7 +23,8 @@ const countArticles = (dir) => {
       const segs = path.relative(wikiDir, full).split(path.sep);
       if (segs.length < 2) continue;
       if (segs[0] === 'category' || segs[0] === 'special') continue;
-      if (segs[segs.length - 2] === 'history') continue;
+      const parent = segs[segs.length - 2];
+      if (parent === 'history' || parent === 'backlinks') continue;
       n += 1;
     }
   }
