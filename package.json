@@ -22,6 +22,7 @@
     "test:sync-article-paths": "node scripts/check-sync-article-paths.js",
     "test:sync-categories": "node scripts/check-sync-categories.js",
     "test:sync-json-assets": "node scripts/check-sync-json-assets.js",
+    "test:sync-frontmatter-images": "node scripts/check-sync-frontmatter-images.js",
     "test:article-image-assets": "node scripts/check-article-image-assets.js",
     "test:linkgraph-infobox": "node scripts/check-linkgraph-infobox-json.js",
     "test:wiki-link-resolver": "node scripts/check-wiki-link-resolver.js",

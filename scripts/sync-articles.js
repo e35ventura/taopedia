@@ -373,6 +373,21 @@ export function validateInfoboxJsonAsset(filePath, data) {
   });
 }
 
+const frontmatterImageFields = ['coverImage', 'infoboxImage', 'image'];
+
+export function validateFrontmatterImageFields(slug, data) {
+  if (!isPlainObject(data)) return;
+
+  for (const field of frontmatterImageFields) {
+    const value = data[field];
+    if (typeof value === 'string' && value.trim()) {
+      if (isUnsafeImageUrl(value) || hasLocalImagePathTraversal(value)) {
+        throw new Error(`Unsafe frontmatter image in "${slug}": ${field} URL is not allowed`);
+      }
+    }
+  }
+}
+
 function copyDir(src, dest) {
   fs.mkdirSync(dest, { recursive: true });
   for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
@@ -439,6 +454,7 @@ function main() {
     const raw = fs.readFileSync(sourceFile, 'utf8');
     validateArticleContent(slug, raw);
     const parsed = matter(raw);
+    validateFrontmatterImageFields(slug, parsed.data);
     if (!isPublishedArticle(parsed.data)) continue;
 
     const data = { ...parsed.data, categories: toCategories(parsed.data) };
