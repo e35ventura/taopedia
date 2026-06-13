@@ -14,13 +14,20 @@ export function isPassthroughImageUrl(value) {
   return PASSTHROUGH_IMAGE_URL_PATTERN.test(value);
 }
 
+// Mirror sync-articles' decodeForSchemeScan: strip C0/C1 controls, DEL, and the
+// full Default_Ignorable_Code_Point class (zero-width spaces/joiners, soft
+// hyphen U+00AD, word joiner U+2060, bidi marks, BOM, ...), not a hand-picked
+// subset -- a scheme like javascript: can be hidden behind any of these
+// (java\u00ADscript:, java\u2060script:, java\u0085script:) and a narrower
+// list can always be evaded by a character it happened to miss.
+const DEFAULT_IGNORABLE_PATTERN = /\p{Default_Ignorable_Code_Point}/u;
+
 function stripUrlObfuscationChars(value) {
   let result = '';
   for (const char of value) {
     const code = char.codePointAt(0);
-    const isControl = code <= 0x1f || code === 0x7f;
-    const isZeroWidth = (code >= 0x200b && code <= 0x200d) || code === 0xfeff;
-    if (!isControl && !isZeroWidth) {
+    const isControl = code <= 0x1f || code === 0x7f || (code >= 0x80 && code <= 0x9f);
+    if (!isControl && !DEFAULT_IGNORABLE_PATTERN.test(char)) {
       result += char;
     }
   }
