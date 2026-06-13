@@ -1,9 +1,6 @@
 name: Release test to main
 
 on:
-  schedule:
-    # 15:00 UTC is 9 AM Central Standard Time and 10 AM Central Daylight Time.
-    - cron: "0 15 * * 1-5"
   workflow_dispatch:
     inputs:
       dry_run:
@@ -39,35 +36,15 @@ jobs:
           ahead=$(git rev-list --count origin/main..origin/test)
           echo "main is behind test by $ahead commit(s)."
           echo "AHEAD=$ahead" >> "$GITHUB_ENV"
-          echo "TEST_SHA=$(git rev-parse origin/test)" >> "$GITHUB_ENV"
 
-      - name: No changes to promote
-        if: ${{ env.AHEAD == '0' }}
-        run: echo "::notice::main already matches test. Nothing to promote."
-
-      - name: Setup Node
-        if: ${{ env.AHEAD != '0' }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Install dependencies
-        if: ${{ env.AHEAD != '0' }}
-        run: npm ci
-
-      - name: Build production site
-        if: ${{ env.AHEAD != '0' }}
-        run: npm run build
-
-      - name: Promote test to main
-        if: ${{ env.AHEAD != '0' && github.event.inputs.dry_run != 'true' }}
+      - name: Promote main to test
+        if: ${{ !inputs.dry_run }}
         run: |
           git push origin refs/remotes/origin/test:refs/heads/main
-          echo "::notice::Promoted $AHEAD commit(s) from test to main at $TEST_SHA."
+          echo "::notice::Promoted $AHEAD commit(s) from test to main."
 
       - name: Dry run summary
-        if: ${{ env.AHEAD != '0' && github.event.inputs.dry_run == 'true' }}
+        if: ${{ inputs.dry_run }}
         run: |
-          echo "DRY RUN: would fast-forward main to $TEST_SHA"
+          echo "DRY RUN: would fast-forward main to $(git rev-parse origin/test)"
           git log --oneline origin/main..origin/test | head -50
