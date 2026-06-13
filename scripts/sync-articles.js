@@ -172,8 +172,8 @@ function stripUrlObfuscationChars(value) {
   return result;
 }
 
-function decodeForSchemeScan(content) {
-  const decoded = content
+function decodeEntityPass(content) {
+  return content
     .replace(/&#x([0-9a-f]+);?/gi, (match, hex) => fromCodePoint(Number.parseInt(hex, 16), match))
     .replace(/&#(\d+);?/g, (match, dec) => fromCodePoint(Number.parseInt(dec, 10), match))
     // Normalize the named HTML entities for characters a scheme or MIME type can hide
@@ -183,7 +183,17 @@ function decodeForSchemeScan(content) {
     .replace(/&colon;/gi, ':')
     .replace(/&sol;/gi, '/')
     .replace(/&plus;/gi, '+')
-    .replace(/&(?:tab|newline);/gi, '');
+    .replace(/&(?:tab|newline);/gi, '')
+    .replace(/&amp;/gi, '&');
+}
+
+function decodeForSchemeScan(content) {
+  let decoded = content;
+  let previous;
+  do {
+    previous = decoded;
+    decoded = decodeEntityPass(previous);
+  } while (decoded !== previous);
   return stripUrlObfuscationChars(decoded);
 }
 
@@ -293,11 +303,9 @@ export function validateArticleContent(slug, content) {
   }
 
   const decoded = decodeForSchemeScan(content);
-  if (decoded !== content) {
-    for (const { pattern, reason } of obfuscatedSchemePatterns) {
-      if (pattern.test(decoded)) {
-        throw new Error(`Unsafe article content in "${slug}": ${reason}`);
-      }
+  for (const { pattern, reason } of obfuscatedSchemePatterns) {
+    if (pattern.test(decoded)) {
+      throw new Error(`Unsafe article content in "${slug}": ${reason}`);
     }
   }
 

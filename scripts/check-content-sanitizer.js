@@ -60,6 +60,7 @@ rejects('- item\n\n    {process.env.SECRET_TOKEN}\n', 'list-indented MDX express
 rejects('> quote\n\n    {process.env.SECRET_TOKEN}\n', 'blockquote-indented MDX expression');
 
 // Obfuscated dangerous schemes are now blocked too.
+rejects('See [x](java&amp;#115;cript:alert(1)).', 'double-encoded amp javascript:');
 rejects('See [x](java&#115;cript:alert(1)).', 'decimal-entity javascript:');
 rejects('See [x](java&#x73;cript:alert(1)).', 'hex-entity javascript:');
 rejects('See [x](javascript&colon;alert(1)).', 'named-colon javascript:');
