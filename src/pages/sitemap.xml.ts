@@ -72,6 +72,7 @@ export const GET: APIRoute = async ({ site }) => {
     { path: '/', lastmod: '' },
     { path: '/wiki/special/allpages/', lastmod: '' },
     { path: '/wiki/special/categories/', lastmod: '' },
+    { path: '/wiki/special/mostlinkedpages/', lastmod: '' },
     { path: '/wiki/special/recentchanges/', lastmod: '' },
     { path: '/wiki/special/statistics/', lastmod: '' },
     ...categoryEntries,
