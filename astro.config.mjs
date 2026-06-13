@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { createRemarkWikiLinkOptions, loadSlugMapFromContent } from './scripts/wiki-link-resolver.js';
 import rehypeExternalLinks from './scripts/rehype-external-links.js';
+import rehypeDropRedundantH1 from './scripts/rehype-drop-redundant-h1.js';
 
 const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 const contentDir = path.join(projectRoot, 'src', 'content', 'pages');
@@ -21,7 +22,7 @@ export default defineConfig({
           wikiLinkOptions,
         ],
       ],
-      rehypePlugins: [rehypeExternalLinks],
+      rehypePlugins: [rehypeExternalLinks, rehypeDropRedundantH1],
     }),
   ],
   markdown: {
@@ -31,7 +32,7 @@ export default defineConfig({
         wikiLinkOptions,
       ],
     ],
-    rehypePlugins: [rehypeExternalLinks],
+    rehypePlugins: [rehypeExternalLinks, rehypeDropRedundantH1],
     shikiConfig: {
       theme: 'github-light',
     },
