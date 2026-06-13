@@ -51,6 +51,8 @@
     "test:statistics": "node scripts/check-statistics.js",
     "test:recent-changes": "node scripts/check-recent-changes.js",
     "test:backlinks-page": "node scripts/check-backlinks-page.js",
+    "test:cite-page": "node scripts/check-cite-page.js",
+    "test:search-index": "node scripts/check-search-index.js",
     "test:article-meta": "node scripts/check-article-meta.js"
   },
   "dependencies": {
