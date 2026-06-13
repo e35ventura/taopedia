@@ -151,9 +151,27 @@ assert.equal(
 );
 
 assert.equal(
+  isUnsafeImageUrl('data:image/svg&plus;xml;base64,PHN2Zz4='),
+  true,
+  'named-plus-entity SVG data image URLs should be classified as unsafe',
+);
+
+assert.equal(
+  resolveArticleImageSource('local_asset', 'data:image/svg&plus;xml;base64,PHN2Zz4=', imageAssets),
+  undefined,
+  'named-plus-entity SVG data URLs from infobox JSON should not render as image sources',
+);
+
+assert.equal(
   isUnsafeImageUrl('data:image/png;base64,AA=='),
   false,
   'benign raster data image URLs should not be classified as unsafe schemes',
+);
+
+assert.equal(
+  isUnsafeImageUrl('figure&plus;v=1.png'),
+  false,
+  'benign named-plus entities in image strings should not be classified as unsafe schemes',
 );
 
 assert.equal(
