@@ -1,0 +1,83 @@
+---
+import WikiLayout from '../../../layouts/WikiLayout.astro';
+import { getCollection } from 'astro:content';
+import { getPageSlug, allRecentChanges } from '../../../lib/article-history';
+import { formatRevisionDate } from '../../../lib/format-date.js';
+
+// Site-wide recent changes: the newest commits across every article's
+// build-time revision history (the same source as the sitemap <lastmod> and the
+// per-article history page), joined to article titles. Unlike the per-article
+// history page, this aggregates the whole wiki into one newest-first feed.
+const pages = await getCollection('pages');
+const titleBySlug: Record<string, string> = {};
+for (const page of pages) {
+  titleBySlug[getPageSlug(page)] = page.data.title;
+}
+
+const RECENT_LIMIT = 100;
+const changes = allRecentChanges(titleBySlug, RECENT_LIMIT);
+---
+
+<WikiLayout
+  title="Recent changes"
+  description="The most recently updated articles across the Taopedia Bittensor knowledge base."
+>
+  <div class="mw-body-content">
+    <h1 class="firstHeading">Recent changes</h1>
+
+    <div class="mw-parser-output">
+      <p>
+        The most recent edits to articles across the wiki, newest first. Each entry links to the
+        article and to its full revision history.
+      </p>
+
+      {changes.length === 0 ? (
+        <p>No recent changes available yet.</p>
+      ) : (
+        <ul class="mw-recentchanges">
+          {changes.map((change) => (
+            <li class="mw-rc-row">
+              <time class="mw-rc-date" datetime={change.date}>{formatRevisionDate(change.date)}</time>
+              <a class="mw-rc-title" href={`/wiki/${change.slug}/`}>{change.title}</a>
+              {change.authorName && <span class="mw-rc-author">{change.authorName}</span>}
+              <a class="mw-rc-hist" href={`/wiki/${change.slug}/history/`}>hist</a>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  </div>
+</WikiLayout>
+
+<style>
+  .mw-recentchanges {
+    list-style: none;
+    margin: 16px 0;
+    padding: 0;
+  }
+  .mw-rc-row {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color-subtle);
+    font-size: 14px;
+  }
+  .mw-rc-date {
+    color: var(--color-base-subtle);
+    white-space: nowrap;
+  }
+  .mw-rc-title {
+    font-weight: 600;
+  }
+  .mw-rc-author {
+    color: var(--color-base-subtle);
+    font-size: 13px;
+  }
+  .mw-rc-hist {
+    margin-left: auto;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+</style>
