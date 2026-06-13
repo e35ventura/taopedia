@@ -50,4 +50,36 @@ for (const line of longToken) {
   assert.ok(line.length <= 10 || line.endsWith('…'), `overlong-token line not constrained: "${line}"`);
 }
 
+
+// Astral-plane characters (e.g. emoji, 2 UTF-16 units each) must never be
+// split mid-surrogate-pair -- a lone surrogate inside the SVG <text> content
+// is invalid and breaks OG image rendering. The original UTF-16-unit width
+// budget (maxChars) must still be respected per chunk.
+const loneSurrogate = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:^|[^\uD800-\uDBFF])[\uDC00-\uDFFF]/;
+
+// 'A' (1 unit) + 20 emoji (2 units each) = 41 units, over a 24-unit budget.
+const emojiWord = 'A' + '\u{1F984}'.repeat(20);
+const emojiChunks = splitLongWords([emojiWord], 24);
+for (const chunk of emojiChunks) {
+  assert.ok(!loneSurrogate.test(chunk), `chunk has a lone surrogate: ${JSON.stringify(chunk)}`);
+  assert.ok(chunk.length <= 24, `chunk over UTF-16 unit budget: ${JSON.stringify(chunk)} (${chunk.length})`);
+}
+assert.equal(emojiChunks.join(''), emojiWord, 'chunks must reconstruct the original word');
+// 'A' + 11 emoji = 23 units (12th emoji would make 25, over budget).
+assert.equal(emojiChunks[0], 'A' + '\u{1F984}'.repeat(11));
+
+// Pure-emoji run: 30 emoji x 2 units = 60 units, 24-unit budget -> 12 emoji
+// (24 units) per chunk for the first two chunks, 6 emoji (12 units) last.
+const longEmojiWord = '\u{1F984}'.repeat(30);
+const longEmojiChunks = splitLongWords([longEmojiWord], 24);
+assert.equal(longEmojiChunks.length, 3);
+for (const chunk of longEmojiChunks) {
+  assert.ok(!loneSurrogate.test(chunk), `chunk has a lone surrogate: ${JSON.stringify(chunk)}`);
+  assert.ok(chunk.length <= 24, `chunk over UTF-16 unit budget: ${JSON.stringify(chunk)} (${chunk.length})`);
+}
+assert.equal(longEmojiChunks.join(''), longEmojiWord, 'chunks must reconstruct the original word');
+assert.equal(longEmojiChunks[0].length, 24);
+assert.equal(longEmojiChunks[1].length, 24);
+assert.equal(longEmojiChunks[2].length, 12);
+
 console.log('OG text layout check passed');

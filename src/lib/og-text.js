@@ -21,9 +21,20 @@ export function splitLongWords(words, maxChars) {
       result.push(word);
       continue;
     }
-    for (let i = 0; i < word.length; i += maxChars) {
-      result.push(word.slice(i, i + maxChars));
+    // Iterate codepoints (for...of never splits a surrogate pair) but
+    // accumulate by UTF-16 length against maxChars, preserving the
+    // original width budget per chunk -- a chunk stops *before* a
+    // codepoint that would push it over maxChars, instead of slicing
+    // mid-surrogate.
+    let chunk = '';
+    for (const ch of word) {
+      if (chunk.length + ch.length > maxChars && chunk) {
+        result.push(chunk);
+        chunk = '';
+      }
+      chunk += ch;
     }
+    if (chunk) result.push(chunk);
   }
   return result;
 }
