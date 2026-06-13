@@ -5,6 +5,7 @@ const TAB = String.fromCharCode(0x09);
 const ZERO_WIDTH_SPACE = String.fromCharCode(0x200b);
 const SOFT_HYPHEN = String.fromCharCode(0x00ad);
 const WORD_JOINER = String.fromCharCode(0x2060);
+const NEXT_LINE = String.fromCharCode(0x85);
 
 function rejects(content, label) {
   assert.throws(() => validateArticleContent('fixture', content), /Unsafe article content/, label);
@@ -40,6 +41,7 @@ rejects(`See [x](java${TAB}script:alert(1)).`, 'tab-split javascript:');
 rejects(`See [x](java${ZERO_WIDTH_SPACE}script:alert(1)).`, 'zero-width javascript:');
 rejects(`See [x](java${SOFT_HYPHEN}script:alert(1)).`, 'soft-hyphen javascript:');
 rejects(`See [x](java${WORD_JOINER}script:alert(1)).`, 'word-joiner javascript:');
+rejects(`See [x](java${NEXT_LINE}script:alert(1)).`, 'C1-control javascript:');
 rejects('See [x](&#100;ata:text/html,evil).', 'entity data:text/html');
 rejects('See [x](vb&#115;cript:msgbox(1)).', 'decimal-entity vbscript:');
 rejects('See [x](&#100;ata:image/svg+xml;base64,PHN2Zz4=).', 'entity-obfuscated svg data uri');

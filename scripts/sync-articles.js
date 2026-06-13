@@ -163,7 +163,7 @@ function stripUrlObfuscationChars(value) {
   let result = '';
   for (const char of value) {
     const code = char.codePointAt(0);
-    const isControl = code <= 0x1f || code === 0x7f;
+    const isControl = code <= 0x1f || code === 0x7f || (code >= 0x80 && code <= 0x9f);
     if (!isControl && !DEFAULT_IGNORABLE_PATTERN.test(char)) {
       result += char;
     }
