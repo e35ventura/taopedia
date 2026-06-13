@@ -44,8 +44,15 @@ function decodeUrlSchemeObfuscation(value) {
   return value
     .replace(/&#x([0-9a-f]+);?/gi, (match, hex) => fromCodePoint(Number.parseInt(hex, 16), match))
     .replace(/&#(\d+);?/g, (match, dec) => fromCodePoint(Number.parseInt(dec, 10), match))
+    // Mirror sync-articles' decodeForSchemeScan: ":" (&colon;), "/" (&sol;) and
+    // "+" (&plus;) each decode in a browser the same as their numeric (&#43;) and
+    // literal forms, so all three spellings must collapse alike. Without &plus;,
+    // an unsafe data URL hides behind the named entity in its MIME type --
+    // `data:image/svg&plus;xml;base64,...` would pass isUnsafeImageUrl as safe and
+    // render as a live infobox <img src>, while the numeric/literal forms are caught.
     .replace(/&colon;/gi, ':')
     .replace(/&sol;/gi, '/')
+    .replace(/&plus;/gi, '+')
     .replace(/&(?:tab|newline);/gi, '');
 }
 
