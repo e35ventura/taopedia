@@ -225,10 +225,13 @@ function stripMarkdownBlockCode(content, chars) {
       continue;
     }
 
-    if (/^(?: {4}|\t)/.test(lineText)) {
-      blankRange(chars, lineStart, lineEnd);
-    }
-
+    // Do NOT treat a 4-space / tab indented line as a code block. MDX disables
+    // CommonMark indented code blocks (they collide with JSX indentation), so an
+    // indented `{...}` is parsed as a live MDX expression, not inert code — e.g.
+    // `- item\n\n    {process.env.SECRET_TOKEN}` evaluates at build time. Blanking
+    // indented lines here would hide that brace from findUnescapedMdxBrace and let
+    // a build-time secret read past the scan. Only real MDX code spans (fences,
+    // handled above, and inline backticks) are stripped.
     lineStart = lineEnd;
   }
 }

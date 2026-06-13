@@ -40,6 +40,15 @@ rejects('Do not evaluate {process.env.SECRET_TOKEN}.', 'plain MDX expression bra
 rejects('A stray closing brace } is rejected conservatively.', 'stray MDX closing brace');
 rejects(String.raw`Even backslashes do not escape \\{process.env.SECRET_TOKEN}.`, 'double-backslash MDX brace evasion');
 
+// MDX disables CommonMark indented code blocks (they collide with JSX
+// indentation), so a 4-space / tab indented line is NOT inert code: its braces
+// evaluate as a live MDX expression at build time. The scanner must reject
+// indented braces, not mistake them for a code block and skip them.
+rejects('Intro.\n\n    {process.env.SECRET_TOKEN}\n', 'four-space indented MDX expression');
+rejects('Intro.\n\n\t{process.env.SECRET_TOKEN}\n', 'tab-indented MDX expression');
+rejects('- item\n\n    {process.env.SECRET_TOKEN}\n', 'list-indented MDX expression');
+rejects('> quote\n\n    {process.env.SECRET_TOKEN}\n', 'blockquote-indented MDX expression');
+
 // Obfuscated dangerous schemes are now blocked too.
 rejects('See [x](java&#115;cript:alert(1)).', 'decimal-entity javascript:');
 rejects('See [x](java&#x73;cript:alert(1)).', 'hex-entity javascript:');
@@ -111,10 +120,6 @@ accepts(
 accepts(
   'Emoji before code stays aligned 🧠 `{process.env.SECRET_TOKEN}`.',
   'inline code span after astral Unicode'
-);
-accepts(
-  '    {process.env.SECRET_TOKEN}\n',
-  'indented code block with braces'
 );
 accepts(
   'A query like [docs](https://example.com/online=1) is fine — a URL path segment is not a handler.',
