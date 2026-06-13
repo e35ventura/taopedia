@@ -33,6 +33,7 @@ const unsafeContentPatterns = [
   { pattern: /\bdata\s*:\s*(?:text|application)\/(?:javascript|ecmascript)/i, reason: 'script data URLs are not allowed in article content' },
   { pattern: /\bset:html\b/i, reason: 'raw HTML injection directives are not allowed in article content' },
   { pattern: /\bclient:[a-z-]+\b/i, reason: 'client directives are not allowed in article content' },
+  { pattern: /\bserver:[a-z-]+\b/i, reason: 'server directives are not allowed in article content' },
 ];
 
 // Dangerous URL schemes can be smuggled past the literal checks above using HTML

@@ -147,4 +147,7 @@ accepts('<a href="/online=1">link</a>', 'handler-like path in a quoted href valu
 accepts('<img src="/onboarding=1.png" alt="x">', 'handler-like path in a quoted src value');
 accepts('<code data-example="/onerror=not-handler">snippet</code>', 'handler-like text in a quoted data- value');
 
+rejects('Hydrate with client:load here.', 'client directive token in article body');
+rejects('Render via server:defer here.', 'server directive token in article body');
+
 console.log('Content sanitizer check passed');
