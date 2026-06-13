@@ -97,6 +97,30 @@ assert.equal(
 );
 
 assert.equal(
+  isUnsafeImageUrl('java\u00ADscript:alert(1)'),
+  true,
+  'soft-hyphen-obfuscated javascript image URLs should be classified as unsafe',
+);
+
+assert.equal(
+  isUnsafeImageUrl('java\u2060script:alert(1)'),
+  true,
+  'word-joiner-obfuscated javascript image URLs should be classified as unsafe',
+);
+
+assert.equal(
+  isUnsafeImageUrl('java\u0085script:alert(1)'),
+  true,
+  'C1-control-obfuscated javascript image URLs should be classified as unsafe',
+);
+
+assert.equal(
+  resolveArticleImageSource('local_asset', 'java\u00ADscript:alert(1)', imageAssets),
+  undefined,
+  'soft-hyphen-obfuscated javascript image URLs from infobox JSON should not render as image sources',
+);
+
+assert.equal(
   isUnsafeImageUrl('vb&#115;cript:msgbox(1)'),
   true,
   'decimal-entity-obfuscated vbscript image URLs should be classified as unsafe',
