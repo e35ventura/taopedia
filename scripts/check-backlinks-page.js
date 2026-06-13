@@ -24,9 +24,9 @@ const backlinksData = JSON.parse(fs.readFileSync(backlinksFile, 'utf8'));
 const articleBuilt = (slug) => fs.existsSync(path.join(wikiDir, slug, 'index.html'));
 
 // Recursively discover every built article page, excluding the special/ and
-// category/ hubs and the per-article history/ and backlinks/ sub-pages. The walk
-// is recursive (not a single readdir level) so a future nested slug is covered
-// rather than silently skipped — the gap that closed PR #155.
+// category/ hubs and the per-article history/, backlinks/, and cite/ sub-pages.
+// The walk is recursive (not a single readdir level) so a future nested slug is
+// covered rather than silently skipped — the gap that closed PR #155.
 const articleSlugs = [];
 const walk = (dir) => {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -40,7 +40,7 @@ const walk = (dir) => {
     if (segs.length < 2) continue; // /wiki/index.html, if any — not an article
     if (segs[0] === 'special' || segs[0] === 'category') continue;
     const parent = segs[segs.length - 2];
-    if (parent === 'history' || parent === 'backlinks') continue;
+    if (parent === 'history' || parent === 'backlinks' || parent === 'cite') continue;
     articleSlugs.push(segs.slice(0, -1).join('/'));
   }
 };
