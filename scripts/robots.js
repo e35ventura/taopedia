@@ -3,6 +3,11 @@
 // source of truth and can be unit tested without rendering the site.
 //
 // Directives:
+//   - Declare Content Signals (https://contentsignals.org/) so automated/AI
+//     clients can read how the content may be used. Uses the standard's
+//     recommended default: search indexing is allowed (consistent with the
+//     `Allow: /` policy below) while use of the content for AI model training
+//     is declined.
 //   - Allow general crawling so every article and listing page is indexable.
 //   - Disallow the search route. /search renders no unique content on its own
 //     and /search?q=... expands to unbounded parameterized URLs that are not in
@@ -14,6 +19,7 @@ export function buildRobotsTxt({ origin }) {
   const base = String(origin || '').replace(/\/$/, '');
   const lines = [
     'User-agent: *',
+    'Content-Signal: search=yes, ai-train=no',
     'Allow: /',
     'Disallow: /search',
     `Sitemap: ${base}/sitemap.xml`,
