@@ -3,6 +3,7 @@ import path from 'path';
 import matter from 'gray-matter';
 import { execFileSync } from 'child_process';
 import { fileURLToPath, pathToFileURL } from 'url';
+import { hasLocalImagePathTraversal, isUnsafeImageUrl } from '../src/lib/article-image-assets.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -337,6 +338,12 @@ export function validateInfoboxJsonAsset(filePath, data) {
   assertOptionalString(data.title, 'title', filePath);
   assertOptionalString(data.image, 'image', filePath);
   assertOptionalString(data.caption, 'caption', filePath);
+
+  if (typeof data.image === 'string' && data.image.trim()) {
+    if (isUnsafeImageUrl(data.image) || hasLocalImagePathTraversal(data.image)) {
+      throw new Error(`Invalid infobox JSON asset in "${filePath}": image URL is not allowed`);
+    }
+  }
 
   if (data.rows === undefined) return;
   if (!Array.isArray(data.rows)) {
