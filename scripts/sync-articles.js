@@ -22,7 +22,7 @@ const unsafeContentPatterns = [
   { pattern: /^\s*export\s/m, reason: 'MDX exports are not allowed in article content' },
   { pattern: /<\s*script[\s>]/i, reason: 'script tags are not allowed in article content' },
   { pattern: /<\s*\/\s*script\s*>/i, reason: 'script tags are not allowed in article content' },
-  { pattern: /<\s*(base|iframe|object|embed|link|meta|style)\b/i, reason: 'active HTML elements are not allowed in article content' },
+  { pattern: /<\s*(base|iframe|object|embed|link|meta|style|form)\b/i, reason: 'active HTML elements are not allowed in article content' },
   { pattern: /\son[a-z]+\s*=/i, reason: 'inline event handlers are not allowed in article content' },
   { pattern: /\bjavascript\s*:/i, reason: 'javascript: URLs are not allowed in article content' },
   { pattern: /\bvbscript\s*:/i, reason: 'vbscript: URLs are not allowed in article content' },
