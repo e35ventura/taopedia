@@ -1,0 +1,88 @@
+---
+import { getCollection } from 'astro:content';
+import WikiLayout from '../../../layouts/WikiLayout.astro';
+import { getPageSlug } from '../../../lib/article-history';
+
+export async function getStaticPaths() {
+  const pages = await getCollection('pages');
+  return pages.map((page) => {
+    const slug = getPageSlug(page);
+    return {
+      params: { slug },
+      props: { page, slug },
+    };
+  });
+}
+
+const { page, slug } = Astro.props;
+
+// MediaWiki's Special:WhatLinksHere for one article: the pages that link to it.
+// Inbound links are computed at build time by scripts/build-linkgraph.js and
+// written to public/data/backlinks.json, keyed by target slug — the same graph
+// that powers broken-link detection on the article page. Loaded via glob so a
+// missing file (e.g. a `dev` run before the link graph is built) degrades to an
+// empty list instead of failing the build.
+const backlinksModules = import.meta.glob('../../../../public/data/backlinks.json', { eager: true }) as Record<
+  string,
+  { default?: Record<string, Array<{ from: string; fromTitle?: string }>> }
+>;
+const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
+
+// Resolve each linking slug to its current title from the published collection.
+// Using the live title (not the snapshot stored in backlinks.json) keeps labels
+// fresh, and the join drops links from any source that is no longer a published
+// article — mirroring the orphan-skipping join in Special:RecentChanges.
+const pages = await getCollection('pages');
+const titleBySlug: Record<string, string> = {};
+for (const p of pages) titleBySlug[getPageSlug(p)] = p.data.title;
+
+const backlinks = (backlinksData[slug] ?? [])
+  .filter((entry) => titleBySlug[entry.from])
+  .map((entry) => ({ slug: entry.from, title: titleBySlug[entry.from] }))
+  .sort((a, b) => a.title.localeCompare(b.title) || a.slug.localeCompare(b.slug));
+
+const articleUrl = `/wiki/${slug}/`;
+const historyUrl = `/wiki/${slug}/history/`;
+const backlinksUrl = `/wiki/${slug}/backlinks/`;
+const pageTitle = `Pages that link to "${page.data.title}"`;
+const pageDescription = `Articles across Taopedia that link to the "${page.data.title}" article.`;
+---
+
+<WikiLayout title={pageTitle} description={pageDescription}>
+  <div class="mw-body-content">
+    <nav class="mw-article-toolbar">
+      <a href={articleUrl}>Article</a>
+      <a href={historyUrl}>History</a>
+      <a href={backlinksUrl} class="active" aria-current="page">What links here</a>
+    </nav>
+
+    <h1 class="firstHeading">{pageTitle}</h1>
+
+    {backlinks.length === 0 ? (
+      <p>No pages link to this article yet.</p>
+    ) : (
+      <div class="mw-parser-output">
+        <p>
+          The following {backlinks.length} {backlinks.length === 1 ? 'page links' : 'pages link'} to
+          {' '}<a href={articleUrl}>{page.data.title}</a>:
+        </p>
+        <ul class="mw-whatlinkshere">
+          {backlinks.map((link) => (
+            <li class="mw-wlh-row"><a href={`/wiki/${link.slug}/`}>{link.title}</a></li>
+          ))}
+        </ul>
+      </div>
+    )}
+  </div>
+</WikiLayout>
+
+<style>
+  .mw-whatlinkshere {
+    margin: 16px 0;
+    padding-left: 24px;
+  }
+  .mw-wlh-row {
+    padding: 4px 0;
+    font-size: 14px;
+  }
+</style>
