@@ -21,6 +21,8 @@ try {
   const stringRowsInfobox = infoboxFixturePath('string_rows_infobox');
   const nullRowInfobox = infoboxFixturePath('null_row_infobox');
   const missingValueInfobox = infoboxFixturePath('missing_value_infobox');
+  const unsafeImageInfobox = infoboxFixturePath('unsafe_image_infobox');
+  const traversalImageInfobox = infoboxFixturePath('traversal_image_infobox');
 
   fs.mkdirSync(articleDir, { recursive: true });
   fs.writeFileSync(validJson, JSON.stringify({ rows: 'generic JSON assets may use any valid JSON shape' }));
@@ -39,6 +41,8 @@ try {
   fs.writeFileSync(stringRowsInfobox, JSON.stringify({ rows: 'not an array' }));
   fs.writeFileSync(nullRowInfobox, JSON.stringify({ rows: [null] }));
   fs.writeFileSync(missingValueInfobox, JSON.stringify({ rows: [{ label: 'Type' }] }));
+  fs.writeFileSync(unsafeImageInfobox, JSON.stringify({ image: 'javascript:alert(1)' }));
+  fs.writeFileSync(traversalImageInfobox, JSON.stringify({ image: '../secret.png' }));
 
   assert.doesNotThrow(
     () => validateArticleJsonAsset(validJson),
@@ -77,6 +81,16 @@ try {
     () => validateArticleJsonAsset(missingValueInfobox),
     /Invalid infobox JSON asset.*rows\[0\]\.value must be a string/,
     'infobox row values must be strings before article rendering parses wiki links',
+  );
+  assert.throws(
+    () => validateArticleJsonAsset(unsafeImageInfobox),
+    /Invalid infobox JSON asset.*image URL is not allowed/,
+    'unsafe infobox image URLs should be rejected during sync',
+  );
+  assert.throws(
+    () => validateArticleJsonAsset(traversalImageInfobox),
+    /Invalid infobox JSON asset.*image URL is not allowed/,
+    'traversal infobox image paths should be rejected during sync',
   );
 } finally {
   fs.rmSync(tempRoot, { recursive: true, force: true });
