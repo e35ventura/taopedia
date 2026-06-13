@@ -49,6 +49,7 @@
     "test:sitemap": "node scripts/check-sitemap.js",
     "test:rss-feed": "node scripts/check-rss-feed.js",
     "test:statistics": "node scripts/check-statistics.js",
+    "test:recent-changes": "node scripts/check-recent-changes.js",
     "test:article-meta": "node scripts/check-article-meta.js"
   },
   "dependencies": {
