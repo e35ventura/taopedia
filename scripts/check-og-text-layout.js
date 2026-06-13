@@ -20,6 +20,31 @@ assert.deepEqual(splitLongWords(['x'.repeat(24)], 24), ['x'.repeat(24)]);
 assert.deepEqual(splitLongWords(['x'.repeat(50)], 24), ['x'.repeat(24), 'x'.repeat(24), 'xx']);
 assert.deepEqual(splitLongWords(['ok', 'y'.repeat(30)], 24), ['ok', 'y'.repeat(24), 'yyyyyy']);
 
+// Astral-plane characters (e.g. emoji, 2 UTF-16 units each) must be split on
+// codepoint boundaries, never mid-surrogate-pair -- a lone surrogate inside
+// the SVG <text> content is invalid and breaks OG image rendering.
+const loneSurrogate = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:^|[^\uD800-\uDBFF])[\uDC00-\uDFFF]/;
+const emojiWord = 'A' + '\u{1F984}'.repeat(20); // 'A' + 20x unicorn emoji
+const emojiChunks = splitLongWords([emojiWord], 24);
+for (const chunk of emojiChunks) {
+  assert.ok(!loneSurrogate.test(chunk), `chunk has a lone surrogate: ${JSON.stringify(chunk)}`);
+  assert.ok([...chunk].length <= 24, `chunk over codepoint budget: ${JSON.stringify(chunk)}`);
+}
+// 21 codepoints ('A' + 20 emoji) fits in one chunk of 24.
+assert.equal(emojiChunks.length, 1);
+assert.equal([...emojiChunks[0]].length, 21);
+
+// A run long enough to require splitting across multiple chunks must still
+// never break a surrogate pair, regardless of where the boundary falls.
+const longEmojiWord = '\u{1F984}'.repeat(30); // 30x unicorn emoji, codepoint length 30
+const longEmojiChunks = splitLongWords([longEmojiWord], 24);
+assert.equal(longEmojiChunks.length, 2);
+for (const chunk of longEmojiChunks) {
+  assert.ok(!loneSurrogate.test(chunk), `chunk has a lone surrogate: ${JSON.stringify(chunk)}`);
+}
+assert.equal([...longEmojiChunks[0]].length, 24);
+assert.equal([...longEmojiChunks[1]].length, 6);
+
 // --- wrapText: wraps to <= maxLines lines of <= maxChars, ellipsizing overflow ---
 assert.deepEqual(wrapText('', 24, 3), []);
 assert.deepEqual(wrapText('   ', 24, 3), []);

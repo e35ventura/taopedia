@@ -17,12 +17,16 @@ export function escapeHtml(value) {
 export function splitLongWords(words, maxChars) {
   const result = [];
   for (const word of words) {
-    if (word.length <= maxChars) {
+    // Split on codepoints, not UTF-16 code units: a plain .slice() can land
+    // inside a surrogate pair (astral emoji), producing a lone surrogate
+    // that's invalid in the rendered SVG <text> content.
+    const chars = Array.from(word);
+    if (chars.length <= maxChars) {
       result.push(word);
       continue;
     }
-    for (let i = 0; i < word.length; i += maxChars) {
-      result.push(word.slice(i, i + maxChars));
+    for (let i = 0; i < chars.length; i += maxChars) {
+      result.push(chars.slice(i, i + maxChars).join(''));
     }
   }
   return result;
