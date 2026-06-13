@@ -175,8 +175,13 @@ function decodeForSchemeScan(content) {
   const decoded = content
     .replace(/&#x([0-9a-f]+);?/gi, (match, hex) => fromCodePoint(Number.parseInt(hex, 16), match))
     .replace(/&#(\d+);?/g, (match, dec) => fromCodePoint(Number.parseInt(dec, 10), match))
+    // Normalize the named HTML entities for characters a scheme or MIME type can hide
+    // behind, so an entity-spelled separator cannot evade the scan: ":" (&colon;),
+    // "/" (&sol;) and "+" (&plus;) each decode in a browser the same as their numeric
+    // (e.g. &#43;) and literal forms, so all three spellings must collapse alike.
     .replace(/&colon;/gi, ':')
     .replace(/&sol;/gi, '/')
+    .replace(/&plus;/gi, '+')
     .replace(/&(?:tab|newline);/gi, '');
   return stripUrlObfuscationChars(decoded);
 }

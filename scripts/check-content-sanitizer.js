@@ -46,6 +46,8 @@ rejects('See [x](&#100;ata:text/html,evil).', 'entity data:text/html');
 rejects('See [x](vb&#115;cript:msgbox(1)).', 'decimal-entity vbscript:');
 rejects('See [x](&#100;ata:image/svg+xml;base64,PHN2Zz4=).', 'entity-obfuscated svg data uri');
 rejects('See [x](&#100;ata:application/xhtml+xml;base64,PHNjcmlwdD4=).', 'entity-obfuscated xhtml data uri');
+rejects('See [x](data:image/svg&plus;xml;base64,PHN2Zz4=).', 'named-plus-entity svg data uri');
+rejects('See [x](data:application/xhtml&plus;xml;base64,PHNjcmlwdD4=).', 'named-plus-entity xhtml data uri');
 
 // Inline event handlers are blocked regardless of the attribute delimiter — a
 // slash, or a quote abutting the handler — not just a leading space.
@@ -74,6 +76,10 @@ accepts(
 accepts(
   'Encode an ampersand as &amp; or a snowman as &#9731; without tripping the scanner.',
   'benign entities'
+);
+accepts(
+  'Prose may use the plus entity: C&plus;&plus; and the sum 2 &plus; 2 = 4 are fine.',
+  'benign named-plus entity (no scheme)'
 );
 accepts(
   String.raw`Literal braces can be escaped as \{alpha\} in prose.`,
