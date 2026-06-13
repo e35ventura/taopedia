@@ -151,6 +151,24 @@ assert.equal(
 );
 
 assert.equal(
+  isUnsafeImageUrl('data:application/xhtml+xml;base64,PHNjcmlwdD4='),
+  true,
+  'XHTML data image URLs should be classified as unsafe',
+);
+
+assert.equal(
+  isUnsafeImageUrl('data&colon;application/xhtml&plus;xml;base64,PHNjcmlwdD4='),
+  true,
+  'entity-obfuscated XHTML data image URLs should be classified as unsafe',
+);
+
+assert.equal(
+  resolveArticleImageSource('local_asset', 'data:application/xhtml+xml,<script>alert(1)</script>', imageAssets),
+  undefined,
+  'XHTML data URLs from infobox JSON should not render as image sources',
+);
+
+assert.equal(
   isUnsafeImageUrl('data:image/svg&plus;xml;base64,PHN2Zz4='),
   true,
   'named-plus-entity SVG data image URLs should be classified as unsafe',
