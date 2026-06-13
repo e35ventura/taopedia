@@ -43,6 +43,9 @@ rejects('See [x](data:text/html;base64,PHNjcmlwdD4=).', 'plain data:text/html');
 rejects('See [x](data:image/svg+xml,<svg></svg>).', 'plain svg data uri');
 rejects('See [x](data:image/svg+xml;base64,PHN2ZyBvbmxvYWQ9YWxlcnQoMSk+).', 'base64 svg data uri (script hidden in blob)');
 rejects('See [x](data:application/xhtml+xml;base64,PHNjcmlwdD4=).', 'base64 xhtml data uri (script hidden in blob)');
+rejects('See [x](data:text/javascript,alert(1)).', 'plain data:text/javascript');
+rejects('See [x](data:application/ecmascript,alert(1)).', 'plain data:application/ecmascript');
+rejects('See [x](&#100;ata:text/javascript,alert(1)).', 'entity data:text/javascript');
 
 // MDX expression braces execute at build time in article bodies. They are only
 // allowed when escaped as literal prose or inside Markdown code examples.
