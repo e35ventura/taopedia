@@ -18,6 +18,8 @@ function accepts(content, label) {
 // <base> tags are blocked: a single <base> rewrites every relative URL on the page.
 rejects('Intro.\n\n<base href="https://evil.example/">', 'plain <base>');
 rejects('Intro.\n\n<  base   href="https://evil.example/">', 'spaced <base>');
+rejects('Intro.\n\n<frame src="https://evil.example/frame.html">', 'plain <frame>');
+rejects('Intro.\n\n<frameset cols="50%,50%"><frame src="a.html"></frameset>', 'plain <frameset>');
 
 // <form> tags are blocked: a raw form can submit reader data (e.g. wallet
 // addresses entered into a hidden input) to an attacker-controlled action URL,
