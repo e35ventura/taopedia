@@ -40,7 +40,7 @@ function fromCodePoint(codePoint, fallback) {
     : fallback;
 }
 
-function decodeUrlSchemeObfuscation(value) {
+function decodeEntityPass(value) {
   return value
     .replace(/&#x([0-9a-f]+);?/gi, (match, hex) => fromCodePoint(Number.parseInt(hex, 16), match))
     .replace(/&#(\d+);?/g, (match, dec) => fromCodePoint(Number.parseInt(dec, 10), match))
@@ -53,7 +53,18 @@ function decodeUrlSchemeObfuscation(value) {
     .replace(/&colon;/gi, ':')
     .replace(/&sol;/gi, '/')
     .replace(/&plus;/gi, '+')
-    .replace(/&(?:tab|newline);/gi, '');
+    .replace(/&(?:tab|newline);/gi, '')
+    .replace(/&amp;/gi, '&');
+}
+
+function decodeUrlSchemeObfuscation(value) {
+  let decoded = value;
+  let previous;
+  do {
+    previous = decoded;
+    decoded = decodeEntityPass(previous);
+  } while (decoded !== previous);
+  return decoded;
 }
 
 export function isUnsafeImageUrl(value) {
