@@ -1,0 +1,6 @@
+{
+  "special": {
+    "before_image": ".github/pr-evidence/special-before-evidence.png",
+    "after_image": ".github/pr-evidence/special-after-evidence.png"
+  }
+}
