@@ -79,6 +79,12 @@ assert.equal(
 );
 
 assert.equal(
+  isUnsafeImageUrl('java&amp;#115;cript:alert(1)'),
+  true,
+  'double-encoded amp javascript image URLs should be classified as unsafe',
+);
+
+assert.equal(
   isUnsafeImageUrl('java&#x73;cript:alert(1)'),
   true,
   'hex-entity-obfuscated javascript image URLs should be classified as unsafe',
