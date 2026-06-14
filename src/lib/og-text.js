@@ -61,7 +61,21 @@ export function wrapText(text, maxChars, maxLines) {
   if (current && lines.length < maxLines) lines.push(current);
 
   if (lines.length === maxLines && words.join(' ').length > lines.join(' ').length) {
-    lines[maxLines - 1] = `${lines[maxLines - 1].replace(/[.,;:!?]?$/, '')}…`;
+    const stripped = lines[maxLines - 1].replace(/[.,;:!?]?$/, '');
+    // If the line is already at the character budget, the ellipsis itself
+    // would push it one character over -- trim from the end until there's
+    // room. Trim by codepoint (Array.from), not UTF-16 unit: a plain slice
+    // can land inside a surrogate pair (astral emoji), producing the same
+    // lone-surrogate corruption splitLongWords was fixed to avoid.
+    let truncated = stripped;
+    if (truncated.length >= maxChars) {
+      const codepoints = Array.from(truncated);
+      while (codepoints.length > 0 && codepoints.join('').length >= maxChars) {
+        codepoints.pop();
+      }
+      truncated = codepoints.join('');
+    }
+    lines[maxLines - 1] = `${truncated}…`;
   }
 
   return lines;
