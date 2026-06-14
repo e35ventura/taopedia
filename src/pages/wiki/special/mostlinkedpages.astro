@@ -1,0 +1,90 @@
+---
+import WikiLayout from '../../../layouts/WikiLayout.astro';
+import { getCollection } from 'astro:content';
+import { getPageSlug } from '../../../lib/article-history';
+
+// Most linked pages: articles ranked by how many other articles link to them,
+// from the build-time link graph (public/data/backlinks.json — the same inbound-
+// link data the per-article "What links here" page uses). Surfaces the most-
+// referenced concepts across the wiki. Loaded via glob so a missing file (e.g. a
+// dev run before the link graph is built) degrades to an empty list.
+const pages = await getCollection('pages');
+const titleBySlug: Record<string, string> = {};
+for (const page of pages) {
+  titleBySlug[getPageSlug(page)] = page.data.title;
+}
+
+const backlinksModules = import.meta.glob('../../../../public/data/backlinks.json', { eager: true }) as Record<
+  string,
+  { default?: Record<string, Array<{ from: string }>> }
+>;
+const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
+
+// Rank published articles by their inbound-link count. The count includes only
+// links from other published articles (the same orphan-skipping join "What links
+// here" and Special:RecentChanges use), so it matches the count a reader sees on
+// each article's backlinks page. Targets that end up with no published inbound
+// links are dropped. Ties break by title then slug for a deterministic order.
+const mostLinked = Object.entries(backlinksData)
+  .filter(([slug]) => titleBySlug[slug])
+  .map(([slug, links]) => ({
+    slug,
+    title: titleBySlug[slug],
+    count: links.filter((link) => titleBySlug[link.from]).length,
+  }))
+  .filter((entry) => entry.count > 0)
+  .sort((a, b) => b.count - a.count || a.title.localeCompare(b.title) || a.slug.localeCompare(b.slug));
+---
+
+<WikiLayout
+  title="Most linked pages"
+  description="The most-referenced articles across the Taopedia Bittensor knowledge base, ranked by how many other articles link to them."
+>
+  <div class="mw-body-content">
+    <h1 class="firstHeading">Most linked pages</h1>
+
+    <div class="mw-parser-output">
+      <p>
+        Articles ranked by how many other articles link to them, most-referenced first. The count
+        links to that article's full list of incoming links.
+      </p>
+
+      {mostLinked.length === 0 ? (
+        <p>No linked pages available yet.</p>
+      ) : (
+        <ol class="mw-mostlinked">
+          {mostLinked.map((entry) => (
+            <li class="mw-ml-row">
+              <a class="mw-ml-title" href={`/wiki/${entry.slug}/`}>{entry.title}</a>
+              <a class="mw-ml-count" href={`/wiki/${entry.slug}/backlinks/`}>{entry.count} {entry.count === 1 ? 'link' : 'links'}</a>
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
+  </div>
+</WikiLayout>
+
+<style>
+  .mw-mostlinked {
+    margin: 16px 0;
+    padding-left: 32px;
+  }
+  .mw-ml-row {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border-color-subtle);
+    font-size: 14px;
+  }
+  .mw-ml-title {
+    font-weight: 600;
+  }
+  .mw-ml-count {
+    margin-left: auto;
+    font-size: 13px;
+    white-space: nowrap;
+    color: var(--color-base-subtle);
+  }
+</style>
