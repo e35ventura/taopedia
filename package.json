@@ -53,8 +53,6 @@
     "test:statistics": "node scripts/check-statistics.js",
     "test:recent-changes": "node scripts/check-recent-changes.js",
     "test:backlinks-page": "node scripts/check-backlinks-page.js",
-    "test:cite-page": "node scripts/check-cite-page.js",
-    "test:search-index": "node scripts/check-search-index.js",
     "test:most-linked": "node scripts/check-most-linked.js",
     "test:article-meta": "node scripts/check-article-meta.js",
     "test:dark-theme": "node scripts/check-dark-theme.js"

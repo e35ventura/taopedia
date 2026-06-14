@@ -10,8 +10,8 @@ assert.ok(fs.existsSync(wikiDir), 'dist/wiki not found; run the build first');
 
 // The article route is a catch-all ([...slug]); walk recursively so nested
 // slugs are covered. Article pages are <slug>/index.html — exclude the
-// category/special hubs and each article's own /history/, /backlinks/, and
-// /cite/ subpages, none of which carries (or needs) the metadata footer.
+// category/special hubs and each article's own /history/ and /backlinks/
+// subpages, none of which carries (or needs) the metadata footer.
 const articlePages = [];
 const walk = (dir) => {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -22,7 +22,7 @@ const walk = (dir) => {
       if (segs.length < 2) continue;
       if (segs[0] === 'category' || segs[0] === 'special') continue;
       const parent = segs[segs.length - 2];
-      if (parent === 'history' || parent === 'backlinks' || parent === 'cite') continue;
+      if (parent === 'history' || parent === 'backlinks') continue;
       articlePages.push(full);
     }
   }

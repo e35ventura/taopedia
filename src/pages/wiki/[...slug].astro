@@ -72,7 +72,6 @@ function renderInfoboxValue(value: string) {
 
 const historyUrl = `/wiki/${slug}/history/`;
 const backlinksUrl = `/wiki/${slug}/backlinks/`;
-const citeUrl = `/wiki/${slug}/cite/`;
 const serializedValidSlugs = JSON.stringify(validSlugs).replace(/</g, '\\u003c');
 
 // Article metadata footer: the last-modified date (newest-first revision from
@@ -157,7 +156,6 @@ const readingMinutes = Math.max(1, Math.ceil(wordCount / 200));
       <a href={`/wiki/${slug}/`} class="active" aria-current="page">Article</a>
       <a href={historyUrl}>History</a>
       <a href={backlinksUrl}>What links here</a>
-      <a href={citeUrl}>Cite this page</a>
       <span class="toolbar-spacer"></span>
       <button class="appearance-toggle toolbar-toggle" type="button" aria-label="Show appearance controls" aria-expanded="true">
         Aa
