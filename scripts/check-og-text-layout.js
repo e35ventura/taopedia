@@ -82,4 +82,30 @@ assert.equal(longEmojiChunks[0].length, 24);
 assert.equal(longEmojiChunks[1].length, 24);
 assert.equal(longEmojiChunks[2].length, 12);
 
+
+// When the truncated last line is already exactly at maxChars with no
+// trailing punctuation, the appended ellipsis must not push it over budget --
+// the line is trimmed from the end first so "line…" stays <= maxChars.
+const ellipsisAtBudget = wrapText('A B ' + 'E'.repeat(24) + ' ' + 'F'.repeat(24) + ' Gg', 24, 3);
+assert.equal(ellipsisAtBudget.length, 3);
+assert.equal(ellipsisAtBudget[2], 'F'.repeat(23) + '…');
+for (const line of ellipsisAtBudget) {
+  assert.ok(line.length <= 24, `ellipsized line over budget: "${line}" (${line.length})`);
+}
+
+// The same exactly-at-budget truncation must trim by whole codepoints, not
+// UTF-16 units: a line of 12 emoji (24 units) ending the budget must not have
+// its ellipsis collide with half of the last emoji's surrogate pair.
+const ellipsisAtBudgetEmoji = wrapText(
+  'A B ' + '\u{1F984}'.repeat(12) + ' ' + '\u{1F984}'.repeat(12) + ' Gg',
+  24,
+  3,
+);
+assert.equal(ellipsisAtBudgetEmoji.length, 3);
+for (const line of ellipsisAtBudgetEmoji) {
+  assert.ok(!loneSurrogate.test(line), `ellipsized emoji line has a lone surrogate: ${JSON.stringify(line)}`);
+  assert.ok(line.length <= 24, `ellipsized emoji line over budget: "${line}" (${line.length})`);
+}
+assert.equal(ellipsisAtBudgetEmoji[2], '\u{1F984}'.repeat(11) + '…');
+
 console.log('OG text layout check passed');
