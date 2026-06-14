@@ -1,0 +1,64 @@
+/* Print / "Save as PDF" stylesheet. Strips the interactive UI chrome and resets
+   the layout so an article prints as a clean document. Kept separate from
+   wikipedia.css because print output is intentionally fixed black-on-white — it
+   must NOT follow the on-screen (light/dark) theme, or a dark-theme reader would
+   print white-on-white. The on-screen experience is unchanged by this file. */
+@media print {
+  /* Hide non-content, interactive chrome: the fixed header, both sidebars, the
+     table-of-contents rail, the appearance panel, the per-article toolbar, the
+     footer nav, overlays, the skip link, and the floating toggle buttons. */
+  .skip-link,
+  .mw-header,
+  .mw-sidebar,
+  .toc-sidebar,
+  .mw-appearance,
+  .mw-article-toolbar,
+  .mw-footer,
+  .sidebar-overlay,
+  .sidebar-toggle,
+  .appearance-toggle,
+  .toolbar-toggle {
+    display: none !important;
+  }
+
+  /* Reset the fixed-header offset and the centered, max-width column layout so
+     the article fills the printable page instead of a narrow centered strip. */
+  .mw-page-container {
+    margin-top: 0;
+    min-height: 0;
+  }
+  .mw-content-container {
+    max-width: none;
+    min-height: 0;
+    padding: 0;
+  }
+  .mw-body {
+    max-width: none;
+    width: 100%;
+    margin: 0;
+  }
+
+  /* Fixed black text on white so colored links and theme backgrounds don't waste
+     ink or wash out on paper, regardless of the on-screen theme. */
+  body {
+    color: #000;
+    background: #fff;
+  }
+  .mw-parser-output a {
+    color: #000;
+    text-decoration: underline;
+  }
+
+  /* Avoid awkward page breaks across headings and media. */
+  .firstHeading,
+  h2,
+  h3,
+  h4 {
+    break-after: avoid;
+  }
+  .infobox,
+  figure,
+  img {
+    break-inside: avoid;
+  }
+}
