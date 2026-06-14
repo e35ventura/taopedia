@@ -1,0 +1,74 @@
+---
+import WikiLayout from '../../../layouts/WikiLayout.astro';
+import { getCollection } from 'astro:content';
+import { getPageSlug } from '../../../lib/article-history';
+import { compareTitles } from '../../../lib/title-sort.js';
+
+// Dead-end pages: published articles that do not link to any other published
+// article — MediaWiki's Special:DeadEndPages maintenance report, the outbound
+// complement to Special:MostLinkedPages. Built from the existing build-time
+// link graph (public/data/linkgraph.json, the same outbound links that feed the
+// backlinks graph and broken-link detection). Loaded via glob so a missing file
+// (e.g. a dev run before the link graph is built) degrades to an empty list.
+const pages = await getCollection('pages');
+const titleBySlug: Record<string, string> = {};
+for (const page of pages) titleBySlug[getPageSlug(page)] = page.data.title;
+
+const linkgraphModules = import.meta.glob('../../../../public/data/linkgraph.json', { eager: true }) as Record<
+  string,
+  { default?: Record<string, Array<{ target: string }>> }
+>;
+const linkgraph = Object.values(linkgraphModules)[0]?.default ?? {};
+
+// An article is a dead end when none of its outbound links point to a DIFFERENT
+// published article: self-links and links to unpublished/removed targets don't
+// count as linking "out", matching the published-only join the other overview
+// pages use. Listed alphabetically with the site's numeric title collation so
+// "Subnet 9" precedes "Subnet 10". Ties break by slug for a stable order.
+const deadEnds = pages
+  .map((page) => getPageSlug(page))
+  .filter((slug) => {
+    const links = linkgraph[slug] ?? [];
+    return !links.some((link) => link.target && link.target !== slug && titleBySlug[link.target]);
+  })
+  .map((slug) => ({ slug, title: titleBySlug[slug] }))
+  .sort((a, b) => compareTitles(a.title, b.title) || a.slug.localeCompare(b.slug));
+---
+
+<WikiLayout
+  title="Dead-end pages"
+  description="Articles in the Taopedia Bittensor knowledge base that do not link to any other article — the pages that most need outbound links added."
+>
+  <div class="mw-body-content">
+    <h1 class="firstHeading">Dead-end pages</h1>
+
+    <div class="mw-parser-output">
+      <p>
+        Articles that do not link to any other article in Taopedia. Adding links from these pages to
+        related articles helps readers navigate the knowledge base.
+      </p>
+
+      {deadEnds.length === 0 ? (
+        <p>No dead-end pages — every article links to at least one other article.</p>
+      ) : (
+        <ul class="mw-deadend">
+          {deadEnds.map((entry) => (
+            <li class="mw-de-row"><a href={`/wiki/${entry.slug}/`}>{entry.title}</a></li>
+          ))}
+        </ul>
+      )}
+    </div>
+  </div>
+</WikiLayout>
+
+<style>
+  .mw-deadend {
+    margin: 16px 0;
+    padding-left: 32px;
+  }
+  .mw-de-row {
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border-color-subtle);
+    font-size: 14px;
+  }
+</style>
