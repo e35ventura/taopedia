@@ -49,12 +49,26 @@ export function buildRssFeed({
   const root = `${String(siteUrl ?? '').replace(/\/+$/, '')}/`;
   const selfHref = `${root.replace(/\/$/, '')}${feedPath}`;
 
-  // Newest-updated first. ISO-8601 dates sort lexically in chronological order;
-  // undated items sort last. Done here (not in the endpoint) so ordering is
-  // covered by the regression check rather than untested endpoint glue.
-  const sortedItems = [...items].sort((a, b) =>
-    String(b.date ?? '').localeCompare(String(a.date ?? '')),
-  );
+  // Newest-updated first, then a deterministic tiebreak by canonical URL for items
+  // that share an identical revision timestamp (several articles do — they were
+  // imported in the same commit). The endpoint passes items in getCollection()
+  // order, which Astro does not guarantee to be stable, and a stable date-only
+  // sort just preserves that input order — so without the tiebreak a content-
+  // neutral rebuild could reorder the feed and churn downstream caches. Both keys
+  // use the JavaScript relational operators (raw lexicographic string comparison,
+  // not localeCompare) so the order never depends on the build machine's locale,
+  // matching the determinism used elsewhere (e.g. collectRecentChanges in
+  // article-history.ts). ISO-8601 dates compare lexically
+  // in chronological order; the empty string (undated) sorts last. Done here (not
+  // in the endpoint) so ordering is covered by the regression check.
+  const sortedItems = [...items].sort((a, b) => {
+    const aDate = String(a.date ?? '');
+    const bDate = String(b.date ?? '');
+    if (aDate !== bDate) return aDate < bDate ? 1 : -1;
+    const aUrl = String(a.url ?? '');
+    const bUrl = String(b.url ?? '');
+    return aUrl < bUrl ? -1 : aUrl > bUrl ? 1 : 0;
+  });
 
   const itemXml = sortedItems
     .map((item) => {
