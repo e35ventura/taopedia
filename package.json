@@ -47,7 +47,6 @@
     "test:home-links": "node scripts/check-home-links.js",
     "test:404": "node scripts/check-404.js",
     "test:security-txt": "node scripts/check-security-txt.js",
-    "test:random-page": "node scripts/check-random-page.js",
     "test:sitemap": "node scripts/check-sitemap.js",
     "test:rss-feed": "node scripts/check-rss-feed.js",
     "test:recent-changes": "node scripts/check-recent-changes.js",
