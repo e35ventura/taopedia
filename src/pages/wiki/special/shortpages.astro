@@ -1,0 +1,74 @@
+---
+import WikiLayout from '../../../layouts/WikiLayout.astro';
+import { getCollection } from 'astro:content';
+import { getPageSlug } from '../../../lib/article-history';
+
+// Short pages: the shortest articles by word count, shortest first — the stubs
+// most in need of expansion. The word count is the same body-token count the
+// article footer (data-word-count) and Special:Statistics use, so the number a
+// reader sees here matches the one on the article. Limited to the shortest
+// SHORT_LIMIT articles. Ties break by title then slug for a deterministic order.
+const SHORT_LIMIT = 50;
+
+const pages = await getCollection('pages');
+const shortPages = pages
+  .map((page) => ({
+    slug: getPageSlug(page),
+    title: page.data.title,
+    words: (page.body ?? '').trim().split(/\s+/).filter(Boolean).length,
+  }))
+  .sort((a, b) => a.words - b.words || a.title.localeCompare(b.title) || a.slug.localeCompare(b.slug))
+  .slice(0, SHORT_LIMIT);
+---
+
+<WikiLayout
+  title="Short pages"
+  description="The shortest articles across the Taopedia Bittensor knowledge base, by word count — a starting point for finding stubs to expand."
+>
+  <div class="mw-body-content">
+    <h1 class="firstHeading">Short pages</h1>
+
+    <div class="mw-parser-output">
+      <p>
+        The shortest articles by word count, shortest first — a starting point for finding stubs to expand.
+      </p>
+
+      {shortPages.length === 0 ? (
+        <p>No articles available yet.</p>
+      ) : (
+        <ol class="mw-shortpages">
+          {shortPages.map((entry) => (
+            <li class="mw-sp-row">
+              <a class="mw-sp-title" href={`/wiki/${entry.slug}/`}>{entry.title}</a>
+              <span class="mw-sp-words">{entry.words} {entry.words === 1 ? 'word' : 'words'}</span>
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
+  </div>
+</WikiLayout>
+
+<style>
+  .mw-shortpages {
+    margin: 16px 0;
+    padding-left: 32px;
+  }
+  .mw-sp-row {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border-color-subtle);
+    font-size: 14px;
+  }
+  .mw-sp-title {
+    font-weight: 600;
+  }
+  .mw-sp-words {
+    margin-left: auto;
+    font-size: 13px;
+    white-space: nowrap;
+    color: var(--color-base-subtle);
+  }
+</style>
