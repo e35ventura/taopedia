@@ -1,0 +1,104 @@
+---
+import WikiLayout from '../../../layouts/WikiLayout.astro';
+import { getCollection } from 'astro:content';
+import { getPageSlug } from '../../../lib/article-history';
+
+// Special:Subnets — a netuid-ordered registry of every numbered Bittensor subnet
+// article. Subnets are the dominant content type of the knowledge base, but the
+// only way to browse them was the Subnets topic page, which mixes in non-subnet
+// concept articles and renders as cards. This is a clean by-number reference: the
+// articles whose title is "Subnet <n>: <name>", ordered by netuid, with the
+// subnet name and one-line summary. Built only from the content collection
+// (title + summary) — no new data pipeline, no new dependencies.
+const pages = await getCollection('pages');
+
+const subnets = pages
+  .map((page) => {
+    const match = page.data.title.match(/^Subnet (\d+)(?::\s*(.*))?$/);
+    if (!match) return null;
+    const name = (match[2] ?? '').trim();
+    return {
+      netuid: Number(match[1]),
+      name: name || `Subnet ${match[1]}`,
+      slug: getPageSlug(page),
+      summary: page.data.summary ?? '',
+    };
+  })
+  .filter((entry) => entry !== null)
+  .sort((a, b) => a.netuid - b.netuid);
+---
+
+<WikiLayout
+  title="Subnets"
+  description="A registry of every numbered Bittensor subnet documented on Taopedia, ordered by netuid."
+>
+  <div class="mw-body-content">
+    <h1 class="firstHeading">Subnets</h1>
+
+    <div class="mw-parser-output">
+      <p>
+        Every numbered Bittensor subnet documented on Taopedia, ordered by netuid. For broader
+        subnet concepts, see the <a href="/wiki/category/Subnets/">Subnets topic</a>.
+      </p>
+
+      {subnets.length === 0 ? (
+        <p>No subnets available yet.</p>
+      ) : (
+        <table class="mw-subnets">
+          <thead>
+            <tr>
+              <th scope="col" class="mw-subnet-netuid">Netuid</th>
+              <th scope="col">Subnet</th>
+              <th scope="col" class="mw-subnet-summary">Summary</th>
+            </tr>
+          </thead>
+          <tbody>
+            {subnets.map((subnet) => (
+              <tr>
+                <td class="mw-subnet-netuid">{subnet.netuid}</td>
+                <td class="mw-subnet-name"><a href={`/wiki/${subnet.slug}/`}>{subnet.name}</a></td>
+                <td class="mw-subnet-summary">{subnet.summary}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  </div>
+</WikiLayout>
+
+<style>
+  .mw-subnets {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 14px;
+  }
+  .mw-subnets th,
+  .mw-subnets td {
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-color-subtle);
+    vertical-align: top;
+  }
+  .mw-subnets th {
+    color: var(--color-base-subtle);
+    font-weight: 600;
+  }
+  .mw-subnet-netuid {
+    width: 64px;
+    white-space: nowrap;
+  }
+  .mw-subnet-name {
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .mw-subnet-summary {
+    color: var(--color-base-subtle);
+  }
+  @media (max-width: 600px) {
+    .mw-subnet-summary {
+      display: none;
+    }
+  }
+</style>
