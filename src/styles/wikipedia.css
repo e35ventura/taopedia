@@ -994,6 +994,39 @@ body.appearance-overlay-active .mw-appearance {
   scroll-margin-top: 70px;
 }
 
+/* Article breadcrumb (Home › Topic › Article) */
+.mw-breadcrumb {
+  margin: 0 0 10px;
+  font-size: 13px;
+}
+.mw-breadcrumb ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.mw-breadcrumb li {
+  display: inline-flex;
+  align-items: center;
+}
+.mw-breadcrumb li + li::before {
+  content: "\203A";
+  margin: 0 8px;
+  color: var(--color-base-subtle);
+}
+.mw-breadcrumb a {
+  color: var(--color-link);
+  text-decoration: none;
+}
+.mw-breadcrumb a:hover {
+  text-decoration: underline;
+}
+.mw-breadcrumb [aria-current="page"] {
+  color: var(--color-base-subtle);
+}
+
 /* Article Title */
 .firstHeading {
   font-family: var(--font-family-serif);
