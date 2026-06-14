@@ -119,6 +119,18 @@ const { title, description, image, type = 'website', path } = Astro.props;
                 <span>Wide</span>
               </label>
             </fieldset>
+
+            <fieldset>
+              <legend>Color</legend>
+              <label>
+                <input type="radio" name="color-theme" value="light" />
+                <span>Light</span>
+              </label>
+              <label>
+                <input type="radio" name="color-theme" value="dark" />
+                <span>Dark</span>
+              </label>
+            </fieldset>
           </form>
         </aside>
       </div>
@@ -240,8 +252,10 @@ const { title, description, image, type = 'website', path } = Astro.props;
         const appearanceHideBtn = document.querySelector('.appearance-hide');
         const textSizeInputs = document.querySelectorAll('input[name="text-size"]');
         const contentWidthInputs = document.querySelectorAll('input[name="content-width"]');
+        const colorInputs = document.querySelectorAll('input[name="color-theme"]');
         const textSizes = ['small', 'standard', 'large'];
         const contentWidths = ['narrow', 'standard', 'wide'];
+        const colorThemes = ['light', 'dark'];
         let appearanceManuallyHidden = false;
 
         function normalizePreference(value, allowedValues, fallback) {
@@ -297,6 +311,20 @@ const { title, description, image, type = 'website', path } = Astro.props;
           syncAppearanceState();
         }
 
+        // Color theme applies to <html> (data-theme) so it covers the whole page,
+        // not just the article body. An inline <head> script applies the stored
+        // theme before paint to avoid a flash; this keeps it in sync at runtime.
+        function applyColorTheme(theme) {
+          const normalized = normalizePreference(theme, colorThemes, 'light');
+          if (normalized === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+          } else {
+            document.documentElement.removeAttribute('data-theme');
+          }
+          setCheckedInput(colorInputs, normalized);
+          storePreference('taopedia-color', normalized);
+        }
+
         function appearanceRailFits() {
           if (!appearancePanel) return false;
           const wasHidden = appearancePanel.hidden;
@@ -330,8 +358,10 @@ const { title, description, image, type = 'website', path } = Astro.props;
 
         const savedTextSize = normalizePreference(readStoredPreference('taopedia-text-size'), textSizes, 'standard');
         const savedContentWidth = normalizePreference(readStoredPreference('taopedia-content-width'), contentWidths, 'standard');
+        const savedColorTheme = normalizePreference(readStoredPreference('taopedia-color'), colorThemes, 'light');
         applyTextSize(savedTextSize);
         applyContentWidth(savedContentWidth);
+        applyColorTheme(savedColorTheme);
         syncAppearanceState();
 
         textSizeInputs.forEach((input) => {
@@ -340,6 +370,10 @@ const { title, description, image, type = 'website', path } = Astro.props;
 
         contentWidthInputs.forEach((input) => {
           input.addEventListener('change', () => applyContentWidth(input.value));
+        });
+
+        colorInputs.forEach((input) => {
+          input.addEventListener('change', () => applyColorTheme(input.value));
         });
 
         if (appearanceHideBtn && appearancePanel) {

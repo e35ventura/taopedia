@@ -15,6 +15,11 @@
   --border-color-base: #a2a9b1;
   --border-color-subtle: #c8ccd1;
   --box-shadow-drop: 0 1px 1px rgba(0, 0, 0, 0.1);
+  --color-progressive: #3366cc;
+  --color-progressive-hover: #2a4b8d;
+  --background-color-mark: #fef3a8;
+  --color-mark: #202122;
+  color-scheme: light;
   
   /* Typography */
   --font-family-serif: 'Linux Libertine', 'Georgia', 'Times', 'Source Serif Pro', serif;
@@ -276,6 +281,8 @@ body {
   width: 100%;
   padding: 8px 12px;
   border: 1px solid var(--border-color-base);
+  background: var(--background-color-base);
+  color: var(--color-base);
   border-radius: 2px;
   font-size: 14px;
   font-family: var(--font-family-sans);
@@ -284,8 +291,8 @@ body {
 }
 
 .mw-search-input:focus {
-  outline: 1px solid #3366cc;
-  border-color: #3366cc;
+  outline: 1px solid var(--color-link);
+  border-color: var(--color-link);
 }
 
 @media (max-width: 640px) {
@@ -425,7 +432,7 @@ body.sidebar-collapsed .mw-article-toolbar .sidebar-toggle { display: inline-fle
   border-radius: 0;
   background: transparent;
   box-shadow: none;
-  color: #54595d;
+  color: var(--color-base-subtle);
   font: inherit;
   font-size: 13px;
   font-weight: 700;
@@ -942,7 +949,7 @@ body.appearance-overlay-active .mw-appearance {
   box-shadow: none !important;
   outline: none;
   cursor: pointer;
-  color: #54595d;
+  color: var(--color-base-subtle);
   opacity: 0.7;
   transition: opacity 0.2s ease, color 0.2s ease;
   font-weight: 400;
@@ -1090,7 +1097,7 @@ body.appearance-overlay-active .mw-appearance {
   gap: 4px;
   margin-bottom: 8px;
   padding-bottom: 8px;
-  border-bottom: 1px solid #c8ccd1;
+  border-bottom: 1px solid var(--border-color-subtle);
 }
 
 .toc-header .toc-title { flex: 1 1 auto; }
@@ -1109,7 +1116,7 @@ body.appearance-overlay-active .mw-appearance {
   margin: 0;
   padding: 6px 0;
   padding-left: 20px; /* 16px spacer + 4px gap */
-  color: #54595d;
+  color: var(--color-base-subtle);
   line-height: 1.6;
 }
 
@@ -1131,7 +1138,7 @@ body.appearance-overlay-active .mw-appearance {
 }
 
 .toc-list a {
-  color: #202122;
+  color: var(--color-base);
   text-decoration: none;
   font-size: 12px;
   padding: 6px 0;
@@ -1162,7 +1169,7 @@ body.appearance-overlay-active .mw-appearance {
   padding: 0;
   margin: 0;
   cursor: pointer;
-  color: #54595d;
+  color: var(--color-base-subtle);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1173,7 +1180,7 @@ body.appearance-overlay-active .mw-appearance {
 }
 
 .toc-toggle:hover {
-  color: #202122;
+  color: var(--color-base);
 }
 
 .toc-toggle svg {
@@ -1201,7 +1208,7 @@ body.appearance-overlay-active .mw-appearance {
 .toc-footer {
   margin-top: 12px;
   padding-top: 8px;
-  border-top: 1px solid #c8ccd1;
+  border-top: 1px solid var(--border-color-subtle);
 }
 
 .toc-back-to-top {
@@ -1210,7 +1217,7 @@ body.appearance-overlay-active .mw-appearance {
   gap: 6px;
   padding: 6px 0;
   padding-left: 20px; /* 16px spacer + 4px gap */
-  color: #202122;
+  color: var(--color-base);
   text-decoration: none;
   font-size: 12px;
   line-height: 1.6;
@@ -1398,4 +1405,46 @@ body.appearance-overlay-active .mw-appearance {
   .sidebar-toggle {
     display: flex;
   }
+}
+
+/* ===========================================================================
+   Dark theme. Activated by data-theme="dark" on <html> (set before paint by an
+   inline script in the layout <head>, and toggled by the Appearance panel's
+   Color control). Only color tokens are overridden, so every element that uses
+   them themes automatically; layout/spacing is unchanged. color-scheme: dark
+   makes native controls (the search field, scrollbars) render dark too. Values
+   are tuned for WCAG AA contrast on the dark background.
+   =========================================================================== */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --color-base: #eaecf0;
+  --color-base-subtle: #a2a9b1;
+  --color-emphasized: #ffffff;
+  --color-link: #8ab4f8;
+  --color-link-visited: #c8a3e0;
+  --color-link-red: #ff6e6e;
+  --color-progressive: #3a6ee0;
+  --color-progressive-hover: #2f5fcf;
+  --background-color-mark: #6b5e2a;
+  --color-mark: #ffffff;
+  --background-color-base: #1b1b1d;
+  --background-color-neutral: #2e2f33;
+  --background-color-interactive: #26272b;
+  --background-color-interactive-subtle: #26272b;
+  --border-color-base: #5a5f66;
+  --border-color-subtle: #3c3f44;
+}
+
+/* The wordmark logo SVG is a fixed near-black (#292929); lighten it on dark so
+   it stays visible. It is a single-colour glyph, so an invert reads cleanly. */
+:root[data-theme='dark'] .header-logo-img {
+  filter: invert(1) brightness(1.05);
+}
+
+/* Search-result and inline highlights (e.g. Pagefind excerpt <mark>). Tokenized
+   so they follow the theme instead of the browser's default bright yellow. */
+mark {
+  background: var(--background-color-mark);
+  color: var(--color-mark);
 }
