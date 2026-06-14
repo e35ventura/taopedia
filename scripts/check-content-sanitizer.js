@@ -37,6 +37,10 @@ rejects('Intro.\n\n<input type="hidden" name="wallet" value="5Grw...">', 'plain 
 rejects('Intro.\n\n<  input   type="text" name="seed">', 'spaced input');
 rejects('Intro.\n\n<textarea name="note">secret</textarea>', 'plain textarea');
 rejects('Intro.\n\n<select name="wallet"><option>5Grw...</option></select>', 'plain select');
+rejects('Intro.\n\n<option value="evil">Pick me</option>', 'standalone option');
+rejects('Intro.\n\n<fieldset><legend>Seed phrase</legend></fieldset>', 'standalone fieldset');
+rejects('Intro.\n\n<datalist id="wallets"><option value="5Grw..."></datalist>', 'standalone datalist');
+rejects('Intro.\n\n<output name="result">done</output>', 'standalone output');
 
 // Plain dangerous URL schemes remain blocked.
 rejects('See [x](javascript:alert(1)).', 'plain javascript:');
