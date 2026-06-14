@@ -35,6 +35,7 @@
     "test:search-data": "node scripts/check-search-data.js",
     "test:external-links": "node scripts/check-external-links.js",
     "test:drop-redundant-h1": "node scripts/check-drop-redundant-h1.js",
+    "test:heading-anchors": "node scripts/check-heading-anchors.js",
     "test:search-prefill": "node scripts/check-search-prefill.js",
     "test:category-links": "node scripts/check-category-links.js",
     "test:csp": "node scripts/check-csp.js",
