@@ -28,6 +28,7 @@ For local article sync, place `taopedia-articles` next to this repository or set
 - Do not commit generated `src/content/pages` output.
 - Run `npm run build` before opening a pull request when code or styling changes.
 - Include visual evidence for any UI, layout, styling, responsive, or interaction behavior change.
+- Use existing CSS custom properties for colors, backgrounds, borders, and themed UI states. Do not hardcode light-only or dark-only colors unless you are defining a new theme token.
 - Explain any routing, search, or deployment behavior changes in the PR description.
 
 ## Visual Evidence Requirements
@@ -35,7 +36,14 @@ For local article sync, place `taopedia-articles` next to this repository or set
 Visual or interaction PRs must include author-provided evidence in the PR description before review.
 A Netlify deploy preview link by itself is not enough.
 
-Include screenshots for static visual changes and a short screen recording or GIF for interaction changes.
+Visual evidence must show what changed, not just what the final state looks like.
+
+For static visual changes, include before and after screenshots. Use the same page URL and viewport width for both screenshots.
+
+For interaction changes, include a short screen recording or GIF. If screenshots are clearer than a recording, include screenshots that show the before behavior and the after behavior.
+
+Light/Dark screenshots are useful for theme coverage, but they do not replace before/after evidence.
+
 For each piece of evidence, include:
 
 - Page URL.
