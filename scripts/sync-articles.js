@@ -35,6 +35,7 @@ const unsafeContentPatterns = [
   { pattern: /\bclient:[a-z-]+\b/i, reason: 'client directives are not allowed in article content' },
   { pattern: /\bserver:[a-z-]+\b/i, reason: 'server directives are not allowed in article content' },
   { pattern: /\btransition:[a-z-]+\b/i, reason: 'transition directives are not allowed in article content' },
+  { pattern: /\bis:[a-z-]+\b/i, reason: 'is directives are not allowed in article content' },
 ];
 
 // Dangerous URL schemes can be smuggled past the literal checks above using HTML
