@@ -1,8 +1,9 @@
 // Shared article slug + revision-history helpers for the build-time consumers
-// (sitemap.xml.ts, rss.xml.ts, and the Special:RecentChanges page). Kept in one
-// place so they derive route slugs and history from a single source instead of
-// duplicating the logic. The component-side StructuredData history derivation is
-// intentionally separate (it also needs the original publish date).
+// (sitemap.xml.ts, rss.xml.ts, the Special:Statistics overview page, and the
+// Special:RecentChanges page). Kept in one place so they derive route slugs and
+// history from a single source instead of duplicating the logic. The
+// component-side StructuredData history derivation is intentionally separate (it
+// also needs the original publish date).
 
 // Strip a content-collection id (`<slug>/index.mdx`, `<slug>/index`, `<slug>.md`)
 // down to the route slug.
@@ -13,16 +14,20 @@ type HistoryEntry = { date?: string; authorName?: string };
 const HISTORY_PREFIX = '../../public/history/';
 
 // The build generates per-article revision history at public/history/<slug>.json
-// (scripts/generate-history.js, ordered newest-first), so the newest commit date
-// is each article's last-modified time. Returns '' when no history is recorded.
+// (scripts/generate-history.js, ordered newest-first). Returns [] when none.
 const historyModules = import.meta.glob('../../public/history/**/*.json', { eager: true }) as Record<
   string,
   { default?: { history?: Array<HistoryEntry> } }
 >;
 
+export const historyForSlug = (slug: string): Array<HistoryEntry> => {
+  const mod = historyModules[`${HISTORY_PREFIX}${slug}.json`];
+  return mod?.default?.history ?? [];
+};
+
+// The newest commit date is each article's last-modified time ('' when none).
 export const lastmodForSlug = (slug: string): string => {
-  const mod = historyModules[`../../public/history/${slug}.json`];
-  const date = mod?.default?.history?.[0]?.date;
+  const date = historyForSlug(slug)[0]?.date;
   return typeof date === 'string' ? date : '';
 };
 

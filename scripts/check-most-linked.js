@@ -6,9 +6,9 @@ import { fileURLToPath } from 'node:url';
 // Load-bearing regression check for Special:MostLinkedPages. It pins the rendered
 // ranking to the build-time link graph: the page must list exactly the published
 // articles that have inbound links from other published articles, ranked by that
-// count (desc, then title, then slug), and it must be reachable from the footer
-// and homepage nav. It fails if the ranking, counts, order, links, or discovery
-// regress.
+// count (desc, then title, then slug), with the count linking to each article's
+// "What links here" page — and it must be reachable from the footer and homepage
+// nav. It fails if the ranking, counts, order, links, or discovery regress.
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
@@ -37,19 +37,26 @@ const decode = (s) =>
 const rows = [...html.matchAll(/<li[^>]*class="mw-ml-row"[^>]*>([\s\S]*?)<\/li>/g)].map(([, block]) => ({
   titleHref: (block.match(/mw-ml-title[^>]*href="([^"]+)"/) || [])[1],
   titleText: decode((block.match(/mw-ml-title[^>]*>([^<]*)<\/a>/) || [])[1] || ''),
+  countHref: (block.match(/mw-ml-count[^>]*href="([^"]+)"/) || [])[1],
   count: Number((block.match(/mw-ml-count[^>]*>(\d+)/) || [])[1]),
 }));
 assert.ok(rows.length > 0, 'most linked pages must render at least one ranked row');
 
-// Each row: a built article link, a positive count, and a title that matches the
-// slug map. Verifying the rendered title equals slugmap[slug].title proves the
-// page and the slug map agree on titles, so the slug-map title used in the
-// expected tiebreak below is the same title the page sorted on.
+// Each row: a built article link, a count link to that article's (built) backlinks
+// page, a positive count, and a title that matches the slug map. Verifying the
+// rendered title equals slugmap[slug].title proves the page and the slug map agree
+// on titles, so the slug-map title used in the expected tiebreak below is the same
+// title the page sorted on.
 const renderedSlugs = rows.map((row, i) => {
   const m = (row.titleHref || '').match(/^\/wiki\/(.+)\/$/);
   assert.ok(m, `row ${i} has a malformed article link: ${row.titleHref}`);
   const slug = m[1];
   assert.ok(fs.existsSync(path.join(wikiDir, slug, 'index.html')), `row ${i} links to unbuilt /wiki/${slug}/`);
+  assert.equal(row.countHref, `/wiki/${slug}/backlinks/`, `row ${i} count must link to /wiki/${slug}/backlinks/`);
+  assert.ok(
+    fs.existsSync(path.join(wikiDir, slug, 'backlinks', 'index.html')),
+    `row ${i} count links to /wiki/${slug}/backlinks/ but that page was not built`,
+  );
   assert.ok(Number.isInteger(row.count) && row.count > 0, `row ${i} must show a positive link count, got ${row.count}`);
   assert.ok(slugmap[slug], `row ${i} links to /wiki/${slug}/ which is not a known article`);
   assert.equal(row.titleText, slugmap[slug].title, `row ${i} title must match the article title for ${slug}`);

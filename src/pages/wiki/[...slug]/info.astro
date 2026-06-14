@@ -1,0 +1,141 @@
+---
+import { getCollection } from 'astro:content';
+import WikiLayout from '../../../layouts/WikiLayout.astro';
+import { getPageSlug, historyForSlug } from '../../../lib/article-history';
+
+export async function getStaticPaths() {
+  const pages = await getCollection('pages');
+  return pages.map((page) => {
+    const slug = getPageSlug(page);
+    return {
+      params: { slug },
+      props: { page, slug },
+    };
+  });
+}
+
+const { page, slug } = Astro.props;
+
+// MediaWiki's "Page information" (action=info) for one article: a consolidated
+// metadata overview whose figures each link to their own detail page. Built
+// entirely from data the build already produces — the content collection
+// (title, topics), the inbound-link graph (public/data/backlinks.json, the same
+// source as Special:WhatLinksHere), and the per-article git revision history
+// (public/history/<slug>.json, the same source as the History page, the sitemap
+// <lastmod>, and Special:RecentChanges). No new data pipeline, no new dependencies.
+
+// Count only inbound links from published articles — the same orphan-skipping
+// join Special:WhatLinksHere and Special:MostLinkedPages use, so the figure
+// matches the count shown on this article's "What links here" page.
+const pages = await getCollection('pages');
+const titleBySlug: Record<string, string> = {};
+for (const p of pages) titleBySlug[getPageSlug(p)] = p.data.title;
+
+const backlinksModules = import.meta.glob('../../../../public/data/backlinks.json', { eager: true }) as Record<
+  string,
+  { default?: Record<string, Array<{ from: string }>> }
+>;
+const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
+const inboundCount = (backlinksData[slug] ?? []).filter((entry) => titleBySlug[entry.from]).length;
+
+// Newest-first history: length is the revision count, [0] the latest revision,
+// and the last entry the article's creation. Empty when no history is recorded.
+const history = historyForSlug(slug);
+const revisionCount = history.length;
+const lastRevision = history[0]?.date ?? '';
+const firstRevision = history[history.length - 1]?.date ?? '';
+
+const categories = page.data.categories ?? [];
+
+const formatDate = (value: string) =>
+  value
+    ? new Date(value).toLocaleDateString('en-US', { timeZone: 'UTC', year: 'numeric', month: 'long', day: 'numeric' })
+    : '';
+
+const articleUrl = `/wiki/${slug}/`;
+const historyUrl = `/wiki/${slug}/history/`;
+const backlinksUrl = `/wiki/${slug}/backlinks/`;
+const citeUrl = `/wiki/${slug}/cite/`;
+const infoUrl = `/wiki/${slug}/info/`;
+const url = new URL(articleUrl, Astro.site).toString();
+const pageTitle = `Information for "${page.data.title}"`;
+const pageDescription = `Page metadata for the Taopedia article "${page.data.title}": topics, incoming links, and revision history.`;
+---
+
+<WikiLayout title={pageTitle} description={pageDescription}>
+  <div class="mw-body-content">
+    <nav class="mw-article-toolbar">
+      <a href={articleUrl}>Article</a>
+      <a href={historyUrl}>History</a>
+      <a href={backlinksUrl}>What links here</a>
+      <a href={citeUrl}>Cite this page</a>
+      <a href={infoUrl} class="active" aria-current="page">Page information</a>
+    </nav>
+
+    <h1 class="firstHeading">Page information</h1>
+
+    <div class="mw-parser-output">
+      <p>Basic metadata for <a href={articleUrl}>{page.data.title}</a>.</p>
+
+      <dl class="mw-info-details">
+        <div class="mw-info-row"><dt>Page title</dt><dd>{page.data.title}</dd></div>
+        <div class="mw-info-row">
+          <dt>Topics</dt>
+          <dd data-info="categories">
+            {categories.length === 0 ? (
+              <span>None</span>
+            ) : (
+              categories.map((category, index) => (
+                <Fragment>{index > 0 ? ', ' : ''}<a href={`/wiki/category/${category.replace(/ /g, '_')}/`}>{category}</a></Fragment>
+              ))
+            )}
+          </dd>
+        </div>
+        <div class="mw-info-row">
+          <dt>Incoming links</dt>
+          <dd data-info="inbound">
+            <a href={backlinksUrl}>{inboundCount.toLocaleString('en-US')} {inboundCount === 1 ? 'article' : 'articles'}</a>
+          </dd>
+        </div>
+        <div class="mw-info-row">
+          <dt>Number of revisions</dt>
+          <dd data-info="revisions"><a href={historyUrl}>{revisionCount.toLocaleString('en-US')}</a></dd>
+        </div>
+        {firstRevision && (
+          <div class="mw-info-row">
+            <dt>Date of page creation</dt>
+            <dd><time datetime={firstRevision}>{formatDate(firstRevision)}</time> (UTC)</dd>
+          </div>
+        )}
+        {lastRevision && (
+          <div class="mw-info-row">
+            <dt>Date of latest revision</dt>
+            <dd><time datetime={lastRevision}>{formatDate(lastRevision)}</time> (UTC)</dd>
+          </div>
+        )}
+        <div class="mw-info-row"><dt>Permanent URL</dt><dd><a href={articleUrl}>{url}</a></dd></div>
+      </dl>
+    </div>
+  </div>
+</WikiLayout>
+
+<style>
+  .mw-info-details {
+    margin: 16px 0;
+  }
+  .mw-info-row {
+    display: flex;
+    gap: 16px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color-subtle);
+    font-size: 14px;
+  }
+  .mw-info-row dt {
+    flex: 0 0 180px;
+    color: var(--color-base-subtle);
+  }
+  .mw-info-row dd {
+    margin: 0;
+    word-break: break-word;
+  }
+</style>
