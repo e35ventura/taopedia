@@ -82,4 +82,14 @@ assert.equal(longEmojiChunks[0].length, 24);
 assert.equal(longEmojiChunks[1].length, 24);
 assert.equal(longEmojiChunks[2].length, 12);
 
+// When the truncated last line is already exactly at maxChars with no
+// trailing punctuation, the appended ellipsis must not push it over budget --
+// the line is trimmed by one more character first so "line…" stays <= maxChars.
+const ellipsisAtBudget = wrapText('A B ' + 'E'.repeat(24) + ' ' + 'F'.repeat(24) + ' Gg', 24, 3);
+assert.equal(ellipsisAtBudget.length, 3);
+assert.equal(ellipsisAtBudget[2], 'F'.repeat(23) + '…');
+for (const line of ellipsisAtBudget) {
+  assert.ok(line.length <= 24, `ellipsized line over budget: "${line}" (${line.length})`);
+}
+
 console.log('OG text layout check passed');

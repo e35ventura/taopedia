@@ -61,7 +61,12 @@ export function wrapText(text, maxChars, maxLines) {
   if (current && lines.length < maxLines) lines.push(current);
 
   if (lines.length === maxLines && words.join(' ').length > lines.join(' ').length) {
-    lines[maxLines - 1] = `${lines[maxLines - 1].replace(/[.,;:!?]?$/, '')}…`;
+    const stripped = lines[maxLines - 1].replace(/[.,;:!?]?$/, '');
+    // If the line is already at the character budget, the ellipsis itself
+    // would push it one character over -- trim one more character first so
+    // "line…" never exceeds maxChars.
+    const truncated = stripped.length >= maxChars ? stripped.slice(0, maxChars - 1) : stripped;
+    lines[maxLines - 1] = `${truncated}…`;
   }
 
   return lines;
