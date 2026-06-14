@@ -21,6 +21,18 @@ const canonicalUrl = new URL(path ?? Astro.url.pathname, Astro.site).toString();
 const imageUrl = new URL(image, Astro.site).toString();
 ---
 
+{/* Apply the saved color theme before paint, so a reader who chose Dark never
+    sees a flash of the light theme. Kept in this shared <head> component so it
+    covers both the layout pages and the standalone homepage. The Appearance
+    panel's Color control keeps the stored preference in sync at runtime. */}
+<script is:inline>
+  try {
+    if (localStorage.getItem('taopedia-color') === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  } catch (e) {}
+</script>
+
 <title>{pageTitle}</title>
 <meta name="description" content={description} />
 <link rel="canonical" href={canonicalUrl} />

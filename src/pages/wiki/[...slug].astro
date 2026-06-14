@@ -187,7 +187,7 @@ const readingMinutes = Math.max(1, Math.ceil(wordCount / 200));
             <img class="infobox-image" src={ib.image} alt={ib.title || page.data.title} />
           )}
           {ib.caption && (
-            <div style="font-size: 12px; padding: 6px 12px; color: #54595d;">{ib.caption}</div>
+            <div style="font-size: 12px; padding: 6px 12px; color: var(--color-base-subtle);">{ib.caption}</div>
           )}
           {ib.rows && ib.rows.length > 0 && (
             <table class="infobox-table">
