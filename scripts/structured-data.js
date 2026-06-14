@@ -5,7 +5,7 @@
 //
 // Every page advertises the WebSite entity plus a SearchAction so search engines
 // can offer a sitelinks search box that targets /search. Article pages also
-// describe the Article itself, a Home -> article BreadcrumbList, and a DefinedTerm
+// describe the Article itself, a Home -> [topic] -> article BreadcrumbList, and a DefinedTerm
 // in the site's glossary (each Taopedia article defines a Bittensor term). URLs
 // are passed in already resolved (canonical/image), matching the canonical <link>
 // in Seo.astro, so this function never has to re-derive origins or trailing slashes.
@@ -27,6 +27,7 @@ export function buildStructuredData({
   dateModified,
   siteName = SITE_NAME,
   siteDescription = '',
+  breadcrumbTopic,
 }) {
   const root = `${trimTrailingSlash(siteUrl)}/`;
   const websiteId = `${root}#website`;
@@ -68,13 +69,25 @@ export function buildStructuredData({
       inLanguage: 'en',
     });
 
+    // Home > [primary topic] > this article, mirroring the visible breadcrumb on
+    // the article page. The topic level is included only when the article has a
+    // category; positions are assigned in order so the chain stays contiguous.
+    const breadcrumbItems = [{ '@type': 'ListItem', position: 1, name: 'Home', item: root }];
+    if (breadcrumbTopic && breadcrumbTopic.name && breadcrumbTopic.item) {
+      breadcrumbItems.push({
+        '@type': 'ListItem',
+        position: breadcrumbItems.length + 1,
+        name: breadcrumbTopic.name,
+        item: breadcrumbTopic.item,
+      });
+    }
+    if (title) {
+      breadcrumbItems.push({ '@type': 'ListItem', position: breadcrumbItems.length + 1, name: title, item: canonicalUrl });
+    }
     graph.push({
       '@type': 'BreadcrumbList',
       '@id': `${canonicalUrl}#breadcrumb`,
-      itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Home', item: root },
-        ...(title ? [{ '@type': 'ListItem', position: 2, name: title, item: canonicalUrl }] : []),
-      ],
+      itemListElement: breadcrumbItems,
     });
 
     // Most articles define a Bittensor term, so describe them as a Schema.org

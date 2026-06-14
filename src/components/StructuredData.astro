@@ -20,9 +20,12 @@ const imageUrl = image ? new URL(image, Astro.site).toString() : undefined;
 // Revisions are newest-first, so the first record is the latest modification and
 // the last is the original publication.
 const historyModules = import.meta.glob('../../public/history/**/*.json', { eager: true }) as Record<string, any>;
+const slugmapModules = import.meta.glob('../../public/data/slugmap.json', { eager: true }) as Record<string, any>;
+const slugmap: Record<string, { categories?: string[] }> = Object.values(slugmapModules)[0]?.default ?? {};
 
 let datePublished: string | undefined;
 let dateModified: string | undefined;
+let breadcrumbTopic: { name: string; item: string } | undefined;
 if (type === 'article') {
   const slug = new URL(canonicalUrl).pathname.replace(/^\/wiki\//, '').replace(/\/$/, '');
   const historyData = historyModules[`../../public/history/${slug}.json`];
@@ -30,6 +33,15 @@ if (type === 'article') {
   if (revisions.length > 0) {
     dateModified = revisions[0]?.date;
     datePublished = revisions[revisions.length - 1]?.date;
+  }
+  // Primary topic for the breadcrumb = the article's first category, the same
+  // source and order as the visible breadcrumb on the page, as a full URL.
+  const primaryTopic = slugmap[slug]?.categories?.[0];
+  if (primaryTopic) {
+    breadcrumbTopic = {
+      name: primaryTopic,
+      item: new URL(`/wiki/category/${primaryTopic.replace(/ /g, '_')}/`, Astro.site).toString(),
+    };
   }
 }
 
@@ -43,6 +55,7 @@ const structuredData = buildStructuredData({
   datePublished,
   dateModified,
   siteDescription,
+  breadcrumbTopic,
 });
 const json = serializeStructuredData(structuredData);
 ---

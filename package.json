@@ -31,6 +31,7 @@
     "test:robots": "node scripts/check-robots.js",
     "test:mobile-header-search": "node scripts/check-mobile-header-search.js",
     "test:structured-data": "node scripts/check-structured-data.js",
+    "test:breadcrumbs": "node scripts/check-breadcrumbs.js",
     "test:opensearch": "node scripts/check-opensearch.js",
     "test:search-data": "node scripts/check-search-data.js",
     "test:external-links": "node scripts/check-external-links.js",
