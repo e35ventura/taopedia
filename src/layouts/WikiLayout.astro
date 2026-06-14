@@ -1,6 +1,7 @@
 ---
 import '../styles/wikipedia.css';
 import Seo from '../components/Seo.astro';
+import SearchSuggest from '../components/SearchSuggest.astro';
 
 interface Props {
   title: string;
@@ -469,5 +470,7 @@ const { title, description, image, type = 'website', path } = Astro.props;
         
       });
     </script>
+
+    <SearchSuggest />
   </body>
 </html>
