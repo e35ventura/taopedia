@@ -22,7 +22,7 @@ const walk = (dir) => {
       if (segs.length < 2) continue;
       if (segs[0] === 'category' || segs[0] === 'special') continue;
       const parent = segs[segs.length - 2];
-      if (parent === 'history' || parent === 'backlinks' || parent === 'cite') continue;
+      if (parent === 'history' || parent === 'backlinks' || parent === 'cite' || parent === 'info') continue;
       articlePages.push(full);
     }
   }

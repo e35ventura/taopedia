@@ -41,7 +41,7 @@ const walk = (dir) => {
     if (segs.length < 2) continue; // /wiki/index.html, if any — not an article
     if (segs[0] === 'special' || segs[0] === 'category') continue;
     const parent = segs[segs.length - 2];
-    if (parent === 'history' || parent === 'backlinks' || parent === 'cite') continue;
+    if (parent === 'history' || parent === 'backlinks' || parent === 'cite' || parent === 'info') continue;
     articleSlugs.push(segs.slice(0, -1).join('/'));
   }
 };

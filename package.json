@@ -53,6 +53,7 @@
     "test:recent-changes": "node scripts/check-recent-changes.js",
     "test:backlinks-page": "node scripts/check-backlinks-page.js",
     "test:cite-page": "node scripts/check-cite-page.js",
+    "test:info-page": "node scripts/check-info-page.js",
     "test:search-index": "node scripts/check-search-index.js",
     "test:most-linked": "node scripts/check-most-linked.js",
     "test:article-meta": "node scripts/check-article-meta.js"
