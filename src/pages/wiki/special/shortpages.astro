@@ -1,0 +1,77 @@
+---
+import WikiLayout from '../../../layouts/WikiLayout.astro';
+import { getCollection } from 'astro:content';
+import { getPageSlug } from '../../../lib/article-history';
+
+// Short pages: every published article ranked by length (shortest first) — the
+// MediaWiki Special:ShortPages maintenance report, which surfaces stub articles
+// that most need expansion. Length is the article's word count, using the same
+// metric Special:Statistics already reports (page.body split on whitespace), so
+// the two overview pages agree on how long an article is. Built entirely from
+// the existing content collection: no new data pipeline, no new dependencies.
+const pages = await getCollection('pages');
+
+// Ties (articles with the same word count) break by title then slug for a
+// deterministic, build-stable order, matching the other ranked overview pages.
+const shortPages = pages
+  .map((page) => ({
+    slug: getPageSlug(page),
+    title: page.data.title,
+    words: (page.body ?? '').trim().split(/\s+/).filter(Boolean).length,
+  }))
+  .sort((a, b) => a.words - b.words || a.title.localeCompare(b.title) || a.slug.localeCompare(b.slug));
+---
+
+<WikiLayout
+  title="Short pages"
+  description="The shortest articles in the Taopedia Bittensor knowledge base, ranked by word count — the stub pages that most need expanding."
+>
+  <div class="mw-body-content">
+    <h1 class="firstHeading">Short pages</h1>
+
+    <div class="mw-parser-output">
+      <p>
+        Articles ranked by length, shortest first. Length is each article's word count, the same
+        measure shown on <a href="/wiki/special/statistics/">Statistics</a>. The shortest pages are
+        usually the stubs that most need expanding.
+      </p>
+
+      {shortPages.length === 0 ? (
+        <p>No pages available yet.</p>
+      ) : (
+        <ol class="mw-shortpages">
+          {shortPages.map((entry) => (
+            <li class="mw-sp-row">
+              <a class="mw-sp-title" href={`/wiki/${entry.slug}/`}>{entry.title}</a>
+              <span class="mw-sp-count">{entry.words} {entry.words === 1 ? 'word' : 'words'}</span>
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
+  </div>
+</WikiLayout>
+
+<style>
+  .mw-shortpages {
+    margin: 16px 0;
+    padding-left: 32px;
+  }
+  .mw-sp-row {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border-color-subtle);
+    font-size: 14px;
+  }
+  .mw-sp-title {
+    font-weight: 600;
+  }
+  .mw-sp-count {
+    margin-left: auto;
+    font-size: 13px;
+    white-space: nowrap;
+    color: var(--color-base-subtle);
+  }
+</style>
