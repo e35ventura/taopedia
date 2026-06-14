@@ -21,6 +21,9 @@ const historyModules = import.meta.glob('../../../../public/history/**/*.json', 
 const historyData = historyModules[`../../../../public/history/${slug}.json`];
 const history: any[] = historyData?.default?.history || historyData?.history || [];
 const articleUrl = `/wiki/${slug}/`;
+const backlinksUrl = `/wiki/${slug}/backlinks/`;
+const citeUrl = `/wiki/${slug}/cite/`;
+const infoUrl = `/wiki/${slug}/info/`;
 const pageDescription = `Revision history for the Taopedia article "${page.data.title}".`;
 ---
 
@@ -29,6 +32,9 @@ const pageDescription = `Revision history for the Taopedia article "${page.data.
     <nav class="mw-article-toolbar">
       <a href={articleUrl}>Article</a>
       <a href={`/wiki/${slug}/history/`} class="active" aria-current="page">History</a>
+      <a href={backlinksUrl}>What links here</a>
+      <a href={citeUrl}>Cite this page</a>
+      <a href={infoUrl}>Page information</a>
     </nav>
 
     <h1 class="firstHeading">Revision history of "{page.data.title}"</h1>

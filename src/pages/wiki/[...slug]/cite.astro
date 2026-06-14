@@ -34,6 +34,7 @@ const articleUrl = `/wiki/${slug}/`;
 const historyUrl = `/wiki/${slug}/history/`;
 const backlinksUrl = `/wiki/${slug}/backlinks/`;
 const citeUrl = `/wiki/${slug}/cite/`;
+const infoUrl = `/wiki/${slug}/info/`;
 const pageTitle = `Cite "${page.data.title}"`;
 const pageDescription = `Ready-made APA, MLA, Chicago, and BibTeX citations for the Taopedia article "${page.data.title}".`;
 ---
@@ -45,6 +46,7 @@ const pageDescription = `Ready-made APA, MLA, Chicago, and BibTeX citations for 
       <a href={historyUrl}>History</a>
       <a href={backlinksUrl}>What links here</a>
       <a href={citeUrl} class="active" aria-current="page">Cite this page</a>
+      <a href={infoUrl}>Page information</a>
     </nav>
 
     <h1 class="firstHeading">Cite this page</h1>
