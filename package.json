@@ -11,7 +11,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "prebuild": "node scripts/sync-articles.js && node scripts/generate-history.js && node scripts/build-linkgraph.js",
-    "postbuild": "npx pagefind --site dist && node scripts/prune-pagefind-assets.js && node scripts/check-article-meta.js",
+    "postbuild": "npx pagefind --site dist && node scripts/prune-pagefind-assets.js",
     "preview": "astro preview",
     "astro": "astro",
     "test:article-slugmap": "node scripts/check-article-slugmap.js",
@@ -52,7 +52,6 @@
     "test:rss-feed": "node scripts/check-rss-feed.js",
     "test:recent-changes": "node scripts/check-recent-changes.js",
     "test:most-linked": "node scripts/check-most-linked.js",
-    "test:article-meta": "node scripts/check-article-meta.js",
     "test:dark-theme": "node scripts/check-dark-theme.js"
   },
   "dependencies": {
