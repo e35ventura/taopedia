@@ -50,10 +50,17 @@ export function buildRssFeed({
   const selfHref = `${root.replace(/\/$/, '')}${feedPath}`;
 
   // Newest-updated first. ISO-8601 dates sort lexically in chronological order;
-  // undated items sort last. Done here (not in the endpoint) so ordering is
-  // covered by the regression check rather than untested endpoint glue.
-  const sortedItems = [...items].sort((a, b) =>
-    String(b.date ?? '').localeCompare(String(a.date ?? '')),
+  // undated items sort last. Items that share an identical revision timestamp
+  // (several articles do — they were imported in the same commit) break ties by
+  // canonical URL so the feed has a single deterministic order independent of the
+  // order items are passed in; otherwise the feed could reorder on a content-
+  // neutral rebuild (the iteration order of getCollection() is not guaranteed),
+  // churning the output and downstream caches. Done here (not in the endpoint) so
+  // ordering is covered by the regression check rather than untested endpoint glue.
+  const sortedItems = [...items].sort(
+    (a, b) =>
+      String(b.date ?? '').localeCompare(String(a.date ?? '')) ||
+      String(a.url ?? '').localeCompare(String(b.url ?? '')),
   );
 
   const itemXml = sortedItems

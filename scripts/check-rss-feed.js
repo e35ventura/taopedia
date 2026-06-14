@@ -78,4 +78,31 @@ assert.match(empty, /<channel>[\s\S]*<\/channel>/, 'an empty feed is still a val
 assert.ok(!empty.includes('<item>'), 'an empty feed contains no items');
 assert.ok(!empty.includes('<lastBuildDate>'), 'an empty feed omits lastBuildDate');
 
+// Determinism: several articles share an identical revision timestamp, and the
+// endpoint passes items in getCollection() order, which Astro does not guarantee
+// to be stable. Same-timestamp items must therefore break ties by canonical URL
+// so the feed is byte-identical regardless of input order — otherwise a content-
+// neutral rebuild can reorder the feed and churn downstream caches. (Without the
+// tiebreak the stable date-only sort just preserved input order, so this fails.)
+{
+  const sameDate = '2026-06-01T06:01:22Z';
+  const a = { title: 'Alpha', url: 'https://taopedia.org/wiki/alpha/', description: '', date: sameDate };
+  const b = { title: 'Bravo', url: 'https://taopedia.org/wiki/bravo/', description: '', date: sameDate };
+  const c = { title: 'Charlie', url: 'https://taopedia.org/wiki/charlie/', description: '', date: sameDate };
+  const feedForward = buildRssFeed({ siteUrl, items: [a, b, c] });
+  const feedReversed = buildRssFeed({ siteUrl, items: [c, b, a] });
+  assert.equal(
+    feedForward,
+    feedReversed,
+    'same-timestamp items must produce a byte-identical feed regardless of input order',
+  );
+  const linkOrder = ['alpha', 'bravo', 'charlie'].map((slug) => feedForward.indexOf(`/wiki/${slug}/`));
+  assert.ok(linkOrder.every((i) => i >= 0), 'every same-timestamp item appears in the feed');
+  assert.deepEqual(
+    linkOrder,
+    [...linkOrder].sort((x, y) => x - y),
+    'same-timestamp items are ordered by canonical URL',
+  );
+}
+
 console.log('check-rss-feed: all assertions passed');
