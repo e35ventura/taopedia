@@ -1,0 +1,269 @@
+---
+// Page previews ("hovercards"). While reading an article, hovering — or
+// keyboard-focusing — an internal link in the body or infobox shows a small
+// card with the target article's title, topics, and summary, so a reader can
+// preview a linked concept without leaving the page. Previews are limited to
+// the article reading content (.mw-parser-output): on cards, lists, and search
+// results the summary is already visible, so a preview there would be redundant.
+//
+// Progressive enhancement: links behave exactly as before with JS off, on
+// touch (taps navigate normally), or if the data can't be fetched. The data
+// source is the already-built slug map (public/data/slugmap.json) — no new
+// build step, dependency, or network service. Card text is set via textContent
+// only, so article data can never inject markup.
+---
+
+<script is:inline>
+  (function () {
+    if (window.__taopediaHovercards) return;
+    window.__taopediaHovercards = true;
+
+    // Only mouse pointers get hover previews; touch taps must navigate
+    // normally. Keyboard focus is wired separately so the feature stays
+    // reachable without a mouse.
+    var hoverCapable =
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+    var SHOW_DELAY = 280; // ms of hover intent before the card appears
+    var HIDE_DELAY = 200; // ms grace period to move the pointer into the card
+
+    var card = null;
+    var titleEl = null;
+    var tagsEl = null;
+    var summaryEl = null;
+    var slugData = null; // slug -> { title, summary, categories }
+    var slugFetch = null;
+    var showTimer = 0;
+    var hideTimer = 0;
+    var pendingHide = false; // a hide is scheduled — don't let a late fetch flash the card
+    var activeLink = null;
+    var currentSlug = articleSlug(location.pathname);
+
+    // The slug of an article page is the single path segment in /wiki/<slug>/.
+    // Sub-pages (/wiki/<slug>/history/), category and special pages, and
+    // external links all return null, so they never trigger a card.
+    function articleSlug(pathname) {
+      var m = /^\/wiki\/([^/#?]+)\/?$/.exec(pathname || '');
+      return m ? m[1] : null;
+    }
+
+    function linkSlug(a) {
+      if (!a || !a.getAttribute('href')) return null;
+      // Only preview links inside the article reading content (prose and the
+      // infobox both live in .mw-parser-output). Links in cards, lists, search
+      // results and navigation already show the article's summary or are purely
+      // navigational, so a preview there would just repeat what's on screen.
+      if (!a.closest('.mw-parser-output')) return null;
+      var url;
+      try {
+        url = new URL(a.href, location.href);
+      } catch (e) {
+        return null;
+      }
+      if (url.origin !== location.origin) return null;
+      return articleSlug(url.pathname);
+    }
+
+    function ensureCard() {
+      if (card) return;
+      card = document.createElement('div');
+      card.className = 'hovercard';
+      card.setAttribute('aria-hidden', 'true');
+      titleEl = document.createElement('p');
+      titleEl.className = 'hovercard-title';
+      tagsEl = document.createElement('div');
+      tagsEl.className = 'hovercard-tags';
+      summaryEl = document.createElement('p');
+      summaryEl.className = 'hovercard-summary';
+      card.appendChild(titleEl);
+      card.appendChild(tagsEl);
+      card.appendChild(summaryEl);
+      document.body.appendChild(card);
+      // Keep the card open while the pointer is over it.
+      card.addEventListener('mouseenter', cancelHide);
+      card.addEventListener('mouseleave', scheduleHide);
+    }
+
+    function loadData() {
+      if (slugFetch) return slugFetch;
+      slugFetch = fetch('/data/slugmap.json')
+        .then(function (r) {
+          return r.ok ? r.json() : {};
+        })
+        .then(function (data) {
+          slugData = data && typeof data === 'object' ? data : {};
+          return slugData;
+        })
+        .catch(function () {
+          slugData = {};
+          return slugData;
+        });
+      return slugFetch;
+    }
+
+    function fill(entry) {
+      titleEl.textContent = entry.title || '';
+      summaryEl.textContent = entry.summary || '';
+      summaryEl.style.display = entry.summary ? '' : 'none';
+      tagsEl.textContent = '';
+      var cats = Array.isArray(entry.categories) ? entry.categories.slice(0, 3) : [];
+      cats.forEach(function (cat) {
+        var tag = document.createElement('span');
+        tag.className = 'hovercard-tag';
+        tag.textContent = cat;
+        tagsEl.appendChild(tag);
+      });
+      tagsEl.style.display = cats.length ? '' : 'none';
+    }
+
+    // Position relative to the viewport (the card is position: fixed). Prefer
+    // below the link; flip above when there isn't room. Clamp within the
+    // viewport so the card is never cut off at an edge.
+    function position(link) {
+      var r = link.getBoundingClientRect();
+      var vw = document.documentElement.clientWidth;
+      var vh = document.documentElement.clientHeight;
+      var cw = card.offsetWidth;
+      var ch = card.offsetHeight;
+      var gap = 8;
+
+      var top = r.bottom + gap;
+      if (top + ch > vh - gap && r.top - gap - ch > gap) {
+        top = r.top - gap - ch;
+      }
+      top = Math.max(gap, Math.min(top, vh - gap - ch));
+
+      var left = r.left;
+      if (left + cw > vw - gap) left = vw - gap - cw;
+      if (left < gap) left = gap;
+
+      card.style.left = Math.round(left) + 'px';
+      card.style.top = Math.round(top) + 'px';
+    }
+
+    function show(link) {
+      var slug = linkSlug(link);
+      if (!slug || slug === currentSlug) return;
+      ensureCard();
+      loadData().then(function (data) {
+        // Bail if the pointer/focus moved away, or a hide was scheduled while
+        // the data was loading (otherwise a slow fetch would flash the card).
+        if (activeLink !== link || pendingHide) return;
+        var entry = data[slug];
+        if (!entry) {
+          hide(); // no preview for this link — clear any card left from a prior link
+          return;
+        }
+        fill(entry);
+        position(link);
+        card.classList.add('is-visible');
+      });
+    }
+
+    function scheduleShow(link) {
+      var slug = linkSlug(link);
+      if (!slug || slug === currentSlug) return;
+      activeLink = link;
+      cancelHide();
+      clearTimeout(showTimer);
+      showTimer = setTimeout(function () {
+        show(link);
+      }, SHOW_DELAY);
+    }
+
+    function hide() {
+      clearTimeout(showTimer);
+      pendingHide = false;
+      if (card) card.classList.remove('is-visible');
+      activeLink = null;
+    }
+
+    function scheduleHide() {
+      clearTimeout(showTimer);
+      clearTimeout(hideTimer);
+      pendingHide = true;
+      hideTimer = setTimeout(hide, HIDE_DELAY);
+    }
+
+    function cancelHide() {
+      clearTimeout(hideTimer);
+      pendingHide = false;
+    }
+
+    function closestLink(node) {
+      return node && node.closest ? node.closest('a[href]') : null;
+    }
+
+    // Track the input modality so focus previews fire only for genuine keyboard
+    // navigation — never for the focus a tap or mouse click puts on a link,
+    // which would flash a card over the page the click is already opening.
+    var usingKeyboard = false;
+
+    function showFromFocus(target) {
+      var a = closestLink(target);
+      var slug = a ? linkSlug(a) : null;
+      // Not a previewable article link: leave any pending hide intact (don't
+      // cancel it) so a card open on the previously focused link closes instead
+      // of getting stuck on screen.
+      if (!slug || slug === currentSlug) return;
+      activeLink = a;
+      cancelHide();
+      show(a);
+    }
+
+    function init() {
+      document.addEventListener('pointerdown', function () {
+        usingKeyboard = false;
+      });
+      document.addEventListener('keydown', function (e) {
+        // Keys that move focus between elements mark this as keyboard navigation.
+        if (e.key === 'Tab' || e.key === 'Home' || e.key === 'End' || e.key.indexOf('Arrow') === 0) {
+          usingKeyboard = true;
+        }
+        if (e.key === 'Escape') hide();
+      });
+
+      // Keyboard focus shows previews (a benefit for sighted keyboard users);
+      // tap- or click-induced focus does not.
+      document.addEventListener('focusin', function (e) {
+        if (usingKeyboard) showFromFocus(e.target);
+      });
+      document.addEventListener('focusout', function (e) {
+        if (closestLink(e.target) === activeLink) scheduleHide();
+      });
+
+      // Pointer hover previews only on mouse-capable devices, so touch taps are
+      // never intercepted.
+      if (hoverCapable) {
+        document.addEventListener('pointerover', function (e) {
+          if (e.pointerType && e.pointerType !== 'mouse') return;
+          var a = closestLink(e.target);
+          if (!a) return;
+          // Ignore moves that stay within the same link (between its children).
+          if (e.relatedTarget && a.contains(e.relatedTarget)) return;
+          scheduleShow(a);
+        });
+        document.addEventListener('pointerout', function (e) {
+          if (e.pointerType && e.pointerType !== 'mouse') return;
+          var a = closestLink(e.target);
+          if (!a || a !== activeLink) return;
+          // A move that stays within the same link isn't really leaving it, so
+          // don't hide (this also avoids hiding a keyboard-shown card on a
+          // stray mouse nudge between the link's child nodes).
+          if (e.relatedTarget && a.contains(e.relatedTarget)) return;
+          scheduleHide();
+        });
+      }
+
+      window.addEventListener('scroll', hide, { passive: true });
+      window.addEventListener('resize', hide);
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  })();
+</script>

@@ -57,7 +57,8 @@
     "test:search-index": "node scripts/check-search-index.js",
     "test:most-linked": "node scripts/check-most-linked.js",
     "test:article-meta": "node scripts/check-article-meta.js",
-    "test:dark-theme": "node scripts/check-dark-theme.js"
+    "test:dark-theme": "node scripts/check-dark-theme.js",
+    "test:hovercards": "node scripts/check-hovercards.js"
   },
   "dependencies": {
     "@astrojs/mdx": "^5.0.6",
