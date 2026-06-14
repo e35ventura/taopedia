@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { compareTitles } from '../src/lib/title-sort.js';
 
 // Load-bearing regression check for the per-article "What links here"
 // (Special:WhatLinksHere) pages at /wiki/<slug>/backlinks/. It pins the
@@ -78,8 +77,7 @@ for (const slug of articleSlugs) {
 
 // 2) CORRECTNESS: for each target with inbound links in the ground-truth graph,
 // the rendered page must list exactly the links whose source article was built,
-// each resolving to a built article, sorted by the site's numeric title
-// collation (compareTitles) so "Subnet 9" precedes "Subnet 10".
+// each resolving to a built article, sorted alphabetically by displayed title.
 let verifiedWithLinks = 0;
 for (const [target, entries] of Object.entries(backlinksData)) {
   if (!articleBuilt(target)) continue; // target not a published article; no page expected
@@ -102,8 +100,8 @@ for (const [target, entries] of Object.entries(backlinksData)) {
 
   for (let i = 1; i < rows.length; i++) {
     assert.ok(
-      compareTitles(rows[i - 1].title, rows[i].title) <= 0,
-      `/wiki/${target}/backlinks/ rows must be sorted by numeric title collation ("${rows[i - 1].title}" before "${rows[i].title}")`,
+      rows[i - 1].title.localeCompare(rows[i].title) <= 0,
+      `/wiki/${target}/backlinks/ rows must be sorted by title ("${rows[i - 1].title}" before "${rows[i].title}")`,
     );
   }
 
