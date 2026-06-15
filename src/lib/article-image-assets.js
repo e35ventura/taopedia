@@ -1,6 +1,6 @@
 const LOCAL_IMAGE_EXTENSION_PATTERN = /\.(?:avif|gif|jpe?g|png|webp)$/i;
 const PASSTHROUGH_IMAGE_URL_PATTERN = /^(?:[a-z][a-z0-9+.-]*:|\/\/|\/)/i;
-const UNSAFE_IMAGE_URL_PATTERN = /^(?:javascript|vbscript)\s*:|^data\s*:\s*(?:text\/html|image\/svg\+xml|application\/xhtml\+xml)/i;
+const UNSAFE_IMAGE_URL_PATTERN = /^(?:javascript|vbscript)\s*:|^data\s*:\s*(?:text\/html|image\/svg\+xml|application\/xhtml\+xml|(?:text|application)\/(?:javascript|ecmascript))/i;
 
 function decodePathSegments(value) {
   try {
