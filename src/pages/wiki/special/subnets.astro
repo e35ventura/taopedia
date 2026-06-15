@@ -1,5 +1,6 @@
 ---
 import WikiLayout from '../../../layouts/WikiLayout.astro';
+import SortableTable from '../../../components/SortableTable.astro';
 import { getCollection } from 'astro:content';
 import { getPageSlug } from '../../../lib/article-history';
 
@@ -10,6 +11,10 @@ import { getPageSlug } from '../../../lib/article-history';
 // articles whose title is "Subnet <n>: <name>", ordered by netuid, with the
 // subnet name and one-line summary. Built only from the content collection
 // (title + summary) — no new data pipeline, no new dependencies.
+//
+// The table is enhanced (progressively) into a sortable + filterable registry via
+// <SortableTable />: with JS the headers sort and a filter box narrows the 128
+// rows; with JS off the static netuid-ordered table renders unchanged.
 const pages = await getCollection('pages');
 
 const subnets = pages
@@ -44,30 +49,78 @@ const subnets = pages
       {subnets.length === 0 ? (
         <p>No subnets available yet.</p>
       ) : (
-        <table class="mw-subnets">
-          <thead>
-            <tr>
-              <th scope="col" class="mw-subnet-netuid">Netuid</th>
-              <th scope="col">Subnet</th>
-              <th scope="col" class="mw-subnet-summary">Summary</th>
-            </tr>
-          </thead>
-          <tbody>
-            {subnets.map((subnet) => (
+        <>
+          <div class="mw-table-tools" data-sortable-tools="subnets-table" hidden>
+            <label class="mw-table-filter-label" for="subnet-filter">Filter subnets</label>
+            <input
+              type="text"
+              id="subnet-filter"
+              class="mw-table-filter"
+              data-sortable-filter
+              autocomplete="off"
+              placeholder="Filter by netuid, name, or summary…"
+              aria-label="Filter subnets by netuid, name, or summary"
+            />
+            <span class="mw-table-filter-status" data-sortable-status aria-live="polite" role="status"></span>
+          </div>
+
+          <table id="subnets-table" class="mw-subnets" data-sortable>
+            <thead>
               <tr>
-                <td class="mw-subnet-netuid">{subnet.netuid}</td>
-                <td class="mw-subnet-name"><a href={`/wiki/${subnet.slug}/`}>{subnet.name}</a></td>
-                <td class="mw-subnet-summary">{subnet.summary}</td>
+                <th scope="col" class="mw-subnet-netuid" data-sort-type="number" aria-sort="none">Netuid</th>
+                <th scope="col" data-sort-type="text" aria-sort="none">Subnet</th>
+                <th scope="col" class="mw-subnet-summary" data-sort-type="text" aria-sort="none">Summary</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {subnets.map((subnet) => (
+                <tr>
+                  <td class="mw-subnet-netuid">{subnet.netuid}</td>
+                  <td class="mw-subnet-name"><a href={`/wiki/${subnet.slug}/`}>{subnet.name}</a></td>
+                  <td class="mw-subnet-summary">{subnet.summary}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <SortableTable />
+        </>
       )}
     </div>
   </div>
 </WikiLayout>
 
 <style>
+  .mw-table-tools {
+    margin: 16px 0 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .mw-table-filter-label {
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .mw-table-filter {
+    flex: 1 1 240px;
+    max-width: 360px;
+    padding: 6px 10px;
+    font-size: 14px;
+    color: inherit;
+    background: var(--background-color-interactive);
+    border: 1px solid var(--border-color-subtle);
+    border-radius: 0;
+  }
+  .mw-table-filter:focus-visible {
+    outline: 2px solid var(--color-link);
+    outline-offset: 1px;
+  }
+  .mw-table-filter-status {
+    font-size: 13px;
+    color: var(--color-base-subtle);
+  }
+
   .mw-subnets {
     width: 100%;
     border-collapse: collapse;
@@ -85,6 +138,48 @@ const subnets = pages
     color: var(--color-base-subtle);
     font-weight: 600;
   }
+
+  /* Once JS wraps each sortable header label in a button, the button fills the
+     cell so the whole header is the click/focus target. The affordance appears
+     only after enhancement, so there is no dead control without JS. */
+  .mw-sortable-ready th[data-sort-type] {
+    padding: 0;
+    user-select: none;
+  }
+  /* The button is created by JS at runtime, so it never carries Astro's scoped
+     style attribute; its rules are :global (anchored under .mw-subnets) so they
+     actually apply to the injected element. */
+  .mw-subnets :global(.mw-sort-btn) {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 12px;
+    text-align: left;
+    font: inherit;
+    color: inherit;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+  }
+  .mw-subnets :global(.mw-sort-btn):hover {
+    background: var(--background-color-interactive);
+  }
+  .mw-subnets :global(.mw-sort-btn):focus-visible {
+    outline: 2px solid var(--color-link);
+    outline-offset: -2px;
+  }
+  /* Sort indicator is decorative; aria-sort on the <th> conveys state to AT. */
+  .mw-subnets th[aria-sort='none'] :global(.mw-sort-btn)::after {
+    content: ' ⇅';
+    opacity: 0.35;
+  }
+  .mw-subnets th[aria-sort='ascending'] :global(.mw-sort-btn)::after {
+    content: ' ▲';
+  }
+  .mw-subnets th[aria-sort='descending'] :global(.mw-sort-btn)::after {
+    content: ' ▼';
+  }
+
   .mw-subnet-netuid {
     width: 64px;
     white-space: nowrap;

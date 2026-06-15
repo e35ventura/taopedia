@@ -1,0 +1,129 @@
+---
+// Sortable + filterable table enhancement. Progressive enhancement for any
+// server-rendered `<table data-sortable id="...">`: each `<th data-sort-type>`
+// in the head becomes a keyboard-operable sort control (click / Enter / Space),
+// toggling ascending/descending with a visible indicator and `aria-sort`; and,
+// if the page provides a `[data-sortable-tools="<table id>"]` container (kept
+// `hidden` so it never shows a dead control without JS), a filter box inside it
+// is wired to show only the rows whose text matches, announced via a live region.
+//
+// No framework, no new dependencies, no new data: it operates purely on the rows
+// the page already rendered. With JS off, the static table (already sorted by the
+// page) renders unchanged and the filter UI stays hidden.
+---
+
+<script is:inline>
+  (function () {
+    if (window.__taopediaSortable) return;
+    window.__taopediaSortable = true;
+
+    function cellText(row, index) {
+      var cell = row.cells[index];
+      return cell ? (cell.textContent || '').trim() : '';
+    }
+
+    function enhanceSort(table) {
+      var head = table.tHead;
+      if (!head || !head.rows.length) return;
+      var headerCells = head.rows[0].cells;
+      var bodies = table.tBodies;
+      if (!bodies.length) return;
+      var tbody = bodies[0];
+      table.classList.add('mw-sortable-ready');
+
+      function sortBy(colIndex, type, direction) {
+        var rows = Array.prototype.slice.call(tbody.rows);
+        var dir = direction === 'descending' ? -1 : 1;
+        rows.sort(function (a, b) {
+          var av = cellText(a, colIndex);
+          var bv = cellText(b, colIndex);
+          var cmp;
+          if (type === 'number') {
+            var an = parseFloat(av);
+            var bn = parseFloat(bv);
+            an = isNaN(an) ? 0 : an;
+            bn = isNaN(bn) ? 0 : bn;
+            cmp = an - bn;
+          } else {
+            cmp = av.localeCompare(bv, undefined, { numeric: true, sensitivity: 'base' });
+          }
+          return cmp * dir;
+        });
+        // Re-append in the new order (also moves any hidden/filtered rows; they
+        // stay hidden via their own style, so filtering and sorting compose).
+        rows.forEach(function (row) { tbody.appendChild(row); });
+      }
+
+      Array.prototype.forEach.call(headerCells, function (th, colIndex) {
+        var type = th.getAttribute('data-sort-type');
+        if (!type) return;
+        th.setAttribute('aria-sort', 'none');
+
+        // Wrap the header label in a real <button> so the control is natively
+        // keyboard- and screen-reader-operable (Enter/Space, announced as a
+        // button). aria-sort stays on the <th>, which keeps its implicit
+        // columnheader role — the only role ARIA allows aria-sort on (per the
+        // WAI-ARIA sortable-table pattern).
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'mw-sort-btn';
+        while (th.firstChild) btn.appendChild(th.firstChild);
+        th.appendChild(btn);
+
+        btn.addEventListener('click', function () {
+          // Toggle direction if this column is already the sorted one, else
+          // start ascending. Clear the indicator on the other columns.
+          var current = th.getAttribute('aria-sort');
+          var next = current === 'ascending' ? 'descending' : 'ascending';
+          Array.prototype.forEach.call(headerCells, function (other) {
+            if (other.getAttribute('data-sort-type')) other.setAttribute('aria-sort', 'none');
+          });
+          th.setAttribute('aria-sort', next);
+          sortBy(colIndex, type, next);
+        });
+      });
+    }
+
+    function enhanceFilter(table, tools) {
+      var input = tools.querySelector('[data-sortable-filter]');
+      if (!input) return;
+      var status = tools.querySelector('[data-sortable-status]');
+      var bodies = table.tBodies;
+      if (!bodies.length) return;
+      var tbody = bodies[0];
+      tools.hidden = false; // reveal the control now that it is functional
+
+      function apply() {
+        var q = (input.value || '').trim().toLowerCase();
+        var rows = tbody.rows;
+        var shown = 0;
+        for (var i = 0; i < rows.length; i++) {
+          var match = !q || (rows[i].textContent || '').toLowerCase().indexOf(q) > -1;
+          rows[i].hidden = !match;
+          if (match) shown++;
+        }
+        if (status) {
+          status.textContent = q
+            ? shown + (shown === 1 ? ' subnet' : ' subnets') + ' match “' + input.value.trim() + '”'
+            : '';
+        }
+      }
+
+      input.addEventListener('input', apply);
+    }
+
+    function init() {
+      var tables = document.querySelectorAll('table[data-sortable]');
+      Array.prototype.forEach.call(tables, function (table) {
+        enhanceSort(table);
+        if (table.id) {
+          var tools = document.querySelector('[data-sortable-tools="' + table.id + '"]');
+          if (tools) enhanceFilter(table, tools);
+        }
+      });
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
+  })();
+</script>

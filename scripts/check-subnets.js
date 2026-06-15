@@ -103,6 +103,41 @@ assert.ok(
   'the homepage primary nav must link to /wiki/special/subnets (homepage discovery path)',
 );
 
+// Sortable + filterable enhancement must ship (progressive enhancement of the
+// same table). These pin the markup/script contract the client enhancement
+// relies on, so the feature can't silently regress.
+const tableTag = (html.match(/<table\b[^>]*>/) || [''])[0];
+assert.ok(/\bid="subnets-table"/.test(tableTag), 'the subnets table must have id="subnets-table"');
+assert.ok(/\bdata-sortable(?=[\s>])/.test(tableTag), 'the subnets table must carry the data-sortable enhancement hook');
+
+assert.match(
+  html,
+  /<th\b[^>]*class="mw-subnet-netuid"[^>]*data-sort-type="number"/,
+  'the Netuid header must declare data-sort-type="number" (numeric sort)',
+);
+assert.ok(
+  (html.match(/data-sort-type="text"/g) || []).length >= 2,
+  'the Subnet and Summary headers must declare data-sort-type="text"',
+);
+assert.ok(
+  (html.match(/aria-sort="none"/g) || []).length >= 3,
+  'all three sortable column headers must start with aria-sort="none"',
+);
+
+assert.match(
+  html,
+  /data-sortable-tools="subnets-table"[^>]*\bhidden\b/,
+  'the filter tools container must ship hidden (no dead control without JS) and target the subnets table',
+);
+assert.match(html, /<input\b[^>]*\bdata-sortable-filter(?=[\s>])/, 'a filter input (data-sortable-filter) must ship');
+assert.match(
+  html,
+  /<input\b[^>]*data-sortable-filter[^>]*aria-label="[^"]+"/,
+  'the filter input must have an accessible label',
+);
+assert.match(html, /\bdata-sortable-status(?=[\s>])/, 'a polite live-region status (data-sortable-status) must ship');
+assert.ok(html.includes('__taopediaSortable'), 'the SortableTable enhancement script must ship on the page');
+
 console.log(
-  `Subnets registry check passed (${rows.length} subnets, netuid ${rows[0].netuid}-${rows[rows.length - 1].netuid}, every row a numbered subnet linking to a built article; footer + homepage discovery present)`,
+  `Subnets registry check passed (${rows.length} subnets, netuid ${rows[0].netuid}-${rows[rows.length - 1].netuid}, every row a numbered subnet linking to a built article; sortable + filterable enhancement wired; footer + homepage discovery present)`,
 );
