@@ -47,6 +47,19 @@ for (let i = 1; i < rows.length; i++) {
   );
 }
 
+// Within a same-timestamp group, rows must be ordered by slug (ascending) —
+// the deterministic tiebreak added to collectRecentChanges so glob traversal
+// order does not affect the output.
+for (let i = 1; i < rows.length; i++) {
+  if (rows[i - 1].datetime !== rows[i].datetime) continue;
+  const prevSlug = (rows[i - 1].titleHref || '').split('/')[2] || '';
+  const curSlug = (rows[i].titleHref || '').split('/')[2] || '';
+  assert.ok(
+    prevSlug <= curSlug,
+    `rows with the same timestamp must be ordered by slug ascending (${prevSlug} > ${curSlug} at rows ${i - 1}–${i}, date ${rows[i].datetime})`,
+  );
+}
+
 // Cross-check against the real history data: gather every dated commit whose
 // slug has a built article page (the same set the page joins against), and pin
 // the page's row count and newest date to that ground truth.
