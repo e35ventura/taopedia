@@ -1569,3 +1569,77 @@ mark {
   white-space: nowrap;
   border: 0;
 }
+
+/* ===========================================================================
+   Page previews (hovercards). A small card shown on hover/focus of an internal
+   article link, populated from the slug map by the Hovercards component. All
+   colors are tokens, so it follows the light/dark theme automatically. It is
+   purely supplementary (the link still works), so it sits above other layers
+   and is hidden until the script reveals it.
+   =========================================================================== */
+.hovercard {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1100;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: 320px;
+  padding: 14px 16px;
+  background: var(--background-color-base);
+  color: var(--color-base);
+  border: 1px solid var(--border-color-base);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  font-family: var(--font-family-sans);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.hovercard.is-visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.hovercard-title {
+  margin: 0 0 6px;
+  font-family: var(--font-family-serif);
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.25;
+  color: var(--color-base);
+}
+
+.hovercard-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.hovercard-tag {
+  padding: 2px 6px;
+  border: 1px solid var(--border-color-subtle);
+  background: var(--background-color-base);
+  color: var(--color-base-subtle);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.hovercard-summary {
+  margin: 0;
+  color: var(--color-base-subtle);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hovercard {
+    transition: none;
+    transform: none;
+  }
+}
