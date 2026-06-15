@@ -51,6 +51,7 @@
     "test:random-page": "node scripts/check-random-page.js",
     "test:sitemap": "node scripts/check-sitemap.js",
     "test:rss-feed": "node scripts/check-rss-feed.js",
+    "test:feed-discovery": "node scripts/check-feed-discovery.js",
     "test:statistics": "node scripts/check-statistics.js",
     "test:recent-changes": "node scripts/check-recent-changes.js",
     "test:backlinks-page": "node scripts/check-backlinks-page.js",

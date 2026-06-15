@@ -48,6 +48,12 @@ const imageUrl = new URL(image, Astro.site).toString();
   title="Taopedia"
   href="/opensearch.xml"
 />
+<link
+  rel="alternate"
+  type="application/rss+xml"
+  title="Taopedia — recent changes"
+  href="/rss.xml"
+/>
 
 <meta property="og:title" content={pageTitle} />
 <meta property="og:description" content={description} />

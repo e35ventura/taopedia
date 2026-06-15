@@ -31,6 +31,10 @@ const changes = allRecentChanges(titleBySlug, RECENT_LIMIT);
         article and to its full revision history.
       </p>
 
+      <p class="mw-rc-feed">
+        <a href="/rss.xml">Subscribe to the RSS feed</a> to follow recent changes in a feed reader.
+      </p>
+
       {changes.length === 0 ? (
         <p>No recent changes available yet.</p>
       ) : (
@@ -50,6 +54,11 @@ const changes = allRecentChanges(titleBySlug, RECENT_LIMIT);
 </WikiLayout>
 
 <style>
+  .mw-rc-feed {
+    margin: 0 0 16px;
+    font-size: 14px;
+    color: var(--color-base-subtle);
+  }
   .mw-recentchanges {
     list-style: none;
     margin: 16px 0;
