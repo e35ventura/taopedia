@@ -58,7 +58,12 @@ export const collectRecentChanges = (
     }
   }
   // ISO 8601 dates sort lexicographically by time; newest first.
-  changes.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+  // Slug tiebreak for same-timestamp entries keeps the output deterministic
+  // regardless of the import.meta.glob traversal order.
+  changes.sort((a, b) => {
+    if (a.date !== b.date) return a.date < b.date ? 1 : -1;
+    return a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0;
+  });
   return limit > 0 ? changes.slice(0, limit) : changes;
 };
 
