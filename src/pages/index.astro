@@ -2,6 +2,7 @@
 import '../styles/wikipedia.css';
 import { getCollection } from 'astro:content';
 import Seo from '../components/Seo.astro';
+import SearchSuggest from '../components/SearchSuggest.astro';
 import { sortPagesByTitle } from '../lib/title-sort.js';
 
 const pages = await getCollection('pages');
@@ -551,5 +552,7 @@ const initialLetter = alphabet[0] ?? '#';
         });
       });
     </script>
+
+    <SearchSuggest />
   </body>
 </html>

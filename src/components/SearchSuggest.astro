@@ -1,0 +1,245 @@
+---
+// Search typeahead. Enhances the site search box (header on every page, and the
+// homepage hero search) into an accessible combobox: as a reader types, a
+// dropdown of matching article titles appears, with keyboard navigation, so a
+// reader can jump straight to an article without loading the full results page.
+//
+// Progressive enhancement: the form still submits to /search/ with JS off or if
+// the data can't be fetched, and a "Search for …" row always offers the full
+// search. The data is the already-served /search-data.json (title, summary,
+// categories, url for every article) — no new build step, dependency, or
+// service. Suggestion text is set via textContent only, so data can't inject
+// markup. Follows the WAI-ARIA combobox/listbox pattern.
+---
+
+<script is:inline>
+  (function () {
+    if (window.__taopediaSearchSuggest) return;
+    window.__taopediaSearchSuggest = true;
+
+    var MAX = 8; // suggestions shown before the "Search for …" row
+    var DEBOUNCE = 120;
+    var data = null;
+    var dataFetch = null;
+    var uid = 0;
+
+    function loadData() {
+      if (dataFetch) return dataFetch;
+      dataFetch = fetch('/search-data.json')
+        .then(function (r) { return r.ok ? r.json() : []; })
+        .then(function (d) { data = Array.isArray(d) ? d : []; return data; })
+        .catch(function () { data = []; return data; });
+      return dataFetch;
+    }
+
+    function clear(node) {
+      while (node.firstChild) node.removeChild(node.firstChild);
+    }
+
+    // Rank by where the query hits: title prefix > title word-start > title
+    // substring > summary substring. Entries are already title-sorted, so a
+    // stable sort keeps each tier alphabetical.
+    function rank(entries, q) {
+      var nq = q.toLowerCase();
+      var scored = [];
+      for (var i = 0; i < entries.length; i++) {
+        var e = entries[i];
+        var t = (e.title || '').toLowerCase();
+        var s;
+        if (t.indexOf(nq) === 0) s = 0;
+        else if (t.indexOf(' ' + nq) > -1) s = 1;
+        else if (t.indexOf(nq) > -1) s = 2;
+        else if ((e.summary || '').toLowerCase().indexOf(nq) > -1) s = 3;
+        else continue;
+        scored.push({ e: e, s: s, i: i });
+      }
+      scored.sort(function (a, b) { return a.s - b.s || a.i - b.i; });
+      return scored.slice(0, MAX).map(function (x) { return x.e; });
+    }
+
+    // Bold the matched span of the title without using innerHTML.
+    function highlightInto(el, text, q) {
+      var idx = text.toLowerCase().indexOf(q.toLowerCase());
+      if (idx < 0 || !q) { el.textContent = text; return; }
+      el.appendChild(document.createTextNode(text.slice(0, idx)));
+      var m = document.createElement('strong');
+      m.textContent = text.slice(idx, idx + q.length);
+      el.appendChild(m);
+      el.appendChild(document.createTextNode(text.slice(idx + q.length)));
+    }
+
+    function enhance(input) {
+      var form = input.closest('form');
+      if (!form) return;
+      if (getComputedStyle(form).position === 'static') form.style.position = 'relative';
+
+      var listId = 'search-suggest-' + (++uid);
+      var list = document.createElement('ul');
+      list.className = 'search-suggest-list';
+      list.id = listId;
+      list.setAttribute('role', 'listbox');
+      list.setAttribute('aria-label', 'Search suggestions');
+      list.hidden = true;
+      form.appendChild(list);
+
+      // Visually-hidden live region: announces the suggestion count to screen
+      // readers as the list updates (WAI-ARIA combobox guidance).
+      var status = document.createElement('div');
+      status.className = 'search-suggest-status';
+      status.setAttribute('aria-live', 'polite');
+      status.setAttribute('role', 'status');
+      form.appendChild(status);
+
+      input.setAttribute('role', 'combobox');
+      input.setAttribute('aria-autocomplete', 'list');
+      input.setAttribute('aria-expanded', 'false');
+      input.setAttribute('aria-controls', listId);
+      input.setAttribute('autocomplete', 'off');
+
+      var options = []; // { el, entry, isAll }
+      var activeIndex = -1;
+      var debounceTimer = 0;
+      var seq = 0; // invalidates in-flight renders when the list is closed/refined
+
+      function closeList() {
+        seq++; // any in-flight render is now stale and must not re-open the list
+        list.hidden = true;
+        clear(list);
+        options = [];
+        activeIndex = -1;
+        input.setAttribute('aria-expanded', 'false');
+        input.removeAttribute('aria-activedescendant');
+      }
+
+      function setActive(i) {
+        if (activeIndex > -1 && options[activeIndex]) {
+          options[activeIndex].el.classList.remove('is-active');
+          options[activeIndex].el.setAttribute('aria-selected', 'false');
+        }
+        activeIndex = i;
+        if (i > -1 && options[i]) {
+          options[i].el.classList.add('is-active');
+          options[i].el.setAttribute('aria-selected', 'true');
+          input.setAttribute('aria-activedescendant', options[i].el.id);
+          options[i].el.scrollIntoView({ block: 'nearest' });
+        } else {
+          input.removeAttribute('aria-activedescendant');
+        }
+      }
+
+      function go(url) { window.location.assign(url); }
+
+      function submitForm() {
+        if (form.requestSubmit) form.requestSubmit();
+        else form.submit();
+      }
+
+      function render(q) {
+        clear(list);
+        options = [];
+        activeIndex = -1;
+
+        var matches = rank(data || [], q);
+        matches.forEach(function (entry, i) {
+          var li = document.createElement('li');
+          li.className = 'search-suggest-option';
+          li.id = listId + '-opt-' + i;
+          li.setAttribute('role', 'option');
+          li.setAttribute('aria-selected', 'false');
+
+          var title = document.createElement('span');
+          title.className = 'search-suggest-title';
+          highlightInto(title, entry.title || entry.url, q);
+          li.appendChild(title);
+
+          var cats = Array.isArray(entry.categories) ? entry.categories : [];
+          if (cats.length) {
+            var hint = document.createElement('span');
+            hint.className = 'search-suggest-cat';
+            hint.textContent = cats[0];
+            li.appendChild(hint);
+          }
+
+          // pointerdown (not click) fires for mouse and touch alike and, with
+          // preventDefault, keeps focus on the input so there's no blur race
+          // before we navigate.
+          li.addEventListener('pointerdown', function (ev) { ev.preventDefault(); go(entry.url); });
+          li.addEventListener('mouseenter', function () { setActive(i); });
+          list.appendChild(li);
+          options.push({ el: li, entry: entry, isAll: false });
+        });
+
+        var all = document.createElement('li');
+        all.className = 'search-suggest-option search-suggest-all';
+        all.id = listId + '-opt-all';
+        all.setAttribute('role', 'option');
+        all.setAttribute('aria-selected', 'false');
+        all.textContent = 'Search for “' + q + '”';
+        all.addEventListener('pointerdown', function (ev) { ev.preventDefault(); submitForm(); });
+        all.addEventListener('mouseenter', function () { setActive(options.length); });
+        list.appendChild(all);
+        options.push({ el: all, entry: null, isAll: true });
+
+        list.hidden = false;
+        input.setAttribute('aria-expanded', 'true');
+        status.textContent = matches.length
+          ? matches.length + ' suggestion' + (matches.length === 1 ? '' : 's') + ' available. Use up and down arrows to review, Enter to select.'
+          : 'No article matches. Press Enter to search.';
+      }
+
+      function update() {
+        var q = input.value.trim();
+        if (!q) { closeList(); return; }
+        var my = ++seq;
+        loadData().then(function () {
+          // Bail if the list was closed (Escape/blur) or refined to another
+          // query while the data was loading — never re-open a dismissed list.
+          if (my !== seq || input.value.trim() !== q) return;
+          render(q);
+        });
+      }
+
+      input.addEventListener('input', function () {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(update, DEBOUNCE);
+      });
+      input.addEventListener('focus', function () {
+        if (input.value.trim() && list.hidden) update();
+      });
+      input.addEventListener('keydown', function (e) {
+        if (list.hidden) {
+          if (e.key === 'ArrowDown' && input.value.trim()) update();
+          return;
+        }
+        var n = options.length;
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          setActive(activeIndex < 0 ? 0 : (activeIndex + 1) % n);
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          setActive(activeIndex < 0 ? n - 1 : (activeIndex - 1 + n) % n);
+        } else if (e.key === 'Enter') {
+          if (activeIndex > -1 && options[activeIndex] && !options[activeIndex].isAll) {
+            e.preventDefault();
+            go(options[activeIndex].entry.url);
+          }
+          // no real option active (or the "Search for …" row) → let the form submit
+        } else if (e.key === 'Escape') {
+          if (!list.hidden) { e.preventDefault(); closeList(); }
+        }
+      });
+      input.addEventListener('blur', function () {
+        // Delay so a mousedown on an option resolves before we tear the list down.
+        setTimeout(closeList, 120);
+      });
+    }
+
+    function init() {
+      var inputs = document.querySelectorAll('form[action="/search/"] input[name="q"]');
+      Array.prototype.forEach.call(inputs, enhance);
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
+  })();
+</script>

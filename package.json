@@ -61,7 +61,8 @@
     "test:subnets": "node scripts/check-subnets.js",
     "test:article-meta": "node scripts/check-article-meta.js",
     "test:dark-theme": "node scripts/check-dark-theme.js",
-    "test:print-styles": "node scripts/check-print-styles.js"
+    "test:print-styles": "node scripts/check-print-styles.js",
+    "test:search-typeahead": "node scripts/check-search-typeahead.js"
   },
   "dependencies": {
     "@astrojs/mdx": "^5.0.6",
