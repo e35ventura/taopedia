@@ -4,6 +4,8 @@ import WikiLayout from '../../layouts/WikiLayout.astro';
 import Hovercards from '../../components/Hovercards.astro';
 import { resolveArticleImageSource } from '../../lib/article-image-assets.js';
 import { buildSlugAliases, parseWikiLinkTokens, resolveTargetSlug } from '../../../scripts/wiki-link-resolver.js';
+import { getPageSlug } from '../../lib/article-history';
+import { getRelatedPages } from '../../lib/related-pages';
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
@@ -57,6 +59,43 @@ try {
 }
 const slugAliases = buildSlugAliases(slugMap);
 const validSlugs = Object.keys(slugMap);
+
+// Related pages: reuse the build-time link graph + category index (the same
+// public/data/*.json the What-links-here page and broken-link detection use) to
+// surface related articles this one does not already link. Selection logic lives
+// in src/lib/related-pages.ts (pure + unit-testable). Globbed so a `dev` run
+// before the link graph is built degrades to an empty (hidden) section.
+const categoriesModules = import.meta.glob('../../../public/data/categories.json', { eager: true }) as Record<
+  string,
+  { default?: Record<string, string[]> }
+>;
+const backlinksModules = import.meta.glob('../../../public/data/backlinks.json', { eager: true }) as Record<
+  string,
+  { default?: Record<string, Array<{ from: string }>> }
+>;
+const linkgraphModules = import.meta.glob('../../../public/data/linkgraph.json', { eager: true }) as Record<
+  string,
+  { default?: Record<string, Array<{ target: string }>> }
+>;
+const categoriesIndex = Object.values(categoriesModules)[0]?.default ?? {};
+const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
+const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
+
+const allPages = await getCollection('pages');
+const titleBySlug: Record<string, string> = {};
+for (const p of allPages) titleBySlug[getPageSlug(p)] = p.data.title;
+const publishedSlugs = new Set(Object.keys(titleBySlug));
+
+const relatedPages = getRelatedPages({
+  slug,
+  slugMap: slugMap as Record<string, { title?: string; categories?: string[]; summary?: string }>,
+  categoriesIndex,
+  backlinks: backlinksData,
+  outgoing: linkgraphData,
+  publishedSlugs,
+  titleBySlug,
+  max: 6,
+});
 
 function renderInfoboxValue(value: string) {
   return parseWikiLinkTokens(value).map((token) => {
@@ -230,6 +269,26 @@ const readingMinutes = Math.max(1, Math.ceil(wordCount / 200));
       )}
       <Content />
     </div>
+
+    {relatedPages.length > 0 && (
+      <section class="related-pages" aria-labelledby="related-pages-heading" data-pagefind-ignore>
+        <h2 id="related-pages-heading">Related pages</h2>
+        <ul class="related-pages-list">
+          {relatedPages.map((r) => (
+            <li class="related-pages-item">
+              <a class="related-pages-link" href={`/wiki/${r.slug}/`}>{r.title}</a>
+              {r.tags.length > 0 && (
+                <span class="related-pages-tags">
+                  {r.tags.map((t) => (
+                    <span class="related-pages-tag">{t}</span>
+                  ))}
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
 
     {page.data.categories && page.data.categories.length > 0 && (
       <div class="article-topics" data-pagefind-ignore>

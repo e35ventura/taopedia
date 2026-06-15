@@ -1643,3 +1643,75 @@ mark {
     transform: none;
   }
 }
+
+/* ===========================================================================
+   Related pages. An auto-generated "See also"-style block at the foot of an
+   article (after the body, before the topic tags). It lists articles that share
+   a topic with this one, or that link to it, excluding pages the body already
+   links — so it never repeats the author-written "Related articles" list. All
+   colors are tokens, and it is square to match the infobox / topic-tag aesthetic,
+   so it themes in light and dark automatically.
+   =========================================================================== */
+.related-pages {
+  margin: 32px 0 0;
+}
+
+.related-pages h2 {
+  font-family: var(--font-family-serif);
+  font-size: 20px;
+  font-weight: 400;
+  margin: 0 0 12px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border-color-subtle);
+  color: var(--color-emphasized);
+}
+
+.related-pages-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.related-pages-item {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 12px;
+  background: var(--background-color-interactive);
+  border: 1px solid var(--border-color-subtle);
+}
+
+.related-pages-link {
+  color: var(--color-link);
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.related-pages-link:hover {
+  text-decoration: underline;
+}
+
+.related-pages-tags {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.related-pages-tag {
+  padding: 1px 6px;
+  border: 1px solid var(--border-color-subtle);
+  background: var(--background-color-base);
+  color: var(--color-base-subtle);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+@media (max-width: 720px) {
+  .related-pages-list {
+    grid-template-columns: 1fr;
+  }
+}
