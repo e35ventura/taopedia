@@ -90,4 +90,22 @@ assert.ok(
   'search-data.json.ts must not fall back to lexicographic title sorting',
 );
 
+// Special:MostLinkedPages sorts by count then by title tiebreak. The title
+// tiebreak must use compareTitles (numeric collation) so same-count articles
+// like "Subnet 2" and "Subnet 10" appear in numeric rather than lexicographic
+// order — the same contract that the article list pages enforce via
+// sortPagesByTitle (which wraps compareTitles internally).
+const mlSource = fs.readFileSync(
+  path.join(projectRoot, 'src/pages/wiki/special/mostlinkedpages.astro'),
+  'utf8',
+);
+assert.ok(
+  mlSource.includes('compareTitles('),
+  'mostlinkedpages.astro must sort same-count title ties with compareTitles, not localeCompare',
+);
+assert.ok(
+  !mlSource.includes('title.localeCompare('),
+  'mostlinkedpages.astro must not use localeCompare for the title tiebreak',
+);
+
 console.log('title sort check passed');

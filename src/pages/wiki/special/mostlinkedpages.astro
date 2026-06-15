@@ -2,6 +2,7 @@
 import WikiLayout from '../../../layouts/WikiLayout.astro';
 import { getCollection } from 'astro:content';
 import { getPageSlug } from '../../../lib/article-history';
+import { compareTitles } from '../../../lib/title-sort.js';
 
 // Most linked pages: articles ranked by how many other articles link to them,
 // from the build-time link graph (public/data/backlinks.json — the same inbound-
@@ -33,7 +34,7 @@ const mostLinked = Object.entries(backlinksData)
     count: links.filter((link) => titleBySlug[link.from]).length,
   }))
   .filter((entry) => entry.count > 0)
-  .sort((a, b) => b.count - a.count || a.title.localeCompare(b.title) || a.slug.localeCompare(b.slug));
+  .sort((a, b) => b.count - a.count || compareTitles(a.title, b.title) || a.slug.localeCompare(b.slug));
 ---
 
 <WikiLayout
