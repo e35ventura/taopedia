@@ -152,6 +152,25 @@ for (const slug of articleSlugs) {
 }
 assert.ok(datedVerified > 0, 'expected at least one article with a revision date to verify a dated citation');
 
+// ---- 3) The copy-to-clipboard enhancement must ship ------------------------
+// Each citation stays in a .mw-cite-block wrapping its <pre data-cite>, and the
+// progressive-enhancement script ships, so the per-citation Copy buttons can't
+// silently regress. (The buttons themselves are injected at runtime.)
+{
+  const sampleHtml = fs.readFileSync(path.join(wikiDir, articleSlugs[0], 'cite', 'index.html'), 'utf8');
+  for (const { key } of CITATION_FORMATS) {
+    assert.match(
+      sampleHtml,
+      new RegExp(`<div[^>]*class="mw-cite-block"[^>]*>[\\s\\S]*?<pre[^>]*data-cite="${key}"`),
+      `each citation must stay in a .mw-cite-block wrapping its <pre data-cite="${key}"> so the Copy button can attach`,
+    );
+  }
+  assert.ok(
+    sampleHtml.includes('__taopediaCopyCite'),
+    'the Cite page must ship the copy-to-clipboard enhancement script',
+  );
+}
+
 console.log(
-  `Cite-this-page check passed (${articleSlugs.length} pages: ${datedVerified} dated, ${undatedVerified} undated; formats pinned incl. BibTeX escaping; toolbar discovery on every article)`,
+  `Cite-this-page check passed (${articleSlugs.length} pages: ${datedVerified} dated, ${undatedVerified} undated; formats pinned incl. BibTeX escaping; copy-to-clipboard enhancement wired; toolbar discovery on every article)`,
 );

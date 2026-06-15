@@ -17,7 +17,8 @@
   .sidebar-overlay,
   .sidebar-toggle,
   .appearance-toggle,
-  .toolbar-toggle {
+  .toolbar-toggle,
+  .mw-cite-copy {
     display: none !important;
   }
 
