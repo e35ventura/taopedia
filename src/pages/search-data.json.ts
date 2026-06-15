@@ -14,7 +14,13 @@ export const GET: APIRoute = async () => {
       url: `/wiki/${getPageSlug(page)}/`,
       categories: page.data.categories ?? [],
     }))
-    .sort((a, b) => compareTitles(a.title, b.title));
+    // Order by title, then by the canonical URL (unique per article, 1:1 with
+    // the slug) as a deterministic tiebreak so the output never depends on the
+    // unspecified getCollection() iteration order. The tiebreak uses raw,
+    // locale-independent string comparison — like collectRecentChanges in
+    // article-history.ts and the RSS feed — so ordering can't vary with the
+    // build machine's locale.
+    .sort((a, b) => compareTitles(a.title, b.title) || (a.url < b.url ? -1 : a.url > b.url ? 1 : 0));
 
   return new Response(JSON.stringify(searchEntries), {
     headers: {
