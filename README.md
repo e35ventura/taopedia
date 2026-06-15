@@ -14,7 +14,7 @@ https://taopedia.org
 
 ## Social Media
 
-[![@venturalabs](https://img.shields.io/badge/X-@venturalabs-000000?style=for-the-badge&logo=x&logoColor=white)](https://x.com/venturalabs)
+[![X: @venturalabs](https://img.shields.io/badge/-%40venturalabs-000000?style=for-the-badge&logo=x&logoColor=white)](https://x.com/venturalabs)
 
 ## Repository Role
 
