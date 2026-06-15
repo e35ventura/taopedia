@@ -1,0 +1,167 @@
+---
+import WikiLayout from '../../../layouts/WikiLayout.astro';
+import { getCollection } from 'astro:content';
+
+const pages = await getCollection('pages');
+
+// Live counts reused from the content collection, so the directory's figures
+// track reality the same way the Statistics page does — no separate data source.
+const totalArticles = pages.length;
+const topics = new Set<string>();
+for (const page of pages) {
+  for (const topic of page.data.categories ?? []) topics.add(topic);
+}
+const totalTopics = topics.size;
+
+// The site-wide special pages, grouped by purpose like MediaWiki's
+// Special:SpecialPages. Each entry maps 1:1 to a built /wiki/special/<name>/
+// route; counts are shown only where there is a single meaningful total.
+const groups: Array<{
+  heading: string;
+  pages: Array<{ href: string; name: string; description: string; count?: string }>;
+}> = [
+  {
+    heading: 'Lists of pages',
+    pages: [
+      {
+        href: '/wiki/special/allpages/',
+        name: 'All articles',
+        description: 'Every article in the knowledge base, grouped alphabetically with a topic filter.',
+        count: `${totalArticles.toLocaleString('en-US')} articles`,
+      },
+      {
+        href: '/wiki/special/categories/',
+        name: 'Topics',
+        description: 'Browse every topic and the articles filed under it.',
+        count: `${totalTopics.toLocaleString('en-US')} topics`,
+      },
+      {
+        href: '/wiki/special/mostlinkedpages/',
+        name: 'Most linked pages',
+        description: 'Articles ranked by how many other articles link to them.',
+      },
+    ],
+  },
+  {
+    heading: 'Recent activity',
+    pages: [
+      {
+        href: '/wiki/special/recentchanges/',
+        name: 'Recent changes',
+        description: 'The most recently updated articles, newest first.',
+      },
+    ],
+  },
+  {
+    heading: 'Site data and navigation',
+    pages: [
+      {
+        href: '/wiki/special/statistics/',
+        name: 'Statistics',
+        description: 'Content totals for the knowledge base at a glance.',
+      },
+      {
+        href: '/wiki/special/random/',
+        name: 'Random article',
+        description: 'Jump to a randomly selected article.',
+      },
+    ],
+  },
+];
+
+// Per-article tools have no single URL — each one operates on the article you
+// are reading and is reachable from that article's toolbar. List them here so
+// readers can discover that they exist.
+const articleTools: Array<{ name: string; description: string }> = [
+  { name: 'History', description: "An article's revision history." },
+  { name: 'What links here', description: 'Other articles that link to an article.' },
+  { name: 'Cite this page', description: 'Ready-made citations in APA, MLA, Chicago and BibTeX.' },
+  { name: 'Page information', description: 'Metadata and link statistics about an article.' },
+];
+---
+
+<WikiLayout
+  title="Special pages"
+  description="A directory of every special page and article tool in the Taopedia Bittensor knowledge base."
+>
+  <div class="mw-body-content">
+    <h1 class="firstHeading">Special pages</h1>
+
+    <div class="mw-parser-output">
+      <p>An index of the listing, overview and tool pages across Taopedia.</p>
+
+      {groups.map((group) => (
+        <section class="mw-special-group">
+          <h2>{group.heading}</h2>
+          <ul class="mw-special-list">
+            {group.pages.map((page) => (
+              <li>
+                <a href={page.href}>{page.name}</a>
+                {page.count && <span class="mw-special-count">{page.count}</span>}
+                <span class="mw-special-desc">{page.description}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+
+      <section class="mw-special-group">
+        <h2>Article tools</h2>
+        <p class="mw-special-note">Available from the toolbar on every article.</p>
+        <ul class="mw-special-list">
+          {articleTools.map((tool) => (
+            <li>
+              <span class="mw-special-toolname">{tool.name}</span>
+              <span class="mw-special-desc">{tool.description}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </div>
+  </div>
+</WikiLayout>
+
+<style>
+  .mw-special-group {
+    margin: 24px 0;
+  }
+  .mw-special-group h2 {
+    margin-bottom: 8px;
+  }
+  .mw-special-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .mw-special-list li {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-color-subtle);
+  }
+  .mw-special-list a,
+  .mw-special-toolname {
+    font-weight: 600;
+  }
+  .mw-special-list a {
+    color: var(--color-link);
+    text-decoration: none;
+  }
+  .mw-special-list a:hover {
+    text-decoration: underline;
+  }
+  .mw-special-count {
+    margin-left: 8px;
+    color: var(--color-base-subtle);
+    font-size: 13px;
+  }
+  .mw-special-desc {
+    display: block;
+    margin-top: 2px;
+    color: var(--color-base-subtle);
+    font-size: 14px;
+  }
+  .mw-special-note {
+    margin: 0 0 8px;
+    color: var(--color-base-subtle);
+    font-size: 14px;
+  }
+</style>

@@ -58,6 +58,13 @@ for (const special of ['allpages', 'categories', 'mostlinkedpages', 'recentchang
   );
 }
 
+// The Special:SpecialPages directory hub indexes all of the above; it is a
+// canonical, indexable route too and must stay in the sitemap.
+assert.ok(
+  xml.includes(`/wiki/special/</loc>`),
+  'sitemap must include the /wiki/special/ directory page',
+);
+
 // XML-escaping must survive into image titles (an ampersand in a title, etc.).
 for (const title of xml.match(/<image:title>([\s\S]*?)<\/image:title>/g) ?? []) {
   assert.ok(!/&(?!(amp|lt|gt|quot|apos);)/.test(title), `unescaped & in image title: ${title}`);
