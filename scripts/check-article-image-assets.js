@@ -151,6 +151,24 @@ assert.equal(
 );
 
 assert.equal(
+  isUnsafeImageUrl('data:text/javascript,alert(1)'),
+  true,
+  'data:text/javascript image URLs should be classified as unsafe',
+);
+
+assert.equal(
+  isUnsafeImageUrl('data:application/ecmascript,alert(1)'),
+  true,
+  'data:application/ecmascript image URLs should be classified as unsafe',
+);
+
+assert.equal(
+  resolveArticleImageSource('local_asset', 'data:text/javascript,alert(1)', imageAssets),
+  undefined,
+  'data:text/javascript image URLs from infobox JSON should not render as image sources',
+);
+
+assert.equal(
   isUnsafeImageUrl('data&colon;image/svg+xml,<svg/>'),
   true,
   'entity-obfuscated SVG data image URLs should be classified as unsafe',
