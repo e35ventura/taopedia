@@ -6,6 +6,7 @@ const projectRoot = path.resolve(new URL('..', import.meta.url).pathname);
 const sourceFiles = [
   path.join(projectRoot, 'src', 'pages', 'index.astro'),
   path.join(projectRoot, 'src', 'pages', 'wiki', '[...slug].astro'),
+  path.join(projectRoot, 'src', 'pages', 'wiki', '[...slug]', 'info.astro'),
   path.join(projectRoot, 'src', 'pages', 'wiki', 'special', 'categories.astro'),
   path.join(projectRoot, 'src', 'pages', 'wiki', 'special', 'allpages.astro'),
 ];

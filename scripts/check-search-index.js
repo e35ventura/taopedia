@@ -5,7 +5,7 @@ import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 
 // Guard the Pagefind search index against indexing the per-article utility
-// sub-pages (/cite/, /history/, /backlinks/) or the special/category hubs.
+// sub-pages (/cite/, /history/, /backlinks/, /info/) or the special/category hubs.
 // Those pages render full layouts that repeat the article title and (for cite)
 // citation text; if they were indexed, a search could surface a citation or
 // history utility page instead of — or ahead of — the canonical article.
@@ -40,7 +40,7 @@ const indexedUrls = fragmentFiles.map((file) => {
 // same recursive discovery the other per-article checks use, so this stays
 // correct for a future nested slug (/wiki/foo/bar/) instead of assuming a single
 // slug segment. A page is an article unless it is a special/category hub or ends
-// in a /history/, /backlinks/, or /cite/ utility segment.
+// in a /history/, /backlinks/, /cite/, or /info/ utility segment.
 const builtArticles = [];
 const walk = (dir) => {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -64,11 +64,11 @@ const articleSet = new Set(builtArticles);
 
 // Nesting-correct exclusion predicates (match the final path segment / the hub
 // prefix at any depth) so the failure messages name the offending page class.
-const isUtility = (u) => /\/(cite|history|backlinks)\/$/.test(u);
+const isUtility = (u) => /\/(cite|history|backlinks|info)\/$/.test(u);
 const isHub = (u) => /^\/wiki\/(special|category)\//.test(u);
 
 const subPage = indexedUrls.filter(isUtility);
-assert.equal(subPage.length, 0, `the search index must not contain cite/history/backlinks sub-pages: ${subPage.slice(0, 5).join(', ')}`);
+assert.equal(subPage.length, 0, `the search index must not contain cite/history/backlinks/info sub-pages: ${subPage.slice(0, 5).join(', ')}`);
 const hub = indexedUrls.filter(isHub);
 assert.equal(hub.length, 0, `the search index must not contain special/category hubs: ${hub.slice(0, 5).join(', ')}`);
 
@@ -91,4 +91,4 @@ for (const url of builtArticles) {
   assert.ok(indexedSet.has(url), `article ${url} is missing from the search index`);
 }
 
-console.log(`Search-index check passed (${indexedUrls.length} canonical article pages indexed; no cite/history/backlinks/special pages)`);
+console.log(`Search-index check passed (${indexedUrls.length} canonical article pages indexed; no cite/history/backlinks/info/special pages)`);
