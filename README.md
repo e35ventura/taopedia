@@ -12,6 +12,10 @@ Live site:
 
 https://taopedia.org
 
+## Social Media
+
+[![X: @venturalabs](https://img.shields.io/badge/X-@venturalabs-000000?style=for-the-badge&logo=x&logoColor=white)](https://x.com/venturalabs)
+
 ## Repository Role
 
 - Website UI, routing, search, layouts, and build scripts live here.
