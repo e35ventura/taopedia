@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import WikiLayout from '../../../layouts/WikiLayout.astro';
+import CiteCopyButtons from '../../../components/CiteCopyButtons.astro';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
 import { buildCitations, CITATION_FORMATS, CITATION_META } from '../../../../scripts/citations.js';
 
@@ -74,6 +75,8 @@ const pageDescription = `Ready-made APA, MLA, Chicago, and BibTeX citations for 
           <pre class="mw-cite-text" data-cite={format.key}>{citations[format.key]}</pre>
         </div>
       ))}
+
+      <CiteCopyButtons />
     </div>
   </div>
 </WikiLayout>
@@ -99,6 +102,43 @@ const pageDescription = `Ready-made APA, MLA, Chicago, and BibTeX citations for 
   }
   .mw-cite-block {
     margin: 16px 0;
+    position: relative;
+  }
+  /* The Copy button + live region are created by JS at runtime, so they never
+     carry Astro's scoped style attribute; their rules are :global (anchored
+     under the server-rendered .mw-cite-block) so they actually apply. */
+  .mw-cite-block :global(.mw-cite-copy) {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 2px 10px;
+    font-size: 13px;
+    color: var(--color-link);
+    background: var(--background-color-interactive);
+    border: 1px solid var(--border-color-subtle);
+    border-radius: 0;
+    cursor: pointer;
+  }
+  .mw-cite-block :global(.mw-cite-copy):hover {
+    text-decoration: underline;
+  }
+  .mw-cite-block :global(.mw-cite-copy):focus-visible {
+    outline: 2px solid var(--color-link);
+    outline-offset: 1px;
+  }
+  .mw-cite-block :global(.mw-cite-copy.is-copied) {
+    color: var(--color-base-subtle);
+  }
+  .mw-cite-block :global(.mw-cite-copy-status) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
   }
   .mw-cite-label {
     font-size: 14px;
