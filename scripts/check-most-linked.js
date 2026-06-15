@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { compareTitles } from '../src/lib/title-sort.js';
 
 // Load-bearing regression check for Special:MostLinkedPages. It pins the rendered
 // ranking to the build-time link graph: the page must list exactly the published
@@ -81,7 +82,7 @@ const expected = Object.entries(backlinks)
     count: links.filter((link) => slugmap[link.from]).length,
   }))
   .filter((entry) => entry.count > 0)
-  .sort((a, b) => b.count - a.count || a.title.localeCompare(b.title) || a.slug.localeCompare(b.slug));
+  .sort((a, b) => b.count - a.count || compareTitles(a.title, b.title) || a.slug.localeCompare(b.slug));
 
 assert.deepEqual(
   renderedSlugs,
