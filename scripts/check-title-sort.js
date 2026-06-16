@@ -54,6 +54,24 @@ assert.equal(
   'sortPagesByTitle must not mutate its input',
 );
 
+// Nothing enforces unique titles across the collection, so same-title pages must
+// break ties on the stable entry id rather than the import.meta.glob traversal
+// order. The result must be identical no matter what order the pages arrive in.
+const sameTitle = [
+  { id: 'staking_b/index.mdx', data: { title: 'Staking' } },
+  { id: 'staking_a/index.mdx', data: { title: 'Staking' } },
+];
+assert.deepEqual(
+  sortPagesByTitle(sameTitle).map((page) => page.id),
+  ['staking_a/index.mdx', 'staking_b/index.mdx'],
+  'same-title pages must break ties on the stable entry id',
+);
+assert.deepEqual(
+  sortPagesByTitle([...sameTitle].reverse()).map((page) => page.id),
+  sortPagesByTitle(sameTitle).map((page) => page.id),
+  'same-title ordering must not depend on the input (traversal) order',
+);
+
 // Every article list page must order titles through the shared helper so the
 // directory, topic groups, and category routes cannot drift back to
 // lexicographic ordering.
