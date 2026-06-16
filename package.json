@@ -64,7 +64,8 @@
     "test:dark-theme": "node scripts/check-dark-theme.js",
     "test:print-styles": "node scripts/check-print-styles.js",
     "test:search-typeahead": "node scripts/check-search-typeahead.js",
-    "test:hovercards": "node scripts/check-hovercards.js"
+    "test:hovercards": "node scripts/check-hovercards.js",
+    "test:related-pages": "node scripts/check-related-pages.js"
   },
   "dependencies": {
     "@astrojs/mdx": "^5.0.6",

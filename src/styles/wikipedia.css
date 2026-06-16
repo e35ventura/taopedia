@@ -1643,3 +1643,105 @@ mark {
     transform: none;
   }
 }
+
+/* ===========================================================================
+   Related pages. A short auto-generated "See also" block at the foot of an
+   article (after the body, before the topic tags). It lists a few articles that
+   share a topic with this one, or that link to it, excluding pages the body
+   already links. Each entry is a single clickable card (the whole card is the
+   link, not just the title). All colors are tokens and the cards are square, to
+   match the infobox / topic-tag aesthetic, so the block themes in light and dark.
+   =========================================================================== */
+.related-pages {
+  margin: 32px 0 0;
+}
+
+.related-pages h2 {
+  font-family: var(--font-family-serif);
+  font-size: 20px;
+  font-weight: 400;
+  margin: 0 0 12px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border-color-subtle);
+  color: var(--color-emphasized);
+}
+
+.related-pages-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.related-pages-item {
+  display: flex;
+}
+
+.related-pages-card {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--background-color-interactive);
+  border: 1px solid var(--border-color-subtle);
+  text-decoration: none;
+  transition:
+    border-color 0.12s ease,
+    background 0.12s ease;
+}
+
+.related-pages-card:hover,
+.related-pages-card:focus-visible {
+  border-color: var(--color-progressive);
+  background: var(--background-color-base);
+}
+
+.related-pages-title {
+  color: var(--color-link);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.related-pages-card:hover .related-pages-title,
+.related-pages-card:focus-visible .related-pages-title {
+  text-decoration: underline;
+}
+
+.related-pages-summary {
+  color: var(--color-base-subtle);
+  font-size: 12px;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.related-pages-tags {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.related-pages-tag {
+  padding: 1px 6px;
+  border: 1px solid var(--border-color-subtle);
+  background: var(--background-color-base);
+  color: var(--color-base-subtle);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.related-pages-card:hover .related-pages-tag,
+.related-pages-card:focus-visible .related-pages-tag {
+  background: var(--background-color-interactive);
+}
+
+@media (max-width: 720px) {
+  .related-pages-list {
+    grid-template-columns: 1fr;
+  }
+}
