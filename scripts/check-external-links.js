@@ -11,11 +11,12 @@ function transform(...nodes) {
   return tree;
 }
 
-// External http(s) links get target + safe rel.
+// External http(s) links get target + safe rel + the `external` class.
 const ext = anchor('https://docs.learnbittensor.org/learn/emissions');
 transform(ext);
 assert.equal(ext.properties.target, '_blank');
 assert.deepEqual(ext.properties.rel, ['noopener', 'noreferrer']);
+assert.deepEqual(ext.properties.className, ['external'], 'external links must get the "external" class');
 
 const extHttp = anchor('http://example.com/path');
 transform(extHttp);
@@ -42,6 +43,7 @@ for (const href of [
   transform(a);
   assert.equal(a.properties.target, undefined, `internal ${href} must not get target`);
   assert.equal(a.properties.rel, undefined, `internal ${href} must not get rel`);
+  assert.equal(a.properties.className, undefined, `internal ${href} must not get the external class`);
 }
 
 // Relative, anchor, and non-http(s) links are left untouched.
@@ -56,6 +58,15 @@ for (const href of ['/wiki/axon/', '../relative', '#section', 'mailto:a@b.com', 
 const nested = anchor('https://example.org/deep');
 transform({ type: 'element', tagName: 'p', properties: {}, children: [nested] });
 assert.equal(nested.properties.target, '_blank');
+assert.ok(nested.properties.className.includes('external'), 'nested external links also get the external class');
+
+// An existing class on an external link is preserved, and `external` is not
+// duplicated if the link is somehow processed twice.
+const withClass = { type: 'element', tagName: 'a', properties: { href: 'https://example.org', className: ['foo'] }, children: [] };
+transform(withClass);
+assert.deepEqual(withClass.properties.className, ['foo', 'external'], 'an existing class is preserved alongside external');
+transform(withClass);
+assert.deepEqual(withClass.properties.className, ['foo', 'external'], 'external must not be duplicated on a second pass');
 
 // isExternalHref unit checks.
 assert.equal(isExternalHref('https://example.com'), true);

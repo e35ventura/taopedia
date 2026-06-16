@@ -8,9 +8,11 @@
   reader's URL via the Referer header.
 
   This gives genuinely-external links the standard wiki treatment: open in a new
-  tab with `rel="noopener noreferrer"`. Internal (taopedia.org and its
-  subdomains), relative, in-page anchor, and non-http(s) links (mailto:, tel:,
-  …) are left untouched. No dependency — the hast tree is walked directly.
+  tab with `rel="noopener noreferrer"`, and add the `external` class so the
+  stylesheet can render the familiar MediaWiki "opens off-site" arrow after them.
+  Internal (taopedia.org and its subdomains), relative, in-page anchor, and
+  non-http(s) links (mailto:, tel:, …) are left untouched. No dependency — the
+  hast tree is walked directly.
 */
 
 const SITE_HOSTNAME = 'taopedia.org';
@@ -40,6 +42,13 @@ function visit(node) {
     node.properties.target = '_blank';
     // hast renders the `rel` array as a space-separated attribute value.
     node.properties.rel = ['noopener', 'noreferrer'];
+    // Tag it `external` (preserving any existing class) so the stylesheet can
+    // append the MediaWiki external-link arrow. hast renders `className` as the
+    // space-separated `class` attribute.
+    const existing = node.properties.className;
+    const classes = Array.isArray(existing) ? existing.slice() : existing ? [existing] : [];
+    if (!classes.includes('external')) classes.push('external');
+    node.properties.className = classes;
   }
   if (Array.isArray(node.children)) {
     for (const child of node.children) visit(child);
