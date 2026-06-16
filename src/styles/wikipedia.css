@@ -1094,6 +1094,28 @@ body.appearance-overlay-active .mw-appearance {
   color: var(--color-link-red);
 }
 
+/* External links carry the standard MediaWiki "opens off-site" arrow. The glyph
+   is a CSS mask tinted with the link colour, so it follows the light/dark theme
+   automatically and needs no second image asset or network request. */
+.mw-parser-output a.external::after {
+  content: "";
+  display: inline-block;
+  width: 0.72em;
+  height: 0.72em;
+  margin-left: 0.15em;
+  vertical-align: -0.06em;
+  background-color: var(--color-link);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpath%20d='M14%203v2h3.59l-9.83%209.83%201.41%201.41L19%206.41V10h2V3h-7z'/%3E%3Cpath%20d='M19%2019H5V5h7V3H5a2%202%200%200%200-2%202v14a2%202%200%200%200%202%202h14a2%202%200%200%200%202-2v-7h-2v7z'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpath%20d='M14%203v2h3.59l-9.83%209.83%201.41%201.41L19%206.41V10h2V3h-7z'/%3E%3Cpath%20d='M19%2019H5V5h7V3H5a2%202%200%200%200-2%202v14a2%202%200%200%200%202%202h14a2%202%200%200%200%202-2v-7h-2v7z'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
+/* Match the visited-link colour so the arrow stays consistent with its link. */
+.mw-parser-output a.external:visited::after {
+  background-color: var(--color-link-visited);
+}
+
 .mw-parser-output ul,
 .mw-parser-output ol {
   margin: 4px 0 12px 24px;
