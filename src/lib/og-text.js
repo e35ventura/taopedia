@@ -4,6 +4,18 @@
 // (scripts/check-*.js) cannot load. The behaviour here is unchanged — these are
 // the same helpers, just relocated to a testable boundary.
 
+// "Subnet 12: Compute Horde" reads as a long, easily-clipped title on a share
+// card. Parse the netuid so the card can surface it as a distinct badge and use
+// the subnet name as the title instead. Returns null for non-subnet titles and
+// for a bare "Subnet 86" (no name), which render as a normal title.
+export function parseSubnet(title) {
+  const match = /^Subnet (\d+)(?::\s*(.+))?$/.exec(title ?? '');
+  if (match && match[2] && match[2].trim()) {
+    return { netuid: Number(match[1]), name: match[2].trim() };
+  }
+  return null;
+}
+
 export function escapeHtml(value) {
   return value
     .replace(/&/g, '&amp;')
