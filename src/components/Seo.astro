@@ -19,6 +19,11 @@ const { title, description = defaultDescription, image = '/og/home.png', type = 
 const pageTitle = title ? `${title} - Taopedia` : defaultTitle;
 const canonicalUrl = new URL(path ?? Astro.url.pathname, Astro.site).toString();
 const imageUrl = new URL(image, Astro.site).toString();
+// Describe what the share card actually shows, rather than a generic
+// "<title> share image", so it's useful to screen readers and link previews.
+const imageAlt = title
+  ? `${title} — Taopedia, a Bittensor knowledge base`
+  : 'Taopedia — a Bittensor knowledge base';
 ---
 
 {/* Apply the saved color theme before paint, so a reader who chose Dark never
@@ -57,13 +62,14 @@ const imageUrl = new URL(image, Astro.site).toString();
 <meta property="og:image" content={imageUrl} />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
-<meta property="og:image:alt" content={`${pageTitle} share image`} />
+<meta property="og:image:alt" content={imageAlt} />
 <meta property="og:locale" content="en_US" />
 
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content={pageTitle} />
 <meta name="twitter:description" content={description} />
 <meta name="twitter:image" content={imageUrl} />
+<meta name="twitter:image:alt" content={imageAlt} />
 
 <StructuredData
   title={title}

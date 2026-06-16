@@ -1,5 +1,18 @@
 import assert from 'node:assert/strict';
-import { escapeHtml, splitLongWords, wrapText } from '../src/lib/og-text.js';
+import { escapeHtml, splitLongWords, wrapText, parseSubnet } from '../src/lib/og-text.js';
+
+// --- parseSubnet: split "Subnet N: Name" so the card shows an "N" badge + name ---
+assert.deepEqual(parseSubnet('Subnet 12: Targon'), { netuid: 12, name: 'Targon' });
+assert.deepEqual(parseSubnet('Subnet 1: Apex'), { netuid: 1, name: 'Apex' });
+// Extra whitespace after the colon is trimmed.
+assert.deepEqual(parseSubnet('Subnet 64:   TAO Private Network'), { netuid: 64, name: 'TAO Private Network' });
+// A bare "Subnet 86" with no name stays a normal title (no badge split).
+assert.equal(parseSubnet('Subnet 86'), null);
+// Non-subnet titles are untouched.
+assert.equal(parseSubnet('Yuma Consensus'), null);
+assert.equal(parseSubnet('Subnetting Basics'), null); // must match "Subnet <number>", not any "Subnet…"
+assert.equal(parseSubnet(''), null);
+assert.equal(parseSubnet(undefined), null);
 
 // --- escapeHtml: neutralizes the characters that would break SVG <text> markup ---
 assert.equal(escapeHtml('a & b < c > d "e"'), 'a &amp; b &lt; c &gt; d &quot;e&quot;');
