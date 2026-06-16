@@ -65,6 +65,7 @@
     "test:print-styles": "node scripts/check-print-styles.js",
     "test:search-typeahead": "node scripts/check-search-typeahead.js",
     "test:hovercards": "node scripts/check-hovercards.js",
+    "test:keyboard-shortcuts": "node scripts/check-keyboard-shortcuts.js",
     "test:related-pages": "node scripts/check-related-pages.js"
   },
   "dependencies": {

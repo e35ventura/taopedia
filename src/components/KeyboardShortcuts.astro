@@ -1,0 +1,195 @@
+---
+// Site-wide keyboard shortcuts, so a reader can search and navigate without the
+// mouse:
+//   /         focus the search box
+//   ?         open the shortcuts help dialog
+//   g h/r/c   go to Home / a Random article / Recent changes
+//   Esc       close the dialog
+//
+// The help dialog is the native <dialog> element, which provides modal
+// semantics for free — focus trap, Esc-to-close, an inert/aria-hidden
+// background, and focus restoration on close — so there is no hand-rolled focus
+// management to maintain. The shortcut handler is ignored while the reader is
+// typing in a field and while the dialog is open, so it never interferes with
+// the search typeahead or any form input. Progressive enhancement: with JS off,
+// or where <dialog> is unsupported, nothing is added and the page is unaffected.
+---
+
+<dialog class="mw-shortcuts" aria-labelledby="mw-shortcuts-title">
+  <div class="mw-shortcuts-header">
+    <h2 id="mw-shortcuts-title" class="mw-shortcuts-title">Keyboard shortcuts</h2>
+    <form method="dialog" class="mw-shortcuts-dismiss">
+      <button type="submit" class="mw-shortcuts-close" aria-label="Close keyboard shortcuts">&times;</button>
+    </form>
+  </div>
+  <dl class="mw-shortcuts-list">
+    <div class="mw-shortcuts-row"><dt><kbd>/</kbd></dt><dd>Focus the search box</dd></div>
+    <div class="mw-shortcuts-row"><dt><kbd>?</kbd></dt><dd>Show this help</dd></div>
+    <div class="mw-shortcuts-row"><dt><kbd>g</kbd> then <kbd>h</kbd></dt><dd>Go to the home page</dd></div>
+    <div class="mw-shortcuts-row"><dt><kbd>g</kbd> then <kbd>r</kbd></dt><dd>Go to a random article</dd></div>
+    <div class="mw-shortcuts-row"><dt><kbd>g</kbd> then <kbd>c</kbd></dt><dd>Go to Recent changes</dd></div>
+    <div class="mw-shortcuts-row"><dt><kbd>Esc</kbd></dt><dd>Close this dialog</dd></div>
+  </dl>
+</dialog>
+
+<script is:inline>
+  (function () {
+    if (window.__taopediaShortcuts) return;
+    window.__taopediaShortcuts = true;
+
+    function init() {
+      var dialog = document.querySelector('dialog.mw-shortcuts');
+      // Graceful: without <dialog>/showModal support, add no behavior at all.
+      if (!dialog || typeof dialog.showModal !== 'function') return;
+
+      function isTyping(el) {
+        if (!el || el.nodeType !== 1) return false;
+        var tag = el.tagName;
+        return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable;
+      }
+
+      function focusSearch() {
+        var input = document.querySelector('form[action="/search/"] input[name="q"]');
+        if (input) {
+          input.focus();
+          if (typeof input.select === 'function') input.select();
+        }
+      }
+
+      // "g" then h/r/c. Routes that already exist on the site.
+      var GO = { h: '/', r: '/wiki/special/random/', c: '/wiki/special/recentchanges/' };
+      var awaitingGo = false;
+      var goTimer = 0;
+
+      function cancelGo() {
+        awaitingGo = false;
+        clearTimeout(goTimer);
+      }
+
+      document.addEventListener('keydown', function (e) {
+        // Never hijack typing, the open dialog's own keys, IME composition, or
+        // chord shortcuts (Ctrl/Cmd/Alt) used by the browser and OS.
+        if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) {
+          cancelGo();
+          return;
+        }
+        if (dialog.open || isTyping(e.target)) {
+          cancelGo();
+          return;
+        }
+
+        if (awaitingGo) {
+          cancelGo();
+          if (Object.prototype.hasOwnProperty.call(GO, e.key)) {
+            e.preventDefault();
+            window.location.assign(GO[e.key]);
+          }
+          return;
+        }
+
+        if (e.key === '/') {
+          e.preventDefault();
+          focusSearch();
+        } else if (e.key === '?') {
+          e.preventDefault();
+          dialog.showModal();
+        } else if (e.key === 'g') {
+          e.preventDefault();
+          awaitingGo = true;
+          goTimer = setTimeout(cancelGo, 1500);
+        }
+      });
+
+      // Click on the backdrop (the dialog element itself, outside its content)
+      // dismisses it; clicks on the content bubble with a child as target.
+      dialog.addEventListener('click', function (e) {
+        if (e.target === dialog) dialog.close();
+      });
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
+  })();
+</script>
+
+<style>
+  .mw-shortcuts {
+    width: min(440px, calc(100vw - 32px));
+    padding: 0;
+    border: 1px solid var(--border-color-base);
+    border-radius: 2px;
+    background: var(--background-color-base);
+    color: var(--color-base);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  }
+  .mw-shortcuts::backdrop {
+    background: rgba(0, 0, 0, 0.5);
+  }
+  .mw-shortcuts-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color-subtle);
+  }
+  .mw-shortcuts-title {
+    margin: 0;
+    font-size: 18px;
+  }
+  .mw-shortcuts-dismiss {
+    margin: 0;
+  }
+  .mw-shortcuts-close {
+    padding: 0 6px;
+    font-size: 24px;
+    line-height: 1;
+    color: var(--color-base-subtle);
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+  }
+  .mw-shortcuts-close:hover {
+    color: var(--color-base);
+  }
+  .mw-shortcuts-close:focus-visible {
+    outline: 2px solid var(--color-link);
+    outline-offset: 2px;
+  }
+  .mw-shortcuts-list {
+    margin: 0;
+    padding: 8px 16px 16px;
+  }
+  .mw-shortcuts-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--border-color-subtle);
+    font-size: 14px;
+  }
+  .mw-shortcuts-row:last-child {
+    border-bottom: 0;
+  }
+  .mw-shortcuts-row dt {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    color: var(--color-base-subtle);
+  }
+  .mw-shortcuts-row dd {
+    margin: 0;
+    text-align: right;
+  }
+  .mw-shortcuts kbd {
+    display: inline-block;
+    min-width: 18px;
+    padding: 1px 6px;
+    font-family: var(--font-family-monospace);
+    font-size: 13px;
+    text-align: center;
+    color: var(--color-base);
+    background: var(--background-color-interactive);
+    border: 1px solid var(--border-color-base);
+    border-radius: 3px;
+  }
+</style>
