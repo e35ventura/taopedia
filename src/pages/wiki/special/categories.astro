@@ -1,6 +1,7 @@
 ---
 import WikiLayout from '../../../layouts/WikiLayout.astro';
 import { getCollection } from 'astro:content';
+import { compareTitles } from '../../../lib/title-sort.js';
 
 const pages = await getCollection('pages');
 
@@ -16,7 +17,7 @@ pages.forEach(page => {
 });
 
 const sortedCategories = Object.entries(categoryIndex)
-  .sort(([a], [b]) => a.localeCompare(b));
+  .sort(([a], [b]) => compareTitles(a, b));
 ---
 
 <WikiLayout title="Categories" description="Browse all topics in the Taopedia Bittensor knowledge base.">

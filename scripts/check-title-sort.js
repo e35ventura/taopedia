@@ -108,4 +108,21 @@ assert.ok(
   'mostlinkedpages.astro must not use localeCompare for the title tiebreak',
 );
 
+// Special:Categories lists all topics in alphabetical order. Category names
+// can be numeric-prefixed (e.g. "Subnet 9" vs "Subnet 10"), so the sort must
+// use compareTitles (numeric collation) rather than localeCompare, which would
+// sort "Subnet 10" before "Subnet 9" lexicographically.
+const catSource = fs.readFileSync(
+  path.join(projectRoot, 'src/pages/wiki/special/categories.astro'),
+  'utf8',
+);
+assert.ok(
+  catSource.includes('compareTitles('),
+  'categories.astro must sort topic names with compareTitles, not localeCompare',
+);
+assert.ok(
+  !catSource.includes('.localeCompare('),
+  'categories.astro must not use localeCompare for the topic sort',
+);
+
 console.log('title sort check passed');
