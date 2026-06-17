@@ -18,6 +18,11 @@ function accepts(content, label) {
 // <base> tags are blocked: a single <base> rewrites every relative URL on the page.
 rejects('Intro.\n\n<base href="https://evil.example/">', 'plain <base>');
 rejects('Intro.\n\n<  base   href="https://evil.example/">', 'spaced <base>');
+
+// define:vars can be entity-encoded to evade the literal pattern scan --
+// define&#58;vars decodes to define:vars which Astro evaluates at build time.
+rejects('Use define&#58;vars to inject.', 'entity-encoded define:vars');
+rejects('Use define:vars to inject.', 'plain define:vars');
 rejects('Intro.\n\n<frame src="https://evil.example/frame.html">', 'plain <frame>');
 rejects('Intro.\n\n<frameset cols="50%,50%"><frame src="a.html"></frameset>', 'plain <frameset>');
 

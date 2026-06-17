@@ -50,6 +50,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /data\s*:\s*image\/svg\+xml/i, reason: 'SVG data URLs are not allowed in article content' },
   { pattern: /data\s*:\s*application\/xhtml\+xml/i, reason: 'XHTML data URLs are not allowed in article content' },
   { pattern: /data\s*:\s*(?:text|application)\/(?:javascript|ecmascript)/i, reason: 'script data URLs are not allowed in article content' },
+  { pattern: /\bdefine:vars\b/i, reason: 'define:vars directives are not allowed in article content' },
 ];
 
 // The whitespace-anchored handler pattern above misses handlers that HTML lets
