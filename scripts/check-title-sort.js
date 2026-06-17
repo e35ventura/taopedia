@@ -176,4 +176,17 @@ assert.ok(
   'search.astro must not use plain localeCompare for topic facet sort',
 );
 
+const backlinksSource = fs.readFileSync(
+  path.join(projectRoot, 'src/pages/wiki/[...slug]/backlinks.astro'),
+  'utf8',
+);
+assert.ok(
+  backlinksSource.includes('compareTitles(a.slug, b.slug)'),
+  'backlinks.astro must sort slug ties with compareTitles, not localeCompare',
+);
+assert.ok(
+  !backlinksSource.includes('a.slug.localeCompare(b.slug)'),
+  'backlinks.astro must not use localeCompare for slug tiebreak',
+);
+
 console.log('title sort check passed');
