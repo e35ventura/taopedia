@@ -206,4 +206,17 @@ assert.ok(
   'check-most-linked.js must sort slug ties with compareTitles, not localeCompare',
 );
 
+
+// Sitemap article and category paths can include numeric slugs (e.g. subnet_9
+// vs subnet_10), so path ordering must use compareTitles rather than localeCompare.
+const sitemapSource = fs.readFileSync(path.join(projectRoot, 'src/pages/sitemap.xml.ts'), 'utf8');
+assert.ok(
+  sitemapSource.includes('compareTitles(a.path, b.path)'),
+  'sitemap.xml.ts must sort paths with compareTitles, not localeCompare',
+);
+assert.ok(
+  !sitemapSource.includes('a.path.localeCompare(b.path)'),
+  'sitemap.xml.ts must not use localeCompare for path sorting',
+);
+
 console.log('title sort check passed');
