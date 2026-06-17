@@ -155,5 +155,6 @@ rejects('Hydrate with client:load here.', 'client directive token in article bod
 rejects('Render via server:defer here.', 'server directive token in article body');
 rejects('Animate with transition:animate here.', 'transition directive token in article body');
 rejects('Render with is:raw here.', 'is directive token in article body');
+rejects('Pass secrets with define:vars={{ token }}.', 'define:vars directive token in article body');
 
 console.log('Content sanitizer check passed');
