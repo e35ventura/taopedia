@@ -160,4 +160,20 @@ assert.ok(
   'statistics.astro must not use localeCompare for the topic tiebreak',
 );
 
+// Search topic facets sort by result count, then by topic name. Topic names can
+// be numeric-prefixed (e.g. "Subnet 9" vs "Subnet 10"), so the name tiebreak must
+// use numeric collation rather than plain localeCompare.
+const searchPage = fs.readFileSync(
+  path.join(projectRoot, 'src/pages/search.astro'),
+  'utf8',
+);
+assert.ok(
+  searchPage.includes("localeCompare(b, 'en', { numeric: true })"),
+  'search.astro must sort topic facets with numeric collation',
+);
+assert.ok(
+  !searchPage.includes('.sort((a, b) => topicCounts[b] - topicCounts[a] || a.localeCompare(b))'),
+  'search.astro must not use plain localeCompare for topic facet sort',
+);
+
 console.log('title sort check passed');

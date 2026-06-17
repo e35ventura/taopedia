@@ -41,7 +41,7 @@ import WikiLayout from '../layouts/WikiLayout.astro';
       // facets.
       const topics = Object.keys(topicCounts)
         .filter((topic) => topicCounts[topic] > 0)
-        .sort((a, b) => topicCounts[b] - topicCounts[a] || a.localeCompare(b))
+        .sort((a, b) => topicCounts[b] - topicCounts[a] || a.localeCompare(b, 'en', { numeric: true }))
         .slice(0, MAX_FACETS);
       if (topics.length < 2) return;
 
