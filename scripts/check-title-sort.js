@@ -125,6 +125,14 @@ assert.ok(
   !mlSource.includes('title.localeCompare('),
   'mostlinkedpages.astro must not use localeCompare for the title tiebreak',
 );
+assert.ok(
+  mlSource.includes('compareTitles(a.slug, b.slug)'),
+  'mostlinkedpages.astro must sort slug ties with compareTitles, not localeCompare',
+);
+assert.ok(
+  !mlSource.includes('a.slug.localeCompare(b.slug)'),
+  'mostlinkedpages.astro must not use localeCompare for slug tiebreak',
+);
 
 // Special:Categories lists all topics in alphabetical order. Category names
 // can be numeric-prefixed (e.g. "Subnet 9" vs "Subnet 10"), so the sort must
@@ -187,6 +195,15 @@ assert.ok(
 assert.ok(
   !backlinksSource.includes('a.slug.localeCompare(b.slug)'),
   'backlinks.astro must not use localeCompare for slug tiebreak',
+);
+
+const mostLinkedCheck = fs.readFileSync(
+  path.join(projectRoot, 'scripts/check-most-linked.js'),
+  'utf8',
+);
+assert.ok(
+  mostLinkedCheck.includes('compareTitles(a.slug, b.slug)'),
+  'check-most-linked.js must sort slug ties with compareTitles, not localeCompare',
 );
 
 console.log('title sort check passed');
