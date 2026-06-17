@@ -40,7 +40,7 @@ for (const p of pages) titleBySlug[getPageSlug(p)] = p.data.title;
 const backlinks = (backlinksData[slug] ?? [])
   .filter((entry) => titleBySlug[entry.from])
   .map((entry) => ({ slug: entry.from, title: titleBySlug[entry.from] }))
-  .sort((a, b) => compareTitles(a.title, b.title) || a.slug.localeCompare(b.slug));
+  .sort((a, b) => compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug));
 
 const articleUrl = `/wiki/${slug}/`;
 const historyUrl = `/wiki/${slug}/history/`;
