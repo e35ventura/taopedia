@@ -143,4 +143,21 @@ assert.ok(
   'categories.astro must not use localeCompare for the topic sort',
 );
 
+// Special:Statistics sorts topics by article count, then uses a topic-name
+// tiebreak to pick the "Largest topic". The tiebreak must use compareTitles
+// (numeric collation) so numeric-prefixed topics like "Subnet 9" and
+// "Subnet 10" are ordered correctly when they have the same article count.
+const statsSource = fs.readFileSync(
+  path.join(projectRoot, 'src/pages/wiki/special/statistics.astro'),
+  'utf8',
+);
+assert.ok(
+  statsSource.includes('compareTitles('),
+  'statistics.astro must sort the largest-topic tiebreak with compareTitles, not localeCompare',
+);
+assert.ok(
+  !statsSource.includes('.localeCompare('),
+  'statistics.astro must not use localeCompare for the topic tiebreak',
+);
+
 console.log('title sort check passed');
