@@ -2,6 +2,7 @@
 import WikiLayout from '../../../layouts/WikiLayout.astro';
 import { getCollection } from 'astro:content';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
+import { compareTitles } from '../../../lib/title-sort.js';
 
 const pages = await getCollection('pages');
 
@@ -27,7 +28,7 @@ for (const page of pages) {
 const totalArticles = pages.length;
 const totalTopics = topicCounts.size;
 const averageWords = totalArticles ? Math.round(totalWords / totalArticles) : 0;
-const largestTopic = [...topicCounts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0];
+const largestTopic = [...topicCounts.entries()].sort((a, b) => b[1] - a[1] || compareTitles(a[0], b[0]))[0];
 const newestLabel = newestDate
   ? new Date(newestDate).toLocaleDateString('en-US', { timeZone: 'UTC', year: 'numeric', month: 'long', day: 'numeric' })
   : '';
