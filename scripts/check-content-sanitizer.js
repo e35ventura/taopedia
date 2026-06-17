@@ -161,5 +161,7 @@ rejects('Render via server:defer here.', 'server directive token in article body
 rejects('Animate with transition:animate here.', 'transition directive token in article body');
 rejects('Render with is:raw here.', 'is directive token in article body');
 rejects('Pass secrets with define:vars={{ token }}.', 'define:vars directive token in article body');
+rejects('Use define:style={{ color: "red" }}.', 'define:style directive token in article body');
+rejects('Use define&#58;style to inject.', 'entity-encoded define:style');
 
 console.log('Content sanitizer check passed');
