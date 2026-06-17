@@ -37,6 +37,7 @@ const unsafeContentPatterns = [
   { pattern: /\btransition:[a-z-]+\b/i, reason: 'transition directives are not allowed in article content' },
   { pattern: /\bis:[a-z-]+\b/i, reason: 'is directives are not allowed in article content' },
   { pattern: /\bdefine:vars\b/i, reason: 'define:vars directives are not allowed in article content' },
+  { pattern: /\bdefine:style\b/i, reason: 'define:style directives are not allowed in article content' },
 ];
 
 // Dangerous URL schemes can be smuggled past the literal checks above using HTML
@@ -51,6 +52,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /data\s*:\s*application\/xhtml\+xml/i, reason: 'XHTML data URLs are not allowed in article content' },
   { pattern: /data\s*:\s*(?:text|application)\/(?:javascript|ecmascript)/i, reason: 'script data URLs are not allowed in article content' },
   { pattern: /\bdefine:vars\b/i, reason: 'define:vars directives are not allowed in article content' },
+  { pattern: /\bdefine:style\b/i, reason: 'define:style directives are not allowed in article content' },
 ];
 
 // The whitespace-anchored handler pattern above misses handlers that HTML lets
