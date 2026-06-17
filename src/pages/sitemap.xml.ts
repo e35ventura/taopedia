@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
+import { compareTitles } from '../lib/title-sort.js';
 import { getPageSlug, lastmodForSlug } from '../lib/article-history';
 
 const escapeXml = (value: string) =>
@@ -41,7 +42,7 @@ export const GET: APIRoute = async ({ site }) => {
         image: { loc: `${origin}/og/${slug}.png`, title: page.data.title },
       };
     })
-    .sort((a, b) => a.path.localeCompare(b.path));
+    .sort((a, b) => compareTitles(a.path, b.path));
 
   // Same derivation as wiki/category/[category].astro getStaticPaths: the set
   // of distinct category labels, each routed at /wiki/category/<label_>/ with
@@ -66,7 +67,7 @@ export const GET: APIRoute = async ({ site }) => {
       path: `/wiki/category/${category.replace(/ /g, '_')}/`,
       lastmod: categoryLastmod.get(category) ?? '',
     }))
-    .sort((a, b) => a.path.localeCompare(b.path));
+    .sort((a, b) => compareTitles(a.path, b.path));
 
   const entries = [
     { path: '/', lastmod: '' },
