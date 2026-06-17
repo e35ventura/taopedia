@@ -206,4 +206,17 @@ assert.ok(
   'check-most-linked.js must sort slug ties with compareTitles, not localeCompare',
 );
 
+
+// The homepage A–Z index groups sort letter keys with compareTitles so numeric
+// collation stays consistent with the rest of the title-sort contract.
+const indexSource = fs.readFileSync(path.join(projectRoot, 'src/pages/index.astro'), 'utf8');
+assert.ok(
+  indexSource.includes('compareTitles(a, b)'),
+  'index.astro must sort A–Z group keys with compareTitles, not localeCompare',
+);
+assert.ok(
+  !indexSource.includes('return a.localeCompare(b)'),
+  'index.astro must not use localeCompare for A–Z group key sorting',
+);
+
 console.log('title sort check passed');
