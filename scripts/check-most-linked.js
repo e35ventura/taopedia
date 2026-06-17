@@ -82,7 +82,7 @@ const expected = Object.entries(backlinks)
     count: links.filter((link) => slugmap[link.from]).length,
   }))
   .filter((entry) => entry.count > 0)
-  .sort((a, b) => b.count - a.count || compareTitles(a.title, b.title) || a.slug.localeCompare(b.slug));
+  .sort((a, b) => b.count - a.count || compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug));
 
 assert.deepEqual(
   renderedSlugs,
