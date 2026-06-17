@@ -83,7 +83,7 @@ export function normalizeArticleLocalImagePath(value) {
 
   const withoutDotPrefix = trimmed.replace(/^\.\/+/, '');
   const normalized = withoutDotPrefix.replace(/\\/g, '/');
-  const decoded = decodePathSegments(normalized);
+  const decoded = decodePathSegments(normalized).replace(/\\/g, '/');
   const segments = decoded.split('/');
 
   if (
@@ -103,7 +103,7 @@ export function hasLocalImagePathTraversal(value) {
   if (!trimmed || isPassthroughImageUrl(trimmed)) return false;
 
   const normalized = trimmed.replace(/\\/g, '/');
-  const decoded = decodePathSegments(normalized);
+  const decoded = decodePathSegments(normalized).replace(/\\/g, '/');
   return decoded.split('/').some((segment) => segment === '..');
 }
 

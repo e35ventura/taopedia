@@ -270,4 +270,22 @@ assert.equal(
   'traversal paths should not render as infobox image sources',
 );
 
+assert.equal(
+  hasLocalImagePathTraversal('..%5csecret.png'),
+  true,
+  'encoded-backslash parent-directory traversal should be detected',
+);
+
+assert.equal(
+  normalizeArticleLocalImagePath('%2e%2e%5csecret.png'),
+  null,
+  'encoded parent-directory traversal with an encoded backslash should not normalize as a local image path',
+);
+
+assert.equal(
+  resolveArticleImageSource('local_asset', '%2e%2e%5csecret.png', imageAssets),
+  undefined,
+  'encoded-backslash traversal paths should not render as infobox image sources',
+);
+
 console.log('Article image asset resolution check passed');
