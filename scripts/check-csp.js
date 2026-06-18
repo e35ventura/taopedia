@@ -73,6 +73,22 @@ export function validateCspConfig(config) {
   assert.deepEqual(directives.get('default-src'), ["'self'"], "CSP must keep default-src 'self'");
   assert.deepEqual(directives.get('frame-ancestors'), ["'none'"], "CSP must keep frame-ancestors 'none'");
   assert.deepEqual(directives.get('base-uri'), ["'self'"], "CSP must keep base-uri 'self'");
+  // Forms on search.astro submit to same-origin routes only; block cross-origin exfil.
+  assert.deepEqual(
+    directives.get('form-action'),
+    ["'self'"],
+    "CSP must set form-action 'self' so forms cannot post to third-party origins",
+  );
+  const styleSrc = directives.get('style-src');
+  assert.ok(styleSrc, 'CSP must declare style-src explicitly');
+  assert.ok(
+    styleSrc.includes("'self'"),
+    "style-src must include 'self' so bundled stylesheets still load",
+  );
+  assert.ok(
+    styleSrc.includes("'unsafe-inline'"),
+    "style-src must include 'unsafe-inline' for Astro component <style> blocks",
+  );
   // <object>/<embed> can run legacy plugin content that default-src does not fully
   // neutralize in older engines, so block it explicitly (the CSP Evaluator
   // hardening baseline). The site embeds no plugin content, so 'none' is safe.
@@ -220,7 +236,7 @@ validateCorpConfig(config);
 // previously only verified a header appeared *after* the `for = "/*"` marker, which
 // also passes when the header is declared in a later, narrower headers block.
 const VALID_CSP =
-  "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'";
+  "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'";
 
 const BASELINE_HEADER_VALUES = Object.fromEntries(BASELINE_SECURITY_HEADERS);
 const baselineHeadersToml = (headers = BASELINE_HEADER_VALUES, path = '/*') =>
@@ -412,7 +428,7 @@ assert.throws(
 assert.throws(
   () =>
     validateCspConfig(
-      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; style-src 'self' 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
     ),
   /manifest-src/,
   'a CSP missing manifest-src must be rejected',
@@ -422,7 +438,7 @@ assert.throws(
 assert.throws(
   () =>
     validateCspConfig(
-      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src *; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src *; style-src 'self' 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
     ),
   /manifest-src/,
   'a CSP with manifest-src * must be rejected',
@@ -433,7 +449,7 @@ assert.throws(
 assert.throws(
   () =>
     validateCspConfig(
-      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'"\n`,
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'"\n`,
     ),
   /worker-src/,
   'a CSP missing worker-src must be rejected',
@@ -443,10 +459,50 @@ assert.throws(
 assert.throws(
   () =>
     validateCspConfig(
-      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; worker-src *"\n`,
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; worker-src *"\n`,
     ),
   /worker-src/,
   'a CSP with worker-src * must be rejected',
+);
+
+// A CSP missing form-action must be REJECTED — search forms must not post cross-origin.
+assert.throws(
+  () =>
+    validateCspConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
+    ),
+  /form-action/,
+  'a CSP missing form-action must be rejected',
+);
+
+// A form-action wider than same-origin must be REJECTED.
+assert.throws(
+  () =>
+    validateCspConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; form-action *; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
+    ),
+  /form-action/,
+  'a CSP with form-action * must be rejected',
+);
+
+// A CSP missing style-src must be REJECTED — Astro pages rely on component styles.
+assert.throws(
+  () =>
+    validateCspConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
+    ),
+  /style-src/,
+  'a CSP missing style-src must be rejected',
+);
+
+// A style-src without unsafe-inline must be REJECTED — scoped Astro styles need it.
+assert.throws(
+  () =>
+    validateCspConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; style-src 'self'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
+    ),
+  /unsafe-inline/,
+  'a CSP with style-src missing unsafe-inline must be rejected',
 );
 
 // A same-origin Cross-Origin-Resource-Policy in the catch-all block is accepted.
