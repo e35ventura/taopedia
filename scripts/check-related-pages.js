@@ -115,6 +115,16 @@ const bundledCss = fs.existsSync(astroDir)
 const styleShipped = bundledCss.some((f) => fs.readFileSync(path.join(astroDir, f), 'utf8').includes('.related-pages'));
 assert.ok(styleShipped, 'the .related-pages styles must be bundled into a shipped stylesheet');
 
+const relatedSource = fs.readFileSync(path.join(projectRoot, 'src/lib/related-pages.ts'), 'utf8');
+assert.ok(
+  relatedSource.includes('compareTitles(a.slug, b.slug)'),
+  'related-pages.ts must sort slug ties with compareTitles, not raw string order',
+);
+assert.ok(
+  !relatedSource.includes('a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0'),
+  'related-pages.ts must not use raw string comparison for slug tiebreak',
+);
+
 console.log(
   `Related pages check passed (${pagesWithBlock}/${articleSlugs.length} articles show a block, ≤${MAX_ITEMS} clickable cards each, ${totalRelatedLinks} related links all built, ${dedupVerified} verified disjoint from in-body links, styles token-themed + shipped)`,
 );
