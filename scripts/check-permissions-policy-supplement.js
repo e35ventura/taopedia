@@ -5,7 +5,7 @@ import path from 'node:path';
 // Supplemental Permissions-Policy denials validated separately from check-csp.js
 // so header hardening PRs can land without conflicting on the monolithic DENIED list.
 // Does not deny clipboard-write — CiteCopyButtons.astro needs cite-page copying.
-export const SUPPLEMENTAL_DENIED_FEATURES = ['idle-detection', 'keyboard-map'];
+export const SUPPLEMENTAL_DENIED_FEATURES = ['idle-detection', 'keyboard-map', 'local-fonts'];
 
 export function validateSupplementalPermissionsPolicy(value) {
   for (const feature of SUPPLEMENTAL_DENIED_FEATURES) {
@@ -45,6 +45,18 @@ assert.throws(
   () => validateSupplementalPermissionsPolicy(FULL_POLICY.replace('keyboard-map=()', 'keyboard-map=(self)')),
   /must deny keyboard-map/,
   'a Permissions-Policy that grants keyboard-map to an origin must be rejected',
+);
+
+assert.throws(
+  () => validateSupplementalPermissionsPolicy(FULL_POLICY.replace('local-fonts=(), ', '')),
+  /must deny local-fonts/,
+  'a Permissions-Policy missing local-fonts must be rejected',
+);
+
+assert.throws(
+  () => validateSupplementalPermissionsPolicy(FULL_POLICY.replace('local-fonts=()', 'local-fonts=(self)')),
+  /must deny local-fonts/,
+  'a Permissions-Policy that grants local-fonts to an origin must be rejected',
 );
 
 console.log('Supplemental Permissions-Policy check passed');
