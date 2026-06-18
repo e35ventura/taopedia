@@ -70,6 +70,12 @@ export function validateCspConfig(config) {
 
   // Keep the rest of the hardening baseline intact.
   assert.ok(scriptSrc.includes("'self'"), "script-src must keep 'self' so site scripts still load");
+  // Production CSP already includes 'unsafe-inline' for Seo.astro's inline theme
+  // bootstrap script. Lock that shipped contract so a future edit cannot drop it.
+  assert.ok(
+    scriptSrc.includes("'unsafe-inline'"),
+    "script-src must include 'unsafe-inline' for inline head scripts such as Seo.astro",
+  );
   assert.deepEqual(directives.get('default-src'), ["'self'"], "CSP must keep default-src 'self'");
   assert.deepEqual(directives.get('frame-ancestors'), ["'none'"], "CSP must keep frame-ancestors 'none'");
   assert.deepEqual(directives.get('base-uri'), ["'self'"], "CSP must keep base-uri 'self'");
@@ -270,7 +276,7 @@ validateCrossDomainPoliciesConfig(config);
 // previously only verified a header appeared *after* the `for = "/*"` marker, which
 // also passes when the header is declared in a later, narrower headers block.
 const VALID_CSP =
-  "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'";
+  "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'";
 
 const BASELINE_HEADER_VALUES = Object.fromEntries(BASELINE_SECURITY_HEADERS);
 const baselineHeadersToml = (headers = BASELINE_HEADER_VALUES, path = '/*') =>
@@ -494,7 +500,7 @@ assert.throws(
 assert.throws(
   () =>
     validateCspConfig(
-      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
     ),
   /manifest-src/,
   'a CSP missing manifest-src must be rejected',
@@ -504,7 +510,7 @@ assert.throws(
 assert.throws(
   () =>
     validateCspConfig(
-      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src *; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src *; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
     ),
   /manifest-src/,
   'a CSP with manifest-src * must be rejected',
@@ -515,7 +521,7 @@ assert.throws(
 assert.throws(
   () =>
     validateCspConfig(
-      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'"\n`,
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; connect-src 'self'"\n`,
     ),
   /worker-src/,
   'a CSP missing worker-src must be rejected',
@@ -525,7 +531,7 @@ assert.throws(
 assert.throws(
   () =>
     validateCspConfig(
-      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; worker-src *"\n`,
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; connect-src 'self'; worker-src *"\n`,
     ),
   /worker-src/,
   'a CSP with worker-src * must be rejected',
@@ -535,7 +541,7 @@ assert.throws(
 assert.throws(
   () =>
     validateCspConfig(
-      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
     ),
   /form-action/,
   'a CSP missing form-action must be rejected',
@@ -545,7 +551,7 @@ assert.throws(
 assert.throws(
   () =>
     validateCspConfig(
-      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; form-action *; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; form-action *; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
     ),
   /form-action/,
   'a CSP with form-action * must be rejected',
@@ -555,7 +561,7 @@ assert.throws(
 assert.throws(
   () =>
     validateCspConfig(
-      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
     ),
   /style-src/,
   'a CSP missing style-src must be rejected',
@@ -565,17 +571,36 @@ assert.throws(
 assert.throws(
   () =>
     validateCspConfig(
-      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; img-src 'self' https: data:; style-src 'self'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; img-src 'self' https: data:; style-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
     ),
   /unsafe-inline/,
   'a CSP with style-src missing unsafe-inline must be rejected',
+);
+
+// script-src regression coverage for the production inline-script contract.
+assert.throws(
+  () =>
+    validateCspConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
+    ),
+  /unsafe-inline/,
+  'a CSP with script-src missing unsafe-inline must be rejected',
+);
+
+assert.throws(
+  () =>
+    validateCspConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
+    ),
+  /must not include 'unsafe-eval'/,
+  "a CSP with script-src 'unsafe-eval' must be rejected",
 );
 
 // img-src regression coverage — one rejection test per asserted requirement.
 assert.throws(
   () =>
     validateCspConfig(
-      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
     ),
   /img-src/,
   'a CSP missing img-src must be rejected',
@@ -584,7 +609,7 @@ assert.throws(
 assert.throws(
   () =>
     validateCspConfig(
-      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; img-src https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; img-src https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
     ),
   /'self'/,
   "a CSP with img-src missing 'self' must be rejected",
@@ -593,7 +618,7 @@ assert.throws(
 assert.throws(
   () =>
     validateCspConfig(
-      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
     ),
   /https:/,
   'a CSP with img-src missing https: must be rejected',
@@ -602,7 +627,7 @@ assert.throws(
 assert.throws(
   () =>
     validateCspConfig(
-      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; img-src 'self' https:; style-src 'self' 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; img-src 'self' https:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
     ),
   /data:/,
   'a CSP with img-src missing data: must be rejected',
