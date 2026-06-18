@@ -188,6 +188,10 @@ rejects(`Use define:pr${SOFT_HYPHEN}ops here.`, 'soft-hyphen unlisted define dir
 rejects('Intro.\n\n<div slot="sidebar">evil</div>', 'plain slot attribute');
 rejects('Intro.\n\n<  div   slot="sidebar">', 'spaced slot attribute');
 
+// XML namespace declarations on raw HTML must not appear in article bodies.
+rejects('Intro.\n\n<svg xmlns="http://www.w3.org/2000/svg"></svg>', 'plain xmlns attribute');
+rejects('Intro.\n\n<  svg   xmlns:xlink="http://www.w3.org/1999/xlink">', 'spaced xmlns: prefix');
+
 // Prose that merely mentions these English words without the directive colon
 // must still pass — guard the new patterns against false positives.
 accepts('This client is set to define the class list style, and the server is fast.', 'benign client/server/set/class/define prose');
