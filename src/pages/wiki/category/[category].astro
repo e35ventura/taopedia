@@ -33,7 +33,14 @@ const pageTitle = `Category: ${categoryName}`;
 const pageDescription = `Taopedia articles about ${categoryName} in the Bittensor knowledge base.`;
 ---
 
-<WikiLayout title={pageTitle} description={pageDescription}>
+<WikiLayout
+  title={pageTitle}
+  description={pageDescription}
+  rssAlternate={{
+    href: `/wiki/category/${category}/rss.xml`,
+    title: `Taopedia - ${categoryName} articles`,
+  }}
+>
   <div class="mw-body-content">
     <h1 class="firstHeading">{categoryName}</h1>
     

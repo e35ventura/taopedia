@@ -58,6 +58,7 @@
     "test:json-feed": "node scripts/check-json-feed.js",
     "test:json-feed-discovery": "node scripts/check-json-feed-discovery.js",
     "test:rss-discovery": "node scripts/check-rss-discovery.js",
+    "test:category-rss-discovery": "node scripts/check-category-rss-discovery.js",
     "test:search-facets": "node scripts/check-search-facets.js",
     "test:statistics": "node scripts/check-statistics.js",
     "test:recent-changes": "node scripts/check-recent-changes.js",

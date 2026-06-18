@@ -11,9 +11,10 @@ interface Props {
   type?: 'website' | 'article';
   path?: string;
   robots?: string;
+  rssAlternate?: { href: string; title: string };
 }
 
-const { title, description, image, type = 'website', path, robots } = Astro.props;
+const { title, description, image, type = 'website', path, robots, rssAlternate } = Astro.props;
 ---
 
 <!doctype html>
@@ -21,7 +22,7 @@ const { title, description, image, type = 'website', path, robots } = Astro.prop
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <Seo title={title} description={description} image={image} type={type} path={path} robots={robots} />
+    <Seo title={title} description={description} image={image} type={type} path={path} robots={robots} rssAlternate={rssAlternate} />
   </head>
   <body>
     <a href="#content" class="skip-link">Skip to content</a>
