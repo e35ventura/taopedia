@@ -85,6 +85,20 @@ export function validateCspConfig(config) {
     ["'self'"],
     "CSP must keep connect-src 'self'; Pagefind fetches its index same-origin",
   );
+  // Seo.astro links /site.webmanifest for installable metadata. Pin manifest loads
+  // to same-origin so a compromised third-party host cannot swap the PWA manifest.
+  assert.deepEqual(
+    directives.get('manifest-src'),
+    ["'self'"],
+    "CSP must set manifest-src 'self' for the site's web app manifest",
+  );
+  // Pagefind search loads /pagefind/pagefind-worker.js as a dedicated worker. Pin
+  // worker-src to same-origin so only site workers can run, not third-party scripts.
+  assert.deepEqual(
+    directives.get('worker-src'),
+    ["'self'"],
+    "CSP must set worker-src 'self' for Pagefind's same-origin search worker",
+  );
 
   return directives;
 }
@@ -130,6 +144,7 @@ const DENIED_PERMISSIONS_FEATURES = [
   'accelerometer',
   'autoplay',
   'bluetooth',
+  'browsing-topics',
   'camera',
   'display-capture',
   'encrypted-media',
@@ -137,6 +152,7 @@ const DENIED_PERMISSIONS_FEATURES = [
   'geolocation',
   'gyroscope',
   'hid',
+  'interest-cohort',
   'magnetometer',
   'microphone',
   'midi',
@@ -188,7 +204,7 @@ validateCoopConfig(config);
 // previously only verified a header appeared *after* the `for = "/*"` marker, which
 // also passes when the header is declared in a later, narrower headers block.
 const VALID_CSP =
-  "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'";
+  "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'";
 
 const BASELINE_HEADER_VALUES = Object.fromEntries(BASELINE_SECURITY_HEADERS);
 const baselineHeadersToml = (headers = BASELINE_HEADER_VALUES, path = '/*') =>
@@ -373,6 +389,48 @@ assert.throws(
     ),
   /must live in the catch-all/,
   'a Cross-Origin-Opener-Policy declared outside the catch-all block must be rejected',
+);
+
+// A CSP missing manifest-src must be REJECTED — default-src does not fully govern
+// manifest fetches in every engine, so the directive must be pinned explicitly.
+assert.throws(
+  () =>
+    validateCspConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
+    ),
+  /manifest-src/,
+  'a CSP missing manifest-src must be rejected',
+);
+
+// A manifest-src wider than same-origin must be REJECTED.
+assert.throws(
+  () =>
+    validateCspConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src *; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
+    ),
+  /manifest-src/,
+  'a CSP with manifest-src * must be rejected',
+);
+
+// A CSP missing worker-src must be REJECTED — Pagefind depends on a same-origin
+// dedicated worker and worker-src must not fall through to a wider default.
+assert.throws(
+  () =>
+    validateCspConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'"\n`,
+    ),
+  /worker-src/,
+  'a CSP missing worker-src must be rejected',
+);
+
+// A worker-src wider than same-origin must be REJECTED.
+assert.throws(
+  () =>
+    validateCspConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; worker-src *"\n`,
+    ),
+  /worker-src/,
+  'a CSP with worker-src * must be rejected',
 );
 
 console.log('Security header check passed');
