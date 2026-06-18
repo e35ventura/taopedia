@@ -7,6 +7,8 @@
 // the generated revision history) so this function never re-derives origins or
 // trailing slashes; it only formats and escapes the channel/item XML.
 
+import { compareTitles } from '../src/lib/title-sort.js';
+
 const SITE_NAME = 'Taopedia';
 const FEED_DESCRIPTION =
   'Recently updated articles from Taopedia, a Bittensor-focused knowledge base.';
@@ -52,24 +54,16 @@ export function buildRssFeed({
   const channelHref = channelLink ? String(channelLink) : root;
 
   // Newest-updated first, then a deterministic tiebreak by canonical URL for items
-  // that share an identical revision timestamp (several articles do — they were
-  // imported in the same commit). The endpoint passes items in getCollection()
-  // order, which Astro does not guarantee to be stable, and a stable date-only
-  // sort just preserves that input order — so without the tiebreak a content-
-  // neutral rebuild could reorder the feed and churn downstream caches. Both keys
-  // use the JavaScript relational operators (raw lexicographic string comparison,
-  // not localeCompare) so the order never depends on the build machine's locale,
-  // matching the determinism used elsewhere (e.g. collectRecentChanges in
-  // article-history.ts). ISO-8601 dates compare lexically
-  // in chronological order; the empty string (undated) sorts last. Done here (not
-  // in the endpoint) so ordering is covered by the regression check.
+  // that share an identical revision timestamp. URLs can embed numeric slugs
+  // (subnet_9 vs subnet_10), so compareTitles keeps ordering aligned with the
+  // rest of the site rather than raw lexicographic string order.
   const sortedItems = [...items].sort((a, b) => {
     const aDate = String(a.date ?? '');
     const bDate = String(b.date ?? '');
     if (aDate !== bDate) return aDate < bDate ? 1 : -1;
     const aUrl = String(a.url ?? '');
     const bUrl = String(b.url ?? '');
-    return aUrl < bUrl ? -1 : aUrl > bUrl ? 1 : 0;
+    return compareTitles(aUrl, bUrl);
   });
 
   const itemXml = sortedItems
