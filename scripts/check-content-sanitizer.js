@@ -162,7 +162,9 @@ rejects('Animate with transition:animate here.', 'transition directive token in 
 rejects('Render with is:raw here.', 'is directive token in article body');
 rejects('Pass secrets with define:vars={{ token }}.', 'define:vars directive token in article body');
 rejects('Use define:style={{ color: "red" }}.', 'define:style directive token in article body');
+rejects('Use define:env to inject.', 'unlisted define directive token in article body');
 rejects('Use define&#58;style to inject.', 'entity-encoded define:style');
+rejects('Use define&#58;env to inject.', 'entity-encoded unlisted define directive');
 
 // Every template directive — not just define:vars/style — must also be caught
 // after entity/zero-width deobfuscation, so an obfuscated spelling cannot slip
@@ -174,9 +176,10 @@ rejects('Hydrate with client&#58;load here.', 'entity-encoded client: directive'
 rejects('Render via server&colon;defer here.', 'named-colon server: directive');
 rejects('Animate with transition&#58;animate here.', 'entity-encoded transition: directive');
 rejects('Render with is&colon;raw here.', 'named-colon is: directive');
+rejects(`Use define:pr${SOFT_HYPHEN}ops here.`, 'soft-hyphen unlisted define directive');
 
 // Prose that merely mentions these English words without the directive colon
 // must still pass — guard the new patterns against false positives.
-accepts('This client is set to render the list, and the server is fast.', 'benign client/server/set prose');
+accepts('This client is set to define the list style, and the server is fast.', 'benign client/server/set/define prose');
 
 console.log('Content sanitizer check passed');
