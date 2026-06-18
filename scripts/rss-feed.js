@@ -73,12 +73,18 @@ export function buildRssFeed({
   const itemXml = sortedItems
     .map((item) => {
       const pubDate = toRfc822(item.date);
+      const categoryXml = (Array.isArray(item.categories) ? item.categories : [])
+        .map((category) => String(category ?? '').trim())
+        .filter(Boolean)
+        .map((category) => `      <category>${escapeXml(category)}</category>`);
+
       return [
         '    <item>',
         `      <title>${escapeXml(item.title)}</title>`,
         `      <link>${escapeXml(item.url)}</link>`,
         `      <guid isPermaLink="true">${escapeXml(item.url)}</guid>`,
         item.description ? `      <description>${escapeXml(item.description)}</description>` : '',
+        ...categoryXml,
         pubDate ? `      <pubDate>${escapeXml(pubDate)}</pubDate>` : '',
         '    </item>',
       ]

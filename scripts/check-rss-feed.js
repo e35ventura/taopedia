@@ -18,6 +18,7 @@ const feed = buildRssFeed({
       title: 'Dynamic TAO & <Subnets>',
       url: 'https://taopedia.org/wiki/dynamic_tao/',
       description: 'How "Dynamic TAO" works.',
+      categories: ['Concepts', 'TAO & <Subnets>'],
       date: '2026-06-10T20:06:02Z',
     },
     {
@@ -56,7 +57,7 @@ const order = ['Dynamic TAO &amp; &lt;Subnets&gt;', 'Older Article', 'Undated Ar
 assert.ok(order.every((i) => i >= 0), 'every item appears in the feed');
 assert.deepEqual(order, [...order].sort((a, b) => a - b), 'items are ordered newest-first, undated last');
 
-// Item content: title/link/guid/description/pubDate, all XML-escaped.
+// Item content: title/link/guid/description/category/pubDate, all XML-escaped.
 assert.match(feed, /<title>Dynamic TAO &amp; &lt;Subnets&gt;<\/title>/, 'escapes special characters in titles');
 assert.match(feed, /<link>https:\/\/taopedia\.org\/wiki\/dynamic_tao\/<\/link>/, 'links to the canonical trailing-slash article URL');
 assert.match(
@@ -65,12 +66,23 @@ assert.match(
   'uses the canonical URL as a permalink guid',
 );
 assert.match(feed, /<description>How &quot;Dynamic TAO&quot; works\.<\/description>/, 'escapes quotes in descriptions');
+assert.match(feed, /<category>Concepts<\/category>/, 'emits item categories');
+assert.match(feed, /<category>TAO &amp; &lt;Subnets&gt;<\/category>/, 'escapes special characters in categories');
 assert.match(feed, /<pubDate>Wed, 10 Jun 2026 20:06:02 GMT<\/pubDate>/, 'formats pubDate as RFC 822');
 
 // The undated item omits the optional pubDate/description rather than emitting empties.
 const undated = feed.slice(feed.indexOf('<title>Undated Article</title>'));
 assert.ok(!undated.slice(0, undated.indexOf('</item>')).includes('<pubDate>'), 'omits pubDate when no date is known');
 assert.ok(!/<description>\s*<\/description>/.test(feed), 'never emits an empty description tag');
+
+// Empty/blank categories are also omitted rather than emitted as empty XML.
+{
+  const blankCategoryFeed = buildRssFeed({
+    siteUrl,
+    items: [{ title: 'Blank Category', url: 'https://taopedia.org/wiki/blank_category/', categories: ['  '] }],
+  });
+  assert.ok(!/<category>\s*<\/category>/.test(blankCategoryFeed), 'never emits an empty category tag');
+}
 
 // An empty feed still produces a valid, item-less channel with no lastBuildDate.
 const empty = buildRssFeed({ siteUrl, items: [] });
