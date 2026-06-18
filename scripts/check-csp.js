@@ -192,6 +192,21 @@ export function validateCoopConfig(config) {
   return value;
 }
 
+// Cross-Origin-Resource-Policy complements COOP by blocking cross-origin reads of
+// this site's responses (images, scripts, etc.) unless the request is same-origin.
+// `same-origin` is safe here: the wiki does not rely on cross-origin embedding of
+// its static assets. Validated in the catch-all block like the other hardening
+// headers.
+export function validateCorpConfig(config) {
+  const value = catchAllHeaderValue(config, 'Cross-Origin-Resource-Policy');
+  assert.equal(
+    value,
+    'same-origin',
+    "Cross-Origin-Resource-Policy must be 'same-origin' to block cross-origin resource reads",
+  );
+  return value;
+}
+
 const projectRoot = path.resolve(new URL('..', import.meta.url).pathname);
 const config = fs.readFileSync(path.join(projectRoot, 'netlify.toml'), 'utf8');
 validateCspConfig(config);
@@ -199,6 +214,7 @@ validateHstsConfig(config);
 validateBaselineSecurityHeadersConfig(config);
 validatePermissionsPolicyConfig(config);
 validateCoopConfig(config);
+validateCorpConfig(config);
 
 // Self-tests: prove the catch-all-block invariant is actually enforced. The check
 // previously only verified a header appeared *after* the `for = "/*"` marker, which
@@ -431,6 +447,36 @@ assert.throws(
     ),
   /worker-src/,
   'a CSP with worker-src * must be rejected',
+);
+
+// A same-origin Cross-Origin-Resource-Policy in the catch-all block is accepted.
+assert.doesNotThrow(
+  () =>
+    validateCorpConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Cross-Origin-Resource-Policy = "same-origin"\n`,
+    ),
+  'a same-origin Cross-Origin-Resource-Policy must be accepted',
+);
+
+// A weaker cross-origin (or missing) CORP must be REJECTED — it would allow other
+// sites to read this origin's responses in <img>/<script> cross-origin loads.
+assert.throws(
+  () =>
+    validateCorpConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Cross-Origin-Resource-Policy = "cross-origin"\n`,
+    ),
+  /must be 'same-origin'/,
+  'a Cross-Origin-Resource-Policy weaker than same-origin must be rejected',
+);
+
+// CORP declared in a later, narrower block must be REJECTED, like the CSP/HSTS.
+assert.throws(
+  () =>
+    validateCorpConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    X-Frame-Options = "DENY"\n\n[[headers]]\n  for = "/special/*"\n  [headers.values]\n    Cross-Origin-Resource-Policy = "same-origin"\n`,
+    ),
+  /must live in the catch-all/,
+  'a Cross-Origin-Resource-Policy declared outside the catch-all block must be rejected',
 );
 
 console.log('Security header check passed');
