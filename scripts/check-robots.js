@@ -6,6 +6,7 @@ const body = buildRobotsTxt({ origin: 'https://taopedia.org' });
 assert.match(body, /^User-agent: \*/m, 'robots.txt must declare a user-agent group');
 assert.match(body, /^Allow: \//m, 'robots.txt must allow general crawling');
 assert.match(body, /^Disallow: \/search$/m, 'robots.txt must keep crawlers off the search route');
+assert.match(body, /^Disallow: \/pagefind\/$/m, 'robots.txt must keep crawlers off Pagefind index assets');
 assert.match(
   body,
   /^Sitemap: https:\/\/taopedia\.org\/sitemap\.xml$/m,
