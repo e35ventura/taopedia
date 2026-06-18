@@ -92,4 +92,16 @@ assert.equal('tags' in undated, false, 'omits blank tags');
   );
 }
 
+{
+  const sameDate = '2026-06-01T06:01:22Z';
+  const nine = { title: 'Subnet 9', url: 'https://taopedia.org/wiki/subnet_9/', dateModified: sameDate };
+  const ten = { title: 'Subnet 10', url: 'https://taopedia.org/wiki/subnet_10/', dateModified: sameDate };
+  const urls = JSON.parse(buildJsonFeed({ siteUrl, items: [ten, nine] })).items.map((item) => item.url);
+  assert.deepEqual(
+    urls,
+    ['https://taopedia.org/wiki/subnet_9/', 'https://taopedia.org/wiki/subnet_10/'],
+    'same-timestamp numeric slugs must order with compareTitles (subnet_9 before subnet_10)',
+  );
+}
+
 console.log('check-json-feed: all assertions passed');
