@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 import rehypeExternalLinks, { isExternalHref } from './rehype-external-links.js';
 
 function anchor(href) {
@@ -81,5 +83,30 @@ assert.equal(isExternalHref('#anchor'), false);
 assert.equal(isExternalHref('mailto:x@y.com'), false);
 assert.equal(isExternalHref(undefined), false);
 assert.equal(isExternalHref(''), false);
+
+// The rehype plugin only sees Markdown-rendered links. Hand-written anchors in
+// .astro layouts and components bypass it, so any `target="_blank"` there must
+// carry rel="noopener" itself or it exposes window.opener to the opened page
+// (reverse tabnabbing). Scan the source and fail on a blank-target anchor missing
+// noopener.
+const srcDir = path.resolve(new URL('../src', import.meta.url).pathname);
+function* astroFiles(dir) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const fp = path.join(dir, entry.name);
+    if (entry.isDirectory()) yield* astroFiles(fp);
+    else if (entry.isFile() && entry.name.endsWith('.astro')) yield fp;
+  }
+}
+const blankTargetAnchor = /<a\b[^>]*?\btarget=["']_blank["'][^>]*?>/gis;
+for (const file of astroFiles(srcDir)) {
+  const source = fs.readFileSync(file, 'utf8');
+  for (const match of source.matchAll(blankTargetAnchor)) {
+    assert.ok(
+      /\brel=["'][^"']*\bnoopener\b/i.test(match[0]),
+      `${path.relative(srcDir, file)}: a target="_blank" anchor is missing rel="noopener" ` +
+        `(reverse-tabnabbing risk):\n  ${match[0].replace(/\s+/g, ' ')}`,
+    );
+  }
+}
 
 console.log('External links rehype check passed');
