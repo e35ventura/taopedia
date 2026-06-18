@@ -139,6 +139,8 @@ const DENIED_PERMISSIONS_FEATURES = [
   'midi',
   'payment',
   'picture-in-picture',
+  'publickey-credentials-get',
+  'screen-wake-lock',
   'serial',
   'usb',
   'web-share',
