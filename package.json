@@ -57,6 +57,8 @@
     "test:random-page": "node scripts/check-random-page.js",
     "test:sitemap": "node scripts/check-sitemap.js",
     "test:rss-feed": "node scripts/check-rss-feed.js",
+    "test:atom-feed": "node scripts/check-atom-feed.js",
+    "test:atom-discovery": "node scripts/check-atom-discovery.js",
     "test:category-feed": "node scripts/check-category-feed.js",
     "test:json-feed": "node scripts/check-json-feed.js",
     "test:json-feed-discovery": "node scripts/check-json-feed-discovery.js",
