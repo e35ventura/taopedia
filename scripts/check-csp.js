@@ -228,6 +228,23 @@ export function validateCorpConfig(config) {
   return value;
 }
 
+// X-Permitted-Cross-Domain-Policies controls whether Adobe clients (Flash Player,
+// Acrobat) may load a cross-domain policy file (crossdomain.xml) from this origin
+// to grant themselves cross-origin data access. The wiki serves no such policy
+// file, so `none` — the strictest value, forbidding any policy file anywhere on
+// the host — is safe and closes a legacy cross-origin data-access vector flagged
+// by the OWASP Secure Headers baseline. Validated in the catch-all block like the
+// other hardening headers so every response carries it.
+export function validateCrossDomainPoliciesConfig(config) {
+  const value = catchAllHeaderValue(config, 'X-Permitted-Cross-Domain-Policies');
+  assert.equal(
+    value,
+    'none',
+    "X-Permitted-Cross-Domain-Policies must be 'none' to forbid Adobe cross-domain policy files",
+  );
+  return value;
+}
+
 const projectRoot = path.resolve(new URL('..', import.meta.url).pathname);
 const config = fs.readFileSync(path.join(projectRoot, 'netlify.toml'), 'utf8');
 validateCspConfig(config);
@@ -236,6 +253,7 @@ validateBaselineSecurityHeadersConfig(config);
 validatePermissionsPolicyConfig(config);
 validateCoopConfig(config);
 validateCorpConfig(config);
+validateCrossDomainPoliciesConfig(config);
 
 // Self-tests: prove the catch-all-block invariant is actually enforced. The check
 // previously only verified a header appeared *after* the `for = "/*"` marker, which
@@ -550,6 +568,36 @@ assert.throws(
     ),
   /must live in the catch-all/,
   'a Cross-Origin-Resource-Policy declared outside the catch-all block must be rejected',
+);
+
+// An X-Permitted-Cross-Domain-Policies of none in the catch-all block is accepted.
+assert.doesNotThrow(
+  () =>
+    validateCrossDomainPoliciesConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    X-Permitted-Cross-Domain-Policies = "none"\n`,
+    ),
+  "an X-Permitted-Cross-Domain-Policies of 'none' must be accepted",
+);
+
+// A weaker (or missing) X-Permitted-Cross-Domain-Policies must be REJECTED — any
+// value other than `none` permits at least some Adobe cross-domain policy files.
+assert.throws(
+  () =>
+    validateCrossDomainPoliciesConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    X-Permitted-Cross-Domain-Policies = "master-only"\n`,
+    ),
+  /must be 'none'/,
+  'an X-Permitted-Cross-Domain-Policies weaker than none must be rejected',
+);
+
+// The header declared in a later, narrower block must be REJECTED, like the CSP/HSTS.
+assert.throws(
+  () =>
+    validateCrossDomainPoliciesConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    X-Frame-Options = "DENY"\n\n[[headers]]\n  for = "/special/*"\n  [headers.values]\n    X-Permitted-Cross-Domain-Policies = "none"\n`,
+    ),
+  /must live in the catch-all/,
+  'an X-Permitted-Cross-Domain-Policies declared outside the catch-all block must be rejected',
 );
 
 console.log('Security header check passed');
