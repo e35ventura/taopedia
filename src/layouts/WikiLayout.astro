@@ -10,9 +10,10 @@ interface Props {
   image?: string;
   type?: 'website' | 'article';
   path?: string;
+  noindex?: boolean;
 }
 
-const { title, description, image, type = 'website', path } = Astro.props;
+const { title, description, image, type = 'website', path, noindex = false } = Astro.props;
 ---
 
 <!doctype html>
@@ -20,7 +21,7 @@ const { title, description, image, type = 'website', path } = Astro.props;
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <Seo title={title} description={description} image={image} type={type} path={path} />
+    <Seo title={title} description={description} image={image} type={type} path={path} noindex={noindex} />
   </head>
   <body>
     <a href="#content" class="skip-link">Skip to content</a>

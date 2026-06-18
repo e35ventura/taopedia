@@ -7,13 +7,17 @@ interface Props {
   image?: string;
   type?: 'website' | 'article';
   path?: string;
+  // When true, emit <meta name="robots" content="noindex, follow"> so search
+  // engines skip indexing this page (e.g. the content-less Special:Random
+  // redirect) while still following its links.
+  noindex?: boolean;
 }
 
 const defaultTitle = 'Taopedia';
 const defaultDescription =
   'A Bittensor-focused knowledge base for TAO, subnets, wallets, staking, mining, validation, and consensus.';
 
-const { title, description = defaultDescription, image = '/og/home.png', type = 'website', path } =
+const { title, description = defaultDescription, image = '/og/home.png', type = 'website', path, noindex = false } =
   Astro.props;
 
 const pageTitle = title ? `${title} - Taopedia` : defaultTitle;
@@ -40,6 +44,7 @@ const imageAlt = title
 
 <title>{pageTitle}</title>
 <meta name="description" content={description} />
+{noindex && <meta name="robots" content="noindex, follow" />}
 <link rel="canonical" href={canonicalUrl} />
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <link rel="icon" sizes="32x32" type="image/png" href="/favicon-32x32.png" />
