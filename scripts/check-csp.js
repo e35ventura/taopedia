@@ -101,6 +101,24 @@ export function validateHstsConfig(config) {
   return value;
 }
 
+// These baseline hardening headers have shipped since the initial deploy. Keep
+// them asserted alongside the newer CSP/HSTS/Permissions-Policy/COOP checks so a
+// future config edit cannot silently drop or weaken them.
+const BASELINE_SECURITY_HEADERS = new Map([
+  ['X-Frame-Options', 'DENY'],
+  ['X-Content-Type-Options', 'nosniff'],
+  ['Referrer-Policy', 'strict-origin-when-cross-origin'],
+]);
+export function validateBaselineSecurityHeadersConfig(config) {
+  const values = new Map();
+  for (const [headerName, expectedValue] of BASELINE_SECURITY_HEADERS) {
+    const value = catchAllHeaderValue(config, headerName);
+    assert.equal(value, expectedValue, `${headerName} must be "${expectedValue}"`);
+    values.set(headerName, value);
+  }
+  return values;
+}
+
 // The Permissions-Policy must deny the powerful device, sensor, and capture
 // features that a static content wiki never uses, so a compromised/injected
 // embed cannot reach them. `feature=()` allows no origin at all. Validated in the
@@ -151,6 +169,7 @@ const projectRoot = path.resolve(new URL('..', import.meta.url).pathname);
 const config = fs.readFileSync(path.join(projectRoot, 'netlify.toml'), 'utf8');
 validateCspConfig(config);
 validateHstsConfig(config);
+validateBaselineSecurityHeadersConfig(config);
 validatePermissionsPolicyConfig(config);
 validateCoopConfig(config);
 
@@ -159,6 +178,12 @@ validateCoopConfig(config);
 // also passes when the header is declared in a later, narrower headers block.
 const VALID_CSP =
   "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'";
+
+const BASELINE_HEADER_VALUES = Object.fromEntries(BASELINE_SECURITY_HEADERS);
+const baselineHeadersToml = (headers = BASELINE_HEADER_VALUES, path = '/*') =>
+  `[[headers]]\n  for = "${path}"\n  [headers.values]\n${Object.entries(headers)
+    .map(([headerName, value]) => `    ${headerName} = "${value}"`)
+    .join('\n')}\n`;
 
 // A CSP inside the catch-all block is accepted.
 assert.doesNotThrow(
@@ -207,6 +232,75 @@ assert.throws(
     ),
   /max-age to at least one year/,
   'an HSTS header with a sub-one-year max-age must be rejected',
+);
+
+// The baseline security headers are accepted when all three live in the catch-all
+// block with their expected hardening values.
+assert.doesNotThrow(
+  () => validateBaselineSecurityHeadersConfig(baselineHeadersToml()),
+  'baseline security headers inside the catch-all block must be accepted',
+);
+
+// Missing baseline headers must be REJECTED.
+assert.throws(
+  () =>
+    validateBaselineSecurityHeadersConfig(
+      baselineHeadersToml({
+        'X-Content-Type-Options': 'nosniff',
+        'Referrer-Policy': 'strict-origin-when-cross-origin',
+      }),
+    ),
+  /expected exactly one X-Frame-Options/,
+  'a missing X-Frame-Options header must be rejected',
+);
+
+// Each baseline header owns a wrong-value rejection test so a future edit cannot
+// accidentally accept a weaker policy.
+assert.throws(
+  () =>
+    validateBaselineSecurityHeadersConfig(
+      baselineHeadersToml({
+        ...BASELINE_HEADER_VALUES,
+        'X-Frame-Options': 'SAMEORIGIN',
+      }),
+    ),
+  /X-Frame-Options must be "DENY"/,
+  'a weaker X-Frame-Options value must be rejected',
+);
+
+assert.throws(
+  () =>
+    validateBaselineSecurityHeadersConfig(
+      baselineHeadersToml({
+        ...BASELINE_HEADER_VALUES,
+        'X-Content-Type-Options': 'sniff',
+      }),
+    ),
+  /X-Content-Type-Options must be "nosniff"/,
+  'a weaker X-Content-Type-Options value must be rejected',
+);
+
+assert.throws(
+  () =>
+    validateBaselineSecurityHeadersConfig(
+      baselineHeadersToml({
+        ...BASELINE_HEADER_VALUES,
+        'Referrer-Policy': 'no-referrer',
+      }),
+    ),
+  /Referrer-Policy must be "strict-origin-when-cross-origin"/,
+  'a weaker Referrer-Policy value must be rejected',
+);
+
+// Baseline headers declared in a later, narrower block must be REJECTED, like
+// CSP/HSTS/COOP, because they would stop applying to every response.
+assert.throws(
+  () =>
+    validateBaselineSecurityHeadersConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "${VALID_CSP}"\n\n${baselineHeadersToml(BASELINE_HEADER_VALUES, '/special/*')}`,
+    ),
+  /must live in the catch-all/,
+  'baseline security headers declared outside the catch-all block must be rejected',
 );
 
 // A Permissions-Policy denying every required feature is accepted.
@@ -270,4 +364,4 @@ assert.throws(
   'a Cross-Origin-Opener-Policy declared outside the catch-all block must be rejected',
 );
 
-console.log('CSP and HSTS check passed');
+console.log('Security header check passed');
