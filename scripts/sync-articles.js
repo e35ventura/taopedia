@@ -66,6 +66,26 @@ const obfuscatedSchemePatterns = [
   ...directivePatterns,
 ];
 
+const infoboxRowValueSchemePatterns = [
+  /javascript\s*:/i,
+  /vbscript\s*:/i,
+  /data\s*:\s*text\/html/i,
+  /data\s*:\s*image\/svg\+xml/i,
+  /data\s*:\s*application\/xhtml\+xml/i,
+  /data\s*:\s*(?:text|application)\/(?:javascript|ecmascript)/i,
+];
+
+function assertSafeInfoboxRowValue(value, filePath, index) {
+  const decoded = decodeForSchemeScan(value);
+  for (const pattern of infoboxRowValueSchemePatterns) {
+    if (pattern.test(value) || pattern.test(decoded)) {
+      throw new Error(
+        `Invalid infobox JSON asset in "${filePath}": rows[${index}].value contains a disallowed URL scheme`,
+      );
+    }
+  }
+}
+
 // The whitespace-anchored handler pattern above misses handlers that HTML lets
 // follow an attribute with a non-space delimiter — a slash (`<img src=x/onerror=…>`)
 // or a quote abutting the handler (`<a href="x"onclick=…>`). Browsers still parse
@@ -388,6 +408,7 @@ export function validateInfoboxJsonAsset(filePath, data) {
     if (typeof row.value !== 'string') {
       throw new Error(`Invalid infobox JSON asset in "${filePath}": rows[${index}].value must be a string`);
     }
+    assertSafeInfoboxRowValue(row.value, filePath, index);
   });
 }
 

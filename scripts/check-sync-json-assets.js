@@ -23,6 +23,10 @@ try {
   const missingValueInfobox = infoboxFixturePath('missing_value_infobox');
   const unsafeImageInfobox = infoboxFixturePath('unsafe_image_infobox');
   const traversalImageInfobox = infoboxFixturePath('traversal_image_infobox');
+  const unsafeRowValueInfobox = infoboxFixturePath('unsafe_row_value_infobox');
+  const obfuscatedRowValueInfobox = infoboxFixturePath('obfuscated_row_value_infobox');
+  const svgRowValueInfobox = infoboxFixturePath('svg_row_value_infobox');
+  const scriptDataRowValueInfobox = infoboxFixturePath('script_data_row_value_infobox');
 
   fs.mkdirSync(articleDir, { recursive: true });
   fs.writeFileSync(validJson, JSON.stringify({ rows: 'generic JSON assets may use any valid JSON shape' }));
@@ -43,6 +47,22 @@ try {
   fs.writeFileSync(missingValueInfobox, JSON.stringify({ rows: [{ label: 'Type' }] }));
   fs.writeFileSync(unsafeImageInfobox, JSON.stringify({ image: 'javascript:alert(1)' }));
   fs.writeFileSync(traversalImageInfobox, JSON.stringify({ image: '../secret.png' }));
+  fs.writeFileSync(
+    unsafeRowValueInfobox,
+    JSON.stringify({ rows: [{ label: 'Link', value: 'See [x](javascript:alert(1))' }] }),
+  );
+  fs.writeFileSync(
+    obfuscatedRowValueInfobox,
+    JSON.stringify({ rows: [{ label: 'Link', value: 'See [x](java&#115;cript:alert(1))' }] }),
+  );
+  fs.writeFileSync(
+    svgRowValueInfobox,
+    JSON.stringify({ rows: [{ label: 'Icon', value: 'data:image/svg+xml,<svg onload=alert(1)>' }] }),
+  );
+  fs.writeFileSync(
+    scriptDataRowValueInfobox,
+    JSON.stringify({ rows: [{ label: 'Payload', value: 'data:text/javascript,alert(1)' }] }),
+  );
 
   assert.doesNotThrow(
     () => validateArticleJsonAsset(validJson),
@@ -91,6 +111,26 @@ try {
     () => validateArticleJsonAsset(traversalImageInfobox),
     /Invalid infobox JSON asset.*image URL is not allowed/,
     'traversal infobox image paths should be rejected during sync',
+  );
+  assert.throws(
+    () => validateArticleJsonAsset(unsafeRowValueInfobox),
+    /Invalid infobox JSON asset.*rows\[0\]\.value contains a disallowed URL scheme/,
+    'javascript: URLs in infobox row values should be rejected during sync',
+  );
+  assert.throws(
+    () => validateArticleJsonAsset(obfuscatedRowValueInfobox),
+    /Invalid infobox JSON asset.*rows\[0\]\.value contains a disallowed URL scheme/,
+    'entity-obfuscated javascript: URLs in infobox row values should be rejected during sync',
+  );
+  assert.throws(
+    () => validateArticleJsonAsset(svgRowValueInfobox),
+    /Invalid infobox JSON asset.*rows\[0\]\.value contains a disallowed URL scheme/,
+    'SVG data URLs in infobox row values should be rejected during sync',
+  );
+  assert.throws(
+    () => validateArticleJsonAsset(scriptDataRowValueInfobox),
+    /Invalid infobox JSON asset.*rows\[0\]\.value contains a disallowed URL scheme/,
+    'script data URLs in infobox row values should be rejected during sync',
   );
 } finally {
   fs.rmSync(tempRoot, { recursive: true, force: true });
