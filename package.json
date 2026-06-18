@@ -44,6 +44,7 @@
     "test:category-links": "node scripts/check-category-links.js",
     "test:search-action": "node scripts/check-search-action.js",
     "test:csp": "node scripts/check-csp.js",
+    "test:permissions-policy-supplement": "node scripts/check-permissions-policy-supplement.js",
     "test:title-sort": "node scripts/check-title-sort.js",
     "test:allpages-directory": "node scripts/check-allpages-directory.js",
     "test:og-text-layout": "node scripts/check-og-text-layout.js",
