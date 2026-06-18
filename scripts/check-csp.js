@@ -107,8 +107,12 @@ export function validateHstsConfig(config) {
 // catch-all block so every response carries it.
 const DENIED_PERMISSIONS_FEATURES = [
   'accelerometer',
+  'autoplay',
   'bluetooth',
   'camera',
+  'display-capture',
+  'encrypted-media',
+  'fullscreen',
   'geolocation',
   'gyroscope',
   'hid',
@@ -116,8 +120,12 @@ const DENIED_PERMISSIONS_FEATURES = [
   'microphone',
   'midi',
   'payment',
+  'picture-in-picture',
+  'publickey-credentials-get',
+  'screen-wake-lock',
   'serial',
   'usb',
+  'web-share',
 ];
 export function validatePermissionsPolicyConfig(config) {
   const value = catchAllHeaderValue(config, 'Permissions-Policy');
