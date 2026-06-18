@@ -164,4 +164,19 @@ rejects('Pass secrets with define:vars={{ token }}.', 'define:vars directive tok
 rejects('Use define:style={{ color: "red" }}.', 'define:style directive token in article body');
 rejects('Use define&#58;style to inject.', 'entity-encoded define:style');
 
+// Every template directive — not just define:vars/style — must also be caught
+// after entity/zero-width deobfuscation, so an obfuscated spelling cannot slip
+// the literal scan the way `set&colon;html` once did.
+rejects('Inject set&#58;html here.', 'entity-encoded set:html');
+rejects('Inject set&colon;html here.', 'named-colon set:html');
+rejects(`Inject set:ht${SOFT_HYPHEN}ml here.`, 'soft-hyphen set:html');
+rejects('Hydrate with client&#58;load here.', 'entity-encoded client: directive');
+rejects('Render via server&colon;defer here.', 'named-colon server: directive');
+rejects('Animate with transition&#58;animate here.', 'entity-encoded transition: directive');
+rejects('Render with is&colon;raw here.', 'named-colon is: directive');
+
+// Prose that merely mentions these English words without the directive colon
+// must still pass — guard the new patterns against false positives.
+accepts('This client is set to render the list, and the server is fast.', 'benign client/server/set prose');
+
 console.log('Content sanitizer check passed');
