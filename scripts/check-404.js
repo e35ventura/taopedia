@@ -21,6 +21,11 @@ assert.match(
   /<title>Page not found - Taopedia<\/title>/,
   'the not-found page must carry the standard Taopedia title',
 );
+assert.match(
+  html,
+  /<meta name="robots" content="noindex"\s*\/?>/,
+  'the not-found page must declare noindex so crawlers do not index error URLs',
+);
 
 // Readers must be able to recover: the site header (with its search box) and
 // explicit ways back into the wiki.
