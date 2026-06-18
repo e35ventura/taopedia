@@ -147,9 +147,29 @@ export function validateCoopConfig(config) {
   return value;
 }
 
+// Validate the three original hardening headers that have been present since
+// the initial deploy but were never pinned by an assertion.
+export function validateBaselineHeaders(config) {
+  // X-Frame-Options: DENY prevents the page being embedded in any iframe (belt
+  // and suspenders with CSP frame-ancestors 'none').
+  const xfo = catchAllHeaderValue(config, 'X-Frame-Options');
+  assert.equal(xfo, 'DENY', "X-Frame-Options must be 'DENY'");
+
+  // X-Content-Type-Options: nosniff prevents browsers from MIME-sniffing a
+  // response away from the declared Content-Type (drive-by download protection).
+  const xcto = catchAllHeaderValue(config, 'X-Content-Type-Options');
+  assert.equal(xcto, 'nosniff', "X-Content-Type-Options must be 'nosniff'");
+
+  // Referrer-Policy: strict-origin-when-cross-origin caps the Referer header to
+  // the origin for cross-origin requests (no path/query leakage).
+  const rp = catchAllHeaderValue(config, 'Referrer-Policy');
+  assert.equal(rp, 'strict-origin-when-cross-origin', "Referrer-Policy must be 'strict-origin-when-cross-origin'");
+}
+
 const projectRoot = path.resolve(new URL('..', import.meta.url).pathname);
 const config = fs.readFileSync(path.join(projectRoot, 'netlify.toml'), 'utf8');
 validateCspConfig(config);
+validateBaselineHeaders(config);
 validateHstsConfig(config);
 validatePermissionsPolicyConfig(config);
 validateCoopConfig(config);
@@ -268,6 +288,45 @@ assert.throws(
     ),
   /must live in the catch-all/,
   'a Cross-Origin-Opener-Policy declared outside the catch-all block must be rejected',
+);
+
+// Self-tests for validateBaselineHeaders.
+const BASELINE_CONFIG = (headers) =>
+  `[[headers]]\n  for = "/*"\n  [headers.values]\n    ${headers}`;
+
+// All three present and correct is accepted.
+assert.doesNotThrow(
+  () => validateBaselineHeaders(BASELINE_CONFIG(
+    'X-Frame-Options = "DENY"\n    X-Content-Type-Options = "nosniff"\n    Referrer-Policy = "strict-origin-when-cross-origin"'
+  )),
+  'all three baseline headers present and correct must be accepted',
+);
+
+// X-Frame-Options missing must be rejected.
+assert.throws(
+  () => validateBaselineHeaders(BASELINE_CONFIG(
+    'X-Content-Type-Options = "nosniff"\n    Referrer-Policy = "strict-origin-when-cross-origin"'
+  )),
+  /expected exactly one X-Frame-Options/,
+  'missing X-Frame-Options must be rejected',
+);
+
+// X-Content-Type-Options wrong value must be rejected.
+assert.throws(
+  () => validateBaselineHeaders(BASELINE_CONFIG(
+    'X-Frame-Options = "DENY"\n    X-Content-Type-Options = "sniff"\n    Referrer-Policy = "strict-origin-when-cross-origin"'
+  )),
+  /X-Content-Type-Options must be/,
+  'wrong X-Content-Type-Options value must be rejected',
+);
+
+// Referrer-Policy wrong value must be rejected.
+assert.throws(
+  () => validateBaselineHeaders(BASELINE_CONFIG(
+    'X-Frame-Options = "DENY"\n    X-Content-Type-Options = "nosniff"\n    Referrer-Policy = "no-referrer"'
+  )),
+  /Referrer-Policy must be/,
+  'wrong Referrer-Policy value must be rejected',
 );
 
 console.log('CSP and HSTS check passed');
