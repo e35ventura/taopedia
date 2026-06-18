@@ -184,6 +184,10 @@ rejects('Animate with transition&#58;animate here.', 'entity-encoded transition:
 rejects('Render with is&colon;raw here.', 'named-colon is: directive');
 rejects(`Use define:pr${SOFT_HYPHEN}ops here.`, 'soft-hyphen unlisted define directive');
 
+// Astro slot attributes on raw HTML must not appear in article bodies.
+rejects('Intro.\n\n<div slot="sidebar">evil</div>', 'plain slot attribute');
+rejects('Intro.\n\n<  div   slot="sidebar">', 'spaced slot attribute');
+
 // Prose that merely mentions these English words without the directive colon
 // must still pass — guard the new patterns against false positives.
 accepts('This client is set to define the class list style, and the server is fast.', 'benign client/server/set/class/define prose');
