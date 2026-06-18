@@ -46,7 +46,7 @@ for (const filePath of htmlFiles) {
     pipeHrefMatches.push(`${relativePath}: ${match[0]}`);
   }
 
-  for (const match of html.matchAll(/<aside class="infobox">[\s\S]*?<\/aside>/g)) {
+  for (const match of html.matchAll(/<aside class="infobox"[^>]*>[\s\S]*?<\/aside>/g)) {
     const infobox = match[0];
     for (const wikiLink of infobox.matchAll(/\[\[[^\]]+\]\]/g)) {
       rawInfoboxWikiLinks.push(`${relativePath}: ${wikiLink[0]}`);
@@ -90,19 +90,19 @@ assert.equal(
 const alphaTokensHtml = path.join(distWikiDir, 'alpha_tokens', 'index.html');
 if (fs.existsSync(alphaTokensHtml) && Object.prototype.hasOwnProperty.call(slugMap, 'dynamic_tao')) {
   const html = fs.readFileSync(alphaTokensHtml, 'utf8');
-  const infoboxMatch = html.match(/<aside class="infobox">[\s\S]*?<\/aside>/);
+  const infoboxMatch = html.match(/<aside class="infobox"[^>]*>[\s\S]*?<\/aside>/);
   const infobox = infoboxMatch ? infoboxMatch[0] : '';
 
-  assert.match(html, /href="\/wiki\/dynamic_tao"/, 'alpha_tokens must link to the canonical dynamic_tao slug');
+  assert.match(html, /href="\/wiki\/dynamic_tao\/"/, 'alpha_tokens must link to the canonical dynamic_tao slug');
   assert.match(
     infobox,
-    /href="\/wiki\/dynamic_tao"/,
+    /href="\/wiki\/dynamic_tao\/"/,
     'alpha_tokens infobox must link to the canonical dynamic_tao slug'
   );
   assert.doesNotMatch(html, /href="\/wiki\/dynamic_tao\|/, 'alpha_tokens must not render the pipe alias in hrefs');
   assert.doesNotMatch(
     html,
-    /<a\b(?=[^>]*class="[^"]*\binternal\b[^"]*\bnew\b[^"]*")(?=[^>]*href="\/wiki\/dynamic_tao")[^>]*>/,
+    /<a\b(?=[^>]*class="[^"]*\binternal\b[^"]*\bnew\b[^"]*")(?=[^>]*href="\/wiki\/dynamic_tao\/")[^>]*>/,
     'alpha_tokens must not mark dynamic_tao as a missing link'
   );
 }
