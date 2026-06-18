@@ -77,6 +77,9 @@ export function validateCspConfig(config) {
   // neutralize in older engines, so block it explicitly (the CSP Evaluator
   // hardening baseline). The site embeds no plugin content, so 'none' is safe.
   assert.deepEqual(directives.get('object-src'), ["'none'"], "CSP must set object-src 'none'");
+  // <iframe>/<frame> loads are controlled separately from frame-ancestors (who may
+  // embed this page). The wiki embeds no frames, so block outbound frame loads too.
+  assert.deepEqual(directives.get('frame-src'), ["'none'"], "CSP must set frame-src 'none'");
   assert.deepEqual(
     directives.get('connect-src'),
     ["'self'"],
@@ -192,7 +195,7 @@ validateCoopConfig(config);
 // previously only verified a header appeared *after* the `for = "/*"` marker, which
 // also passes when the header is declared in a later, narrower headers block.
 const VALID_CSP =
-  "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'";
+  "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'";
 
 const BASELINE_HEADER_VALUES = Object.fromEntries(BASELINE_SECURITY_HEADERS);
 const baselineHeadersToml = (headers = BASELINE_HEADER_VALUES, path = '/*') =>
