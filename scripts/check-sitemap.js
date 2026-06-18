@@ -21,6 +21,15 @@ assert.match(
 const urlBlocks = xml.match(/<url>[\s\S]*?<\/url>/g) ?? [];
 assert.ok(urlBlocks.length > 0, 'sitemap has no <url> entries');
 
+// Pagefind index assets and the search UI are not canonical content routes (see
+// robots.txt Disallow and the noindex search page). They must stay out of the
+// sitemap so discovery does not regress.
+for (const block of urlBlocks) {
+  const loc = block.match(/<loc>([^<]+)<\/loc>/)?.[1] ?? '';
+  assert.ok(!loc.includes('/pagefind/'), `sitemap must not list Pagefind assets (got ${loc})`);
+  assert.ok(!/\/search(\/|\?|$)/.test(loc), `sitemap must not list the search route (got ${loc})`);
+}
+
 let articleUrls = 0;
 for (const block of urlBlocks) {
   const loc = block.match(/<loc>([^<]+)<\/loc>/)?.[1] ?? '';
