@@ -11,6 +11,32 @@ const projectRoot = path.resolve(__dirname, '..');
 const contentDir = path.join(projectRoot, 'src', 'content', 'pages');
 const outputDir = path.join(projectRoot, 'public', 'data');
 
+const compareGeneratedKeys = (a, b) => String(a).localeCompare(String(b), 'en', { numeric: true });
+
+function orderedObject(object, mapValue = (value) => value) {
+  return Object.fromEntries(
+    Object.entries(object)
+      .sort(([a], [b]) => compareGeneratedKeys(a, b))
+      .map(([key, value]) => [key, mapValue(value, key)]),
+  );
+}
+
+function orderedBacklinks(entries) {
+  return [...entries].sort((a, b) =>
+    compareGeneratedKeys(a.from, b.from) ||
+    compareGeneratedKeys(a.fromTitle ?? '', b.fromTitle ?? ''),
+  );
+}
+
+export function orderGeneratedData({ linkGraph, backlinks, slugMap, categoryIndex }) {
+  return {
+    linkGraph: orderedObject(linkGraph),
+    backlinks: orderedObject(backlinks, orderedBacklinks),
+    slugMap: orderedObject(slugMap),
+    categoryIndex: orderedObject(categoryIndex, (slugs) => [...slugs].sort(compareGeneratedKeys)),
+  };
+}
+
 function walkDirectory(dir, fileList = []) {
   const files = fs.readdirSync(dir);
   files.forEach(file => {
@@ -56,7 +82,7 @@ function main() {
     fs.mkdirSync(outputDir, { recursive: true });
   }
 
-  const markdownFiles = walkDirectory(contentDir);
+  const markdownFiles = walkDirectory(contentDir).sort(compareGeneratedKeys);
   const linkGraph = {};
   const backlinks = {};
   const slugMap = {};
@@ -123,25 +149,27 @@ function main() {
     });
   });
 
+  const generatedData = orderGeneratedData({ linkGraph, backlinks, slugMap, categoryIndex });
+
   // Write outputs
   fs.writeFileSync(
     path.join(outputDir, 'linkgraph.json'),
-    JSON.stringify(linkGraph, null, 2)
+    JSON.stringify(generatedData.linkGraph, null, 2)
   );
 
   fs.writeFileSync(
     path.join(outputDir, 'backlinks.json'),
-    JSON.stringify(backlinks, null, 2)
+    JSON.stringify(generatedData.backlinks, null, 2)
   );
 
   fs.writeFileSync(
     path.join(outputDir, 'slugmap.json'),
-    JSON.stringify(slugMap, null, 2)
+    JSON.stringify(generatedData.slugMap, null, 2)
   );
 
   fs.writeFileSync(
     path.join(outputDir, 'categories.json'),
-    JSON.stringify(categoryIndex, null, 2)
+    JSON.stringify(generatedData.categoryIndex, null, 2)
   );
 
   console.log(`✓ Built link graph for ${Object.keys(linkGraph).length} pages`);
