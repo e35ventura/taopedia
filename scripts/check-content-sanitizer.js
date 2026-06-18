@@ -160,9 +160,13 @@ rejects('Hydrate with client:load here.', 'client directive token in article bod
 rejects('Render via server:defer here.', 'server directive token in article body');
 rejects('Animate with transition:animate here.', 'transition directive token in article body');
 rejects('Render with is:raw here.', 'is directive token in article body');
+rejects('Render with class:list here.', 'class:list directive token in article body');
+rejects('Render with set:text here.', 'set:text directive token in article body');
 rejects('Pass secrets with define:vars={{ token }}.', 'define:vars directive token in article body');
 rejects('Use define:style={{ color: "red" }}.', 'define:style directive token in article body');
 rejects('Use define:env to inject.', 'unlisted define directive token in article body');
+rejects('Render with class&#58;list here.', 'entity-encoded class:list directive');
+rejects('Render with set&#58;text here.', 'entity-encoded set:text directive');
 rejects('Use define&#58;style to inject.', 'entity-encoded define:style');
 rejects('Use define&#58;env to inject.', 'entity-encoded unlisted define directive');
 
@@ -172,6 +176,8 @@ rejects('Use define&#58;env to inject.', 'entity-encoded unlisted define directi
 rejects('Inject set&#58;html here.', 'entity-encoded set:html');
 rejects('Inject set&colon;html here.', 'named-colon set:html');
 rejects(`Inject set:ht${SOFT_HYPHEN}ml here.`, 'soft-hyphen set:html');
+rejects(`Inject set:te${SOFT_HYPHEN}xt here.`, 'soft-hyphen set:text');
+rejects(`Render with class:li${SOFT_HYPHEN}st here.`, 'soft-hyphen class:list');
 rejects('Hydrate with client&#58;load here.', 'entity-encoded client: directive');
 rejects('Render via server&colon;defer here.', 'named-colon server: directive');
 rejects('Animate with transition&#58;animate here.', 'entity-encoded transition: directive');
@@ -180,6 +186,6 @@ rejects(`Use define:pr${SOFT_HYPHEN}ops here.`, 'soft-hyphen unlisted define dir
 
 // Prose that merely mentions these English words without the directive colon
 // must still pass — guard the new patterns against false positives.
-accepts('This client is set to define the list style, and the server is fast.', 'benign client/server/set/define prose');
+accepts('This client is set to define the class list style, and the server is fast.', 'benign client/server/set/class/define prose');
 
 console.log('Content sanitizer check passed');
