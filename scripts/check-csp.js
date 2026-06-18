@@ -15,34 +15,40 @@ const parsePolicy = (policy) => {
   return directives;
 };
 
+// Assert that `headerName` is declared exactly once and INSIDE the catch-all
+// `for = "/*"` headers block, and return its value. Being merely after the
+// catch-all marker is not enough: if another `[[headers]]` block opens between
+// the marker and the header, the header is scoped to that narrower path (e.g.
+// `for = "/special/*"`) and silently stops applying to every response. Shared by
+// the CSP and HSTS checks so both enforce the same block-membership contract.
+function catchAllHeaderValue(config, headerName) {
+  const catchAllMarker = 'for = "/*"';
+  const catchAllIndex = config.indexOf(catchAllMarker);
+  assert.notEqual(catchAllIndex, -1, 'netlify.toml must keep a catch-all `for = "/*"` headers block');
+
+  const matches = [...config.matchAll(new RegExp(`^\\s*${headerName}\\s*=\\s*"([^"]*)"`, 'gm'))];
+  assert.equal(matches.length, 1, `expected exactly one ${headerName} header in netlify.toml`);
+  const headerIndex = matches[0].index;
+  assert.ok(
+    headerIndex > catchAllIndex,
+    `the ${headerName} header must come after the catch-all \`for = "/*"\` block opens`,
+  );
+  const betweenMarkerAndHeader = config.slice(catchAllIndex + catchAllMarker.length, headerIndex);
+  assert.ok(
+    !/\n\s*for\s*=\s*"/.test(betweenMarkerAndHeader),
+    `the ${headerName} header must live in the catch-all \`for = "/*"\` block, not a later headers block`,
+  );
+  return matches[0][1];
+}
+
 // Validate the Content-Security-Policy declared in a netlify.toml string. Exported
 // and pure so the invariants can be exercised against fixtures, not just the live
 // config — see the self-tests at the bottom.
 export function validateCspConfig(config) {
   // The CSP must be declared on the catch-all headers block so it applies to
   // every response, including /pagefind/pagefind-worker.js.
-  const catchAllMarker = 'for = "/*"';
-  const catchAllIndex = config.indexOf(catchAllMarker);
-  assert.notEqual(catchAllIndex, -1, 'netlify.toml must keep a catch-all `for = "/*"` headers block');
-
-  const policyMatches = [...config.matchAll(/^\s*Content-Security-Policy\s*=\s*"([^"]*)"/gm)];
-  assert.equal(policyMatches.length, 1, 'expected exactly one Content-Security-Policy header in netlify.toml');
-  const policyIndex = policyMatches[0].index;
-  assert.ok(
-    policyIndex > catchAllIndex,
-    'the Content-Security-Policy header must come after the catch-all `for = "/*"` block opens',
-  );
-  // ...and it must live INSIDE that block. Being merely after the marker is not
-  // enough: if another `[[headers]]` block opens between the catch-all marker and
-  // the CSP, the policy is scoped to that narrower path (e.g. `for = "/special/*"`)
-  // and silently stops applying to every response. Reject any intervening `for = `.
-  const betweenMarkerAndPolicy = config.slice(catchAllIndex + catchAllMarker.length, policyIndex);
-  assert.ok(
-    !/\n\s*for\s*=\s*"/.test(betweenMarkerAndPolicy),
-    'the Content-Security-Policy header must live in the catch-all `for = "/*"` block, not a later headers block',
-  );
-
-  const directives = parsePolicy(policyMatches[0][1]);
+  const policy = catchAllHeaderValue(config, 'Content-Security-Policy');
+  const directives = parsePolicy(policy);
 
   const scriptSrc = directives.get('script-src');
   assert.ok(scriptSrc, 'CSP must declare script-src explicitly');
@@ -76,13 +82,29 @@ export function validateCspConfig(config) {
   return directives;
 }
 
+// Validate the Strict-Transport-Security header. Like the CSP it must live in the
+// catch-all block (so every response advertises HSTS), and its max-age must be at
+// least one year — the conventional floor below which an HSTS policy is too short
+// to meaningfully resist SSL-stripping. Exported and pure for the self-tests.
+const ONE_YEAR_SECONDS = 31536000;
+export function validateHstsConfig(config) {
+  const value = catchAllHeaderValue(config, 'Strict-Transport-Security');
+  const maxAge = value.match(/max-age=(\d+)/);
+  assert.ok(
+    maxAge && Number(maxAge[1]) >= ONE_YEAR_SECONDS,
+    `Strict-Transport-Security must set max-age to at least one year (${ONE_YEAR_SECONDS})`,
+  );
+  return value;
+}
+
 const projectRoot = path.resolve(new URL('..', import.meta.url).pathname);
 const config = fs.readFileSync(path.join(projectRoot, 'netlify.toml'), 'utf8');
 validateCspConfig(config);
+validateHstsConfig(config);
 
 // Self-tests: prove the catch-all-block invariant is actually enforced. The check
-// previously only verified the CSP appeared *after* the `for = "/*"` marker, which
-// also passes when the policy is declared in a later, narrower headers block.
+// previously only verified a header appeared *after* the `for = "/*"` marker, which
+// also passes when the header is declared in a later, narrower headers block.
 const VALID_CSP =
   "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'";
 
@@ -106,4 +128,33 @@ assert.throws(
   'a CSP declared outside the catch-all block must be rejected',
 );
 
-console.log('CSP check passed');
+// HSTS inside the catch-all block with a one-year max-age is accepted.
+assert.doesNotThrow(
+  () =>
+    validateHstsConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Strict-Transport-Security = "max-age=31536000"\n`,
+    ),
+  'an HSTS header inside the catch-all block must be accepted',
+);
+
+// HSTS declared in a later, narrower block must be REJECTED, the same way the CSP is.
+assert.throws(
+  () =>
+    validateHstsConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    X-Frame-Options = "DENY"\n\n[[headers]]\n  for = "/special/*"\n  [headers.values]\n    Strict-Transport-Security = "max-age=31536000"\n`,
+    ),
+  /must live in the catch-all/,
+  'an HSTS header declared outside the catch-all block must be rejected',
+);
+
+// A max-age below one year must be REJECTED.
+assert.throws(
+  () =>
+    validateHstsConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Strict-Transport-Security = "max-age=600"\n`,
+    ),
+  /max-age to at least one year/,
+  'an HSTS header with a sub-one-year max-age must be rejected',
+);
+
+console.log('CSP and HSTS check passed');
