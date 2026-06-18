@@ -5,7 +5,12 @@ import path from 'node:path';
 // Supplemental Permissions-Policy denials validated separately from check-csp.js
 // so header hardening PRs can land without conflicting on the monolithic DENIED list.
 // Does not deny clipboard-write — CiteCopyButtons.astro needs cite-page copying.
-export const SUPPLEMENTAL_DENIED_FEATURES = ['idle-detection', 'keyboard-map'];
+export const SUPPLEMENTAL_DENIED_FEATURES = [
+  'idle-detection',
+  'join-ad-interest-group',
+  'keyboard-map',
+  'run-ad-auction',
+];
 
 export function validateSupplementalPermissionsPolicy(value) {
   for (const feature of SUPPLEMENTAL_DENIED_FEATURES) {
@@ -45,6 +50,27 @@ assert.throws(
   () => validateSupplementalPermissionsPolicy(FULL_POLICY.replace('keyboard-map=()', 'keyboard-map=(self)')),
   /must deny keyboard-map/,
   'a Permissions-Policy that grants keyboard-map to an origin must be rejected',
+);
+
+// Privacy Sandbox Protected Audience ad-auction APIs — a static content wiki runs
+// no ad auctions, so deny them outright. These complete the Privacy Sandbox
+// ad-technology denial begun by browsing-topics/interest-cohort in check-csp.js.
+assert.throws(
+  () => validateSupplementalPermissionsPolicy(FULL_POLICY.replace('join-ad-interest-group=(), ', '')),
+  /must deny join-ad-interest-group/,
+  'a Permissions-Policy missing join-ad-interest-group must be rejected',
+);
+
+assert.throws(
+  () => validateSupplementalPermissionsPolicy(FULL_POLICY.replace('run-ad-auction=(), ', '')),
+  /must deny run-ad-auction/,
+  'a Permissions-Policy missing run-ad-auction must be rejected',
+);
+
+assert.throws(
+  () => validateSupplementalPermissionsPolicy(FULL_POLICY.replace('run-ad-auction=()', 'run-ad-auction=(self)')),
+  /must deny run-ad-auction/,
+  'a Permissions-Policy that grants run-ad-auction to an origin must be rejected',
 );
 
 console.log('Supplemental Permissions-Policy check passed');
