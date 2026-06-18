@@ -72,6 +72,15 @@ assert.equal(subPage.length, 0, `the search index must not contain cite/history/
 const hub = indexedUrls.filter(isHub);
 assert.equal(hub.length, 0, `the search index must not contain special/category hubs: ${hub.slice(0, 5).join(', ')}`);
 
+// The search UI and Pagefind asset routes are non-content pages (noindex / Disallow'd).
+// They must never appear in the full-text index.
+const nonContent = indexedUrls.filter((u) => u === '/search/' || u.startsWith('/pagefind/'));
+assert.equal(
+  nonContent.length,
+  0,
+  `the search index must not contain /search/ or /pagefind/ routes: ${nonContent.join(', ')}`,
+);
+
 // Every indexed URL must be a built canonical article page — derived from the
 // walk, so this matches discovery (including nested slugs) rather than a
 // single-segment URL shape.
