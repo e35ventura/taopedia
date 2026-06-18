@@ -17,6 +17,7 @@ export const GET: APIRoute = async ({ site }) => {
       title: page.data.title,
       url: `${origin}/wiki/${slug}/`,
       description: page.data.summary ?? '',
+      categories: page.data.categories ?? [],
       date: lastmodForSlug(slug),
     };
   });
