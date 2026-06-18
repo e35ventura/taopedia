@@ -101,10 +101,41 @@ export function validateHstsConfig(config) {
   return value;
 }
 
+// The Permissions-Policy must deny the powerful device, sensor, and capture
+// features that a static content wiki never uses, so a compromised/injected
+// embed cannot reach them. `feature=()` allows no origin at all. Validated in the
+// catch-all block so every response carries it.
+const DENIED_PERMISSIONS_FEATURES = [
+  'accelerometer',
+  'bluetooth',
+  'camera',
+  'geolocation',
+  'gyroscope',
+  'hid',
+  'magnetometer',
+  'microphone',
+  'midi',
+  'payment',
+  'serial',
+  'usb',
+];
+export function validatePermissionsPolicyConfig(config) {
+  const value = catchAllHeaderValue(config, 'Permissions-Policy');
+  for (const feature of DENIED_PERMISSIONS_FEATURES) {
+    assert.match(
+      value,
+      new RegExp(`(^|[,\\s])${feature}=\\(\\)`),
+      `Permissions-Policy must deny ${feature} with ${feature}=()`,
+    );
+  }
+  return value;
+}
+
 const projectRoot = path.resolve(new URL('..', import.meta.url).pathname);
 const config = fs.readFileSync(path.join(projectRoot, 'netlify.toml'), 'utf8');
 validateCspConfig(config);
 validateHstsConfig(config);
+validatePermissionsPolicyConfig(config);
 
 // Self-tests: prove the catch-all-block invariant is actually enforced. The check
 // previously only verified a header appeared *after* the `for = "/*"` marker, which
@@ -159,6 +190,37 @@ assert.throws(
     ),
   /max-age to at least one year/,
   'an HSTS header with a sub-one-year max-age must be rejected',
+);
+
+// A Permissions-Policy denying every required feature is accepted.
+const FULL_PERMISSIONS_POLICY = DENIED_PERMISSIONS_FEATURES.map((f) => `${f}=()`).join(', ');
+assert.doesNotThrow(
+  () =>
+    validatePermissionsPolicyConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Permissions-Policy = "${FULL_PERMISSIONS_POLICY}"\n`,
+    ),
+  'a Permissions-Policy denying every required feature must be accepted',
+);
+
+// A Permissions-Policy missing one required denial must be REJECTED.
+assert.throws(
+  () =>
+    validatePermissionsPolicyConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Permissions-Policy = "${FULL_PERMISSIONS_POLICY.replace('usb=()', '')}"\n`,
+    ),
+  /must deny usb/,
+  'a Permissions-Policy missing a required feature denial must be rejected',
+);
+
+// A feature granted to an origin (not denied) must be REJECTED — `usb=(self)` is
+// not the same as `usb=()`.
+assert.throws(
+  () =>
+    validatePermissionsPolicyConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Permissions-Policy = "${FULL_PERMISSIONS_POLICY.replace('usb=()', 'usb=(self)')}"\n`,
+    ),
+  /must deny usb/,
+  'a Permissions-Policy that grants a feature to an origin must be rejected',
 );
 
 console.log('CSP and HSTS check passed');
