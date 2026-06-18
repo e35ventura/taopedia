@@ -209,7 +209,7 @@ const readingMinutes = Math.max(1, Math.ceil(wordCount / 200));
     </nav>
     <h1 class="firstHeading" data-pagefind-meta="title">{page.data.title}</h1>
 
-    <nav class="mw-article-toolbar" data-pagefind-ignore>
+    <nav class="mw-article-toolbar" aria-label="Article tools" data-pagefind-ignore>
       <button class="sidebar-toggle toolbar-toggle" aria-label="Toggle navigation">☰</button>
       <a href={`/wiki/${slug}/`} class="active" aria-current="page">Article</a>
       <a href={historyUrl}>History</a>

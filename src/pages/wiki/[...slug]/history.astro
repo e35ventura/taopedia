@@ -26,7 +26,7 @@ const pageDescription = `Revision history for the Taopedia article "${page.data.
 
 <WikiLayout title={`Revision history of "${page.data.title}"`} description={pageDescription}>
   <div class="mw-body-content">
-    <nav class="mw-article-toolbar">
+    <nav class="mw-article-toolbar" aria-label="Article tools">
       <a href={articleUrl}>Article</a>
       <a href={`/wiki/${slug}/history/`} class="active" aria-current="page">History</a>
     </nav>
