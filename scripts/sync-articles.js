@@ -25,7 +25,8 @@ const maxAssetBytes = 5 * 1024 * 1024;
 // slip the literal scan, exactly as the dangerous URL schemes are. Shared by
 // both scans so the two lists cannot drift and cover a different directive set.
 const directivePatterns = [
-  { pattern: /\bset:html\b/i, reason: 'raw HTML injection directives are not allowed in article content' },
+  { pattern: /\bset:[a-z-]+\b/i, reason: 'set directives are not allowed in article content' },
+  { pattern: /\bclass:list\b/i, reason: 'class:list directives are not allowed in article content' },
   { pattern: /\bclient:[a-z-]+\b/i, reason: 'client directives are not allowed in article content' },
   { pattern: /\bserver:[a-z-]+\b/i, reason: 'server directives are not allowed in article content' },
   { pattern: /\btransition:[a-z-]+\b/i, reason: 'transition directives are not allowed in article content' },
