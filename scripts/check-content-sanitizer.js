@@ -188,6 +188,16 @@ rejects(`Use define:pr${SOFT_HYPHEN}ops here.`, 'soft-hyphen unlisted define dir
 rejects('Intro.\n\n<div slot="sidebar">evil</div>', 'plain slot attribute');
 rejects('Intro.\n\n<  div   slot="sidebar">', 'spaced slot attribute');
 
+// xmlns namespace attribute assignments must not appear in article bodies.
+rejects('Intro.\n\n<svg xmlns="http://www.w3.org/2000/svg"></svg>', 'plain xmlns attribute');
+rejects('Intro.\n\n<svg xmlns = "http://www.w3.org/2000/svg"></svg>', 'spaced equals xmlns attribute');
+rejects('Intro.\n\n<svg xmlns:xlink="http://www.w3.org/1999/xlink"></svg>', 'plain xmlns:prefix attribute');
+rejects('Intro.\n\n<  svg   xmlns : xlink = "http://www.w3.org/1999/xlink">', 'spaced xmlns:prefix attribute');
+
+// Prose that merely mentions xmlns without an attribute assignment must still pass.
+accepts('The xmlns attribute declares an XML namespace in markup.', 'benign xmlns prose');
+accepts('The xmlns:xlink attribute is used in SVG documents.', 'benign xmlns:prefix prose');
+
 // Prose that merely mentions these English words without the directive colon
 // must still pass — guard the new patterns against false positives.
 accepts('This client is set to define the class list style, and the server is fast.', 'benign client/server/set/class/define prose');
