@@ -146,9 +146,12 @@ const DENIED_PERMISSIONS_FEATURES = [
   'bluetooth',
   'browsing-topics',
   'camera',
+  'clipboard-read',
+  'clipboard-write',
   'display-capture',
   'encrypted-media',
   'fullscreen',
+  'gamepad',
   'geolocation',
   'gyroscope',
   'hid',
@@ -161,8 +164,11 @@ const DENIED_PERMISSIONS_FEATURES = [
   'publickey-credentials-get',
   'screen-wake-lock',
   'serial',
+  'speaker-selection',
   'usb',
   'web-share',
+  'window-management',
+  'xr-spatial-tracking',
 ];
 export function validatePermissionsPolicyConfig(config) {
   const value = catchAllHeaderValue(config, 'Permissions-Policy');
@@ -375,6 +381,26 @@ assert.throws(
     ),
   /must deny usb/,
   'a Permissions-Policy that grants a feature to an origin must be rejected',
+);
+
+// Newly denied input/environment features must stay blocked — clipboard-read is
+// representative of the batch added after the capture/sensor baseline.
+assert.throws(
+  () =>
+    validatePermissionsPolicyConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Permissions-Policy = "${FULL_PERMISSIONS_POLICY.replace('clipboard-read=()', '')}"\n`,
+    ),
+  /must deny clipboard-read/,
+  'a Permissions-Policy missing clipboard-read must be rejected',
+);
+
+assert.throws(
+  () =>
+    validatePermissionsPolicyConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Permissions-Policy = "${FULL_PERMISSIONS_POLICY.replace('gamepad=()', 'gamepad=(self)')}"\n`,
+    ),
+  /must deny gamepad/,
+  'a Permissions-Policy that grants gamepad to an origin must be rejected',
 );
 
 // A Cross-Origin-Opener-Policy of same-origin in the catch-all block is accepted.
