@@ -11,13 +11,14 @@ interface Props {
   // feed). Rendered after the site-wide feeds so a feed reader landing on the
   // page can auto-discover the scoped feed, not just /rss.xml and /feed.json.
   feeds?: Array<{ type: string; title: string; href: string }>;
+  robots?: string;
 }
 
 const defaultTitle = 'Taopedia';
 const defaultDescription =
   'A Bittensor-focused knowledge base for TAO, subnets, wallets, staking, mining, validation, and consensus.';
 
-const { title, description = defaultDescription, image = '/og/home.png', type = 'website', path, feeds } =
+const { title, description = defaultDescription, image = '/og/home.png', type = 'website', path, feeds, robots } =
   Astro.props;
 
 const pageTitle = title ? `${title} - Taopedia` : defaultTitle;
@@ -44,6 +45,7 @@ const imageAlt = title
 
 <title>{pageTitle}</title>
 <meta name="description" content={description} />
+{robots && <meta name="robots" content={robots} />}
 <link rel="canonical" href={canonicalUrl} />
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <link rel="icon" sizes="32x32" type="image/png" href="/favicon-32x32.png" />
