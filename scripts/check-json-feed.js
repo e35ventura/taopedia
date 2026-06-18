@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 import { buildJsonFeed } from './json-feed.js';
 
 const siteUrl = 'https://taopedia.org/';
@@ -90,6 +92,88 @@ assert.equal('tags' in undated, false, 'omits blank tags');
     ['https://taopedia.org/wiki/alpha/', 'https://taopedia.org/wiki/bravo/', 'https://taopedia.org/wiki/charlie/'],
     'same-timestamp items are ordered by canonical URL',
   );
+}
+
+// Category-scoped JSON feeds reuse the same builder but point at the category
+// hub as home_page_url while advertising their nested feed endpoint.
+{
+  const rawCategoryFeed = buildJsonFeed({
+    siteUrl,
+    feedPath: '/wiki/category/Smart_Contracts/feed.json',
+    homePageUrl: 'https://taopedia.org/wiki/category/Smart_Contracts/',
+    title: 'Taopedia - Smart Contracts articles',
+    description: 'Recently updated Taopedia articles in the Smart Contracts topic.',
+    items: [
+      {
+        title: 'Bittensor EVM Smart Contracts',
+        url: 'https://taopedia.org/wiki/bittensor_evm_smart_contracts/',
+        description: 'Smart contract support.',
+        categories: ['Smart Contracts'],
+        datePublished: '2026-06-01T00:00:00Z',
+        dateModified: '2026-06-02T00:00:00Z',
+      },
+    ],
+  });
+  const categoryFeed = JSON.parse(rawCategoryFeed);
+  assert.equal(
+    categoryFeed.feed_url,
+    'https://taopedia.org/wiki/category/Smart_Contracts/feed.json',
+    'category JSON feeds advertise their nested feed_url',
+  );
+  assert.equal(
+    categoryFeed.home_page_url,
+    'https://taopedia.org/wiki/category/Smart_Contracts/',
+    'category JSON feeds point home_page_url at the category hub',
+  );
+  assert.equal(categoryFeed.title, 'Taopedia - Smart Contracts articles', 'supports custom category feed titles');
+  assert.equal(
+    categoryFeed.description,
+    'Recently updated Taopedia articles in the Smart Contracts topic.',
+    'supports custom category feed descriptions',
+  );
+  assert.deepEqual(categoryFeed.items[0].tags, ['Smart Contracts'], 'category feed items keep article tags');
+}
+
+// When a build has produced static output, assert a real category endpoint exists
+// and is scoped to the category membership used by the category RSS endpoint.
+{
+  const builtCategoryFeedPath = path.join(
+    process.cwd(),
+    'dist',
+    'wiki',
+    'category',
+    'Smart_Contracts',
+    'feed.json',
+  );
+
+  if (fs.existsSync(builtCategoryFeedPath)) {
+    const builtCategoryFeed = JSON.parse(fs.readFileSync(builtCategoryFeedPath, 'utf8'));
+    assert.equal(
+      builtCategoryFeed.version,
+      'https://jsonfeed.org/version/1.1',
+      'built category feed declares JSON Feed 1.1',
+    );
+    assert.equal(
+      builtCategoryFeed.feed_url,
+      'https://taopedia.org/wiki/category/Smart_Contracts/feed.json',
+      'built category feed advertises the nested endpoint',
+    );
+    assert.equal(
+      builtCategoryFeed.home_page_url,
+      'https://taopedia.org/wiki/category/Smart_Contracts/',
+      'built category feed points to its category hub',
+    );
+    assert.equal(
+      builtCategoryFeed.title,
+      'Taopedia - Smart Contracts articles',
+      'built category feed carries the category title',
+    );
+    assert.ok(builtCategoryFeed.items.length > 0, 'built category feed must include category articles');
+    assert.ok(
+      builtCategoryFeed.items.every((item) => item.tags?.includes('Smart Contracts')),
+      'built category feed must only include articles tagged with the category',
+    );
+  }
 }
 
 console.log('check-json-feed: all assertions passed');
