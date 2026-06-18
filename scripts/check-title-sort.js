@@ -231,4 +231,11 @@ assert.ok(
   'sitemap.xml.ts must not use localeCompare for path sorting',
 );
 
+
+const rssSource = fs.readFileSync(path.join(projectRoot, 'scripts/rss-feed.js'), 'utf8');
+assert.ok(
+  rssSource.includes('compareTitles(aUrl, bUrl)'),
+  'rss-feed.js must sort same-date URL ties with compareTitles, not raw string order',
+);
+
 console.log('title sort check passed');
