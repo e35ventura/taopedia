@@ -155,4 +155,19 @@ assert.ok(!empty.includes('<lastBuildDate>'), 'an empty feed omits lastBuildDate
   );
 }
 
+// Numeric slugs in canonical URLs must use compareTitles, not raw string order
+// (subnet_10 lexicographically precedes subnet_9).
+{
+  const sameDate = '2026-06-01T06:01:22Z';
+  const nine = { title: 'Subnet 9', url: 'https://taopedia.org/wiki/subnet_9/', date: sameDate };
+  const ten = { title: 'Subnet 10', url: 'https://taopedia.org/wiki/subnet_10/', date: sameDate };
+  const feed = buildRssFeed({ siteUrl, items: [ten, nine] });
+  const pos9 = feed.indexOf('/wiki/subnet_9/');
+  const pos10 = feed.indexOf('/wiki/subnet_10/');
+  assert.ok(
+    pos9 >= 0 && pos10 >= 0 && pos9 < pos10,
+    'same-timestamp numeric slugs must order with compareTitles (subnet_9 before subnet_10)',
+  );
+}
+
 console.log('check-rss-feed: all assertions passed');
