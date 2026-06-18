@@ -131,6 +131,11 @@ export function validateHstsConfig(config) {
     maxAge && Number(maxAge[1]) >= ONE_YEAR_SECONDS,
     `Strict-Transport-Security must set max-age to at least one year (${ONE_YEAR_SECONDS})`,
   );
+  assert.match(
+    value,
+    /(?:^|;)\s*includeSubDomains\s*(?:;|$)/i,
+    'Strict-Transport-Security must include includeSubDomains so apex HSTS covers subdomains',
+  );
   return value;
 }
 
@@ -264,11 +269,13 @@ assert.throws(
   'a CSP declared outside the catch-all block must be rejected',
 );
 
+const VALID_HSTS = 'max-age=31536000; includeSubDomains';
+
 // HSTS inside the catch-all block with a one-year max-age is accepted.
 assert.doesNotThrow(
   () =>
     validateHstsConfig(
-      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Strict-Transport-Security = "max-age=31536000"\n`,
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Strict-Transport-Security = "${VALID_HSTS}"\n`,
     ),
   'an HSTS header inside the catch-all block must be accepted',
 );
@@ -277,7 +284,7 @@ assert.doesNotThrow(
 assert.throws(
   () =>
     validateHstsConfig(
-      `[[headers]]\n  for = "/*"\n  [headers.values]\n    X-Frame-Options = "DENY"\n\n[[headers]]\n  for = "/special/*"\n  [headers.values]\n    Strict-Transport-Security = "max-age=31536000"\n`,
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    X-Frame-Options = "DENY"\n\n[[headers]]\n  for = "/special/*"\n  [headers.values]\n    Strict-Transport-Security = "${VALID_HSTS}"\n`,
     ),
   /must live in the catch-all/,
   'an HSTS header declared outside the catch-all block must be rejected',
@@ -287,10 +294,20 @@ assert.throws(
 assert.throws(
   () =>
     validateHstsConfig(
-      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Strict-Transport-Security = "max-age=600"\n`,
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Strict-Transport-Security = "max-age=600; includeSubDomains"\n`,
     ),
   /max-age to at least one year/,
   'an HSTS header with a sub-one-year max-age must be rejected',
+);
+
+// HSTS without includeSubDomains must be REJECTED — apex-only coverage is too weak.
+assert.throws(
+  () =>
+    validateHstsConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Strict-Transport-Security = "max-age=31536000"\n`,
+    ),
+  /includeSubDomains/,
+  'an HSTS header missing includeSubDomains must be rejected',
 );
 
 // The baseline security headers are accepted when all three live in the catch-all
