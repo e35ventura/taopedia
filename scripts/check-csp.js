@@ -73,6 +73,10 @@ export function validateCspConfig(config) {
   assert.deepEqual(directives.get('default-src'), ["'self'"], "CSP must keep default-src 'self'");
   assert.deepEqual(directives.get('frame-ancestors'), ["'none'"], "CSP must keep frame-ancestors 'none'");
   assert.deepEqual(directives.get('base-uri'), ["'self'"], "CSP must keep base-uri 'self'");
+  // <object>/<embed> can run legacy plugin content that default-src does not fully
+  // neutralize in older engines, so block it explicitly (the CSP Evaluator
+  // hardening baseline). The site embeds no plugin content, so 'none' is safe.
+  assert.deepEqual(directives.get('object-src'), ["'none'"], "CSP must set object-src 'none'");
   assert.deepEqual(
     directives.get('connect-src'),
     ["'self'"],
@@ -106,7 +110,7 @@ validateHstsConfig(config);
 // previously only verified a header appeared *after* the `for = "/*"` marker, which
 // also passes when the header is declared in a later, narrower headers block.
 const VALID_CSP =
-  "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'";
+  "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'";
 
 // A CSP inside the catch-all block is accepted.
 assert.doesNotThrow(
