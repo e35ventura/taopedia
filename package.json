@@ -31,6 +31,7 @@
     "test:article-script-placement": "node scripts/check-article-script-placement.js",
     "test:skip-link": "node scripts/check-skip-link.js",
     "test:robots": "node scripts/check-robots.js",
+    "test:robots-meta": "node scripts/check-robots-meta.js",
     "test:mobile-header-search": "node scripts/check-mobile-header-search.js",
     "test:structured-data": "node scripts/check-structured-data.js",
     "test:breadcrumbs": "node scripts/check-breadcrumbs.js",
