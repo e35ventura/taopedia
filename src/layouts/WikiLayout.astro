@@ -10,9 +10,11 @@ interface Props {
   image?: string;
   type?: 'website' | 'article';
   path?: string;
+  // Per-page feed alternates forwarded to <Seo> (e.g. a category hub's own feeds).
+  feeds?: Array<{ type: string; title: string; href: string }>;
 }
 
-const { title, description, image, type = 'website', path } = Astro.props;
+const { title, description, image, type = 'website', path, feeds } = Astro.props;
 ---
 
 <!doctype html>
@@ -20,7 +22,7 @@ const { title, description, image, type = 'website', path } = Astro.props;
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <Seo title={title} description={description} image={image} type={type} path={path} />
+    <Seo title={title} description={description} image={image} type={type} path={path} feeds={feeds} />
   </head>
   <body>
     <a href="#content" class="skip-link">Skip to content</a>

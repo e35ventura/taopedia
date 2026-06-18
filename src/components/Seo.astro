@@ -7,13 +7,17 @@ interface Props {
   image?: string;
   type?: 'website' | 'article';
   path?: string;
+  // Per-page feed alternates (e.g. a category hub advertising its own RSS/JSON
+  // feed). Rendered after the site-wide feeds so a feed reader landing on the
+  // page can auto-discover the scoped feed, not just /rss.xml and /feed.json.
+  feeds?: Array<{ type: string; title: string; href: string }>;
 }
 
 const defaultTitle = 'Taopedia';
 const defaultDescription =
   'A Bittensor-focused knowledge base for TAO, subnets, wallets, staking, mining, validation, and consensus.';
 
-const { title, description = defaultDescription, image = '/og/home.png', type = 'website', path } =
+const { title, description = defaultDescription, image = '/og/home.png', type = 'website', path, feeds } =
   Astro.props;
 
 const pageTitle = title ? `${title} - Taopedia` : defaultTitle;
@@ -55,6 +59,9 @@ const imageAlt = title
 />
 <link rel="alternate" type="application/rss+xml" title="Taopedia" href="/rss.xml" />
 <link rel="alternate" type="application/feed+json" title="Taopedia" href="/feed.json" />
+{(feeds ?? []).map((feed) => (
+  <link rel="alternate" type={feed.type} title={feed.title} href={feed.href} />
+))}
 
 <meta property="og:title" content={pageTitle} />
 <meta property="og:description" content={description} />
