@@ -7,6 +7,8 @@
 //   - Disallow the search route. /search renders no unique content on its own
 //     and /search?q=... expands to unbounded parameterized URLs that are not in
 //     the sitemap; keeping crawlers off it preserves crawl budget.
+//   - Disallow /pagefind/. Pagefind ships WASM/JSON search-index assets for the
+//     client-side search UI; they are not article content and are not in the sitemap.
 //   - Advertise the XML sitemap. Per the robots.txt protocol the Sitemap value
 //     must be an absolute URL, so it is built from the site origin.
 
@@ -16,6 +18,7 @@ export function buildRobotsTxt({ origin }) {
     'User-agent: *',
     'Allow: /',
     'Disallow: /search',
+    'Disallow: /pagefind/',
     `Sitemap: ${base}/sitemap.xml`,
     '',
   ];
