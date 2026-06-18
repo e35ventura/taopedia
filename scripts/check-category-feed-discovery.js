@@ -3,10 +3,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-// Each category hub page (/wiki/category/<topic>/) must advertise BOTH its own
-// RSS and its own JSON feed from the page <head> with rel="alternate", so a feed
+// Each category hub page (/wiki/category/<topic>/) must advertise its own RSS,
+// Atom, and JSON feeds from the page <head> with rel="alternate", so a feed
 // reader landing on the category page can auto-discover the scoped per-category
-// feed — not just the site-wide /rss.xml and /feed.json that every page carries.
+// feeds — not just the site-wide feeds that every page carries.
 //
 // This is the category-level parallel of check-json-feed-discovery.js /
 // check-rss-discovery.js: those assert the site-wide discovery links exist in
@@ -46,11 +46,16 @@ for (const category of categories) {
   const linkTags = [...headMatch[1].matchAll(/<link\b[^>]*>/gi)].map((match) => match[0]);
 
   const rssHref = `/wiki/category/${category}/rss.xml`;
+  const atomHref = `/wiki/category/${category}/atom.xml`;
   const jsonHref = `/wiki/category/${category}/feed.json`;
 
   assert.ok(
     hasAlternateLink(linkTags, 'application/rss+xml', rssHref),
     `${category}: category page <head> must advertise its RSS feed via rel="alternate" type="application/rss+xml" href="${rssHref}"`,
+  );
+  assert.ok(
+    hasAlternateLink(linkTags, 'application/atom+xml', atomHref),
+    `${category}: category page <head> must advertise its Atom feed via rel="alternate" type="application/atom+xml" href="${atomHref}"`,
   );
   assert.ok(
     hasAlternateLink(linkTags, 'application/feed+json', jsonHref),

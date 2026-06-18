@@ -32,13 +32,14 @@ const categoryPages = sortPagesByTitle(
 const pageTitle = `Category: ${categoryName}`;
 const pageDescription = `Taopedia articles about ${categoryName} in the Bittensor knowledge base.`;
 
-// Advertise this category's own RSS and JSON feeds from the page <head> so feed
-// readers can auto-discover the scoped per-category feed (not just the site-wide
-// /rss.xml and /feed.json). `category` is the underscore URL param; the feed
-// routes mirror the category hub membership.
+// Advertise this category's own RSS, Atom, and JSON feeds from the page <head>
+// so feed readers can auto-discover the scoped per-category feed (not just the
+// site-wide feeds). `category` is the underscore URL param; the feed routes
+// mirror the category hub membership.
 const feedTitle = `Taopedia - ${categoryName} articles`;
 const feeds = [
   { type: 'application/rss+xml', title: feedTitle, href: `/wiki/category/${category}/rss.xml` },
+  { type: 'application/atom+xml', title: feedTitle, href: `/wiki/category/${category}/atom.xml` },
   { type: 'application/feed+json', title: feedTitle, href: `/wiki/category/${category}/feed.json` },
 ];
 ---
