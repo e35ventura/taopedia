@@ -82,6 +82,13 @@ export function validateCspConfig(config) {
     ["'self'"],
     "CSP must keep connect-src 'self'; Pagefind fetches its index same-origin",
   );
+  // Pagefind search loads /pagefind/pagefind-worker.js as a dedicated worker. Pin
+  // worker-src to same-origin so only site workers can run, not third-party scripts.
+  assert.deepEqual(
+    directives.get('worker-src'),
+    ["'self'"],
+    "CSP must set worker-src 'self' for Pagefind's same-origin search worker",
+  );
 
   return directives;
 }
@@ -185,7 +192,7 @@ validateCoopConfig(config);
 // previously only verified a header appeared *after* the `for = "/*"` marker, which
 // also passes when the header is declared in a later, narrower headers block.
 const VALID_CSP =
-  "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'";
+  "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'";
 
 const BASELINE_HEADER_VALUES = Object.fromEntries(BASELINE_SECURITY_HEADERS);
 const baselineHeadersToml = (headers = BASELINE_HEADER_VALUES, path = '/*') =>
