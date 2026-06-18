@@ -170,6 +170,7 @@ const DENIED_PERMISSIONS_FEATURES = [
   'display-capture',
   'encrypted-media',
   'fullscreen',
+  'gamepad',
   'geolocation',
   'gyroscope',
   'hid',
@@ -182,8 +183,11 @@ const DENIED_PERMISSIONS_FEATURES = [
   'publickey-credentials-get',
   'screen-wake-lock',
   'serial',
+  'speaker-selection',
   'usb',
   'web-share',
+  'window-management',
+  'xr-spatial-tracking',
 ];
 export function validatePermissionsPolicyConfig(config) {
   const value = catchAllHeaderValue(config, 'Permissions-Policy');
@@ -426,6 +430,26 @@ assert.throws(
     ),
   /must deny usb/,
   'a Permissions-Policy that grants a feature to an origin must be rejected',
+);
+
+// Input/environment APIs the wiki never uses — deny them without touching
+// clipboard-write, which CiteCopyButtons.astro needs for cite-page copying.
+assert.throws(
+  () =>
+    validatePermissionsPolicyConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Permissions-Policy = "${FULL_PERMISSIONS_POLICY.replace('gamepad=()', '')}"\n`,
+    ),
+  /must deny gamepad/,
+  'a Permissions-Policy missing gamepad must be rejected',
+);
+
+assert.throws(
+  () =>
+    validatePermissionsPolicyConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Permissions-Policy = "${FULL_PERMISSIONS_POLICY.replace('xr-spatial-tracking=()', 'xr-spatial-tracking=(self)')}"\n`,
+    ),
+  /must deny xr-spatial-tracking/,
+  'a Permissions-Policy that grants xr-spatial-tracking to an origin must be rejected',
 );
 
 // A Cross-Origin-Opener-Policy of same-origin in the catch-all block is accepted.
