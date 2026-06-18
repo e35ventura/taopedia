@@ -125,9 +125,11 @@ export function validateBaselineSecurityHeadersConfig(config) {
 // catch-all block so every response carries it.
 const DENIED_PERMISSIONS_FEATURES = [
   'accelerometer',
+  'autoplay',
   'bluetooth',
   'camera',
   'display-capture',
+  'encrypted-media',
   'fullscreen',
   'geolocation',
   'gyroscope',
@@ -136,6 +138,7 @@ const DENIED_PERMISSIONS_FEATURES = [
   'microphone',
   'midi',
   'payment',
+  'picture-in-picture',
   'serial',
   'usb',
   'web-share',
