@@ -537,6 +537,27 @@ assert.throws(
   'a CSP with worker-src * must be rejected',
 );
 
+// A CSP missing connect-src must be REJECTED — Pagefind fetches its index
+// same-origin and connect-src must not fall through to a wider default.
+assert.throws(
+  () =>
+    validateCspConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; worker-src 'self'"\n`,
+    ),
+  /connect-src/,
+  'a CSP missing connect-src must be rejected',
+);
+
+// A connect-src wider than same-origin must be REJECTED.
+assert.throws(
+  () =>
+    validateCspConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; connect-src *; worker-src 'self'"\n`,
+    ),
+  /connect-src/,
+  'a CSP with connect-src * must be rejected',
+);
+
 // A CSP missing form-action must be REJECTED — search forms must not post cross-origin.
 assert.throws(
   () =>
