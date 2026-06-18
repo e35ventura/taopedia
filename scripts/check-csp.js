@@ -131,11 +131,28 @@ export function validatePermissionsPolicyConfig(config) {
   return value;
 }
 
+// The Cross-Origin-Opener-Policy isolates the site's browsing-context group from
+// any cross-origin page that opens it, closing cross-origin window-reference
+// side channels (XS-Leaks) and the tabnabbing path that survives rel=noopener.
+// `same-origin` is the strictest value and is safe here: the site opens no
+// cross-origin popups and reads no `window.opener`, so nothing depends on
+// cross-origin window access. Validated in the catch-all block like the others.
+export function validateCoopConfig(config) {
+  const value = catchAllHeaderValue(config, 'Cross-Origin-Opener-Policy');
+  assert.equal(
+    value,
+    'same-origin',
+    "Cross-Origin-Opener-Policy must be 'same-origin' to isolate the browsing context",
+  );
+  return value;
+}
+
 const projectRoot = path.resolve(new URL('..', import.meta.url).pathname);
 const config = fs.readFileSync(path.join(projectRoot, 'netlify.toml'), 'utf8');
 validateCspConfig(config);
 validateHstsConfig(config);
 validatePermissionsPolicyConfig(config);
+validateCoopConfig(config);
 
 // Self-tests: prove the catch-all-block invariant is actually enforced. The check
 // previously only verified a header appeared *after* the `for = "/*"` marker, which
@@ -221,6 +238,36 @@ assert.throws(
     ),
   /must deny usb/,
   'a Permissions-Policy that grants a feature to an origin must be rejected',
+);
+
+// A Cross-Origin-Opener-Policy of same-origin in the catch-all block is accepted.
+assert.doesNotThrow(
+  () =>
+    validateCoopConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Cross-Origin-Opener-Policy = "same-origin"\n`,
+    ),
+  'a same-origin Cross-Origin-Opener-Policy must be accepted',
+);
+
+// A weaker same-origin-allow-popups (or unsafe-none) COOP must be REJECTED — it
+// re-opens the cross-origin opener relationship this header exists to sever.
+assert.throws(
+  () =>
+    validateCoopConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Cross-Origin-Opener-Policy = "unsafe-none"\n`,
+    ),
+  /must be 'same-origin'/,
+  'a Cross-Origin-Opener-Policy weaker than same-origin must be rejected',
+);
+
+// COOP declared in a later, narrower block must be REJECTED, like the CSP/HSTS.
+assert.throws(
+  () =>
+    validateCoopConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    X-Frame-Options = "DENY"\n\n[[headers]]\n  for = "/special/*"\n  [headers.values]\n    Cross-Origin-Opener-Policy = "same-origin"\n`,
+    ),
+  /must live in the catch-all/,
+  'a Cross-Origin-Opener-Policy declared outside the catch-all block must be rejected',
 );
 
 console.log('CSP and HSTS check passed');
