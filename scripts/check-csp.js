@@ -127,6 +127,8 @@ const DENIED_PERMISSIONS_FEATURES = [
   'accelerometer',
   'bluetooth',
   'camera',
+  'display-capture',
+  'fullscreen',
   'geolocation',
   'gyroscope',
   'hid',
@@ -136,6 +138,7 @@ const DENIED_PERMISSIONS_FEATURES = [
   'payment',
   'serial',
   'usb',
+  'web-share',
 ];
 export function validatePermissionsPolicyConfig(config) {
   const value = catchAllHeaderValue(config, 'Permissions-Policy');
