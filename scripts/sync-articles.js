@@ -18,6 +18,22 @@ let sourceRoot = path.join(articlesRoot, 'content', 'pages');
 const targetRoot = path.join(projectRoot, 'src', 'content', 'pages');
 const allowedAssetExtensions = new Set(['.avif', '.gif', '.jpg', '.jpeg', '.json', '.png', '.webp']);
 const maxAssetBytes = 5 * 1024 * 1024;
+// Astro template directives execute at build time and must never appear in
+// article content. They are checked twice — literally below, and again after
+// entity/zero-width deobfuscation (see obfuscatedSchemePatterns) — so an
+// obfuscated spelling like `set&colon;html` or `set:ht{soft-hyphen}ml` cannot
+// slip the literal scan, exactly as the dangerous URL schemes are. Shared by
+// both scans so the two lists cannot drift and cover a different directive set.
+const directivePatterns = [
+  { pattern: /\bset:html\b/i, reason: 'raw HTML injection directives are not allowed in article content' },
+  { pattern: /\bclient:[a-z-]+\b/i, reason: 'client directives are not allowed in article content' },
+  { pattern: /\bserver:[a-z-]+\b/i, reason: 'server directives are not allowed in article content' },
+  { pattern: /\btransition:[a-z-]+\b/i, reason: 'transition directives are not allowed in article content' },
+  { pattern: /\bis:[a-z-]+\b/i, reason: 'is directives are not allowed in article content' },
+  { pattern: /\bdefine:vars\b/i, reason: 'define:vars directives are not allowed in article content' },
+  { pattern: /\bdefine:style\b/i, reason: 'define:style directives are not allowed in article content' },
+];
+
 const unsafeContentPatterns = [
   { pattern: /^\s*import\s/m, reason: 'MDX imports are not allowed in article content' },
   { pattern: /^\s*export\s/m, reason: 'MDX exports are not allowed in article content' },
@@ -31,13 +47,7 @@ const unsafeContentPatterns = [
   { pattern: /\bdata\s*:\s*image\/svg\+xml/i, reason: 'SVG data URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*application\/xhtml\+xml/i, reason: 'XHTML data URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*(?:text|application)\/(?:javascript|ecmascript)/i, reason: 'script data URLs are not allowed in article content' },
-  { pattern: /\bset:html\b/i, reason: 'raw HTML injection directives are not allowed in article content' },
-  { pattern: /\bclient:[a-z-]+\b/i, reason: 'client directives are not allowed in article content' },
-  { pattern: /\bserver:[a-z-]+\b/i, reason: 'server directives are not allowed in article content' },
-  { pattern: /\btransition:[a-z-]+\b/i, reason: 'transition directives are not allowed in article content' },
-  { pattern: /\bis:[a-z-]+\b/i, reason: 'is directives are not allowed in article content' },
-  { pattern: /\bdefine:vars\b/i, reason: 'define:vars directives are not allowed in article content' },
-  { pattern: /\bdefine:style\b/i, reason: 'define:style directives are not allowed in article content' },
+  ...directivePatterns,
 ];
 
 // Dangerous URL schemes can be smuggled past the literal checks above using HTML
@@ -51,8 +61,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /data\s*:\s*image\/svg\+xml/i, reason: 'SVG data URLs are not allowed in article content' },
   { pattern: /data\s*:\s*application\/xhtml\+xml/i, reason: 'XHTML data URLs are not allowed in article content' },
   { pattern: /data\s*:\s*(?:text|application)\/(?:javascript|ecmascript)/i, reason: 'script data URLs are not allowed in article content' },
-  { pattern: /\bdefine:vars\b/i, reason: 'define:vars directives are not allowed in article content' },
-  { pattern: /\bdefine:style\b/i, reason: 'define:style directives are not allowed in article content' },
+  ...directivePatterns,
 ];
 
 // The whitespace-anchored handler pattern above misses handlers that HTML lets
