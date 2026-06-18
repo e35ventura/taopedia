@@ -80,6 +80,18 @@ const projectRoot = path.resolve(new URL('..', import.meta.url).pathname);
 const config = fs.readFileSync(path.join(projectRoot, 'netlify.toml'), 'utf8');
 validateCspConfig(config);
 
+// The site is served only over HTTPS, so it must also send HSTS so a browser that
+// has seen the site once refuses to downgrade to http:// — closing the
+// SSL-stripping / protocol-downgrade window the CSP cannot cover. Require a
+// max-age of at least one year, the conventional floor for an effective policy.
+const stsMatch = config.match(/^\s*Strict-Transport-Security\s*=\s*"([^"]*)"/m);
+assert.ok(stsMatch, 'netlify.toml must declare a Strict-Transport-Security header');
+const stsMaxAge = stsMatch[1].match(/max-age=(\d+)/);
+assert.ok(
+  stsMaxAge && Number(stsMaxAge[1]) >= 31536000,
+  'Strict-Transport-Security must set max-age to at least one year (31536000)',
+);
+
 // Self-tests: prove the catch-all-block invariant is actually enforced. The check
 // previously only verified the CSP appeared *after* the `for = "/*"` marker, which
 // also passes when the policy is declared in a later, narrower headers block.
@@ -106,4 +118,4 @@ assert.throws(
   'a CSP declared outside the catch-all block must be rejected',
 );
 
-console.log('CSP check passed');
+console.log('CSP and HSTS check passed');
