@@ -231,4 +231,18 @@ assert.ok(
   'sitemap.xml.ts must not use localeCompare for path sorting',
 );
 
+// Recent changes uses the same numeric slug tiebreak as backlinks and most-linked.
+const historySource = fs.readFileSync(
+  path.join(projectRoot, 'src/lib/article-history.ts'),
+  'utf8',
+);
+assert.ok(
+  historySource.includes('compareTitles(a.slug, b.slug)'),
+  'article-history.ts must sort same-date slug ties with compareTitles, not raw string order',
+);
+assert.ok(
+  !historySource.includes('return a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0'),
+  'article-history.ts must not use raw string comparison for slug tiebreak',
+);
+
 console.log('title sort check passed');
