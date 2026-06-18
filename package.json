@@ -26,6 +26,7 @@
     "test:article-image-assets": "node scripts/check-article-image-assets.js",
     "test:linkgraph-infobox": "node scripts/check-linkgraph-infobox-json.js",
     "test:wiki-link-resolver": "node scripts/check-wiki-link-resolver.js",
+    "test:wiki-links": "node scripts/check-wiki-links.js",
     "test:article-script-placement": "node scripts/check-article-script-placement.js",
     "test:skip-link": "node scripts/check-skip-link.js",
     "test:robots": "node scripts/check-robots.js",
