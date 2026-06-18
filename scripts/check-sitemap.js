@@ -3,6 +3,20 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+// Returns true when a sitemap <loc> points at a non-canonical route that must
+// stay out of discovery (Pagefind assets or the search UI). Uses URL pathname so
+// a future wiki article slug like /wiki/search/ is not rejected.
+export function isDisallowedSitemapLoc(loc) {
+  let pathname;
+  try {
+    pathname = new URL(loc).pathname;
+  } catch {
+    return false;
+  }
+  if (pathname.includes('/pagefind/')) return true;
+  return /^\/search(?:\/|$)/.test(pathname);
+}
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
 const sitemapPath = path.join(projectRoot, 'dist', 'sitemap.xml');
@@ -20,6 +34,14 @@ assert.match(
 // Split into <url> blocks and classify each as an article route or not.
 const urlBlocks = xml.match(/<url>[\s\S]*?<\/url>/g) ?? [];
 assert.ok(urlBlocks.length > 0, 'sitemap has no <url> entries');
+
+// Pagefind index assets and the search UI are not canonical content routes (see
+// robots.txt Disallow and the noindex search page). They must stay out of the
+// sitemap so discovery does not regress.
+for (const block of urlBlocks) {
+  const loc = block.match(/<loc>([^<]+)<\/loc>/)?.[1] ?? '';
+  assert.ok(!isDisallowedSitemapLoc(loc), `sitemap must not list non-content route ${loc}`);
+}
 
 let articleUrls = 0;
 for (const block of urlBlocks) {
@@ -62,5 +84,18 @@ for (const special of ['allpages', 'categories', 'mostlinkedpages', 'recentchang
 for (const title of xml.match(/<image:title>([\s\S]*?)<\/image:title>/g) ?? []) {
   assert.ok(!/&(?!(amp|lt|gt|quot|apos);)/.test(title), `unescaped & in image title: ${title}`);
 }
+
+assert.ok(
+  !isDisallowedSitemapLoc('https://taopedia.org/wiki/search/'),
+  'a wiki article at /wiki/search/ must not be treated as the search route',
+);
+assert.ok(
+  isDisallowedSitemapLoc('https://taopedia.org/search/'),
+  'the /search/ route must be treated as non-content',
+);
+assert.ok(
+  isDisallowedSitemapLoc('https://taopedia.org/pagefind/wasm.unknown.pagefind'),
+  'Pagefind asset paths must be treated as non-content',
+);
 
 console.log(`Sitemap image check passed (${articleUrls} article OG images, none on non-article URLs)`);
