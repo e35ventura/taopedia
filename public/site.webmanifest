@@ -2,6 +2,7 @@
   "name": "Taopedia",
   "short_name": "Taopedia",
   "description": "A Bittensor-focused knowledge base for TAO, subnets, wallets, staking, mining, validation, and consensus.",
+  "id": "/",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -16,6 +17,11 @@
       "src": "/apple-touch-icon.png",
       "sizes": "180x180",
       "type": "image/png"
+    },
+    {
+      "src": "/apple-touch-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
     }
   ]
 }
