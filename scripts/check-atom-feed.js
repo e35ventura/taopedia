@@ -157,4 +157,17 @@ assert.ok(!/<category term="\s*" \/>/.test(feed), 'never emits an empty category
   );
 }
 
+{
+  const sameDate = '2026-06-01T06:01:22Z';
+  const nine = { title: 'Subnet 9', url: 'https://taopedia.org/wiki/subnet_9/', dateModified: sameDate };
+  const ten = { title: 'Subnet 10', url: 'https://taopedia.org/wiki/subnet_10/', dateModified: sameDate };
+  const feed = buildAtomFeed({ siteUrl, items: [ten, nine] });
+  const pos9 = feed.indexOf('/wiki/subnet_9/');
+  const pos10 = feed.indexOf('/wiki/subnet_10/');
+  assert.ok(
+    pos9 >= 0 && pos10 >= 0 && pos9 < pos10,
+    'same-timestamp numeric slugs must order with compareTitles (subnet_9 before subnet_10)',
+  );
+}
+
 console.log('check-atom-feed: all assertions passed');
