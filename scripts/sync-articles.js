@@ -30,8 +30,7 @@ const directivePatterns = [
   { pattern: /\bserver:[a-z-]+\b/i, reason: 'server directives are not allowed in article content' },
   { pattern: /\btransition:[a-z-]+\b/i, reason: 'transition directives are not allowed in article content' },
   { pattern: /\bis:[a-z-]+\b/i, reason: 'is directives are not allowed in article content' },
-  { pattern: /\bdefine:vars\b/i, reason: 'define:vars directives are not allowed in article content' },
-  { pattern: /\bdefine:style\b/i, reason: 'define:style directives are not allowed in article content' },
+  { pattern: /\bdefine:[a-z-]+\b/i, reason: 'define directives are not allowed in article content' },
 ];
 
 const unsafeContentPatterns = [
