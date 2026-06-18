@@ -84,6 +84,43 @@ assert.ok(!/<description>\s*<\/description>/.test(feed), 'never emits an empty d
   assert.ok(!/<category>\s*<\/category>/.test(blankCategoryFeed), 'never emits an empty category tag');
 }
 
+// Category-scoped feeds reuse the same builder but point the channel at the
+// category hub while keeping the atom:self URL on the nested feed endpoint.
+{
+  const categoryFeed = buildRssFeed({
+    siteUrl,
+    feedPath: '/wiki/category/Smart_Contracts/rss.xml',
+    channelLink: 'https://taopedia.org/wiki/category/Smart_Contracts/',
+    title: 'Taopedia - Smart Contracts articles',
+    description: 'Recently updated Taopedia articles in the Smart Contracts topic.',
+    items: [
+      {
+        title: 'Bittensor EVM Smart Contracts',
+        url: 'https://taopedia.org/wiki/bittensor_evm_smart_contracts/',
+        description: 'Smart contract support.',
+        categories: ['Smart Contracts'],
+        date: '2026-06-02T00:00:00Z',
+      },
+    ],
+  });
+  assert.match(categoryFeed, /<title>Taopedia - Smart Contracts articles<\/title>/, 'supports custom feed titles');
+  assert.match(
+    categoryFeed,
+    /<description>Recently updated Taopedia articles in the Smart Contracts topic\.<\/description>/,
+    'supports custom feed descriptions',
+  );
+  assert.match(
+    categoryFeed,
+    /<link>https:\/\/taopedia\.org\/wiki\/category\/Smart_Contracts\/<\/link>/,
+    'lets category feeds point the channel link at the category hub',
+  );
+  assert.match(
+    categoryFeed,
+    /<atom:link href="https:\/\/taopedia\.org\/wiki\/category\/Smart_Contracts\/rss\.xml" rel="self" type="application\/rss\+xml" \/>/,
+    'lets category feeds advertise their nested self URL',
+  );
+}
+
 // An empty feed still produces a valid, item-less channel with no lastBuildDate.
 const empty = buildRssFeed({ siteUrl, items: [] });
 assert.match(empty, /<channel>[\s\S]*<\/channel>/, 'an empty feed is still a valid channel');

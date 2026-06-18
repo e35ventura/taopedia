@@ -44,10 +44,12 @@ export function buildRssFeed({
   title = SITE_NAME,
   description = FEED_DESCRIPTION,
   language = 'en',
+  channelLink,
   lastBuildDate,
 }) {
   const root = `${String(siteUrl ?? '').replace(/\/+$/, '')}/`;
   const selfHref = `${root.replace(/\/$/, '')}${feedPath}`;
+  const channelHref = channelLink ? String(channelLink) : root;
 
   // Newest-updated first, then a deterministic tiebreak by canonical URL for items
   // that share an identical revision timestamp (several articles do — they were
@@ -101,7 +103,7 @@ export function buildRssFeed({
     '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">\n' +
     '  <channel>\n' +
     `    <title>${escapeXml(title)}</title>\n` +
-    `    <link>${escapeXml(root)}</link>\n` +
+    `    <link>${escapeXml(channelHref)}</link>\n` +
     `    <description>${escapeXml(description)}</description>\n` +
     `    <language>${escapeXml(language)}</language>\n` +
     (channelLastBuild ? `    <lastBuildDate>${escapeXml(channelLastBuild)}</lastBuildDate>\n` : '') +
