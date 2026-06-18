@@ -2,6 +2,8 @@
 // function beside rss-feed.js and json-feed.js so the Astro endpoint and the
 // regression check share one source of truth without rendering the site.
 
+import { compareTitles } from '../src/lib/title-sort.js';
+
 const SITE_NAME = 'Taopedia';
 const FEED_DESCRIPTION =
   'Recently updated articles from Taopedia, a Bittensor-focused knowledge base.';
@@ -54,15 +56,14 @@ export function buildAtomFeed({
   const pageUrl = homePageUrl ? String(homePageUrl) : root;
 
   // Same ordering contract as the RSS and JSON feeds: newest modified first,
-  // with a raw string URL tiebreak so output never depends on getCollection()
-  // order or the build machine's locale.
+  // with compareTitles on canonical URLs so numeric slugs order consistently.
   const sortedItems = [...items].sort((a, b) => {
     const aDate = itemDate(a);
     const bDate = itemDate(b);
     if (aDate !== bDate) return aDate < bDate ? 1 : -1;
     const aUrl = String(a.url ?? '');
     const bUrl = String(b.url ?? '');
-    return aUrl < bUrl ? -1 : aUrl > bUrl ? 1 : 0;
+    return compareTitles(aUrl, bUrl);
   });
 
   const newestItemDate = itemDate(sortedItems.find((item) => itemDate(item)));
