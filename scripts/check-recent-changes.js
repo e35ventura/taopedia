@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { compareTitles } from '../src/lib/title-sort.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
@@ -47,16 +48,16 @@ for (let i = 1; i < rows.length; i++) {
   );
 }
 
-// Within a same-timestamp group, rows must be ordered by slug (ascending) —
-// the deterministic tiebreak added to collectRecentChanges so glob traversal
-// order does not affect the output.
+// Within a same-timestamp group, rows must be ordered by slug with numeric
+// collation (compareTitles) so subnet_9 precedes subnet_10 — the same contract
+// enforced elsewhere for article lists and backlinks.
 for (let i = 1; i < rows.length; i++) {
   if (rows[i - 1].datetime !== rows[i].datetime) continue;
   const prevSlug = (rows[i - 1].titleHref || '').split('/')[2] || '';
   const curSlug = (rows[i].titleHref || '').split('/')[2] || '';
   assert.ok(
-    prevSlug <= curSlug,
-    `rows with the same timestamp must be ordered by slug ascending (${prevSlug} > ${curSlug} at rows ${i - 1}–${i}, date ${rows[i].datetime})`,
+    compareTitles(prevSlug, curSlug) <= 0,
+    `rows with the same timestamp must be ordered by slug with compareTitles (${prevSlug} > ${curSlug} at rows ${i - 1}–${i}, date ${rows[i].datetime})`,
   );
 }
 

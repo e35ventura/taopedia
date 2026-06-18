@@ -5,6 +5,8 @@
 // component-side StructuredData history derivation is intentionally separate (it
 // also needs the original publish date).
 
+import { compareTitles } from './title-sort.js';
+
 // Strip a content-collection id (`<slug>/index.mdx`, `<slug>/index`, `<slug>.md`)
 // down to the route slug.
 export const getPageSlug = (page: { id: string }): string =>
@@ -59,10 +61,11 @@ export const collectRecentChanges = (
   }
   // ISO 8601 dates sort lexicographically by time; newest first.
   // Slug tiebreak for same-timestamp entries keeps the output deterministic
-  // regardless of the import.meta.glob traversal order.
+  // regardless of the import.meta.glob traversal order. Numeric slugs such as
+  // subnet_9 vs subnet_10 must use compareTitles rather than raw string order.
   changes.sort((a, b) => {
     if (a.date !== b.date) return a.date < b.date ? 1 : -1;
-    return a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0;
+    return compareTitles(a.slug, b.slug);
   });
   return limit > 0 ? changes.slice(0, limit) : changes;
 };
