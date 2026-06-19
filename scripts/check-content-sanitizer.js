@@ -98,6 +98,15 @@ rejects('<div class=x/popover="auto">overlay</div>', 'slash-delimited popover at
 accepts('A download manager fetches files unrelated to the download attribute.', 'benign download prose');
 accepts('Popover overlays are a native UI primitive described here only as prose.', 'benign popover prose');
 
+// accesskey= binds a keyboard shortcut to an element, so an injected accesskey on
+// a hidden link lets a single keypress activate it (focus/navigation hijack) with
+// no script or flagged scheme. Blocked like the other interaction attributes.
+rejects('Intro.\n\n<a href="/evil/" accesskey="s">go</a>', 'plain accesskey attribute');
+rejects('Intro.\n\n<  div   accesskey = "x">hijack</div>', 'spaced accesskey attribute');
+rejects('<a href="x"accesskey="s">go</a>', 'quote-abutted accesskey attribute');
+rejects('<p class=x/accesskey="z">trap</p>', 'slash-delimited accesskey attribute');
+accepts('An accesskey hint can document a keyboard shortcut without setting one.', 'benign accesskey prose');
+
 // <details>/<summary> expose interactive disclosure UI with no script or inline
 // style — the same unwanted interactive surface as the already-blocked <dialog>.
 rejects('Intro.\n\n<details open><summary>Seed phrase</summary>evil</details>', 'plain <details>');

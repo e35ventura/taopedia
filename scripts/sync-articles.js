@@ -100,6 +100,11 @@ const unsafeContentPatterns = [
   // with no script or flagged scheme. Article bodies never need either attribute.
   { pattern: /\sdownload\s*=/i, reason: 'download attributes are not allowed in article content' },
   { pattern: /\spopover\s*=/i, reason: 'popover attributes are not allowed in article content' },
+  // accesskey= binds a browser keyboard shortcut to an element: an injected
+  // accesskey on a hidden link/element lets a single keypress activate it
+  // (unexpected navigation / focus hijack), with no script or flagged scheme.
+  // Article bodies never need it, so block it like the other interaction attrs.
+  { pattern: /\saccesskey\s*=/i, reason: 'accesskey attributes are not allowed in article content' },
   { pattern: /\bjavascript\s*:/i, reason: 'javascript: URLs are not allowed in article content' },
   { pattern: /\bvbscript\s*:/i, reason: 'vbscript: URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
@@ -157,7 +162,7 @@ const nonSpaceDelimitedHandlerPattern = /<[^>]*[/"'`]on[a-z]+\s*=/i;
 // attribute (`href="x"contenteditable=…>`, `class=x/tabindex=`). Scan with quoted
 // values emptied like the handler check so benign URLs such as src="/online=1" pass.
 const nonSpaceDelimitedInteractionSurfaceAttrPattern =
-  /<[^>]*[/"'`](?:contenteditable|tabindex|draggable|download|popover)\s*=/i;
+  /<[^>]*[/"'`](?:contenteditable|tabindex|draggable|download|popover|accesskey)\s*=/i;
 
 function emptyQuotedAttributeValues(content) {
   return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
@@ -408,7 +413,7 @@ export function validateArticleContent(slug, content) {
 
   if (nonSpaceDelimitedInteractionSurfaceAttrPattern.test(emptyQuotedAttributeValues(content))) {
     throw new Error(
-      `Unsafe article content in "${slug}": contenteditable, tabindex, draggable, download, and popover attributes are not allowed in article content`,
+      `Unsafe article content in "${slug}": contenteditable, tabindex, draggable, download, popover, and accesskey attributes are not allowed in article content`,
     );
   }
 
