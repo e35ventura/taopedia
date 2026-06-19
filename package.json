@@ -58,6 +58,7 @@
     "test:security-txt": "node scripts/check-security-txt.js",
     "test:random-page": "node scripts/check-random-page.js",
     "test:sitemap": "node scripts/check-sitemap.js",
+    "test:llms": "node scripts/check-llms.js",
     "test:rss-feed": "node scripts/check-rss-feed.js",
     "test:atom-feed": "node scripts/check-atom-feed.js",
     "test:atom-discovery": "node scripts/check-atom-discovery.js",
