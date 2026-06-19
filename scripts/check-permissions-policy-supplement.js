@@ -6,7 +6,8 @@ import path from 'node:path';
 // so header hardening PRs can land without conflicting on the monolithic DENIED list.
 // Does not deny clipboard-write — CiteCopyButtons.astro needs cite-page copying.
 // Only MDN-standardized features with concrete browser security impact are added here
-// (otp-credentials for WebOTP SMS interception; identity-credentials-get for FedCM).
+// (otp-credentials for WebOTP SMS interception; identity-credentials-get for FedCM;
+// publickey-credentials-create for WebAuthn registration-ceremony hijacking).
 export const SUPPLEMENTAL_DENIED_FEATURES = [
   'execution-while-not-rendered',
   'execution-while-out-of-viewport',
@@ -15,6 +16,7 @@ export const SUPPLEMENTAL_DENIED_FEATURES = [
   'keyboard-map',
   'local-fonts',
   'otp-credentials',
+  'publickey-credentials-create',
 ];
 
 export function validateSupplementalPermissionsPolicy(value) {
@@ -148,6 +150,26 @@ assert.ok(
 assert.ok(
   FULL_POLICY.includes('otp-credentials=()'),
   'production Permissions-Policy must deny otp-credentials',
+);
+
+assert.throws(
+  () => validateSupplementalPermissionsPolicy(FULL_POLICY.replace('publickey-credentials-create=(), ', '')),
+  /must deny publickey-credentials-create/,
+  'a Permissions-Policy missing publickey-credentials-create must be rejected',
+);
+
+assert.throws(
+  () =>
+    validateSupplementalPermissionsPolicy(
+      FULL_POLICY.replace('publickey-credentials-create=()', 'publickey-credentials-create=(self)'),
+    ),
+  /must deny publickey-credentials-create/,
+  'a Permissions-Policy that grants publickey-credentials-create to an origin must be rejected',
+);
+
+assert.ok(
+  FULL_POLICY.includes('publickey-credentials-create=()'),
+  'production Permissions-Policy must deny publickey-credentials-create',
 );
 
 console.log('Supplemental Permissions-Policy check passed');
