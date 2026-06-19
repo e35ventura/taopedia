@@ -47,6 +47,17 @@ rejects('Intro.\n\n<fieldset><legend>Seed phrase</legend></fieldset>', 'standalo
 rejects('Intro.\n\n<datalist id="wallets"><option value="5Grw..."></datalist>', 'standalone datalist');
 rejects('Intro.\n\n<output name="result">done</output>', 'standalone output');
 
+// The `ping` attribute on an allowed <a> is a no-JS tracking beacon: a click
+// POSTs to the listed URL. It passes every scheme/handler/element check, so it
+// is blocked as its own attribute, like slot= and the form controls above.
+rejects('Read [docs](https://x.example/) <a href="/wiki/stake/" ping="https://evil.example/track">stake</a>.', 'plain ping attribute');
+rejects('Intro.\n\n<  a   href="/wiki/stake/"   ping = "https://evil.example/track">x</a>', 'spaced ping attribute');
+
+// Prose mentioning "ping" without an attribute assignment — including the
+// "shipping"/"mapping" substrings — must still pass.
+accepts('Network latency such as a 20 ms ping is unrelated to markup.', 'benign ping prose');
+accepts('Shipping and mapping are ordinary words and must not be flagged.', 'benign ping substrings');
+
 // Plain dangerous URL schemes remain blocked.
 rejects('See [x](javascript:alert(1)).', 'plain javascript:');
 rejects('See [x](vbscript:msgbox(1)).', 'plain vbscript:');
