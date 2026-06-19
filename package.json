@@ -50,6 +50,7 @@
     "test:allpages-directory": "node scripts/check-allpages-directory.js",
     "test:og-text-layout": "node scripts/check-og-text-layout.js",
     "test:share-metadata": "node scripts/check-share-metadata.js",
+    "test:canonical-url": "node scripts/check-canonical-url.js",
     "test:md-article": "node scripts/check-md-article.js",
     "test:history-date": "node scripts/check-history-date.js",
     "test:home-links": "node scripts/check-home-links.js",
