@@ -9,7 +9,8 @@ import path from 'node:path';
 // (otp-credentials for WebOTP SMS interception; identity-credentials-get for FedCM;
 // publickey-credentials-create for WebAuthn registration-ceremony hijacking;
 // digital-credentials-get for unsolicited Digital Credentials API ID prompts;
-// storage-access for embedded content elevating to cross-site cookie access).
+// storage-access for embedded content elevating to cross-site cookie access;
+// attribution-reporting for ad-conversion measurement/cross-site reporting).
 export const SUPPLEMENTAL_DENIED_FEATURES = [
   'execution-while-not-rendered',
   'execution-while-out-of-viewport',
@@ -21,6 +22,7 @@ export const SUPPLEMENTAL_DENIED_FEATURES = [
   'otp-credentials',
   'publickey-credentials-create',
   'storage-access',
+  'attribution-reporting',
 ];
 
 export function validateSupplementalPermissionsPolicy(value) {
@@ -214,6 +216,26 @@ assert.throws(
 assert.ok(
   FULL_POLICY.includes('storage-access=()'),
   'production Permissions-Policy must deny storage-access',
+);
+
+assert.throws(
+  () => validateSupplementalPermissionsPolicy(FULL_POLICY.replace('attribution-reporting=(), ', '')),
+  /must deny attribution-reporting/,
+  'a Permissions-Policy missing attribution-reporting must be rejected',
+);
+
+assert.throws(
+  () =>
+    validateSupplementalPermissionsPolicy(
+      FULL_POLICY.replace('attribution-reporting=()', 'attribution-reporting=(self)'),
+    ),
+  /must deny attribution-reporting/,
+  'a Permissions-Policy that grants attribution-reporting to an origin must be rejected',
+);
+
+assert.ok(
+  FULL_POLICY.includes('attribution-reporting=()'),
+  'production Permissions-Policy must deny attribution-reporting',
 );
 
 console.log('Supplemental Permissions-Policy check passed');
