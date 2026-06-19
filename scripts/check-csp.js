@@ -659,6 +659,27 @@ assert.throws(
   "a CSP with object-src 'self' must be rejected",
 );
 
+// A CSP missing frame-src must be REJECTED — outbound <iframe>/<frame> loads are
+// evaluated against frame-src separately from default-src in modern engines.
+assert.throws(
+  () =>
+    validateCspConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "script-src-attr 'none'; media-src 'none'; default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; manifest-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
+    ),
+  /frame-src/,
+  'a CSP missing frame-src must be rejected',
+);
+
+// A frame-src weaker than 'none' must be REJECTED — the wiki embeds no frames.
+assert.throws(
+  () =>
+    validateCspConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "script-src-attr 'none'; media-src 'none'; default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'self'; object-src 'none'; manifest-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
+    ),
+  /frame-src/,
+  "a CSP with frame-src 'self' must be rejected",
+);
+
 // A CSP missing frame-ancestors must be REJECTED — clickjacking protection must be explicit.
 assert.throws(
   () =>
@@ -756,6 +777,27 @@ assert.throws(
     ),
   /must not include 'unsafe-eval'/,
   "a CSP with script-src 'unsafe-eval' must be rejected",
+);
+
+// A CSP missing script-src must be REJECTED — Pagefind and inline head scripts need
+// an explicit pin; default-src does not substitute for script-src in all contexts.
+assert.throws(
+  () =>
+    validateCspConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "script-src-attr 'none'; media-src 'none'; default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; connect-src 'self'; worker-src 'self'"\n`,
+    ),
+  /script-src/,
+  'a CSP missing script-src must be rejected',
+);
+
+// script-src without wasm-unsafe-eval must be REJECTED — Pagefind's WASM index cannot compile.
+assert.throws(
+  () =>
+    validateCspConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "script-src-attr 'none'; media-src 'none'; default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; worker-src 'self'"\n`,
+    ),
+  /wasm-unsafe-eval/,
+  'a CSP with script-src missing wasm-unsafe-eval must be rejected',
 );
 
 // img-src regression coverage — one rejection test per asserted requirement.
