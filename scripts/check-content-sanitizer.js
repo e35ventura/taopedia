@@ -317,6 +317,30 @@ rejects('Intro.\n\n<  fencedframe  >x</fencedframe>', 'spaced <fencedframe>');
 // Prose that merely mentions the word "fencedframe" without a tag must pass.
 accepts('A fencedframe is an embedding primitive described here only as prose.', 'benign fencedframe prose');
 
+// <video>/<audio> render native media UI with no script; CSP media-src 'none' does not
+// stop the elements from appearing. Block them like dialog and fencedframe.
+rejects('Intro.\n\n<video src="/evil.mp4" controls></video>', 'plain <video>');
+rejects('Intro.\n\n<  audio  src="/evil.mp3"></audio>', 'spaced <audio>');
+rejects('Intro.\n\n<picture><source srcset="https://evil.example/x.webp" type="image/webp"><img src="/wiki/fig.png" alt="x"></picture>', 'plain <picture>');
+rejects('Intro.\n\n<  source  srcset="https://evil.example/x.webp">', 'spaced <source>');
+
+// Prose that merely names these formats without an opening tag must still pass.
+accepts('Video and audio codecs are discussed here only as prose.', 'benign video/audio prose');
+accepts('A picture element is an HTML concept mentioned here without a tag.', 'benign picture prose');
+accepts('The source of truth for this term is documented in prose only.', 'benign source prose');
+
+// <map>/<area> plus usemap= on <img> are client-side image-map clickjacking primitives.
+rejects('Intro.\n\n<map name="evil"><area shape="rect" coords="0,0,999,999" href="https://evil.example/"></map>', 'plain <map>');
+rejects('Intro.\n\n<  area  shape="rect" coords="0,0,1,1" href="https://evil.example/">', 'spaced <area>');
+rejects('Intro.\n\n<img src="/wiki/fig.png" usemap="#evil" alt="diagram">', 'plain usemap attribute');
+rejects('Intro.\n\n<  img   src="/wiki/fig.png"   usemap = "#evil">', 'spaced usemap attribute');
+rejects('<img src="/wiki/fig.png"usemap="#evil">', 'quote-abutted usemap attribute');
+rejects('<img src=x/usemap="#evil">', 'slash-delimited usemap attribute');
+
+// Prose mentioning image maps without tags or assignments must still pass.
+accepts('An image map is a UI concept described here only as prose.', 'benign map prose');
+accepts('The usemap attribute pairs an image with a map element.', 'benign usemap prose');
+
 // Prose that merely mentions these English words without the directive colon
 // must still pass — guard the new patterns against false positives.
 accepts('This client is set to define the class list style, and the server is fast.', 'benign client/server/set/class/define prose');
