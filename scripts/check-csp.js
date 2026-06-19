@@ -558,6 +558,86 @@ assert.throws(
   'a CSP with connect-src * must be rejected',
 );
 
+// A CSP missing base-uri must be REJECTED — a <base> tag could rewrite every URL.
+assert.throws(
+  () =>
+    validateCspConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
+    ),
+  /base-uri/,
+  'a CSP missing base-uri must be rejected',
+);
+
+// A base-uri wider than same-origin must be REJECTED.
+assert.throws(
+  () =>
+    validateCspConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri *; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
+    ),
+  /base-uri/,
+  'a CSP with base-uri * must be rejected',
+);
+
+// A CSP missing object-src must be REJECTED — plugin content is not neutralized by default-src alone.
+assert.throws(
+  () =>
+    validateCspConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; manifest-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
+    ),
+  /object-src/,
+  'a CSP missing object-src must be rejected',
+);
+
+// An object-src weaker than 'none' must be REJECTED.
+assert.throws(
+  () =>
+    validateCspConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'self'; manifest-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
+    ),
+  /object-src/,
+  "a CSP with object-src 'self' must be rejected",
+);
+
+// A CSP missing frame-ancestors must be REJECTED — clickjacking protection must be explicit.
+assert.throws(
+  () =>
+    validateCspConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; form-action 'self'; frame-src 'none'; object-src 'none'; manifest-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
+    ),
+  /frame-ancestors/,
+  'a CSP missing frame-ancestors must be rejected',
+);
+
+// A frame-ancestors weaker than 'none' must be REJECTED.
+assert.throws(
+  () =>
+    validateCspConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; frame-src 'none'; object-src 'none'; manifest-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
+    ),
+  /frame-ancestors/,
+  "a CSP with frame-ancestors 'self' must be rejected",
+);
+
+// A CSP missing default-src must be REJECTED — the site-wide fallback must be pinned.
+assert.throws(
+  () =>
+    validateCspConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
+    ),
+  /default-src/,
+  'a CSP missing default-src must be rejected',
+);
+
+// A default-src wider than same-origin must be REJECTED.
+assert.throws(
+  () =>
+    validateCspConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "default-src *; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
+    ),
+  /default-src/,
+  'a CSP with default-src * must be rejected',
+);
+
 // A CSP missing form-action must be REJECTED — search forms must not post cross-origin.
 assert.throws(
   () =>
