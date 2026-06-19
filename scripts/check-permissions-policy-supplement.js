@@ -28,6 +28,7 @@ export const SUPPLEMENTAL_DENIED_FEATURES = [
   'attribution-reporting',
   'compute-pressure',
   'clipboard-read',
+  'all-screens-capture',
 ];
 
 export function validateSupplementalPermissionsPolicy(value) {
@@ -287,6 +288,26 @@ assert.ok(
 assert.ok(
   !/(^|[,\s])clipboard-write=\(\)/.test(FULL_POLICY),
   'Permissions-Policy must NOT deny clipboard-write (CiteCopyButtons needs it)',
+);
+
+assert.throws(
+  () => validateSupplementalPermissionsPolicy(FULL_POLICY.replace('all-screens-capture=(), ', '')),
+  /must deny all-screens-capture/,
+  'a Permissions-Policy missing all-screens-capture must be rejected',
+);
+
+assert.throws(
+  () =>
+    validateSupplementalPermissionsPolicy(
+      FULL_POLICY.replace('all-screens-capture=()', 'all-screens-capture=(self)'),
+    ),
+  /must deny all-screens-capture/,
+  'a Permissions-Policy that grants all-screens-capture to an origin must be rejected',
+);
+
+assert.ok(
+  FULL_POLICY.includes('all-screens-capture=()'),
+  'production Permissions-Policy must deny all-screens-capture',
 );
 
 console.log('Supplemental Permissions-Policy check passed');
