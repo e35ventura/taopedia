@@ -61,6 +61,32 @@ rejects('Intro.\n\n<  a   href="/wiki/stake/"   ping = "https://evil.example/tra
 accepts('Network latency such as a 20 ms ping is unrelated to markup.', 'benign ping prose');
 accepts('Shipping and mapping are ordinary words and must not be flagged.', 'benign ping substrings');
 
+// `autofocus` is a global focus-theft primitive: any element carrying it
+// steals keyboard focus at page load with no script or handler, so a synced
+// article could redirect the reader's input into an attacker-chosen element
+// (form field, search box, scroll target, or clickjacking target). Modern HTML
+// allows the bare form (`<el autofocus>`) and the `=` form (`<el autofocus="">`),
+// so every variant must be rejected on a HOST ELEMENT THAT IS NOT PRE-BLOCKED
+// by another rule. <div>, <p>, and <a> are allowed (not in the element
+// blocklist at sync-articles.js:50), so a rejection here proves the new
+// `autofocus` pattern is doing the work — a zombie-test guard per the
+// §5 lesson from #355.
+rejects('Intro.\n\n<div autofocus>x</div>', 'bare autofocus on <div>');
+rejects('Intro.\n\n<div autofocus="">x</div>', 'quoted autofocus on <div>');
+rejects("Intro.\n\n<div autofocus=''>x</div>", 'single-quoted autofocus on <div>');
+rejects('Intro.\n\n<div  autofocus   =   "x">y</div>', 'spaced autofocus on <div>');
+rejects('Intro.\n\n<p autofocus>x</p>', 'bare autofocus on <p>');
+rejects('Intro.\n\n<a href="/wiki/foo/" autofocus>x</a>', 'bare autofocus on <a>');
+
+// The scanner must not flag the word "autofocus" when it appears in body prose
+// or in a hyphenated prefix (e.g. "autofocus-attribute" inside an allowed
+// attribute name like `data-autofocus-attr`, which is not a real attribute but
+// must still pass). The pattern anchors on a tag boundary (whitespace + `=`
+// or `>`), so prose and hyphenated forms are inert.
+accepts('Autofocus the discussion on validator output, not on prose.', 'benign autofocus prose (sentence start)');
+accepts('Use autofocus carefully when designing forms.', 'benign autofocus prose (mid-sentence)');
+accepts('The autofocus-attribute discussion belongs in MDN, not in article content.', 'benign autofocus-prefixed prose');
+
 // contenteditable/tabindex/draggable on allowed elements expose editing, focus-trap,
 // and drag surfaces with no script or flagged scheme. Tests use only allowed tags.
 rejects('Intro.\n\n<div contenteditable="true">edit me</div>', 'plain contenteditable attribute');

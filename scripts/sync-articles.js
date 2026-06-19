@@ -85,6 +85,20 @@ const unsafeContentPatterns = [
   // listed URL, leaking the reader's referrer and click to an attacker with no
   // script, handler, or flagged scheme. Article links never need it, so block it.
   { pattern: /\sping\s*=/i, reason: 'ping attributes are not allowed in article content' },
+  // The `autofocus` attribute is a global focus-theft primitive: any element
+  // carrying it gets keyboard focus the moment the page loads, with no script
+  // and no handler. In an article that lets synced content steal focus from a
+  // reader's form input, scroll target, or search box, or steer focus into an
+  // <a>/<button> for a clickjacking-style nudge. Modern HTML allows the bare
+  // form (`<div autofocus>`) and the `=` form (`<div autofocus="">`), so the
+  // pattern must catch BOTH — anchor on the whitespace boundary, then require
+  // either `>` or `=` (with optional spacing) immediately after, so the word
+  // `autofocus` in prose is not flagged. Article bodies never need it, so
+  // block the attribute regardless of form.
+  {
+    pattern: /\sautofocus(?:\s*=\s*("[^"]*"|'[^']*')|\s*>)/i,
+    reason: 'autofocus attribute is not allowed in article content',
+  },
   // contenteditable/tabindex/draggable on allowed elements expose editing, focus-trap,
   // and drag surfaces a static glossary never needs — with no script, handler, or
   // flagged scheme. Block them like style= and ping= (not on blocked <input>/<button>).
