@@ -2,6 +2,10 @@
 
 <!-- Describe the app change. Article/content changes belong in taopedia-articles. -->
 
+## Why This Should Ship
+
+<!-- Explain the concrete Taopedia benefit. Passing CI or following a generic best practice is not enough by itself. -->
+
 ## Target Branch
 
 - [ ] This PR targets `test`
@@ -10,11 +14,11 @@
 ## Testing
 
 - [ ] `npm run build` passes
-- [ ] No UI, layout, styling, responsive, or interaction behavior changed
-- [ ] UI/interaction changes include author-provided before/after screenshots or a video/GIF
+- [ ] No visible UI, layout, styling, route, navigation, responsive, or interaction behavior changed
+- [ ] Visual changes include author-provided before/after screenshots or a video/GIF
 - [ ] UI/interaction colors use existing CSS custom properties, or this PR defines a new theme token
 
-For UI/interaction evidence, include the page URL, viewport width, action taken, expected before behavior, and expected after behavior. Light/Dark screenshots are useful for theme coverage, but they do not replace before/after evidence. A deploy preview link alone is not enough.
+For visual evidence, include the page URL, viewport width, and what the reviewer should compare. New visible pages and navigation still need before/after evidence. A deploy preview link alone is not enough.
 
 ## Security Checklist
 
