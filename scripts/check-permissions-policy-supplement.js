@@ -8,7 +8,8 @@ import path from 'node:path';
 // Only MDN-standardized features with concrete browser security impact are added here
 // (otp-credentials for WebOTP SMS interception; identity-credentials-get for FedCM;
 // publickey-credentials-create for WebAuthn registration-ceremony hijacking;
-// digital-credentials-get for unsolicited Digital Credentials API ID prompts).
+// digital-credentials-get for unsolicited Digital Credentials API ID prompts;
+// storage-access for embedded content elevating to cross-site cookie access).
 export const SUPPLEMENTAL_DENIED_FEATURES = [
   'execution-while-not-rendered',
   'execution-while-out-of-viewport',
@@ -19,6 +20,7 @@ export const SUPPLEMENTAL_DENIED_FEATURES = [
   'local-fonts',
   'otp-credentials',
   'publickey-credentials-create',
+  'storage-access',
 ];
 
 export function validateSupplementalPermissionsPolicy(value) {
@@ -192,6 +194,26 @@ assert.throws(
 assert.ok(
   FULL_POLICY.includes('digital-credentials-get=()'),
   'production Permissions-Policy must deny digital-credentials-get',
+);
+
+assert.throws(
+  () => validateSupplementalPermissionsPolicy(FULL_POLICY.replace('storage-access=(), ', '')),
+  /must deny storage-access/,
+  'a Permissions-Policy missing storage-access must be rejected',
+);
+
+assert.throws(
+  () =>
+    validateSupplementalPermissionsPolicy(
+      FULL_POLICY.replace('storage-access=()', 'storage-access=(self)'),
+    ),
+  /must deny storage-access/,
+  'a Permissions-Policy that grants storage-access to an origin must be rejected',
+);
+
+assert.ok(
+  FULL_POLICY.includes('storage-access=()'),
+  'production Permissions-Policy must deny storage-access',
 );
 
 console.log('Supplemental Permissions-Policy check passed');
