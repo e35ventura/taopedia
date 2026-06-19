@@ -85,6 +85,12 @@ const unsafeContentPatterns = [
   // listed URL, leaking the reader's referrer and click to an attacker with no
   // script, handler, or flagged scheme. Article links never need it, so block it.
   { pattern: /\sping\s*=/i, reason: 'ping attributes are not allowed in article content' },
+  // contenteditable/tabindex/draggable on allowed elements expose editing, focus-trap,
+  // and drag surfaces a static glossary never needs — with no script, handler, or
+  // flagged scheme. Block them like style= and ping= (not on blocked <input>/<button>).
+  { pattern: /\scontenteditable\s*=/i, reason: 'contenteditable attributes are not allowed in article content' },
+  { pattern: /\stabindex\s*=/i, reason: 'tabindex attributes are not allowed in article content' },
+  { pattern: /\sdraggable\s*=/i, reason: 'draggable attributes are not allowed in article content' },
   { pattern: /\bjavascript\s*:/i, reason: 'javascript: URLs are not allowed in article content' },
   { pattern: /\bvbscript\s*:/i, reason: 'vbscript: URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
@@ -137,6 +143,12 @@ function assertSafeInfoboxRowValue(value, filePath, index) {
 // with quoted values emptied: the URL text inside them is removed, while the
 // closing quote (a real attribute boundary) is preserved so `"x"onclick=` is caught.
 const nonSpaceDelimitedHandlerPattern = /<[^>]*[/"'`]on[a-z]+\s*=/i;
+
+// contenteditable/tabindex/draggable can follow a non-space delimiter after a prior
+// attribute (`href="x"contenteditable=…>`, `class=x/tabindex=`). Scan with quoted
+// values emptied like the handler check so benign URLs such as src="/online=1" pass.
+const nonSpaceDelimitedInteractionSurfaceAttrPattern =
+  /<[^>]*[/"'`](?:contenteditable|tabindex|draggable)\s*=/i;
 
 function emptyQuotedAttributeValues(content) {
   return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
@@ -383,6 +395,12 @@ export function validateArticleContent(slug, content) {
 
   if (nonSpaceDelimitedHandlerPattern.test(emptyQuotedAttributeValues(content))) {
     throw new Error(`Unsafe article content in "${slug}": inline event handlers are not allowed in article content`);
+  }
+
+  if (nonSpaceDelimitedInteractionSurfaceAttrPattern.test(emptyQuotedAttributeValues(content))) {
+    throw new Error(
+      `Unsafe article content in "${slug}": contenteditable, tabindex, and draggable attributes are not allowed in article content`,
+    );
   }
 
   const decoded = decodeForSchemeScan(content);
