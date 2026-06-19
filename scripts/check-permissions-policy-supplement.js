@@ -32,6 +32,8 @@ export const SUPPLEMENTAL_DENIED_FEATURES = [
   'captured-surface-control',
   'private-state-token-issuance',
   'private-state-token-redemption',
+  'deferred-fetch',
+  'deferred-fetch-minimal',
 ];
 
 export function validateSupplementalPermissionsPolicy(value) {
@@ -371,6 +373,46 @@ assert.throws(
 assert.ok(
   FULL_POLICY.includes('private-state-token-redemption=()'),
   'production Permissions-Policy must deny private-state-token-redemption',
+);
+
+assert.throws(
+  () => validateSupplementalPermissionsPolicy(FULL_POLICY.replace('deferred-fetch=(), ', '')),
+  /must deny deferred-fetch/,
+  'a Permissions-Policy missing deferred-fetch must be rejected',
+);
+
+assert.throws(
+  () =>
+    validateSupplementalPermissionsPolicy(
+      FULL_POLICY.replace('deferred-fetch=()', 'deferred-fetch=(self)'),
+    ),
+  /must deny deferred-fetch/,
+  'a Permissions-Policy that grants deferred-fetch to an origin must be rejected',
+);
+
+assert.ok(
+  FULL_POLICY.includes('deferred-fetch=()'),
+  'production Permissions-Policy must deny deferred-fetch',
+);
+
+assert.throws(
+  () => validateSupplementalPermissionsPolicy(FULL_POLICY.replace('deferred-fetch-minimal=(), ', '')),
+  /must deny deferred-fetch-minimal/,
+  'a Permissions-Policy missing deferred-fetch-minimal must be rejected',
+);
+
+assert.throws(
+  () =>
+    validateSupplementalPermissionsPolicy(
+      FULL_POLICY.replace('deferred-fetch-minimal=()', 'deferred-fetch-minimal=(self)'),
+    ),
+  /must deny deferred-fetch-minimal/,
+  'a Permissions-Policy that grants deferred-fetch-minimal to an origin must be rejected',
+);
+
+assert.ok(
+  FULL_POLICY.includes('deferred-fetch-minimal=()'),
+  'production Permissions-Policy must deny deferred-fetch-minimal',
 );
 
 console.log('Supplemental Permissions-Policy check passed');
