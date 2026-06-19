@@ -43,6 +43,11 @@ const unsafeContentPatterns = [
   { pattern: /\sslot\s*=/i, reason: 'slot attributes are not allowed in article content' },
   { pattern: /\sxmlns(?:\s*:\s*[\w-]+)?\s*=\s*/i, reason: 'xmlns attributes are not allowed in article content' },
   { pattern: /\son[a-z]+\s*=/i, reason: 'inline event handlers are not allowed in article content' },
+  // The `ping` attribute on an <a> (an allowed element) turns a normal-looking
+  // link into a tracking beacon: clicking it makes the browser POST to every
+  // listed URL, leaking the reader's referrer and click to an attacker with no
+  // script, handler, or flagged scheme. Article links never need it, so block it.
+  { pattern: /\sping\s*=/i, reason: 'ping attributes are not allowed in article content' },
   { pattern: /\bjavascript\s*:/i, reason: 'javascript: URLs are not allowed in article content' },
   { pattern: /\bvbscript\s*:/i, reason: 'vbscript: URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
