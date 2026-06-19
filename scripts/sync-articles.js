@@ -68,6 +68,15 @@ const unsafeContentPatterns = [
   // (it is the Privacy Sandbox successor to it). Article bodies never embed other
   // origins, so block it alongside the other embedding elements.
   { pattern: /<\s*fencedframe\b/i, reason: 'fencedframe elements are not allowed in article content' },
+  // <video>/<audio> render native media controls in article bodies even though CSP
+  // sets media-src 'none' — an injected tag is still a distraction/phishing primitive.
+  { pattern: /<\s*(video|audio)\b/i, reason: 'media elements are not allowed in article content' },
+  // <picture>/<source> steer responsive image loading to attacker-chosen URLs outside
+  // the img-src checks that apply to plain <img> tags in article bodies alone.
+  { pattern: /<\s*(picture|source)\b/i, reason: 'picture and source elements are not allowed in article content' },
+  // <map>/<area> define client-side image maps — a clickjacking primitive on allowed
+  // <img> tags that bypasses ordinary href scheme checks when paired with usemap=.
+  { pattern: /<\s*(map|area)\b/i, reason: 'image map elements are not allowed in article content' },
   // <svg> and <math> are foreign-content roots: a browser parses their subtree
   // with XML/foreign rules, which is a classic mXSS vector (e.g. an <svg> can
   // carry <foreignObject> HTML, animation elements that retarget attributes, or
@@ -100,6 +109,9 @@ const unsafeContentPatterns = [
   // with no script or flagged scheme. Article bodies never need either attribute.
   { pattern: /\sdownload\s*=/i, reason: 'download attributes are not allowed in article content' },
   { pattern: /\spopover\s*=/i, reason: 'popover attributes are not allowed in article content' },
+  // usemap= pairs an allowed <img> with a <map>/<area> click region — blocked above,
+  // but the attribute alone still signals an image-map injection attempt.
+  { pattern: /\susemap\s*=/i, reason: 'usemap attributes are not allowed in article content' },
   { pattern: /\bjavascript\s*:/i, reason: 'javascript: URLs are not allowed in article content' },
   { pattern: /\bvbscript\s*:/i, reason: 'vbscript: URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
@@ -157,7 +169,7 @@ const nonSpaceDelimitedHandlerPattern = /<[^>]*[/"'`]on[a-z]+\s*=/i;
 // attribute (`href="x"contenteditable=…>`, `class=x/tabindex=`). Scan with quoted
 // values emptied like the handler check so benign URLs such as src="/online=1" pass.
 const nonSpaceDelimitedInteractionSurfaceAttrPattern =
-  /<[^>]*[/"'`](?:contenteditable|tabindex|draggable|download|popover)\s*=/i;
+  /<[^>]*[/"'`](?:contenteditable|tabindex|draggable|download|popover|usemap)\s*=/i;
 
 function emptyQuotedAttributeValues(content) {
   return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
@@ -408,7 +420,7 @@ export function validateArticleContent(slug, content) {
 
   if (nonSpaceDelimitedInteractionSurfaceAttrPattern.test(emptyQuotedAttributeValues(content))) {
     throw new Error(
-      `Unsafe article content in "${slug}": contenteditable, tabindex, draggable, download, and popover attributes are not allowed in article content`,
+      `Unsafe article content in "${slug}": contenteditable, tabindex, draggable, download, popover, and usemap attributes are not allowed in article content`,
     );
   }
 
