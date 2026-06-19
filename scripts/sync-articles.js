@@ -109,6 +109,10 @@ const unsafeContentPatterns = [
   // with no script or flagged scheme. Article bodies never need either attribute.
   { pattern: /\sdownload\s*=/i, reason: 'download attributes are not allowed in article content' },
   { pattern: /\spopover\s*=/i, reason: 'popover attributes are not allowed in article content' },
+  // accesskey= binds a browser keyboard shortcut to an element: an injected
+  // accesskey on a hidden link/element lets a single keypress activate it
+  // (unexpected navigation / focus hijack), with no script or flagged scheme.
+  { pattern: /\saccesskey\s*=/i, reason: 'accesskey attributes are not allowed in article content' },
   // usemap= pairs an allowed <img> with a <map>/<area> click region — blocked above,
   // but the attribute alone still signals an image-map injection attempt.
   { pattern: /\susemap\s*=/i, reason: 'usemap attributes are not allowed in article content' },
@@ -169,7 +173,7 @@ const nonSpaceDelimitedHandlerPattern = /<[^>]*[/"'`]on[a-z]+\s*=/i;
 // attribute (`href="x"contenteditable=…>`, `class=x/tabindex=`). Scan with quoted
 // values emptied like the handler check so benign URLs such as src="/online=1" pass.
 const nonSpaceDelimitedInteractionSurfaceAttrPattern =
-  /<[^>]*[/"'`](?:contenteditable|tabindex|draggable|download|popover|usemap)\s*=/i;
+  /<[^>]*[/"'`](?:contenteditable|tabindex|draggable|download|popover|usemap|accesskey)\s*=/i;
 
 function emptyQuotedAttributeValues(content) {
   return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
@@ -420,7 +424,7 @@ export function validateArticleContent(slug, content) {
 
   if (nonSpaceDelimitedInteractionSurfaceAttrPattern.test(emptyQuotedAttributeValues(content))) {
     throw new Error(
-      `Unsafe article content in "${slug}": contenteditable, tabindex, draggable, download, popover, and usemap attributes are not allowed in article content`,
+      `Unsafe article content in "${slug}": contenteditable, tabindex, draggable, download, popover, usemap, and accesskey attributes are not allowed in article content`,
     );
   }
 
