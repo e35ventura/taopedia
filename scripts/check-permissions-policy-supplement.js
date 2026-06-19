@@ -5,12 +5,16 @@ import path from 'node:path';
 // Supplemental Permissions-Policy denials validated separately from check-csp.js
 // so header hardening PRs can land without conflicting on the monolithic DENIED list.
 // Does not deny clipboard-write — CiteCopyButtons.astro needs cite-page copying.
+// document-domain, navigation-override, and otp-credentials are unused on this wiki.
 export const SUPPLEMENTAL_DENIED_FEATURES = [
   'idle-detection',
   'keyboard-map',
   'local-fonts',
   'execution-while-not-rendered',
   'execution-while-out-of-viewport',
+  'document-domain',
+  'navigation-override',
+  'otp-credentials',
 ];
 
 export function validateSupplementalPermissionsPolicy(value) {
@@ -93,6 +97,51 @@ assert.throws(
     ),
   /must deny execution-while-out-of-viewport/,
   'a Permissions-Policy that grants execution-while-out-of-viewport to an origin must be rejected',
+);
+
+assert.throws(
+  () => validateSupplementalPermissionsPolicy(FULL_POLICY.replace('document-domain=(), ', '')),
+  /must deny document-domain/,
+  'a Permissions-Policy missing document-domain must be rejected',
+);
+
+assert.throws(
+  () =>
+    validateSupplementalPermissionsPolicy(
+      FULL_POLICY.replace('document-domain=()', 'document-domain=(self)'),
+    ),
+  /must deny document-domain/,
+  'a Permissions-Policy that grants document-domain to an origin must be rejected',
+);
+
+assert.throws(
+  () => validateSupplementalPermissionsPolicy(FULL_POLICY.replace('navigation-override=(), ', '')),
+  /must deny navigation-override/,
+  'a Permissions-Policy missing navigation-override must be rejected',
+);
+
+assert.throws(
+  () =>
+    validateSupplementalPermissionsPolicy(
+      FULL_POLICY.replace('navigation-override=()', 'navigation-override=(self)'),
+    ),
+  /must deny navigation-override/,
+  'a Permissions-Policy that grants navigation-override to an origin must be rejected',
+);
+
+assert.throws(
+  () => validateSupplementalPermissionsPolicy(FULL_POLICY.replace('otp-credentials=(), ', '')),
+  /must deny otp-credentials/,
+  'a Permissions-Policy missing otp-credentials must be rejected',
+);
+
+assert.throws(
+  () =>
+    validateSupplementalPermissionsPolicy(
+      FULL_POLICY.replace('otp-credentials=()', 'otp-credentials=(self)'),
+    ),
+  /must deny otp-credentials/,
+  'a Permissions-Policy that grants otp-credentials to an origin must be rejected',
 );
 
 console.log('Supplemental Permissions-Policy check passed');
