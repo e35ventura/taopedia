@@ -61,6 +61,28 @@ rejects('Intro.\n\n<  a   href="/wiki/stake/"   ping = "https://evil.example/tra
 accepts('Network latency such as a 20 ms ping is unrelated to markup.', 'benign ping prose');
 accepts('Shipping and mapping are ordinary words and must not be flagged.', 'benign ping substrings');
 
+// contenteditable/tabindex/draggable on allowed elements expose editing, focus-trap,
+// and drag surfaces with no script or flagged scheme. Tests use only allowed tags.
+rejects('Intro.\n\n<div contenteditable="true">edit me</div>', 'plain contenteditable attribute');
+rejects('Intro.\n\n<  p   contenteditable = "plaintext-only">edit</p>', 'spaced contenteditable attribute');
+rejects('Intro.\n\n<div tabindex="0">trap</div>', 'plain tabindex attribute');
+rejects('Intro.\n\n<  span   tabindex = "-1">trap</span>', 'spaced tabindex attribute');
+rejects('Intro.\n\n<span draggable="true">drag</span>', 'plain draggable attribute');
+rejects('Intro.\n\n<  a   href="/wiki/foo/"   draggable = "false">link</a>', 'spaced draggable attribute');
+
+// Non-space-delimited spellings must be caught too (same contract as on* handlers).
+rejects('<div href="x"contenteditable="true">edit</div>', 'quote-abutted contenteditable attribute');
+rejects('<p class=x/tabindex="0">trap</p>', 'slash-delimited tabindex attribute');
+rejects('<img src="/wiki/fig.png" draggable="true">', 'quote-abutted draggable attribute');
+
+// Benign URLs inside quoted attribute values must not trip the non-space scan.
+accepts('See <a href="/online=1">pricing</a> for details.', 'equals sign inside quoted href');
+
+// Prose that discusses these attributes without an assignment must still pass.
+accepts('Rich editors set contenteditable on a container element.', 'benign contenteditable prose');
+accepts('Keyboard navigation can reference the tabindex attribute.', 'benign tabindex prose');
+accepts('Drag-and-drop UIs mark elements with the draggable attribute.', 'benign draggable prose');
+
 // Plain dangerous URL schemes remain blocked.
 rejects('See [x](javascript:alert(1)).', 'plain javascript:');
 rejects('See [x](vbscript:msgbox(1)).', 'plain vbscript:');
