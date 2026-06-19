@@ -26,7 +26,7 @@ Every PR should explain:
 
 - What changed.
 - Why the change is useful for Taopedia.
-- How the change was tested.
+- How you checked it, or why no validation was needed.
 - Any route, search, metadata, build, or deployment behavior affected by the change.
 
 Do not mix app changes with article/content changes. Do not commit generated `src/content/pages` output.
