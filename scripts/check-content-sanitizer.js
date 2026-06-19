@@ -198,6 +198,18 @@ rejects('Intro.\n\n<  svg   xmlns : xlink = "http://www.w3.org/1999/xlink">', 's
 accepts('The xmlns attribute declares an XML namespace in markup.', 'benign xmlns prose');
 accepts('The xmlns:xlink attribute is used in SVG documents.', 'benign xmlns:prefix prose');
 
+// <svg> and <math> are foreign-content roots and a classic mXSS vector. They are
+// blocked as elements outright -- even without an xmlns attribute, an event
+// handler, or a flagged scheme, which the cases below deliberately omit so they
+// only pass once the element block itself is present.
+rejects('Intro.\n\n<svg viewBox="0 0 1 1"><circle r="1" /></svg>', 'plain <svg> element');
+rejects('Intro.\n\n<  svg  ><circle r="1" /></svg>', 'spaced <svg> element');
+rejects('Intro.\n\n<math><mi>x</mi></math>', 'plain <math> element');
+rejects('Intro.\n\n<  math  ><mi>x</mi></math>', 'spaced <math> element');
+
+// Prose that merely names these formats without an opening tag must still pass.
+accepts('SVG and MathML are XML-based formats, described here only as prose.', 'benign svg/math prose');
+
 // Prose that merely mentions these English words without the directive colon
 // must still pass — guard the new patterns against false positives.
 accepts('This client is set to define the class list style, and the server is fast.', 'benign client/server/set/class/define prose');

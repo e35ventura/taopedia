@@ -40,6 +40,13 @@ const unsafeContentPatterns = [
   { pattern: /<\s*script[\s>]/i, reason: 'script tags are not allowed in article content' },
   { pattern: /<\s*\/\s*script\s*>/i, reason: 'script tags are not allowed in article content' },
   { pattern: /<\s*(base|frame|frameset|iframe|object|embed|link|meta|style|form|input|button|textarea|select|option|fieldset|legend|datalist|output)\b/i, reason: 'active HTML elements are not allowed in article content' },
+  // <svg> and <math> are foreign-content roots: a browser parses their subtree
+  // with XML/foreign rules, which is a classic mXSS vector (e.g. an <svg> can
+  // carry <foreignObject> HTML, animation elements that retarget attributes, or
+  // namespaced links). Article bodies are plain glossary prose and never need
+  // either element, so block them outright rather than relying on the script /
+  // handler / scheme scans alone.
+  { pattern: /<\s*(svg|math)\b/i, reason: 'SVG and MathML elements are not allowed in article content' },
   { pattern: /\sslot\s*=/i, reason: 'slot attributes are not allowed in article content' },
   { pattern: /\sxmlns(?:\s*:\s*[\w-]+)?\s*=\s*/i, reason: 'xmlns attributes are not allowed in article content' },
   { pattern: /\son[a-z]+\s*=/i, reason: 'inline event handlers are not allowed in article content' },
