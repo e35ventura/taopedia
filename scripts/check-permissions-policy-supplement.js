@@ -29,6 +29,7 @@ export const SUPPLEMENTAL_DENIED_FEATURES = [
   'compute-pressure',
   'clipboard-read',
   'all-screens-capture',
+  'captured-surface-control',
 ];
 
 export function validateSupplementalPermissionsPolicy(value) {
@@ -308,6 +309,26 @@ assert.throws(
 assert.ok(
   FULL_POLICY.includes('all-screens-capture=()'),
   'production Permissions-Policy must deny all-screens-capture',
+);
+
+assert.throws(
+  () => validateSupplementalPermissionsPolicy(FULL_POLICY.replace('captured-surface-control=(), ', '')),
+  /must deny captured-surface-control/,
+  'a Permissions-Policy missing captured-surface-control must be rejected',
+);
+
+assert.throws(
+  () =>
+    validateSupplementalPermissionsPolicy(
+      FULL_POLICY.replace('captured-surface-control=()', 'captured-surface-control=(self)'),
+    ),
+  /must deny captured-surface-control/,
+  'a Permissions-Policy that grants captured-surface-control to an origin must be rejected',
+);
+
+assert.ok(
+  FULL_POLICY.includes('captured-surface-control=()'),
+  'production Permissions-Policy must deny captured-surface-control',
 );
 
 console.log('Supplemental Permissions-Policy check passed');
