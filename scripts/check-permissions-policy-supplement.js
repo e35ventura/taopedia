@@ -7,10 +7,12 @@ import path from 'node:path';
 // Does not deny clipboard-write — CiteCopyButtons.astro needs cite-page copying.
 // Only MDN-standardized features with concrete browser security impact are added here
 // (otp-credentials for WebOTP SMS interception; identity-credentials-get for FedCM;
-// publickey-credentials-create for WebAuthn registration-ceremony hijacking).
+// publickey-credentials-create for WebAuthn registration-ceremony hijacking;
+// digital-credentials-get for unsolicited Digital Credentials API ID prompts).
 export const SUPPLEMENTAL_DENIED_FEATURES = [
   'execution-while-not-rendered',
   'execution-while-out-of-viewport',
+  'digital-credentials-get',
   'identity-credentials-get',
   'idle-detection',
   'keyboard-map',
@@ -170,6 +172,26 @@ assert.throws(
 assert.ok(
   FULL_POLICY.includes('publickey-credentials-create=()'),
   'production Permissions-Policy must deny publickey-credentials-create',
+);
+
+assert.throws(
+  () => validateSupplementalPermissionsPolicy(FULL_POLICY.replace('digital-credentials-get=(), ', '')),
+  /must deny digital-credentials-get/,
+  'a Permissions-Policy missing digital-credentials-get must be rejected',
+);
+
+assert.throws(
+  () =>
+    validateSupplementalPermissionsPolicy(
+      FULL_POLICY.replace('digital-credentials-get=()', 'digital-credentials-get=(self)'),
+    ),
+  /must deny digital-credentials-get/,
+  'a Permissions-Policy that grants digital-credentials-get to an origin must be rejected',
+);
+
+assert.ok(
+  FULL_POLICY.includes('digital-credentials-get=()'),
+  'production Permissions-Policy must deny digital-credentials-get',
 );
 
 console.log('Supplemental Permissions-Policy check passed');
