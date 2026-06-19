@@ -37,6 +37,15 @@ const projectRoot = path.resolve(__dirname, '..');
     '<head> must contain a <title>',
   );
   assert.match(opml, /<ownerName>[^<]+<\/ownerName>/, '<head> must contain an <ownerName>');
+  // OPML 2.0 lists <dateModified> (RFC 822) as a <head> child so feed readers
+  // can tell when the index was last refreshed. The emitted value must parse
+  // as a real instant (Date.parse accepts the toUTCString RFC 822 output).
+  const dateModifiedMatch = opml.match(/<dateModified>([^<]+)<\/dateModified>/);
+  assert.ok(dateModifiedMatch, '<head> must contain an OPML 2.0 <dateModified> element so readers can tell when the index was last refreshed');
+  assert.ok(
+    !Number.isNaN(Date.parse(dateModifiedMatch[1])),
+    `<dateModified> must be a valid RFC 822 date, got ${dateModifiedMatch[1]}`,
+  );
 
   // Site-wide feeds: RSS, Atom, JSON Feed — one outline each, with xmlUrl
   // pointing at the canonical site-wide route and htmlUrl at the homepage.
