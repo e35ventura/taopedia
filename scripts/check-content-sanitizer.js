@@ -210,6 +210,42 @@ rejects('Intro.\n\n<  math  ><mi>x</mi></math>', 'spaced <math> element');
 // Prose that merely names these formats without an opening tag must still pass.
 accepts('SVG and MathML are XML-based formats, described here only as prose.', 'benign svg/math prose');
 
+// Interactive/surveillance HTML attributes must not appear in article bodies.
+// ping= enables hyperlink auditing beacons; contenteditable/popover/autofocus/tabindex
+// expose editing, overlay, focus, and tab-order surfaces a static wiki never needs.
+rejects('Intro.\n\n<a href="/wiki/foo/" ping="https://evil.example/beacon">link</a>', 'plain ping attribute');
+rejects('Intro.\n\n<a   ping = "https://evil.example/beacon" href="/">link</a>', 'spaced ping attribute');
+rejects('Intro.\n\n<div contenteditable="true">edit me</div>', 'plain contenteditable attribute');
+rejects('Intro.\n\n<div   contenteditable = "plaintext-only">edit</div>', 'spaced contenteditable attribute');
+rejects('Intro.\n\n<button popover="auto">menu</button>', 'plain popover attribute');
+rejects('Intro.\n\n<button   popover = "manual">menu</button>', 'spaced popover attribute');
+rejects('Intro.\n\n<input autofocus name="wallet">', 'plain autofocus attribute');
+rejects('Intro.\n\n<input   autofocus = "">', 'spaced autofocus attribute');
+rejects('Intro.\n\n<div tabindex="0">trap</div>', 'plain tabindex attribute');
+rejects('Intro.\n\n<div   tabindex = "-1">trap</div>', 'spaced tabindex attribute');
+rejects('Intro.\n\n<span draggable="true">drag</span>', 'plain draggable attribute');
+rejects('Intro.\n\n<span   draggable = "false">drag</span>', 'spaced draggable attribute');
+
+// Non-space-delimited spellings must be caught too (same contract as on* handlers).
+rejects('<a href="x"ping="https://evil.example/beacon">link</a>', 'quote-abutted ping attribute');
+rejects('<img src=x/ping="https://evil.example/beacon">', 'slash-delimited ping attribute');
+rejects('<div href="x"contenteditable="true">edit</div>', 'quote-abutted contenteditable attribute');
+rejects('<button type=button/popover="auto">menu</button>', 'slash-delimited popover attribute');
+rejects('<input name=q/autofocus="">', 'slash-delimited autofocus attribute');
+rejects('<div class=x/tabindex="0">trap</div>', 'slash-delimited tabindex attribute');
+rejects('<span title=x/draggable="true">drag</span>', 'slash-delimited draggable attribute');
+
+// Benign URLs inside quoted attribute values must not trip the non-space scan.
+accepts('See <a href="/online=1">pricing</a> for details.', 'equals sign inside quoted href');
+
+// Prose that discusses these attributes without an assignment must still pass.
+accepts('Hyperlink auditing uses the ping attribute on anchor elements.', 'benign ping prose');
+accepts('Rich editors set contenteditable on a container element.', 'benign contenteditable prose');
+accepts('The popover attribute shows native overlay UI.', 'benign popover prose');
+accepts('Forms may use autofocus to move keyboard focus on load.', 'benign autofocus prose');
+accepts('Keyboard navigation can reference the tabindex attribute.', 'benign tabindex prose');
+accepts('Drag-and-drop UIs mark elements with the draggable attribute.', 'benign draggable prose');
+
 // Prose that merely mentions these English words without the directive colon
 // must still pass — guard the new patterns against false positives.
 accepts('This client is set to define the class list style, and the server is fast.', 'benign client/server/set/class/define prose');

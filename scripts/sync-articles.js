@@ -49,6 +49,12 @@ const unsafeContentPatterns = [
   { pattern: /<\s*(svg|math)\b/i, reason: 'SVG and MathML elements are not allowed in article content' },
   { pattern: /\sslot\s*=/i, reason: 'slot attributes are not allowed in article content' },
   { pattern: /\sxmlns(?:\s*:\s*[\w-]+)?\s*=\s*/i, reason: 'xmlns attributes are not allowed in article content' },
+  { pattern: /\sping\s*=/i, reason: 'ping attributes are not allowed in article content' },
+  { pattern: /\scontenteditable\s*=/i, reason: 'contenteditable attributes are not allowed in article content' },
+  { pattern: /\spopover\s*=/i, reason: 'popover attributes are not allowed in article content' },
+  { pattern: /\sautofocus\s*=/i, reason: 'autofocus attributes are not allowed in article content' },
+  { pattern: /\stabindex\s*=/i, reason: 'tabindex attributes are not allowed in article content' },
+  { pattern: /\sdraggable\s*=/i, reason: 'draggable attributes are not allowed in article content' },
   { pattern: /\son[a-z]+\s*=/i, reason: 'inline event handlers are not allowed in article content' },
   { pattern: /\bjavascript\s*:/i, reason: 'javascript: URLs are not allowed in article content' },
   { pattern: /\bvbscript\s*:/i, reason: 'vbscript: URLs are not allowed in article content' },
@@ -101,6 +107,12 @@ function assertSafeInfoboxRowValue(value, filePath, index) {
 // with quoted values emptied: the URL text inside them is removed, while the
 // closing quote (a real attribute boundary) is preserved so `"x"onclick=` is caught.
 const nonSpaceDelimitedHandlerPattern = /<[^>]*[/"'`]on[a-z]+\s*=/i;
+
+// Interactive attributes can follow a non-space delimiter after a prior attribute
+// (`href="x"ping=…>`, `src=x/draggable`). Scan with quoted values emptied like the
+// handler check so benign URLs such as src="/online=1" are not flagged.
+const nonSpaceDelimitedInteractiveAttrPattern =
+  /<[^>]*[/"'`](?:ping|contenteditable|popover|autofocus|tabindex|draggable)\s*=/i;
 
 function emptyQuotedAttributeValues(content) {
   return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
@@ -347,6 +359,10 @@ export function validateArticleContent(slug, content) {
 
   if (nonSpaceDelimitedHandlerPattern.test(emptyQuotedAttributeValues(content))) {
     throw new Error(`Unsafe article content in "${slug}": inline event handlers are not allowed in article content`);
+  }
+
+  if (nonSpaceDelimitedInteractiveAttrPattern.test(emptyQuotedAttributeValues(content))) {
+    throw new Error(`Unsafe article content in "${slug}": interactive HTML attributes are not allowed in article content`);
   }
 
   const decoded = decodeForSchemeScan(content);
