@@ -246,6 +246,14 @@ rejects('Intro.\n\n<  math  ><mi>x</mi></math>', 'spaced <math> element');
 // Prose that merely names these formats without an opening tag must still pass.
 accepts('SVG and MathML are XML-based formats, described here only as prose.', 'benign svg/math prose');
 
+// <dialog open> renders a top-layer overlay (with backdrop) and no script or
+// inline style, so a raw <dialog> is a clickjacking/phishing primitive. Blocked.
+rejects('Intro.\n\n<dialog open>Your wallet is compromised. Visit evil.example.</dialog>', 'plain <dialog open>');
+rejects('Intro.\n\n<  dialog  >hidden modal</dialog>', 'spaced <dialog>');
+
+// Prose that merely mentions the word "dialog" without an opening tag must pass.
+accepts('A dialog box is a UI concept mentioned here only as prose.', 'benign dialog prose');
+
 // Prose that merely mentions these English words without the directive colon
 // must still pass — guard the new patterns against false positives.
 accepts('This client is set to define the class list style, and the server is fast.', 'benign client/server/set/class/define prose');

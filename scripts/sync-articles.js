@@ -48,6 +48,11 @@ const unsafeContentPatterns = [
   { pattern: /<\s*script[\s>]/i, reason: 'script tags are not allowed in article content' },
   { pattern: /<\s*\/\s*script\s*>/i, reason: 'script tags are not allowed in article content' },
   { pattern: /<\s*(base|frame|frameset|iframe|object|embed|link|meta|style|form|input|button|textarea|select|option|fieldset|legend|datalist|output)\b/i, reason: 'active HTML elements are not allowed in article content' },
+  // <dialog open> renders in the browser top layer -- above all page content, with
+  // a backdrop -- with no script and no inline style. That makes a raw <dialog> a
+  // clickjacking/phishing overlay primitive (e.g. a fake "wallet compromised" modal
+  // covering the article). Article bodies never need it, so block the element.
+  { pattern: /<\s*dialog\b/i, reason: 'dialog elements are not allowed in article content' },
   // <svg> and <math> are foreign-content roots: a browser parses their subtree
   // with XML/foreign rules, which is a classic mXSS vector (e.g. an <svg> can
   // carry <foreignObject> HTML, animation elements that retarget attributes, or
