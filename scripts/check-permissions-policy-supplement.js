@@ -13,7 +13,8 @@ import path from 'node:path';
 // digital-credentials-get for unsolicited Digital Credentials API ID prompts;
 // storage-access for embedded content elevating to cross-site cookie access;
 // attribution-reporting for ad-conversion measurement/cross-site reporting;
-// compute-pressure for CPU/thermal-pressure side-channel and fingerprinting).
+// compute-pressure for CPU/thermal-pressure side-channel and fingerprinting;
+// nfc for Web NFC tag reading/writing against nearby hardware).
 export const SUPPLEMENTAL_DENIED_FEATURES = [
   'execution-while-not-rendered',
   'execution-while-out-of-viewport',
@@ -22,6 +23,7 @@ export const SUPPLEMENTAL_DENIED_FEATURES = [
   'idle-detection',
   'keyboard-map',
   'local-fonts',
+  'nfc',
   'otp-credentials',
   'publickey-credentials-create',
   'storage-access',
@@ -413,6 +415,28 @@ assert.throws(
 assert.ok(
   FULL_POLICY.includes('deferred-fetch-minimal=()'),
   'production Permissions-Policy must deny deferred-fetch-minimal',
+);
+
+// nfc gates the Web NFC API (read/write nearby NFC tags); a static wiki never
+// touches NFC hardware, so deny it to block unsolicited tag access from injected content.
+assert.throws(
+  () => validateSupplementalPermissionsPolicy(FULL_POLICY.replace('nfc=(), ', '')),
+  /must deny nfc/,
+  'a Permissions-Policy missing nfc must be rejected',
+);
+
+assert.throws(
+  () =>
+    validateSupplementalPermissionsPolicy(
+      FULL_POLICY.replace('nfc=()', 'nfc=(self)'),
+    ),
+  /must deny nfc/,
+  'a Permissions-Policy that grants nfc to an origin must be rejected',
+);
+
+assert.ok(
+  FULL_POLICY.includes('nfc=()'),
+  'production Permissions-Policy must deny nfc',
 );
 
 console.log('Supplemental Permissions-Policy check passed');
