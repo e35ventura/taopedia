@@ -62,6 +62,7 @@ const imageAlt = title
 <link rel="alternate" type="application/rss+xml" title="Taopedia" href="/rss.xml" />
 <link rel="alternate" type="application/atom+xml" title="Taopedia" href="/atom.xml" />
 <link rel="alternate" type="application/feed+json" title="Taopedia" href="/feed.json" />
+<link rel="alternate" type="text/x-opml" title="Taopedia feeds" href="/feeds.opml" />
 {(feeds ?? []).map((feed) => (
   <link rel="alternate" type={feed.type} title={feed.title} href={feed.href} />
 ))}
