@@ -6,6 +6,9 @@ const ZERO_WIDTH_SPACE = String.fromCharCode(0x200b);
 const SOFT_HYPHEN = String.fromCharCode(0x00ad);
 const WORD_JOINER = String.fromCharCode(0x2060);
 const NEXT_LINE = String.fromCharCode(0x85);
+const RLO = String.fromCharCode(0x202e); // right-to-left override (Trojan Source)
+const LRI = String.fromCharCode(0x2066); // left-to-right isolate
+const PDI = String.fromCharCode(0x2069); // pop directional isolate
 
 function rejects(content, label) {
   assert.throws(() => validateArticleContent('fixture', content), /Unsafe article content/, label);
@@ -89,6 +92,16 @@ rejects('See [x](&#100;ata:image/svg+xml;base64,PHN2Zz4=).', 'entity-obfuscated 
 rejects('See [x](&#100;ata:application/xhtml+xml;base64,PHNjcmlwdD4=).', 'entity-obfuscated xhtml data uri');
 rejects('See [x](data:image/svg&plus;xml;base64,PHN2Zz4=).', 'named-plus-entity svg data uri');
 rejects('See [x](data:application/xhtml&plus;xml;base64,PHNjcmlwdD4=).', 'named-plus-entity xhtml data uri');
+
+// Bidirectional control characters (Trojan Source, CVE-2021-42574) reorder how
+// text renders without changing its bytes, so a link can display as a trusted
+// host while resolving elsewhere, or prose can be scrambled past a reviewer.
+// They are invisible in most editors, so they must be rejected outright.
+rejects(`A link [docs](https://docs.bittensor.com${RLO}/evil/) here.`, 'right-to-left override in URL');
+rejects(`Intro.\n\nReorder ${LRI}some text${PDI} here.`, 'directional isolate controls');
+
+// Plain prose with no bidi controls must still pass.
+accepts('Staking and unstaking are described here in ordinary left-to-right prose.', 'benign prose without bidi controls');
 
 // Inline event handlers are blocked regardless of the attribute delimiter — a
 // slash, or a quote abutting the handler — not just a leading space.

@@ -49,6 +49,13 @@ const unsafeContentPatterns = [
   { pattern: /\bdata\s*:\s*image\/svg\+xml/i, reason: 'SVG data URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*application\/xhtml\+xml/i, reason: 'XHTML data URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*(?:text|application)\/(?:javascript|ecmascript)/i, reason: 'script data URLs are not allowed in article content' },
+  // Bidirectional control characters (Trojan Source, CVE-2021-42574) reorder how
+  // text renders without changing its bytes: an attacker can make a link display
+  // as `docs.bittensor.com` while it resolves elsewhere, or hide/scramble prose
+  // a reviewer reads. The chars are invisible in most editors, so block the
+  // override/embedding/isolate controls outright — English glossary prose never
+  // needs them.
+  { pattern: /[\u202a-\u202e\u2066-\u2069]/, reason: 'bidirectional control characters are not allowed in article content' },
   ...directivePatterns,
 ];
 
