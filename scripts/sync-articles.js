@@ -53,6 +53,10 @@ const unsafeContentPatterns = [
   // clickjacking/phishing overlay primitive (e.g. a fake "wallet compromised" modal
   // covering the article). Article bodies never need it, so block the element.
   { pattern: /<\s*dialog\b/i, reason: 'dialog elements are not allowed in article content' },
+  // <details>/<summary> expose interactive disclosure panels in article bodies with
+  // no script and no inline style — the same unwanted interactive surface as dialog.
+  { pattern: /<\s*details\b/i, reason: 'details elements are not allowed in article content' },
+  { pattern: /<\s*summary\b/i, reason: 'summary elements are not allowed in article content' },
   // <template> parses its contents into an inert document fragment rather than the
   // live DOM. That makes it a DOM-clobbering / mutation-XSS surface (named elements
   // inside can shadow `document.<name>` globals, and the hidden subtree is a known
@@ -91,6 +95,11 @@ const unsafeContentPatterns = [
   { pattern: /\scontenteditable\s*=/i, reason: 'contenteditable attributes are not allowed in article content' },
   { pattern: /\stabindex\s*=/i, reason: 'tabindex attributes are not allowed in article content' },
   { pattern: /\sdraggable\s*=/i, reason: 'draggable attributes are not allowed in article content' },
+  // download= on an allowed <a> turns a normal link into a drive-by file download;
+  // popover= on allowed elements renders a native top-layer overlay (like dialog)
+  // with no script or flagged scheme. Article bodies never need either attribute.
+  { pattern: /\sdownload\s*=/i, reason: 'download attributes are not allowed in article content' },
+  { pattern: /\spopover\s*=/i, reason: 'popover attributes are not allowed in article content' },
   { pattern: /\bjavascript\s*:/i, reason: 'javascript: URLs are not allowed in article content' },
   { pattern: /\bvbscript\s*:/i, reason: 'vbscript: URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
@@ -148,7 +157,7 @@ const nonSpaceDelimitedHandlerPattern = /<[^>]*[/"'`]on[a-z]+\s*=/i;
 // attribute (`href="x"contenteditable=…>`, `class=x/tabindex=`). Scan with quoted
 // values emptied like the handler check so benign URLs such as src="/online=1" pass.
 const nonSpaceDelimitedInteractionSurfaceAttrPattern =
-  /<[^>]*[/"'`](?:contenteditable|tabindex|draggable)\s*=/i;
+  /<[^>]*[/"'`](?:contenteditable|tabindex|draggable|download|popover)\s*=/i;
 
 function emptyQuotedAttributeValues(content) {
   return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
@@ -399,7 +408,7 @@ export function validateArticleContent(slug, content) {
 
   if (nonSpaceDelimitedInteractionSurfaceAttrPattern.test(emptyQuotedAttributeValues(content))) {
     throw new Error(
-      `Unsafe article content in "${slug}": contenteditable, tabindex, and draggable attributes are not allowed in article content`,
+      `Unsafe article content in "${slug}": contenteditable, tabindex, draggable, download, and popover attributes are not allowed in article content`,
     );
   }
 
