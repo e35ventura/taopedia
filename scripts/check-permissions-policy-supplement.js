@@ -4,7 +4,9 @@ import path from 'node:path';
 
 // Supplemental Permissions-Policy denials validated separately from check-csp.js
 // so header hardening PRs can land without conflicting on the monolithic DENIED list.
-// Does not deny clipboard-write — CiteCopyButtons.astro needs cite-page copying.
+// Does not deny clipboard-write — CiteCopyButtons.astro needs cite-page copying;
+// clipboard-read IS denied (the site never reads the clipboard) so injected content
+// cannot exfiltrate a reader's copied seed phrase or wallet address.
 // Only MDN-standardized features with concrete browser security impact are added here
 // (otp-credentials for WebOTP SMS interception; identity-credentials-get for FedCM;
 // publickey-credentials-create for WebAuthn registration-ceremony hijacking;
@@ -25,6 +27,7 @@ export const SUPPLEMENTAL_DENIED_FEATURES = [
   'storage-access',
   'attribution-reporting',
   'compute-pressure',
+  'clipboard-read',
 ];
 
 export function validateSupplementalPermissionsPolicy(value) {
@@ -258,6 +261,32 @@ assert.throws(
 assert.ok(
   FULL_POLICY.includes('compute-pressure=()'),
   'production Permissions-Policy must deny compute-pressure',
+);
+
+assert.throws(
+  () => validateSupplementalPermissionsPolicy(FULL_POLICY.replace('clipboard-read=(), ', '')),
+  /must deny clipboard-read/,
+  'a Permissions-Policy missing clipboard-read must be rejected',
+);
+
+assert.throws(
+  () =>
+    validateSupplementalPermissionsPolicy(
+      FULL_POLICY.replace('clipboard-read=()', 'clipboard-read=(self)'),
+    ),
+  /must deny clipboard-read/,
+  'a Permissions-Policy that grants clipboard-read to an origin must be rejected',
+);
+
+assert.ok(
+  FULL_POLICY.includes('clipboard-read=()'),
+  'production Permissions-Policy must deny clipboard-read',
+);
+
+// clipboard-write must remain allowed so CiteCopyButtons.astro keeps working.
+assert.ok(
+  !/(^|[,\s])clipboard-write=\(\)/.test(FULL_POLICY),
+  'Permissions-Policy must NOT deny clipboard-write (CiteCopyButtons needs it)',
 );
 
 console.log('Supplemental Permissions-Policy check passed');
