@@ -31,6 +31,7 @@ export const SUPPLEMENTAL_DENIED_FEATURES = [
   'all-screens-capture',
   'captured-surface-control',
   'private-state-token-issuance',
+  'private-state-token-redemption',
 ];
 
 export function validateSupplementalPermissionsPolicy(value) {
@@ -350,6 +351,26 @@ assert.throws(
 assert.ok(
   FULL_POLICY.includes('private-state-token-issuance=()'),
   'production Permissions-Policy must deny private-state-token-issuance',
+);
+
+assert.throws(
+  () => validateSupplementalPermissionsPolicy(FULL_POLICY.replace('private-state-token-redemption=(), ', '')),
+  /must deny private-state-token-redemption/,
+  'a Permissions-Policy missing private-state-token-redemption must be rejected',
+);
+
+assert.throws(
+  () =>
+    validateSupplementalPermissionsPolicy(
+      FULL_POLICY.replace('private-state-token-redemption=()', 'private-state-token-redemption=(self)'),
+    ),
+  /must deny private-state-token-redemption/,
+  'a Permissions-Policy that grants private-state-token-redemption to an origin must be rejected',
+);
+
+assert.ok(
+  FULL_POLICY.includes('private-state-token-redemption=()'),
+  'production Permissions-Policy must deny private-state-token-redemption',
 );
 
 console.log('Supplemental Permissions-Policy check passed');
