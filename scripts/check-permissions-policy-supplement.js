@@ -30,6 +30,7 @@ export const SUPPLEMENTAL_DENIED_FEATURES = [
   'clipboard-read',
   'all-screens-capture',
   'captured-surface-control',
+  'private-state-token-issuance',
 ];
 
 export function validateSupplementalPermissionsPolicy(value) {
@@ -329,6 +330,26 @@ assert.throws(
 assert.ok(
   FULL_POLICY.includes('captured-surface-control=()'),
   'production Permissions-Policy must deny captured-surface-control',
+);
+
+assert.throws(
+  () => validateSupplementalPermissionsPolicy(FULL_POLICY.replace('private-state-token-issuance=(), ', '')),
+  /must deny private-state-token-issuance/,
+  'a Permissions-Policy missing private-state-token-issuance must be rejected',
+);
+
+assert.throws(
+  () =>
+    validateSupplementalPermissionsPolicy(
+      FULL_POLICY.replace('private-state-token-issuance=()', 'private-state-token-issuance=(self)'),
+    ),
+  /must deny private-state-token-issuance/,
+  'a Permissions-Policy that grants private-state-token-issuance to an origin must be rejected',
+);
+
+assert.ok(
+  FULL_POLICY.includes('private-state-token-issuance=()'),
+  'production Permissions-Policy must deny private-state-token-issuance',
 );
 
 console.log('Supplemental Permissions-Policy check passed');
