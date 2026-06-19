@@ -10,7 +10,8 @@ import path from 'node:path';
 // publickey-credentials-create for WebAuthn registration-ceremony hijacking;
 // digital-credentials-get for unsolicited Digital Credentials API ID prompts;
 // storage-access for embedded content elevating to cross-site cookie access;
-// attribution-reporting for ad-conversion measurement/cross-site reporting).
+// attribution-reporting for ad-conversion measurement/cross-site reporting;
+// compute-pressure for CPU/thermal-pressure side-channel and fingerprinting).
 export const SUPPLEMENTAL_DENIED_FEATURES = [
   'execution-while-not-rendered',
   'execution-while-out-of-viewport',
@@ -23,6 +24,7 @@ export const SUPPLEMENTAL_DENIED_FEATURES = [
   'publickey-credentials-create',
   'storage-access',
   'attribution-reporting',
+  'compute-pressure',
 ];
 
 export function validateSupplementalPermissionsPolicy(value) {
@@ -236,6 +238,26 @@ assert.throws(
 assert.ok(
   FULL_POLICY.includes('attribution-reporting=()'),
   'production Permissions-Policy must deny attribution-reporting',
+);
+
+assert.throws(
+  () => validateSupplementalPermissionsPolicy(FULL_POLICY.replace('compute-pressure=(), ', '')),
+  /must deny compute-pressure/,
+  'a Permissions-Policy missing compute-pressure must be rejected',
+);
+
+assert.throws(
+  () =>
+    validateSupplementalPermissionsPolicy(
+      FULL_POLICY.replace('compute-pressure=()', 'compute-pressure=(self)'),
+    ),
+  /must deny compute-pressure/,
+  'a Permissions-Policy that grants compute-pressure to an origin must be rejected',
+);
+
+assert.ok(
+  FULL_POLICY.includes('compute-pressure=()'),
+  'production Permissions-Policy must deny compute-pressure',
 );
 
 console.log('Supplemental Permissions-Policy check passed');
