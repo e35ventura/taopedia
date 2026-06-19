@@ -531,6 +531,62 @@ assert.throws(
   'a Permissions-Policy that grants microphone to an origin must be rejected',
 );
 
+// `geolocation` and `bluetooth` are the two highest-impact wireless /
+// location APIs in the Permissions-Policy: a granted-to-origin denial
+// lets a compromised embed read the reader's precise GPS coordinates or
+// pair with a nearby Bluetooth device, both with no script and no flagged
+// scheme. The validation loop already rejects these via the
+// (^|[,\s])feature=\(\) regex in validatePermissionsPolicyConfig, but only
+// `usb`, `gamepad`, `xr-spatial-tracking`, `camera`, and `microphone` had
+// individual negative tests. Adding explicit missing-and-granted pairs
+// for `geolocation` and `bluetooth` proves the loop still fires on these
+// specific features after a future policy edit. Mirrors the per-feature
+// self-test pattern established by #361, #393, and #398.
+
+// `geolocation` — precise location data is the canonical privacy-breach
+// payload for a tracked reader; the wiki has no map, no store-finder, no
+// geofenced anything that would justify granting it.
+assert.throws(
+  () =>
+    validatePermissionsPolicyConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Permissions-Policy = "${FULL_PERMISSIONS_POLICY.replace('geolocation=(), ', '')}"\n`,
+    ),
+  /must deny geolocation/,
+  'a Permissions-Policy missing geolocation must be rejected',
+);
+
+assert.throws(
+  () =>
+    validatePermissionsPolicyConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Permissions-Policy = "${FULL_PERMISSIONS_POLICY.replace('geolocation=()', 'geolocation=(self)')}"\n`,
+    ),
+  /must deny geolocation/,
+  'a Permissions-Policy that grants geolocation to an origin must be rejected',
+);
+
+// `bluetooth` — the Web Bluetooth API lets a page pair with and read from
+// nearby Bluetooth Low Energy devices (heart-rate monitors, beacons,
+// keyboards). A granted-to-origin denial exposes a side channel for
+// fingerprinting and a foothold for physical-world device attacks. The
+// wiki ships no Bluetooth UI, so any relaxation is pure loss.
+assert.throws(
+  () =>
+    validatePermissionsPolicyConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Permissions-Policy = "${FULL_PERMISSIONS_POLICY.replace('bluetooth=(), ', '')}"\n`,
+    ),
+  /must deny bluetooth/,
+  'a Permissions-Policy missing bluetooth must be rejected',
+);
+
+assert.throws(
+  () =>
+    validatePermissionsPolicyConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Permissions-Policy = "${FULL_PERMISSIONS_POLICY.replace('bluetooth=()', 'bluetooth=(self)')}"\n`,
+    ),
+  /must deny bluetooth/,
+  'a Permissions-Policy that grants bluetooth to an origin must be rejected',
+);
+
 // A Cross-Origin-Opener-Policy of same-origin in the catch-all block is accepted.
 assert.doesNotThrow(
   () =>
