@@ -65,6 +65,7 @@
     "test:category-feed": "node scripts/check-category-feed.js",
     "test:category-atom-feed": "node scripts/check-category-atom-feed.js",
     "test:json-feed": "node scripts/check-json-feed.js",
+    "test:site-feed-completeness": "node scripts/check-site-feed-completeness.js",
     "test:json-feed-discovery": "node scripts/check-json-feed-discovery.js",
     "test:category-feed-discovery": "node scripts/check-category-feed-discovery.js",
     "test:category-json-feed": "node scripts/check-category-json-feed.js",
