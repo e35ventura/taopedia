@@ -1,17 +1,15 @@
 # Contributing To Taopedia
 
-Taopedia uses two repositories:
+Taopedia is split across two repositories:
 
-- Use this repository for website changes: Astro pages, layouts, styling, search, build scripts, and Netlify config.
-- Use `taopedia-articles` for article additions, article edits, citations, and MDX content.
-
-Article repo:
-
-https://github.com/e35ventura/taopedia-articles
+- Use this repository for website changes: Astro pages, layouts, styling, search, build scripts, metadata, and deployment config.
+- Use `taopedia-articles` for article additions, article edits, citations, and MDX content: https://github.com/e35ventura/taopedia-articles
 
 ## Before You Start
 
-Create an issue or pull request for meaningful app changes. Contributor pull requests should target `test`, not `main`. Keep changes focused so reviews are straightforward.
+Contributors should target pull requests at `test`, not `main`.
+
+Keep PRs focused. A good PR should be easy to describe in one sentence, easy to review from the diff, and useful enough that Taopedia should carry the added code or maintenance surface long term.
 
 Use Node.js 22.12 or newer.
 
@@ -22,37 +20,40 @@ npm run dev
 
 For local article sync, place `taopedia-articles` next to this repository or set `TAOPEDIA_ARTICLES_DIR`.
 
-## Pull Request Guidelines
+## What To Include In A PR
 
-- Keep app changes separate from article/content changes.
-- Do not commit generated `src/content/pages` output.
-- Run `npm run build` before opening a pull request when code or styling changes.
-- Include visual evidence for any UI, layout, styling, responsive, or interaction behavior change.
-- Use existing CSS custom properties for colors, backgrounds, borders, and themed UI states. Do not hardcode light-only or dark-only colors unless you are defining a new theme token.
-- Explain any routing, search, or deployment behavior changes in the PR description.
+Every PR should explain:
 
-## Visual Evidence Requirements
+- What changed.
+- Why the change is useful for Taopedia.
+- How the change was tested.
+- Any route, search, metadata, build, or deployment behavior affected by the change.
 
-Visual or interaction PRs must include author-provided evidence in the PR description before review.
-A Netlify deploy preview link by itself is not enough.
+Do not mix app changes with article/content changes. Do not commit generated `src/content/pages` output.
 
-Visual evidence must show what changed, not just what the final state looks like.
+Run `npm run build` before opening a PR when code, routes, metadata, styling, or build behavior changes.
 
-For static visual changes, include before and after screenshots. Use the same page URL and viewport width for both screenshots.
+Use existing CSS custom properties for colors, backgrounds, borders, and themed UI states. Do not hardcode light-only or dark-only colors unless the PR is intentionally adding a new theme token.
 
-For interaction changes, include a short screen recording or GIF. If screenshots are clearer than a recording, include screenshots that show the before behavior and the after behavior.
+## Visual Changes
 
-Light/Dark screenshots are useful for theme coverage, but they do not replace before/after evidence.
+If a PR creates or changes anything visible, include visual evidence in the PR description before review.
 
-For each piece of evidence, include:
+This includes new pages, new visible components, navigation links, layout changes, styling changes, responsive changes, and interaction changes. A new page is still a visual change. A deploy preview link alone is not enough.
 
-- Page URL.
-- Viewport width, especially for responsive changes.
-- Action taken, for interaction changes.
-- Expected before behavior.
-- Expected after behavior.
+For visual changes, include before and after screenshots for the affected surface. For a new page, use the closest existing page, index, navigation area, or missing-route state as the before screenshot, then show the new page as the after screenshot.
 
-PRs that change UI, layout, styling, responsive behavior, or user interaction without this evidence may be closed and resubmitted with complete review evidence.
+For interaction changes, include a short video/GIF or screenshots that clearly show the before and after behavior.
+
+Good visual evidence includes the page URL, viewport width, what changed, and what the reviewer should compare. Light/Dark screenshots can be helpful, but they do not replace before/after evidence.
+
+PRs that add or change visible UI without useful before/after evidence may be closed and resubmitted with complete evidence.
+
+## Review Expectations
+
+Taopedia prefers small, concrete improvements over broad cleanup or generic best-practice churn. Passing CI is required, but it is not enough by itself.
+
+PRs may be closed when the benefit is unclear, the change is too broad, the testing is weak, the PR adds low-value maintenance surface, or the visual evidence is missing.
 
 ## App Areas
 
@@ -66,4 +67,4 @@ PRs that change UI, layout, styling, responsive behavior, or user interaction wi
 
 ## Deployment
 
-Merging to `test` validates changes without updating production. Maintainers promote `test` to `main` with the release workflow when changes are ready. Merging to `main` triggers the Netlify production deploy for this app. Article-only changes should be made in `taopedia-articles`; merged article changes are picked up by the next site rebuild.
+Merging to `test` validates changes without updating production. Maintainers promote `test` to `main` with the release workflow when changes are ready. Merging to `main` triggers the Netlify production deploy for this app.
