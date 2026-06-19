@@ -50,6 +50,7 @@
     "test:allpages-directory": "node scripts/check-allpages-directory.js",
     "test:og-text-layout": "node scripts/check-og-text-layout.js",
     "test:og-images": "node scripts/check-og-images.js",
+    "test:og-image-dimensions": "node scripts/check-og-image-dimensions.js",
     "test:share-metadata": "node scripts/check-share-metadata.js",
     "test:md-article": "node scripts/check-md-article.js",
     "test:history-date": "node scripts/check-history-date.js",
