@@ -61,6 +61,7 @@
     "test:rss-feed": "node scripts/check-rss-feed.js",
     "test:atom-feed": "node scripts/check-atom-feed.js",
     "test:atom-discovery": "node scripts/check-atom-discovery.js",
+    "test:opml": "node scripts/check-opml.js",
     "test:category-feed": "node scripts/check-category-feed.js",
     "test:category-atom-feed": "node scripts/check-category-atom-feed.js",
     "test:json-feed": "node scripts/check-json-feed.js",
