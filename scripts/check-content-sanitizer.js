@@ -262,6 +262,14 @@ rejects('Intro.\n\n<  template  >hidden</template>', 'spaced <template>');
 // Prose that merely mentions the word "template" without an opening tag must pass.
 accepts('An article template is a writing convention mentioned here only as prose.', 'benign template prose');
 
+// <fencedframe> embeds cross-origin content like <iframe> (its Privacy Sandbox
+// successor), so it is the same embedding/clickjacking surface. Blocked.
+rejects('Intro.\n\n<fencedframe src="https://evil.example/"></fencedframe>', 'plain <fencedframe>');
+rejects('Intro.\n\n<  fencedframe  >x</fencedframe>', 'spaced <fencedframe>');
+
+// Prose that merely mentions the word "fencedframe" without a tag must pass.
+accepts('A fencedframe is an embedding primitive described here only as prose.', 'benign fencedframe prose');
+
 // Prose that merely mentions these English words without the directive colon
 // must still pass — guard the new patterns against false positives.
 accepts('This client is set to define the class list style, and the server is fast.', 'benign client/server/set/class/define prose');

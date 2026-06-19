@@ -59,6 +59,11 @@ const unsafeContentPatterns = [
   // sanitizer-evasion trick), with no rendered output a reader would ever want in
   // glossary prose. Block the element outright, like the other parsing-context tags.
   { pattern: /<\s*template\b/i, reason: 'template elements are not allowed in article content' },
+  // <fencedframe> embeds cross-origin content in its own browsing context, the
+  // same embedding/clickjacking/phishing surface as the already-blocked <iframe>
+  // (it is the Privacy Sandbox successor to it). Article bodies never embed other
+  // origins, so block it alongside the other embedding elements.
+  { pattern: /<\s*fencedframe\b/i, reason: 'fencedframe elements are not allowed in article content' },
   // <svg> and <math> are foreign-content roots: a browser parses their subtree
   // with XML/foreign rules, which is a classic mXSS vector (e.g. an <svg> can
   // carry <foreignObject> HTML, animation elements that retarget attributes, or
