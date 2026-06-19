@@ -57,6 +57,7 @@ export function buildOpml({
   siteName = SITE_NAME,
   description = SITE_DESCRIPTION,
   categories,
+  now = new Date(),
 }) {
   const root = String(origin || '').replace(/\/+$/, '');
   const sortedCategories = Array.isArray(categories)
@@ -112,6 +113,11 @@ export function buildOpml({
     '  <head>\n' +
     `    <title>${escapeXml(siteName)} feeds</title>\n` +
     `    <ownerName>${escapeXml(siteName)}</ownerName>\n` +
+    // OPML 2.0 lists <dateModified> (RFC 822) as a <head> child so readers can
+    // tell when the index was last refreshed; without it staleness tracking and
+    // cache revalidation have no anchor. Date#toUTCString emits the same
+    // RFC 822 / RFC 7231 IMF-fixdate format the spec example uses.
+    `    <dateModified>${escapeXml(now.toUTCString())}</dateModified>\n` +
     `    <description>${escapeXml(description)}</description>\n` +
     '  </head>\n' +
     '  <body>\n' +
