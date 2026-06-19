@@ -254,6 +254,14 @@ rejects('Intro.\n\n<  dialog  >hidden modal</dialog>', 'spaced <dialog>');
 // Prose that merely mentions the word "dialog" without an opening tag must pass.
 accepts('A dialog box is a UI concept mentioned here only as prose.', 'benign dialog prose');
 
+// <template> parses its contents into an inert fragment (DOM-clobbering /
+// mutation-XSS / sanitizer-evasion surface) and renders nothing, so block it.
+rejects('Intro.\n\n<template id="config"><a id="evil"></a></template>', 'plain <template>');
+rejects('Intro.\n\n<  template  >hidden</template>', 'spaced <template>');
+
+// Prose that merely mentions the word "template" without an opening tag must pass.
+accepts('An article template is a writing convention mentioned here only as prose.', 'benign template prose');
+
 // Prose that merely mentions these English words without the directive colon
 // must still pass — guard the new patterns against false positives.
 accepts('This client is set to define the class list style, and the server is fast.', 'benign client/server/set/class/define prose');

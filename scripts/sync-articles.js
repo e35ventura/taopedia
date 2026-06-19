@@ -53,6 +53,12 @@ const unsafeContentPatterns = [
   // clickjacking/phishing overlay primitive (e.g. a fake "wallet compromised" modal
   // covering the article). Article bodies never need it, so block the element.
   { pattern: /<\s*dialog\b/i, reason: 'dialog elements are not allowed in article content' },
+  // <template> parses its contents into an inert document fragment rather than the
+  // live DOM. That makes it a DOM-clobbering / mutation-XSS surface (named elements
+  // inside can shadow `document.<name>` globals, and the hidden subtree is a known
+  // sanitizer-evasion trick), with no rendered output a reader would ever want in
+  // glossary prose. Block the element outright, like the other parsing-context tags.
+  { pattern: /<\s*template\b/i, reason: 'template elements are not allowed in article content' },
   // <svg> and <math> are foreign-content roots: a browser parses their subtree
   // with XML/foreign rules, which is a classic mXSS vector (e.g. an <svg> can
   // carry <foreignObject> HTML, animation elements that retarget attributes, or
