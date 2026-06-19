@@ -200,6 +200,40 @@ rejects('A link <a href="/wiki/stake/" style="color:red">stake</a> here.', 'styl
 accepts('The visual style of the site is defined in a separate stylesheet.', 'benign style prose');
 accepts('A lifestyle choice is unrelated to CSS and must not be flagged.', 'benign lifestyle substring');
 
+// ping= enables hyperlink auditing beacons; contenteditable/tabindex/draggable expose
+// editing, focus-order, and drag surfaces. Every case below uses allowed elements
+// (<a>, <div>, <p>, <span>, <img>) — never <input> or <button>, which are blocked
+// as active elements and would make these attribute tests impossible to validate.
+rejects('A link <a href="/wiki/stake/" ping="https://evil.example/beacon">stake</a> here.', 'ping on anchor');
+rejects('Intro.\n\n<  a   ping = "https://evil.example/beacon" href="/">link</a>', 'spaced ping on anchor');
+rejects('<a href="x"ping="https://evil.example/beacon">link</a>', 'quote-abutted ping on anchor');
+rejects('<img src=x/ping="https://evil.example/beacon">', 'slash-delimited ping on img');
+
+rejects('Intro.\n\n<div contenteditable="true">edit me</div>', 'contenteditable on div');
+rejects('Intro.\n\n<  p   contenteditable = "plaintext-only">edit</p>', 'spaced contenteditable on p');
+rejects('<div href="x"contenteditable="true">edit</div>', 'quote-abutted contenteditable on div');
+rejects('<p class=x/contenteditable="true">edit</p>', 'slash-delimited contenteditable on p');
+
+rejects('Intro.\n\n<span draggable="true">drag</span>', 'draggable on span');
+rejects('Intro.\n\n<  div   draggable = "false">drag</div>', 'spaced draggable on div');
+rejects('<span title=x/draggable="true">drag</span>', 'slash-delimited draggable on span');
+rejects('<div class=x/draggable="true">drag</div>', 'slash-delimited draggable on div');
+
+rejects('Intro.\n\n<div tabindex="0">trap</div>', 'tabindex on div');
+rejects('Intro.\n\n<  div   tabindex = "0">trap</div>', 'spaced tabindex on div');
+rejects('A link <a href="/wiki/foo/" tabindex="-1">foo</a> here.', 'tabindex on anchor');
+rejects('<a href="x"tabindex="0">link</a>', 'quote-abutted tabindex on anchor');
+rejects('<div class=x/tabindex="0">trap</div>', 'slash-delimited tabindex on div');
+
+// Benign URLs inside quoted attribute values must not trip the non-space scan.
+accepts('See <a href="/online=1">pricing</a> for details.', 'equals sign inside quoted href');
+
+// Prose that discusses these attributes without an assignment must still pass.
+accepts('Hyperlink auditing uses the ping attribute on anchor elements.', 'benign ping prose');
+accepts('Rich editors set contenteditable on a container element.', 'benign contenteditable prose');
+accepts('Drag-and-drop UIs mark elements with the draggable attribute.', 'benign draggable prose');
+accepts('Keyboard navigation can reference the tabindex attribute.', 'benign tabindex prose');
+
 // xmlns namespace attribute assignments must not appear in article bodies.
 rejects('Intro.\n\n<svg xmlns="http://www.w3.org/2000/svg"></svg>', 'plain xmlns attribute');
 rejects('Intro.\n\n<svg xmlns = "http://www.w3.org/2000/svg"></svg>', 'spaced equals xmlns attribute');

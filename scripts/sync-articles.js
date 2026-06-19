@@ -54,6 +54,13 @@ const unsafeContentPatterns = [
   // (`position:fixed`), or spoof content — all with no script, handler, or
   // flagged scheme. Article bodies are plain prose, so the attribute is blocked.
   { pattern: /\sstyle\s*=/i, reason: 'inline style attributes are not allowed in article content' },
+  // ping= sends hyperlink-auditing beacons; contenteditable/tabindex/draggable expose
+  // editing, focus-order, and drag surfaces on allowed elements (<a>, <div>, <p>, etc.).
+  // Tests deliberately use only allowed elements — <input>/<button> are already blocked.
+  { pattern: /\sping\s*=/i, reason: 'ping attributes are not allowed in article content' },
+  { pattern: /\scontenteditable\s*=/i, reason: 'contenteditable attributes are not allowed in article content' },
+  { pattern: /\sdraggable\s*=/i, reason: 'draggable attributes are not allowed in article content' },
+  { pattern: /\stabindex\s*=/i, reason: 'tabindex attributes are not allowed in article content' },
   { pattern: /\sxmlns(?:\s*:\s*[\w-]+)?\s*=\s*/i, reason: 'xmlns attributes are not allowed in article content' },
   { pattern: /\son[a-z]+\s*=/i, reason: 'inline event handlers are not allowed in article content' },
   { pattern: /\bjavascript\s*:/i, reason: 'javascript: URLs are not allowed in article content' },
@@ -107,6 +114,12 @@ function assertSafeInfoboxRowValue(value, filePath, index) {
 // with quoted values emptied: the URL text inside them is removed, while the
 // closing quote (a real attribute boundary) is preserved so `"x"onclick=` is caught.
 const nonSpaceDelimitedHandlerPattern = /<[^>]*[/"'`]on[a-z]+\s*=/i;
+
+// Tracking/interaction attributes can abut a prior attribute without whitespace
+// (`href="x"ping=…>`, `class=x/tabindex="0"`). Scan with quoted values emptied
+// like the handler check so benign URLs such as src="/online=1" are not flagged.
+const nonSpaceDelimitedTrackingAttrPattern =
+  /<[^>]*[/"'`](?:ping|contenteditable|draggable|tabindex)\s*=/i;
 
 function emptyQuotedAttributeValues(content) {
   return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
@@ -353,6 +366,10 @@ export function validateArticleContent(slug, content) {
 
   if (nonSpaceDelimitedHandlerPattern.test(emptyQuotedAttributeValues(content))) {
     throw new Error(`Unsafe article content in "${slug}": inline event handlers are not allowed in article content`);
+  }
+
+  if (nonSpaceDelimitedTrackingAttrPattern.test(emptyQuotedAttributeValues(content))) {
+    throw new Error(`Unsafe article content in "${slug}": tracking and interaction attributes are not allowed in article content`);
   }
 
   const decoded = decodeForSchemeScan(content);
