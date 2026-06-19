@@ -480,6 +480,57 @@ assert.throws(
   'a Permissions-Policy that grants xr-spatial-tracking to an origin must be rejected',
 );
 
+// `camera` and `microphone` are the two highest-impact device APIs in the
+// Permissions-Policy: a missing or granted-to-origin denial is a webcam/mic
+// hijack waiting to happen, and the wiki embeds neither. The validation loop
+// already rejects these via the (^|[,\s])feature=\(\) regex in
+// validatePermissionsPolicyConfig, but only `usb`, `gamepad`, and
+// `xr-spatial-tracking` had individual negative tests. Adding explicit
+// missing-and-granted pairs for `camera` and `microphone` proves the loop
+// still fires on these specific features after a future policy edit. Mirrors
+// the per-feature self-test pattern established by #361 and #393.
+
+// `camera` — a stolen webcam stream is a privacy breach the site has no use
+// for, and Astro components do not call getUserMedia.
+assert.throws(
+  () =>
+    validatePermissionsPolicyConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Permissions-Policy = "${FULL_PERMISSIONS_POLICY.replace('camera=(), ', '')}"\n`,
+    ),
+  /must deny camera/,
+  'a Permissions-Policy missing camera must be rejected',
+);
+
+assert.throws(
+  () =>
+    validatePermissionsPolicyConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Permissions-Policy = "${FULL_PERMISSIONS_POLICY.replace('camera=()', 'camera=(self)')}"\n`,
+    ),
+  /must deny camera/,
+  'a Permissions-Policy that grants camera to an origin must be rejected',
+);
+
+// `microphone` — paired with camera for audio capture; same privacy-breach
+// class. Mirrors the camera test pair so a future edit cannot silently
+// re-enable one without the other.
+assert.throws(
+  () =>
+    validatePermissionsPolicyConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Permissions-Policy = "${FULL_PERMISSIONS_POLICY.replace('microphone=(), ', '')}"\n`,
+    ),
+  /must deny microphone/,
+  'a Permissions-Policy missing microphone must be rejected',
+);
+
+assert.throws(
+  () =>
+    validatePermissionsPolicyConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Permissions-Policy = "${FULL_PERMISSIONS_POLICY.replace('microphone=()', 'microphone=(self)')}"\n`,
+    ),
+  /must deny microphone/,
+  'a Permissions-Policy that grants microphone to an origin must be rejected',
+);
+
 // A Cross-Origin-Opener-Policy of same-origin in the catch-all block is accepted.
 assert.doesNotThrow(
   () =>
