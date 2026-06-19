@@ -27,6 +27,14 @@ try {
   const obfuscatedRowValueInfobox = infoboxFixturePath('obfuscated_row_value_infobox');
   const svgRowValueInfobox = infoboxFixturePath('svg_row_value_infobox');
   const scriptDataRowValueInfobox = infoboxFixturePath('script_data_row_value_infobox');
+  const bidiTitleInfobox = infoboxFixturePath('bidi_title_infobox');
+  const bidiCaptionInfobox = infoboxFixturePath('bidi_caption_infobox');
+  const bidiRowLabelInfobox = infoboxFixturePath('bidi_row_label_infobox');
+  const bidiRowValueInfobox = infoboxFixturePath('bidi_row_value_infobox');
+  // Bidirectional control characters render in infobox text (title, caption,
+  // labels, values) just like article body prose, so they carry the same Trojan
+  // Source/spoofing risk. RLO = U+202E.
+  const RLO = String.fromCharCode(0x202e);
 
   fs.mkdirSync(articleDir, { recursive: true });
   fs.writeFileSync(validJson, JSON.stringify({ rows: 'generic JSON assets may use any valid JSON shape' }));
@@ -62,6 +70,22 @@ try {
   fs.writeFileSync(
     scriptDataRowValueInfobox,
     JSON.stringify({ rows: [{ label: 'Payload', value: 'data:text/javascript,alert(1)' }] }),
+  );
+  fs.writeFileSync(
+    bidiTitleInfobox,
+    JSON.stringify({ title: `Stake${RLO}drainer`, rows: [{ label: 'Type', value: 'Fixture' }] }),
+  );
+  fs.writeFileSync(
+    bidiCaptionInfobox,
+    JSON.stringify({ caption: `Figure${RLO}spoof`, rows: [{ label: 'Type', value: 'Fixture' }] }),
+  );
+  fs.writeFileSync(
+    bidiRowLabelInfobox,
+    JSON.stringify({ rows: [{ label: `Net${RLO}work`, value: 'Fixture' }] }),
+  );
+  fs.writeFileSync(
+    bidiRowValueInfobox,
+    JSON.stringify({ rows: [{ label: 'Link', value: `docs.bittensor.com${RLO}/evil/` }] }),
   );
 
   assert.doesNotThrow(
@@ -131,6 +155,26 @@ try {
     () => validateArticleJsonAsset(scriptDataRowValueInfobox),
     /Invalid infobox JSON asset.*rows\[0\]\.value contains a disallowed URL scheme/,
     'script data URLs in infobox row values should be rejected during sync',
+  );
+  assert.throws(
+    () => validateArticleJsonAsset(bidiTitleInfobox),
+    /Invalid infobox JSON asset.*title contains bidirectional control characters/,
+    'bidi controls in the infobox title should be rejected during sync',
+  );
+  assert.throws(
+    () => validateArticleJsonAsset(bidiCaptionInfobox),
+    /Invalid infobox JSON asset.*caption contains bidirectional control characters/,
+    'bidi controls in the infobox caption should be rejected during sync',
+  );
+  assert.throws(
+    () => validateArticleJsonAsset(bidiRowLabelInfobox),
+    /Invalid infobox JSON asset.*rows\[0\]\.label contains bidirectional control characters/,
+    'bidi controls in an infobox row label should be rejected during sync',
+  );
+  assert.throws(
+    () => validateArticleJsonAsset(bidiRowValueInfobox),
+    /Invalid infobox JSON asset.*rows\[0\]\.value contains bidirectional control characters/,
+    'bidi controls in an infobox row value should be rejected during sync',
   );
 } finally {
   fs.rmSync(tempRoot, { recursive: true, force: true });

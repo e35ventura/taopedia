@@ -34,6 +34,14 @@ const directivePatterns = [
   { pattern: /\bdefine:[a-z-]+\b/i, reason: 'define directives are not allowed in article content' },
 ];
 
+// Bidirectional control characters (Trojan Source, CVE-2021-42574) reorder how
+// text renders without changing its bytes, so a link can display as a trusted
+// host while resolving elsewhere, or prose can be scrambled past a reviewer.
+// Shared by the article-content scan and the infobox JSON checks so every place
+// that renders article text rejects them. Written as \uXXXX escapes so this
+// rule stays bidi-free itself.
+const bidiControlPattern = /[\u202a-\u202e\u2066-\u2069]/;
+
 const unsafeContentPatterns = [
   { pattern: /^\s*import\s/m, reason: 'MDX imports are not allowed in article content' },
   { pattern: /^\s*export\s/m, reason: 'MDX exports are not allowed in article content' },
@@ -67,6 +75,7 @@ const unsafeContentPatterns = [
   { pattern: /\bdata\s*:\s*image\/svg\+xml/i, reason: 'SVG data URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*application\/xhtml\+xml/i, reason: 'XHTML data URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*(?:text|application)\/(?:javascript|ecmascript)/i, reason: 'script data URLs are not allowed in article content' },
+  { pattern: bidiControlPattern, reason: 'bidirectional control characters are not allowed in article content' },
   ...directivePatterns,
 ];
 
@@ -396,6 +405,12 @@ function assertOptionalString(value, fieldName, filePath) {
   }
 }
 
+function assertNoBidiControls(value, fieldName, filePath) {
+  if (typeof value === 'string' && bidiControlPattern.test(value)) {
+    throw new Error(`Invalid infobox JSON asset in "${filePath}": ${fieldName} contains bidirectional control characters`);
+  }
+}
+
 export function validateInfoboxJsonAsset(filePath, data) {
   if (!isPlainObject(data)) {
     throw new Error(`Invalid infobox JSON asset in "${filePath}": root must be an object`);
@@ -404,6 +419,8 @@ export function validateInfoboxJsonAsset(filePath, data) {
   assertOptionalString(data.title, 'title', filePath);
   assertOptionalString(data.image, 'image', filePath);
   assertOptionalString(data.caption, 'caption', filePath);
+  assertNoBidiControls(data.title, 'title', filePath);
+  assertNoBidiControls(data.caption, 'caption', filePath);
 
   if (typeof data.image === 'string' && data.image.trim()) {
     if (isUnsafeImageUrl(data.image) || hasLocalImagePathTraversal(data.image)) {
@@ -426,6 +443,8 @@ export function validateInfoboxJsonAsset(filePath, data) {
     if (typeof row.value !== 'string') {
       throw new Error(`Invalid infobox JSON asset in "${filePath}": rows[${index}].value must be a string`);
     }
+    assertNoBidiControls(row.label, `rows[${index}].label`, filePath);
+    assertNoBidiControls(row.value, `rows[${index}].value`, filePath);
     assertSafeInfoboxRowValue(row.value, filePath, index);
   });
 }
