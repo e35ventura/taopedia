@@ -531,6 +531,53 @@ assert.throws(
   'a Permissions-Policy that grants microphone to an origin must be rejected',
 );
 
+// `geolocation` and `bluetooth` are privacy-sensitive APIs the wiki never
+// uses, so they must remain explicitly denied. The validation loop already
+// rejects these via the (^|[,\s])feature=\(\) regex in
+// validatePermissionsPolicyConfig, but only `usb`, `gamepad`,
+// `xr-spatial-tracking`, `camera`, and `microphone` had individual negative
+// tests. Adding explicit missing-and-granted pairs for `geolocation` and
+// `bluetooth` preserves per-feature regression coverage. Mirrors the
+// per-feature self-test pattern established by #361, #393, and #398.
+
+// `geolocation` — privacy-sensitive API the site never uses.
+assert.throws(
+  () =>
+    validatePermissionsPolicyConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Permissions-Policy = "${FULL_PERMISSIONS_POLICY.replace('geolocation=(), ', '')}"\n`,
+    ),
+  /must deny geolocation/,
+  'a Permissions-Policy missing geolocation must be rejected',
+);
+
+assert.throws(
+  () =>
+    validatePermissionsPolicyConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Permissions-Policy = "${FULL_PERMISSIONS_POLICY.replace('geolocation=()', 'geolocation=(self)')}"\n`,
+    ),
+  /must deny geolocation/,
+  'a Permissions-Policy that grants geolocation to an origin must be rejected',
+);
+
+// `bluetooth` — privacy-sensitive API the site never uses.
+assert.throws(
+  () =>
+    validatePermissionsPolicyConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Permissions-Policy = "${FULL_PERMISSIONS_POLICY.replace('bluetooth=(), ', '')}"\n`,
+    ),
+  /must deny bluetooth/,
+  'a Permissions-Policy missing bluetooth must be rejected',
+);
+
+assert.throws(
+  () =>
+    validatePermissionsPolicyConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Permissions-Policy = "${FULL_PERMISSIONS_POLICY.replace('bluetooth=()', 'bluetooth=(self)')}"\n`,
+    ),
+  /must deny bluetooth/,
+  'a Permissions-Policy that grants bluetooth to an origin must be rejected',
+);
+
 // A Cross-Origin-Opener-Policy of same-origin in the catch-all block is accepted.
 assert.doesNotThrow(
   () =>
