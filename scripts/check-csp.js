@@ -584,6 +584,16 @@ assert.throws(
   "a CSP with media-src 'self' must be rejected",
 );
 
+// A media-src wildcard must be REJECTED — the wiki ships no audio or video at all.
+assert.throws(
+  () =>
+    validateCspConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "${VALID_CSP.replace("media-src 'none'", 'media-src *')}"\n`,
+    ),
+  /media-src/,
+  'a CSP with media-src * must be rejected',
+);
+
 // A CSP missing script-src-attr must be REJECTED — without it, script-src
 // 'unsafe-inline' re-enables inline event-handler attributes. Derived from
 // VALID_CSP so the fixture stays in sync with the canonical policy.
@@ -811,6 +821,16 @@ assert.throws(
   'a CSP with style-src missing unsafe-inline must be rejected',
 );
 
+// A style-src without 'self' must be REJECTED — bundled stylesheets must keep loading.
+assert.throws(
+  () =>
+    validateCspConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "script-src-attr 'none'; media-src 'none'; default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; img-src 'self' https: data:; style-src 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
+    ),
+  /'self'/,
+  "a CSP with style-src missing 'self' must be rejected",
+);
+
 // script-src regression coverage for the production inline-script contract.
 assert.throws(
   () =>
@@ -849,6 +869,16 @@ assert.throws(
     ),
   /wasm-unsafe-eval/,
   'a CSP with script-src missing wasm-unsafe-eval must be rejected',
+);
+
+// A script-src without 'self' must be REJECTED — site scripts must keep loading.
+assert.throws(
+  () =>
+    validateCspConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "script-src-attr 'none'; media-src 'none'; default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; manifest-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'unsafe-inline' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'"\n`,
+    ),
+  /'self'/,
+  "a CSP with script-src missing 'self' must be rejected",
 );
 
 // img-src regression coverage — one rejection test per asserted requirement.
