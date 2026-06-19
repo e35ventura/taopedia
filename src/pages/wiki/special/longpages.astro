@@ -1,0 +1,84 @@
+---
+import WikiLayout from '../../../layouts/WikiLayout.astro';
+import { getCollection } from 'astro:content';
+import { getPageSlug } from '../../../lib/article-history';
+import { compareTitles } from '../../../lib/title-sort.js';
+
+// Special:LongPages — articles ranked by body word count, descending. Pairs with
+// the existing Special:ShortPages: together they give readers a quick way to
+// find the most thorough treatments and the quickest references. Built only from
+// the content collection (page.body), using the same word-count formula the
+// per-article word count, Special:Statistics, and Special:RecentChanges already
+// use, so every count shown on this site agrees with this page. Skips articles
+// with no body so stub / placeholder entries can't lead the ranking.
+const pages = await getCollection('pages');
+
+const LONG_LIMIT = 100;
+const ranked = pages
+  .map((page) => {
+    const words = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
+    return { slug: getPageSlug(page), title: page.data.title, words };
+  })
+  .filter((entry) => entry.words > 0)
+  .sort(
+    (a, b) =>
+      b.words - a.words ||
+      compareTitles(a.title, b.title) ||
+      compareTitles(a.slug, b.slug),
+  )
+  .slice(0, LONG_LIMIT);
+---
+
+<WikiLayout
+  title="Long pages"
+  description="The longest articles in the Taopedia Bittensor knowledge base, ranked by word count."
+>
+  <div class="mw-body-content">
+    <h1 class="firstHeading">Long pages</h1>
+
+    <div class="mw-parser-output">
+      <p>
+        Articles ranked by body word count, longest first. The count links to the
+        article and uses the same word-count formula as the per-article word
+        count and Special:Statistics, so totals agree across the site.
+      </p>
+
+      {ranked.length === 0 ? (
+        <p>No long pages available yet.</p>
+      ) : (
+        <ol class="mw-longpages">
+          {ranked.map((entry) => (
+            <li class="mw-lp-row">
+              <a class="mw-lp-title" href={`/wiki/${entry.slug}/`}>{entry.title}</a>
+              <span class="mw-lp-count">{entry.words} {entry.words === 1 ? 'word' : 'words'}</span>
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
+  </div>
+</WikiLayout>
+
+<style>
+  .mw-longpages {
+    margin: 16px 0;
+    padding-left: 32px;
+  }
+  .mw-lp-row {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border-color-subtle);
+    font-size: 14px;
+  }
+  .mw-lp-title {
+    font-weight: 600;
+  }
+  .mw-lp-count {
+    margin-left: auto;
+    font-size: 13px;
+    white-space: nowrap;
+    color: var(--color-base-subtle);
+  }
+</style>
