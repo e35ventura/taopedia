@@ -465,6 +465,15 @@ rejects('<img src=x/usemap="#evil">', 'slash-delimited usemap attribute');
 accepts('An image map is a UI concept described here only as prose.', 'benign map prose');
 accepts('The usemap attribute pairs an image with a map element.', 'benign usemap prose');
 
+// width=/height= on allowed <img> reserve an oversized layout box without style=.
+// Tag-scoped and scanned on emptyQuotedAttributeValues() so alt text passes.
+rejects('Intro.\n\n<img src="/wiki/fig.png" width="9999" height="2000" alt="x">', 'plain img width/height attributes');
+rejects('Intro.\n\n<  img   src="/wiki/fig.png"   width = "800">', 'spaced img width attribute');
+rejects('<img src="/wiki/fig.png"width="9999">', 'quote-abutted img width attribute');
+rejects('<img src=x/height="2000">', 'slash-delimited img height attribute');
+accepts('<img src="/wiki/fig.png" alt="default width=800 pixels">', 'benign width= text inside img alt');
+accepts('Image width and height are described here only as prose.', 'benign width/height prose');
+
 // Prose that merely mentions these English words without the directive colon
 // must still pass — guard the new patterns against false positives.
 accepts('This client is set to define the class list style, and the server is fast.', 'benign client/server/set/class/define prose');
