@@ -123,6 +123,12 @@ rejects('Intro.\n\n<noscript><img src="//evil.example/x"></noscript>', 'plain <n
 rejects('Intro.\n\n<  noscript  >fallback</noscript>', 'spaced <noscript>');
 accepts('Progressive enhancement and noscript fallbacks are described here as prose.', 'benign noscript prose');
 
+// <marquee> still renders an animated scrolling banner in current browsers, so an
+// injected one is a content-spoofing / phishing surface with no script. Blocked.
+rejects('Intro.\n\n<marquee>Your wallet is compromised — visit evil.example</marquee>', 'plain <marquee>');
+rejects('Intro.\n\n<  marquee   behavior="alternate">x</marquee>', 'spaced <marquee>');
+accepts('Scrolling marquee banners are a legacy UI pattern described here as prose.', 'benign marquee prose');
+
 // Plain dangerous URL schemes remain blocked.
 rejects('See [x](javascript:alert(1)).', 'plain javascript:');
 rejects('See [x](vbscript:msgbox(1)).', 'plain vbscript:');

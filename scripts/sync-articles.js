@@ -89,6 +89,12 @@ const unsafeContentPatterns = [
   // DOMPurify special-case it). A glossary never needs script-fallback markup, so
   // block the element like the other parsing-context tags.
   { pattern: /<\s*noscript\b/i, reason: 'noscript elements are not allowed in article content' },
+  // <marquee> still renders an animated, attention-grabbing scrolling banner in
+  // every current browser. An injected <marquee> in article content is a concrete
+  // content-spoofing / phishing surface (e.g. a fake scrolling "wallet compromised"
+  // alert) with no script, handler, or flagged scheme. Block it like the other
+  // unwanted rendered elements (video/audio/picture, dialog, details).
+  { pattern: /<\s*marquee\b/i, reason: 'marquee elements are not allowed in article content' },
   { pattern: /\sslot\s*=/i, reason: 'slot attributes are not allowed in article content' },
   // The <style> element is already blocked above, but an inline `style=`
   // attribute on any allowed element is the matching gap: it lets injected CSS
