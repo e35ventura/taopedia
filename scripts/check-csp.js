@@ -531,6 +531,48 @@ assert.throws(
   'a Permissions-Policy that grants microphone to an origin must be rejected',
 );
 
+// `serial` — the Web Serial API hands a page a raw read/write channel to attached
+// serial/USB-serial devices (a hardware-access breach the wiki has no use for).
+// Pin a dedicated test pair like camera/microphone so a future edit cannot drop it.
+assert.throws(
+  () =>
+    validatePermissionsPolicyConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Permissions-Policy = "${FULL_PERMISSIONS_POLICY.replace('serial=(), ', '')}"\n`,
+    ),
+  /must deny serial/,
+  'a Permissions-Policy missing serial must be rejected',
+);
+
+assert.throws(
+  () =>
+    validatePermissionsPolicyConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Permissions-Policy = "${FULL_PERMISSIONS_POLICY.replace('serial=()', 'serial=(self)')}"\n`,
+    ),
+  /must deny serial/,
+  'a Permissions-Policy that grants serial to an origin must be rejected',
+);
+
+// `bluetooth` — the Web Bluetooth API exposes nearby BLE devices to a page, a
+// hardware/proximity-access breach with no use on a static wiki. Same dedicated
+// pair so missing/over-permissive bluetooth cannot silently regress.
+assert.throws(
+  () =>
+    validatePermissionsPolicyConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Permissions-Policy = "${FULL_PERMISSIONS_POLICY.replace('bluetooth=(), ', '')}"\n`,
+    ),
+  /must deny bluetooth/,
+  'a Permissions-Policy missing bluetooth must be rejected',
+);
+
+assert.throws(
+  () =>
+    validatePermissionsPolicyConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Permissions-Policy = "${FULL_PERMISSIONS_POLICY.replace('bluetooth=()', 'bluetooth=(self)')}"\n`,
+    ),
+  /must deny bluetooth/,
+  'a Permissions-Policy that grants bluetooth to an origin must be rejected',
+);
+
 // A Cross-Origin-Opener-Policy of same-origin in the catch-all block is accepted.
 assert.doesNotThrow(
   () =>
