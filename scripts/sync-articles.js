@@ -107,6 +107,13 @@ const unsafeContentPatterns = [
   // alert) with no script, handler, or flagged scheme. Block it like the other
   // unwanted rendered elements (video/audio/picture, dialog, details).
   { pattern: /<\s*marquee\b/i, reason: 'marquee elements are not allowed in article content' },
+  // <font>/<basefont>/<center> are obsolete presentational elements that every
+  // browser still renders. They re-introduce the exact content-styling spoof the
+  // inline `style=` attribute is blocked to prevent — <font color/size/face> sets
+  // arbitrary text colour and size (a fake red oversized "wallet compromised"
+  // warning), <basefont> restyles the whole page's text, and <center> repositions
+  // content — all without the blocked attribute, with no script or flagged scheme.
+  { pattern: /<\s*(font|basefont|center)\b/i, reason: 'font, basefont, and center elements are not allowed in article content' },
   // <plaintext>/<xmp>/<listing> are obsolete raw-text elements that browsers still
   // honor in the parser. A single injected <plaintext> makes the browser render
   // EVERYTHING after it — the rest of the article and page — as literal text: a
