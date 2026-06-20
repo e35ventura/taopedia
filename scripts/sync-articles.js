@@ -101,6 +101,15 @@ const unsafeContentPatterns = [
   // concrete defacement / content-break vector with no script, handler, or scheme.
   // (<xmp>/<listing> render their contents as raw preformatted text similarly.)
   { pattern: /<\s*(plaintext|xmp|listing)\b/i, reason: 'plaintext, xmp, and listing elements are not allowed in article content' },
+  // <bdo> is the bidirectional-OVERRIDE element: it forces its text to lay out in
+  // an explicit direction, overriding the Unicode bidi algorithm. An injected
+  // <bdo dir="rtl"> reverses the displayed character order — the markup form of the
+  // bidi control characters already blocked above (Trojan Source, CVE-2021-42574):
+  // a reversed scam address or URL can be made to render as a legitimate-looking
+  // string, with no script, handler, or flagged scheme. The `dir` attribute on an
+  // ordinary element only sets base paragraph direction and does NOT reverse LTR
+  // runs, so <bdo> is a distinct primitive; a glossary's prose never needs it.
+  { pattern: /<\s*bdo\b/i, reason: 'bidirectional override (bdo) elements are not allowed in article content' },
   { pattern: /\sslot\s*=/i, reason: 'slot attributes are not allowed in article content' },
   // The <style> element is already blocked above, but an inline `style=`
   // attribute on any allowed element is the matching gap: it lets injected CSS
