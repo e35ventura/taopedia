@@ -34,6 +34,7 @@ export const SUPPLEMENTAL_DENIED_FEATURES = [
   'private-state-token-redemption',
   'deferred-fetch',
   'deferred-fetch-minimal',
+  'unload',
 ];
 
 export function validateSupplementalPermissionsPolicy(value) {
@@ -413,6 +414,26 @@ assert.throws(
 assert.ok(
   FULL_POLICY.includes('deferred-fetch-minimal=()'),
   'production Permissions-Policy must deny deferred-fetch-minimal',
+);
+
+assert.throws(
+  () => validateSupplementalPermissionsPolicy(FULL_POLICY.replace('unload=(), ', '')),
+  /must deny unload/,
+  'a Permissions-Policy missing unload must be rejected',
+);
+
+assert.throws(
+  () =>
+    validateSupplementalPermissionsPolicy(
+      FULL_POLICY.replace('unload=()', 'unload=(self)'),
+    ),
+  /must deny unload/,
+  'a Permissions-Policy that grants unload to an origin must be rejected',
+);
+
+assert.ok(
+  FULL_POLICY.includes('unload=()'),
+  'production Permissions-Policy must deny unload',
 );
 
 console.log('Supplemental Permissions-Policy check passed');
