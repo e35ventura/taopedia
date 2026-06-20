@@ -123,6 +123,13 @@ rejects('Intro.\n\n<noscript><img src="//evil.example/x"></noscript>', 'plain <n
 rejects('Intro.\n\n<  noscript  >fallback</noscript>', 'spaced <noscript>');
 accepts('Progressive enhancement and noscript fallbacks are described here as prose.', 'benign noscript prose');
 
+// <noframes>/<noembed> are the obsolete siblings of <noscript> — raw-text
+// parsing-context elements whose visibility flips on frames/embed support, the
+// same mXSS/sanitizer-confusion surface. Blocked like noscript.
+rejects('Intro.\n\n<noframes><img src="//evil.example/x"></noframes>', 'plain <noframes>');
+rejects('Intro.\n\n<  noembed  >fallback</noembed>', 'spaced <noembed>');
+accepts('Noframes and noembed fallbacks are described here only as prose.', 'benign noframes/noembed prose');
+
 // <marquee> still renders an animated scrolling banner in current browsers, so an
 // injected one is a content-spoofing / phishing surface with no script. Blocked.
 rejects('Intro.\n\n<marquee>Your wallet is compromised — visit evil.example</marquee>', 'plain <marquee>');

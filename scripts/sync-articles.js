@@ -89,6 +89,12 @@ const unsafeContentPatterns = [
   // DOMPurify special-case it). A glossary never needs script-fallback markup, so
   // block the element like the other parsing-context tags.
   { pattern: /<\s*noscript\b/i, reason: 'noscript elements are not allowed in article content' },
+  // <noframes>/<noembed> are the obsolete siblings of <noscript>: their contents
+  // are parsed as raw text whose visibility flips on the browser's frames/embed
+  // support state, the same parsing-state-dependent mutation-XSS / sanitizer-
+  // confusion surface DOMPurify special-cases for noscript. A glossary never needs
+  // frames/embed fallback markup, so block them alongside noscript.
+  { pattern: /<\s*(noframes|noembed)\b/i, reason: 'noframes and noembed elements are not allowed in article content' },
   // <marquee> still renders an animated, attention-grabbing scrolling banner in
   // every current browser. An injected <marquee> in article content is a concrete
   // content-spoofing / phishing surface (e.g. a fake scrolling "wallet compromised"
