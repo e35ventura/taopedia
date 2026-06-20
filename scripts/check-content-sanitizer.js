@@ -130,6 +130,15 @@ rejects('Intro.\n\n<noframes><img src="//evil.example/x"></noframes>', 'plain <n
 rejects('Intro.\n\n<  noembed  >fallback</noembed>', 'spaced <noembed>');
 accepts('Noframes and noembed fallbacks are described here only as prose.', 'benign noframes/noembed prose');
 
+// <dir>/<keygen>/<menu>/<slot> are legacy / out-of-context elements (removed
+// directory list, removed key-pair control, legacy menu, shadow-DOM-only slot)
+// that have no place in glossary prose. Blocked like the other legacy elements.
+rejects('Intro.\n\n<dir><li>x</li></dir>', 'plain <dir>');
+rejects('Intro.\n\n<  keygen   name="key">', 'spaced <keygen>');
+rejects('Intro.\n\n<menu type="context"><li>x</li></menu>', 'plain <menu>');
+rejects('Intro.\n\n<slot name="x">fallback</slot>', 'plain <slot>');
+accepts('Directory listings and context menus are described here only as prose.', 'benign legacy-element prose');
+
 // <marquee> still renders an animated scrolling banner in current browsers, so an
 // injected one is a content-spoofing / phishing surface with no script. Blocked.
 rejects('Intro.\n\n<marquee>Your wallet is compromised — visit evil.example</marquee>', 'plain <marquee>');

@@ -101,6 +101,13 @@ const unsafeContentPatterns = [
   // confusion surface DOMPurify special-cases for noscript. A glossary never needs
   // frames/embed fallback markup, so block them alongside noscript.
   { pattern: /<\s*(noframes|noembed)\b/i, reason: 'noframes and noembed elements are not allowed in article content' },
+  // <dir>/<keygen>/<menu>/<slot> are legacy / out-of-context elements a glossary
+  // never needs: <dir> (removed directory list) and <keygen> (removed key-pair
+  // form control — the rest of its form family is already blocked) are obsolete
+  // parser-inconsistency surfaces; <menu> renders a legacy interactive menu list;
+  // and the <slot> element only does anything inside a shadow root (its `slot=`
+  // attribute is already blocked). None belong in article prose, so block them.
+  { pattern: /<\s*(dir|keygen|menu|slot)\b/i, reason: 'dir, keygen, menu, and slot elements are not allowed in article content' },
   // <marquee> still renders an animated, attention-grabbing scrolling banner in
   // every current browser. An injected <marquee> in article content is a concrete
   // content-spoofing / phishing surface (e.g. a fake scrolling "wallet compromised"
