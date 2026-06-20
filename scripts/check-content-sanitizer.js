@@ -372,6 +372,13 @@ rejects('Intro.\n\n<div align="center">Fake centered alert</div>', 'plain align 
 rejects('Intro.\n\n<  td   valign = "top">x</td>', 'spaced valign attribute');
 accepts('Text alignment and vertical alignment are controlled by the stylesheet.', 'benign align prose');
 
+// border=/cellpadding=/cellspacing=/hspace=/vspace= are obsolete presentational
+// sizing/spacing attributes that size+space content without the blocked style=.
+rejects('Intro.\n\n<table border="5" cellpadding="20">x</table>', 'plain border attribute');
+rejects('Intro.\n\n<  img   hspace = "40" vspace="40">', 'spaced hspace attribute');
+rejects('Intro.\n\n<td cellspacing="30">x</td>', 'plain cellspacing attribute');
+accepts('Table borders and cell padding are defined in the stylesheet, not inline.', 'benign border/padding prose');
+
 // xmlns namespace attribute assignments must not appear in article bodies.
 rejects('Intro.\n\n<svg xmlns="http://www.w3.org/2000/svg"></svg>', 'plain xmlns attribute');
 rejects('Intro.\n\n<svg xmlns = "http://www.w3.org/2000/svg"></svg>', 'spaced equals xmlns attribute');
