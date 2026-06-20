@@ -280,6 +280,13 @@ const nonSpaceDelimitedInteractionSurfaceAttrPattern =
 const imgDimensionAttrPattern = /<\s*img\b[^>]*\s(?:width|height)\s*=/i;
 const nonSpaceDelimitedImgDimensionAttrPattern = /<\s*img\b[^>]*[/"'`](?:width|height)\s*=/i;
 
+// autofocus steals keyboard focus on page load — a focus-theft primitive on allowed
+// elements with no script. Tag-boundary lookahead catches autofocus before another
+// attribute (<div autofocus class="x">). Quote-abutted only — no slash delimiter,
+// because class=x/autofocus is a class value, not an autofocus attribute (parse5).
+const autofocusAttrPattern = /<[^>]*\sautofocus(?=[\s>/=])/i;
+const quoteAbuttedAutofocusAttrPattern = /<[^>]*["'`]autofocus(?=[\s>/=])/i;
+
 function emptyQuotedAttributeValues(content) {
   return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
 }
@@ -542,6 +549,13 @@ export function validateArticleContent(slug, content) {
     throw new Error(
       `Unsafe article content in "${slug}": width and height attributes are not allowed in article content`,
     );
+  }
+
+  if (
+    autofocusAttrPattern.test(emptiedAttributeContent)
+    || quoteAbuttedAutofocusAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(`Unsafe article content in "${slug}": autofocus attributes are not allowed in article content`);
   }
 
   const decoded = decodeForSchemeScan(content);
