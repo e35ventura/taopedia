@@ -513,6 +513,13 @@ accepts('<img src=/wiki/srcset-demo.png alt=diagram>', 'benign unquoted img src 
 accepts('<img src=/wiki/sizes-demo.png alt=diagram>', 'benign unquoted img src path containing sizes substring');
 accepts('Responsive srcset and media sizes are described here only as prose.', 'benign srcset/sizes prose');
 
+// loading= on <img> defers fetch until near viewport — scroll-triggered beacon (merged #461 family).
+rejects('Intro.\n\n<img src="https://evil.example/pixel.gif" loading="lazy" alt="x">', 'plain img loading attribute');
+rejects('Intro.\n\n<  img   src="/wiki/fig.png"   loading = "lazy">', 'spaced img loading attribute');
+rejects('<img src="/wiki/fig.png"loading="lazy">', 'quote-abutted img loading attribute');
+accepts('<img src=/wiki/loading-demo.png alt=diagram>', 'benign unquoted img src path containing loading substring');
+accepts('Lazy loading improves performance and is described here only as prose.', 'benign loading prose');
+
 // Prose that merely mentions these English words without the directive colon
 // must still pass — guard the new patterns against false positives.
 accepts('This client is set to define the class list style, and the server is fast.', 'benign client/server/set/class/define prose');
