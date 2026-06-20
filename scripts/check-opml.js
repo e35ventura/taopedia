@@ -84,15 +84,33 @@ const projectRoot = path.resolve(__dirname, '..');
     'xmlUrls containing ampersands must be XML-escaped (& → &amp;) so the OPML stays well-formed',
   );
 
-  // Deterministic ordering: categories must appear in raw string order so the
-  // output is byte-stable across build machines. With the inputs above, the
-  // sorted order is ["Consensus", "Subnets", "Tokenomics"].
+  // Deterministic ordering: category groups appear in compareTitles order — the
+  // same numeric-collation sort (locale-pinned to 'en', so still build-machine-
+  // independent) that Special:Categories / Special:Statistics / the sitemap use.
+  // With the inputs above the order is ["Consensus", "Subnets", "Tokenomics"].
   const consensusIdx = opml.indexOf('text="Consensus"');
   const subnetsIdx = opml.indexOf('text="Subnets"');
   const tokenomicsIdx = opml.indexOf('text="Tokenomics"');
   assert.ok(consensusIdx > -1 && subnetsIdx > -1 && tokenomicsIdx > -1, 'all test categories must be present');
-  assert.ok(consensusIdx < subnetsIdx, 'Consensus must sort before Subnets (raw string order)');
-  assert.ok(subnetsIdx < tokenomicsIdx, 'Subnets must sort before Tokenomics (raw string order)');
+  assert.ok(consensusIdx < subnetsIdx, 'Consensus must sort before Subnets');
+  assert.ok(subnetsIdx < tokenomicsIdx, 'Subnets must sort before Tokenomics');
+
+  // Numeric-suffixed categories (the site has 100+ "Subnet N" topics) must order
+  // NUMERICALLY — Subnet 2 before Subnet 9 before Subnet 10 — matching every other
+  // category listing on the site. Raw string order would put "Subnet 10" before
+  // "Subnet 2"/"Subnet 9"; this pins the compareTitles fix.
+  const numeric = buildOpml({
+    origin: 'https://taopedia.org',
+    categories: ['Subnet 10', 'Subnet 2', 'Subnet 9'],
+  });
+  const s2 = numeric.indexOf('text="Subnet 2"');
+  const s9 = numeric.indexOf('text="Subnet 9"');
+  const s10 = numeric.indexOf('text="Subnet 10"');
+  assert.ok(s2 > -1 && s9 > -1 && s10 > -1, 'all numeric test categories must be present');
+  assert.ok(
+    s2 < s9 && s9 < s10,
+    'numeric-suffixed categories must order numerically (Subnet 2 < Subnet 9 < Subnet 10), not by raw string',
+  );
 
   // Origin trailing slash must be normalized away (no doubled slash in URLs).
   const withSlash = buildOpml({ origin: 'https://taopedia.org/', categories: [] });

@@ -13,6 +13,8 @@
 // src/pages/wiki/category/[category]/{rss.xml,atom.xml,feed.json}.ts and use
 // the same space-to-underscore slug convention as the category hub.
 
+import { compareTitles } from '../src/lib/title-sort.js';
+
 const SITE_NAME = 'Taopedia';
 const SITE_DESCRIPTION = 'Taopedia — a Bittensor knowledge base. Subscribe to site-wide and per-topic feeds.';
 
@@ -33,17 +35,6 @@ function escapeXml(value) {
   });
 }
 
-// Raw string compare for deterministic ordering. NOT localeCompare — per the
-// repo's determinism rule, built output must not depend on the build machine's
-// locale. Categories rarely contain numeric suffixes, so raw ordering is both
-// stable and readable; a future Subnet 9 vs Subnet 10 case is handled by the
-// per-category feed routes which already sort route params deterministically.
-function compareStrings(a, b) {
-  if (a < b) return -1;
-  if (a > b) return 1;
-  return 0;
-}
-
 function categorySlug(name) {
   return String(name ?? '').replace(/ /g, '_');
 }
@@ -60,8 +51,14 @@ export function buildOpml({
   now = new Date(),
 }) {
   const root = String(origin || '').replace(/\/+$/, '');
+  // Order category groups with compareTitles — the SAME numeric-collation sort
+  // (locale-pinned to 'en', so still build-machine-independent) that Special:
+  // Categories, Special:Statistics, and the sitemap use. The site has 100+
+  // numeric-suffixed "Subnet N" categories, so raw string order would list
+  // "Subnet 10" before "Subnet 2"/"Subnet 9", disagreeing with every other
+  // category listing on the site.
   const sortedCategories = Array.isArray(categories)
-    ? [...categories].filter(Boolean).sort(compareStrings)
+    ? [...categories].filter(Boolean).sort(compareTitles)
     : [];
 
   // Site-wide feeds: RSS, Atom, JSON Feed — every page advertises these from
