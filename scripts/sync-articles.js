@@ -95,6 +95,12 @@ const unsafeContentPatterns = [
   // alert) with no script, handler, or flagged scheme. Block it like the other
   // unwanted rendered elements (video/audio/picture, dialog, details).
   { pattern: /<\s*marquee\b/i, reason: 'marquee elements are not allowed in article content' },
+  // <plaintext>/<xmp>/<listing> are obsolete raw-text elements that browsers still
+  // honor in the parser. A single injected <plaintext> makes the browser render
+  // EVERYTHING after it — the rest of the article and page — as literal text: a
+  // concrete defacement / content-break vector with no script, handler, or scheme.
+  // (<xmp>/<listing> render their contents as raw preformatted text similarly.)
+  { pattern: /<\s*(plaintext|xmp|listing)\b/i, reason: 'plaintext, xmp, and listing elements are not allowed in article content' },
   { pattern: /\sslot\s*=/i, reason: 'slot attributes are not allowed in article content' },
   // The <style> element is already blocked above, but an inline `style=`
   // attribute on any allowed element is the matching gap: it lets injected CSS

@@ -129,6 +129,14 @@ rejects('Intro.\n\n<marquee>Your wallet is compromised — visit evil.example</m
 rejects('Intro.\n\n<  marquee   behavior="alternate">x</marquee>', 'spaced <marquee>');
 accepts('Scrolling marquee banners are a legacy UI pattern described here as prose.', 'benign marquee prose');
 
+// <plaintext>/<xmp>/<listing> are obsolete raw-text elements the parser still
+// honors. An injected <plaintext> renders all following content as literal text —
+// a concrete page-defacement vector — so block them.
+rejects('Intro.\n\n<plaintext>everything after this becomes raw text', 'plain <plaintext>');
+rejects('Intro.\n\n<  xmp  >raw</xmp>', 'spaced <xmp>');
+rejects('Intro.\n\n<listing>raw</listing>', 'plain <listing>');
+accepts('A plaintext export or an XMP metadata block is described here only as prose.', 'benign plaintext/xmp prose');
+
 // referrerpolicy= overrides the site's strict Referrer-Policy header for one
 // element — an injected referrerpolicy="unsafe-url" leaks the full referring URL
 // to an external destination. Blocked like the other interaction attributes.
