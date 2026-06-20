@@ -137,6 +137,14 @@ rejects('Intro.\n\n<  xmp  >raw</xmp>', 'spaced <xmp>');
 rejects('Intro.\n\n<listing>raw</listing>', 'plain <listing>');
 accepts('A plaintext export or an XMP metadata block is described here only as prose.', 'benign plaintext/xmp prose');
 
+// <bdo dir="rtl"> forces a per-character direction override (the markup form of the
+// bidi control chars above) — it can render a reversed scam URL/address as a
+// legitimate-looking string. The `dir` attribute on ordinary elements does not
+// reverse LTR runs, so <bdo> is a distinct primitive that must be blocked.
+rejects('Intro.\n\n<bdo dir="rtl">moc.elpmaxe-live//:sptth</bdo>', 'plain <bdo>');
+rejects('Intro.\n\n<  bdo   dir="rtl">x</bdo>', 'spaced <bdo>');
+accepts('Bidirectional override and the bdo element are described here only as prose.', 'benign bdo prose');
+
 // referrerpolicy= overrides the site's strict Referrer-Policy header for one
 // element — an injected referrerpolicy="unsafe-url" leaks the full referring URL
 // to an external destination. Blocked like the other interaction attributes.
