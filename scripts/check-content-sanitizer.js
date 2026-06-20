@@ -465,6 +465,15 @@ rejects('<img src=x/usemap="#evil">', 'slash-delimited usemap attribute');
 accepts('An image map is a UI concept described here only as prose.', 'benign map prose');
 accepts('The usemap attribute pairs an image with a map element.', 'benign usemap prose');
 
+// ismap on <img> inside <a href="…"> appends click coordinates to the link URL.
+// Scanned on emptyQuotedAttributeValues() only so alt text containing "ismap" passes.
+rejects('Intro.\n\n<img src="/wiki/fig.png" ismap alt="diagram">', 'plain ismap attribute');
+rejects('Intro.\n\n<  img   src="/wiki/fig.png"   ismap>', 'spaced ismap attribute');
+rejects('<img src="/wiki/fig.png"ismap>', 'quote-abutted ismap attribute');
+rejects('<img src=x/ismap>', 'slash-delimited ismap attribute');
+accepts('The ismap attribute is obsolete on server-side image maps.', 'benign ismap prose');
+accepts('<img src="/wiki/fig.png" alt="obsolete ismap example">', 'benign ismap word inside img alt');
+
 // Prose that merely mentions these English words without the directive colon
 // must still pass — guard the new patterns against false positives.
 accepts('This client is set to define the class list style, and the server is fast.', 'benign client/server/set/class/define prose');
