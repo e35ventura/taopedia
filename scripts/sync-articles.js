@@ -114,6 +114,12 @@ const unsafeContentPatterns = [
   // warning), <basefont> restyles the whole page's text, and <center> repositions
   // content — all without the blocked attribute, with no script or flagged scheme.
   { pattern: /<\s*(font|basefont|center)\b/i, reason: 'font, basefont, and center elements are not allowed in article content' },
+  // <big>/<strike>/<tt>/<nobr> are the obsolete presentational text elements that
+  // browsers still render: they re-style text (enlarge, strike through, force
+  // monospace, suppress wrapping) without the blocked inline style= attribute — the
+  // same no-attribute content-styling spoof as <font>/<center> above, with no
+  // script, handler, or flagged scheme. Block them with the rest.
+  { pattern: /<\s*(big|strike|tt|nobr)\b/i, reason: 'big, strike, tt, and nobr elements are not allowed in article content' },
   // <plaintext>/<xmp>/<listing> are obsolete raw-text elements that browsers still
   // honor in the parser. A single injected <plaintext> makes the browser render
   // EVERYTHING after it — the rest of the article and page — as literal text: a
