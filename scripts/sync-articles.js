@@ -204,6 +204,11 @@ const unsafeContentPatterns = [
   // usemap= pairs an allowed <img> with a <map>/<area> click region — blocked above,
   // but the attribute alone still signals an image-map injection attempt.
   { pattern: /\susemap\s*=/i, reason: 'usemap attributes are not allowed in article content' },
+  // ismap on an allowed <img> inside an <a href="…"> turns image clicks into a server-side
+  // image-map beacon: coordinates are appended to the link URL as ?x,y query parameters.
+  // map/area/usemap are blocked above; tag-scoped only (not a global \sismap\b) so prose
+  // mentioning the word "ismap" is not rejected.
+  { pattern: /<\s*img\b[^>]*\sismap\b/i, reason: 'ismap attributes are not allowed in article content' },
   // referrerpolicy= on an allowed <a>/<img> overrides, for that element, the
   // strict `Referrer-Policy: strict-origin-when-cross-origin` header the site
   // deliberately ships (netlify.toml). An injected referrerpolicy="unsafe-url"
@@ -272,6 +277,10 @@ const nonSpaceDelimitedHandlerPattern = /<[^>]*[/"'`]on[a-z]+\s*=/i;
 // values emptied like the handler check so benign URLs such as src="/online=1" pass.
 const nonSpaceDelimitedInteractionSurfaceAttrPattern =
   /<[^>]*[/"'`](?:contenteditable|tabindex|draggable|download|popover|usemap|accesskey|referrerpolicy|dir)\s*=/i;
+
+// ismap is a boolean attribute and may appear without `=` after a quote/slash delimiter
+// (e.g. src="x"ismap>). Tag-scoped to <img> only, like the whitespace-delimited rule above.
+const nonSpaceDelimitedIsmapAttrPattern = /<\s*img\b[^>]*[/"'`]ismap\b/i;
 
 function emptyQuotedAttributeValues(content) {
   return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
@@ -524,6 +533,10 @@ export function validateArticleContent(slug, content) {
     throw new Error(
       `Unsafe article content in "${slug}": contenteditable, tabindex, draggable, download, popover, usemap, accesskey, referrerpolicy, and dir attributes are not allowed in article content`,
     );
+  }
+
+  if (nonSpaceDelimitedIsmapAttrPattern.test(emptyQuotedAttributeValues(content))) {
+    throw new Error(`Unsafe article content in "${slug}": ismap attributes are not allowed in article content`);
   }
 
   const decoded = decodeForSchemeScan(content);
