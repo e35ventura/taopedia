@@ -129,6 +129,15 @@ rejects('Intro.\n\n<marquee>Your wallet is compromised — visit evil.example</m
 rejects('Intro.\n\n<  marquee   behavior="alternate">x</marquee>', 'spaced <marquee>');
 accepts('Scrolling marquee banners are a legacy UI pattern described here as prose.', 'benign marquee prose');
 
+// referrerpolicy= overrides the site's strict Referrer-Policy header for one
+// element — an injected referrerpolicy="unsafe-url" leaks the full referring URL
+// to an external destination. Blocked like the other interaction attributes.
+rejects('Intro.\n\n<a href="https://evil.example/" referrerpolicy="unsafe-url">go</a>', 'plain referrerpolicy attribute');
+rejects('Intro.\n\n<  img   src="/wiki/fig.png"   referrerpolicy = "unsafe-url">', 'spaced referrerpolicy attribute');
+rejects('<a href="x"referrerpolicy="unsafe-url">go</a>', 'quote-abutted referrerpolicy attribute');
+rejects('<img src="/a.png"/referrerpolicy="unsafe-url">', 'slash-delimited referrerpolicy attribute');
+accepts('A site-wide referrer policy is configured in the response headers, described here as prose.', 'benign referrer policy prose');
+
 // Plain dangerous URL schemes remain blocked.
 rejects('See [x](javascript:alert(1)).', 'plain javascript:');
 rejects('See [x](vbscript:msgbox(1)).', 'plain vbscript:');
