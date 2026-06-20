@@ -190,6 +190,15 @@ rejects('<a href="x"referrerpolicy="unsafe-url">go</a>', 'quote-abutted referrer
 rejects('<img src="/a.png"/referrerpolicy="unsafe-url">', 'slash-delimited referrerpolicy attribute');
 accepts('A site-wide referrer policy is configured in the response headers, described here as prose.', 'benign referrer policy prose');
 
+// dir= on allowed elements sets text direction — a Trojan Source / visual-spoof
+// primitive (CVE-2021-42574) even though <bdo> and raw bidi controls are blocked.
+rejects('Intro.\n\n<p dir="rtl">moc.elpmaxe-live//:sptth</p>', 'plain dir attribute');
+rejects('Intro.\n\n<  span   dir = "rtl">x</span>', 'spaced dir attribute');
+rejects('<p class=x/dir="rtl">x</p>', 'slash-delimited dir attribute');
+rejects('<a href="x"dir="rtl">link</a>', 'quote-abutted dir attribute');
+accepts('The dir attribute sets base text direction on an element.', 'benign dir prose');
+accepts('A redirect sends the browser to another URL.', 'benign redirect substring');
+
 // Plain dangerous URL schemes remain blocked.
 rejects('See [x](javascript:alert(1)).', 'plain javascript:');
 rejects('See [x](vbscript:msgbox(1)).', 'plain vbscript:');
