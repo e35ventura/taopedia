@@ -110,6 +110,13 @@ const unsafeContentPatterns = [
   // ordinary element only sets base paragraph direction and does NOT reverse LTR
   // runs, so <bdo> is a distinct primitive; a glossary's prose never needs it.
   { pattern: /<\s*bdo\b/i, reason: 'bidirectional override (bdo) elements are not allowed in article content' },
+  // <meter>/<progress> render native gauge and progress-bar widgets in every
+  // current browser. An injected one in article prose is a content-spoofing
+  // surface — e.g. a fake "wallet scan 80%" progress bar or a coloured risk
+  // gauge that lends false legitimacy to a phishing block — with no script,
+  // handler, or flagged scheme. A glossary never renders live status widgets, so
+  // block them like the other non-prose rendered elements (marquee, video/audio).
+  { pattern: /<\s*(meter|progress)\b/i, reason: 'meter and progress elements are not allowed in article content' },
   { pattern: /\sslot\s*=/i, reason: 'slot attributes are not allowed in article content' },
   // The <style> element is already blocked above, but an inline `style=`
   // attribute on any allowed element is the matching gap: it lets injected CSS
