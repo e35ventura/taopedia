@@ -502,6 +502,17 @@ accepts('<div class=x/hidden>not a hidden attribute</div>', 'benign slash inside
 accepts('Hidden text and hidden sections are described here only as prose.', 'benign hidden prose');
 accepts('<img src="/wiki/fig.png" alt="a hidden treasure map">', 'benign hidden word inside img alt');
 
+// srcset=/sizes= on <img> steer responsive loading — gap after #411 blocked picture/source.
+rejects('Intro.\n\n<img src="/wiki/fig.png" srcset="https://evil.example/x 1x" alt="x">', 'plain img srcset attribute');
+rejects('Intro.\n\n<  img   src="/wiki/fig.png"   srcset = "https://evil.example/x 2x">', 'spaced img srcset attribute');
+rejects('<img src="/wiki/fig.png"srcset="https://evil.example/x 1x">', 'quote-abutted img srcset attribute');
+rejects('Intro.\n\n<img src="/wiki/fig.png" sizes="100vw" srcset="/a 100w" alt="x">', 'plain img sizes attribute');
+rejects('Intro.\n\n<  img   src="/wiki/fig.png"   sizes = "50vw">', 'spaced img sizes attribute');
+rejects('<img src="/wiki/fig.png"sizes="100vw">', 'quote-abutted img sizes attribute');
+accepts('<img src=/wiki/srcset-demo.png alt=diagram>', 'benign unquoted img src path containing srcset substring');
+accepts('<img src=/wiki/sizes-demo.png alt=diagram>', 'benign unquoted img src path containing sizes substring');
+accepts('Responsive srcset and media sizes are described here only as prose.', 'benign srcset/sizes prose');
+
 // Prose that merely mentions these English words without the directive colon
 // must still pass — guard the new patterns against false positives.
 accepts('This client is set to define the class list style, and the server is fast.', 'benign client/server/set/class/define prose');
