@@ -25,6 +25,15 @@ export const GET: APIRoute = async ({ site }) => {
   return new Response(body, {
     headers: {
       'Content-Type': 'text/x-opml; charset=utf-8',
+      // The OPML index only changes on a full site rebuild, so it is safe to
+      // cache at the CDN/edge for a short window and revalidate after. Without
+      // an explicit Cache-Control, CDNs and browsers fall back to heuristics
+      // and may either re-fetch on every request or cache stale content
+      // indefinitely. A 5-minute max-age with must-revalidate matches the
+      // site-rebuild cadence (and is the same shape the OG image route uses,
+      // adapted to a shorter lifetime because this endpoint is small text
+      // rather than immutable bytes).
+      'Cache-Control': 'public, max-age=300, must-revalidate',
     },
   });
 };
