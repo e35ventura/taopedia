@@ -34,6 +34,7 @@ export const SUPPLEMENTAL_DENIED_FEATURES = [
   'private-state-token-redemption',
   'deferred-fetch',
   'deferred-fetch-minimal',
+  'ambient-light-sensor',
 ];
 
 export function validateSupplementalPermissionsPolicy(value) {
@@ -413,6 +414,25 @@ assert.throws(
 assert.ok(
   FULL_POLICY.includes('deferred-fetch-minimal=()'),
   'production Permissions-Policy must deny deferred-fetch-minimal',
+);
+
+// ambient-light-sensor gates the Generic Sensor API; a static content wiki never reads device ambient light.
+assert.throws(
+  () => validateSupplementalPermissionsPolicy(FULL_POLICY.replace('ambient-light-sensor=(), ', '')),
+  /must deny ambient-light-sensor/,
+  'a Permissions-Policy missing ambient-light-sensor must be rejected',
+);
+assert.throws(
+  () =>
+    validateSupplementalPermissionsPolicy(
+      FULL_POLICY.replace('ambient-light-sensor=()', 'ambient-light-sensor=(self)'),
+    ),
+  /must deny ambient-light-sensor/,
+  'a Permissions-Policy that grants ambient-light-sensor to an origin must be rejected',
+);
+assert.ok(
+  FULL_POLICY.includes('ambient-light-sensor=()'),
+  'production Permissions-Policy must deny ambient-light-sensor',
 );
 
 console.log('Supplemental Permissions-Policy check passed');
