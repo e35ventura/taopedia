@@ -68,6 +68,12 @@ const unsafeContentPatterns = [
   // (it is the Privacy Sandbox successor to it). Article bodies never embed other
   // origins, so block it alongside the other embedding elements.
   { pattern: /<\s*fencedframe\b/i, reason: 'fencedframe elements are not allowed in article content' },
+  // <portal> is the other experimental page-embedding element: it loads and
+  // previews another document in its own browsing context, then can activate
+  // (navigate) to it — the same cross-origin embedding / clickjacking / phishing
+  // surface as <iframe> and <fencedframe>. Article bodies never embed other
+  // origins, so block it alongside the rest of the embedding family.
+  { pattern: /<\s*portal\b/i, reason: 'portal elements are not allowed in article content' },
   // <video>/<audio> render native media controls in article bodies even though CSP
   // sets media-src 'none' — an injected tag is still a distraction/phishing primitive.
   { pattern: /<\s*(video|audio)\b/i, reason: 'media elements are not allowed in article content' },

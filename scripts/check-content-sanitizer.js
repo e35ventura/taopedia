@@ -383,6 +383,13 @@ rejects('Intro.\n\n<  fencedframe  >x</fencedframe>', 'spaced <fencedframe>');
 // Prose that merely mentions the word "fencedframe" without a tag must pass.
 accepts('A fencedframe is an embedding primitive described here only as prose.', 'benign fencedframe prose');
 
+// <portal> is the other experimental page-embedding element (loads + previews +
+// activates another document), the same embedding/clickjacking surface as
+// iframe/fencedframe. Blocked alongside the embedding family.
+rejects('Intro.\n\n<portal src="https://evil.example/"></portal>', 'plain <portal>');
+rejects('Intro.\n\n<  portal  >x</portal>', 'spaced <portal>');
+accepts('A portal is a page-embedding primitive described here only as prose.', 'benign portal prose');
+
 // <video>/<audio> render native media UI with no script; CSP media-src 'none' does not
 // stop the elements from appearing. Block them like dialog and fencedframe.
 rejects('Intro.\n\n<video src="/evil.mp4" controls></video>', 'plain <video>');
