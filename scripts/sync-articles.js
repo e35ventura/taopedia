@@ -161,6 +161,12 @@ const unsafeContentPatterns = [
   // `ping=`, it leaks the reader's visit to an attacker-chosen URL — and a content
   // spoof, with no handler or flagged scheme. Article markup never sets it.
   { pattern: /\sbackground\s*=/i, reason: 'background attributes are not allowed in article content' },
+  // align=/valign= are obsolete presentational layout attributes: on an allowed
+  // element they reposition content (centre/float/right-align a block, top/bottom
+  // a cell) without the blocked inline style= attribute or the blocked <center>
+  // element — a content-layout spoof (e.g. an injected paragraph floated over the
+  // real text) with no script, handler, or flagged scheme. Block them like style=.
+  { pattern: /\s(?:align|valign)\s*=/i, reason: 'align and valign attributes are not allowed in article content' },
   { pattern: /\sxmlns(?:\s*:\s*[\w-]+)?\s*=\s*/i, reason: 'xmlns attributes are not allowed in article content' },
   { pattern: /\son[a-z]+\s*=/i, reason: 'inline event handlers are not allowed in article content' },
   // The `ping` attribute on an <a> (an allowed element) turns a normal-looking
