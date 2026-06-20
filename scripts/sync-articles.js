@@ -293,6 +293,14 @@ const quoteAbuttedAutofocusAttrPattern = /<[^>]*["'`]autofocus(?=[\s>/=])/i;
 const hiddenAttrPattern = /<[^>]*\shidden(?=[\s>/=])/i;
 const quoteAbuttedHiddenAttrPattern = /<[^>]*["'`]hidden(?=[\s>/=])/i;
 
+// srcset=/sizes= on an allowed <img> steer responsive image loading to attacker-chosen
+// URLs — the gap left after merged #411 blocked <picture>/<source> but not plain
+// <img srcset>/<img sizes>. Tag-scoped, emptyQuotedAttributeValues(), ["'`] only.
+const imgSrcsetAttrPattern = /<\s*img\b[^>]*\ssrcset\s*=/i;
+const imgSrcsetQuoteAbuttedPattern = /<\s*img\b[^>]*["'`]srcset\s*=/i;
+const imgSizesAttrPattern = /<\s*img\b[^>]*\ssizes\s*=/i;
+const imgSizesQuoteAbuttedPattern = /<\s*img\b[^>]*["'`]sizes\s*=/i;
+
 function emptyQuotedAttributeValues(content) {
   return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
 }
@@ -569,6 +577,17 @@ export function validateArticleContent(slug, content) {
     || quoteAbuttedHiddenAttrPattern.test(emptiedAttributeContent)
   ) {
     throw new Error(`Unsafe article content in "${slug}": hidden attributes are not allowed in article content`);
+  }
+
+  if (
+    imgSrcsetAttrPattern.test(emptiedAttributeContent)
+    || imgSrcsetQuoteAbuttedPattern.test(emptiedAttributeContent)
+    || imgSizesAttrPattern.test(emptiedAttributeContent)
+    || imgSizesQuoteAbuttedPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": srcset and sizes attributes are not allowed in article content`,
+    );
   }
 
   const decoded = decodeForSchemeScan(content);
