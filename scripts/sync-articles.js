@@ -287,6 +287,12 @@ const nonSpaceDelimitedImgDimensionAttrPattern = /<\s*img\b[^>]*[/"'`](?:width|h
 const autofocusAttrPattern = /<[^>]*\sautofocus(?=[\s>/=])/i;
 const quoteAbuttedAutofocusAttrPattern = /<[^>]*["'`]autofocus(?=[\s>/=])/i;
 
+// hidden on allowed elements removes content from layout but keeps it in the DOM —
+// an injected <a hidden href="…"> is still a navigable link with no script.
+// Same tag-boundary / quote-abutted detection as autofocus (merged #453).
+const hiddenAttrPattern = /<[^>]*\shidden(?=[\s>/=])/i;
+const quoteAbuttedHiddenAttrPattern = /<[^>]*["'`]hidden(?=[\s>/=])/i;
+
 function emptyQuotedAttributeValues(content) {
   return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
 }
@@ -556,6 +562,13 @@ export function validateArticleContent(slug, content) {
     || quoteAbuttedAutofocusAttrPattern.test(emptiedAttributeContent)
   ) {
     throw new Error(`Unsafe article content in "${slug}": autofocus attributes are not allowed in article content`);
+  }
+
+  if (
+    hiddenAttrPattern.test(emptiedAttributeContent)
+    || quoteAbuttedHiddenAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(`Unsafe article content in "${slug}": hidden attributes are not allowed in article content`);
   }
 
   const decoded = decodeForSchemeScan(content);
