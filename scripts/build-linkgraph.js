@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
 import { fileURLToPath, pathToFileURL } from 'url';
-import { buildSlugAliases, extractWikiLinks, resolveTargetSlug } from './wiki-link-resolver.js';
+import { buildSlugAliases, extractWikiLinks, resolveTargetSlug, slugFromContentPath } from './wiki-link-resolver.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -91,7 +91,7 @@ function main() {
   // First pass: build slug map and extract links
   markdownFiles.forEach(filePath => {
     const relativePath = path.relative(contentDir, filePath);
-    const slug = path.dirname(relativePath).replace(/\\/g, '/');
+    const slug = slugFromContentPath(relativePath);
     const content = fs.readFileSync(filePath, 'utf-8');
     const { data, content: body } = matter(content);
 

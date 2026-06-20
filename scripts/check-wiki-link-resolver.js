@@ -4,7 +4,23 @@ import {
   createRemarkWikiLinkOptions,
   normalizeLinkTarget,
   resolveTargetSlug,
+  slugFromContentPath,
 } from './wiki-link-resolver.js';
+
+// slugFromContentPath must derive the SAME route slug the Astro pages derive from
+// `page.id` (article-history.ts getPageSlug), for BOTH article source shapes the
+// content-collection glob (`**/*.{md,mdx}`) accepts. The previous path.dirname()
+// derivation only handled `<slug>/index.md`: it turned a flat `<slug>.md` into "."
+// and collapsed two `*.md` files in one directory to the same slug, so the
+// build-time link graph / backlinks / slug map silently disagreed with the
+// rendered routes for those articles. These cases guard that regression.
+assert.equal(slugFromContentPath('dynamic_tao/index.md'), 'dynamic_tao', 'nested index.md derives the directory slug');
+assert.equal(slugFromContentPath('dynamic_tao/index.mdx'), 'dynamic_tao', 'nested index.mdx derives the directory slug');
+assert.equal(slugFromContentPath('dynamic_tao.md'), 'dynamic_tao', 'a flat <slug>.md article derives <slug>, not "."');
+assert.equal(slugFromContentPath('dynamic_tao.mdx'), 'dynamic_tao', 'a flat <slug>.mdx article derives <slug>');
+assert.equal(slugFromContentPath('alpha_tokens/notes.md'), 'alpha_tokens/notes', 'a non-index file keeps a distinct slug (no directory collision)');
+assert.equal(slugFromContentPath('a/b/index.md'), 'a/b', 'a deeper index.md keeps its full nested slug');
+assert.equal(slugFromContentPath('dynamic_tao\\index.md'), 'dynamic_tao', 'backslash (Windows) paths derive the same slug');
 
 const slugMap = {
   dynamic_tao: { title: 'Dynamic TAO' },
