@@ -148,6 +148,11 @@ const unsafeContentPatterns = [
   // it is the scripting-companion drawing element a static glossary never needs.
   // Block it like the other non-prose rendered elements.
   { pattern: /<\s*canvas\b/i, reason: 'canvas elements are not allowed in article content' },
+  // <spacer> is the obsolete Netscape layout element that reserves blank horizontal
+  // or vertical space in the live DOM. An injected <spacer width="2000" height="2000">
+  // pushes real article content off-screen — a layout-defacement surface with no
+  // script, handler, or flagged scheme. Block it like <canvas> above.
+  { pattern: /<\s*spacer\b/i, reason: 'spacer elements are not allowed in article content' },
   { pattern: /\sslot\s*=/i, reason: 'slot attributes are not allowed in article content' },
   // The <style> element is already blocked above, but an inline `style=`
   // attribute on any allowed element is the matching gap: it lets injected CSS

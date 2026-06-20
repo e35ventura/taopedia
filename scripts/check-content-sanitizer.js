@@ -181,6 +181,12 @@ rejects('Intro.\n\n<canvas width="1200" height="2000"></canvas>', 'plain <canvas
 rejects('Intro.\n\n<  canvas   id="x">fallback</canvas>', 'spaced <canvas>');
 accepts('The HTML canvas element is described here only as prose.', 'benign canvas prose');
 
+// <spacer> reserves blank layout space in browsers that still honor the obsolete
+// Netscape element — a layout-defacement surface with no script, blocked like canvas.
+rejects('Intro.\n\n<spacer width="2000" height="2000">', 'plain <spacer>');
+rejects('Intro.\n\n<  spacer   width="999">', 'spaced <spacer>');
+accepts('Layout spacer concepts are described here only as prose.', 'benign spacer prose');
+
 // referrerpolicy= overrides the site's strict Referrer-Policy header for one
 // element — an injected referrerpolicy="unsafe-url" leaks the full referring URL
 // to an external destination. Blocked like the other interaction attributes.
