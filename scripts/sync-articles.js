@@ -287,6 +287,12 @@ const nonSpaceDelimitedImgDimensionAttrPattern = /<\s*img\b[^>]*[/"'`](?:width|h
 const autofocusAttrPattern = /<[^>]*\sautofocus(?=[\s>/=])/i;
 const quoteAbuttedAutofocusAttrPattern = /<[^>]*["'`]autofocus(?=[\s>/=])/i;
 
+// srcset= on an allowed <img> steers responsive image loading to attacker-chosen URLs
+// — the gap left after merged #411 blocked <picture>/<source> but not plain <img srcset>.
+// Tag-scoped, scanned on emptyQuotedAttributeValues(); quote-abutted uses ["'`] only.
+const imgSrcsetAttrPattern = /<\s*img\b[^>]*\ssrcset\s*=/i;
+const imgSrcsetQuoteAbuttedPattern = /<\s*img\b[^>]*["'`]srcset\s*=/i;
+
 function emptyQuotedAttributeValues(content) {
   return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
 }
@@ -556,6 +562,13 @@ export function validateArticleContent(slug, content) {
     || quoteAbuttedAutofocusAttrPattern.test(emptiedAttributeContent)
   ) {
     throw new Error(`Unsafe article content in "${slug}": autofocus attributes are not allowed in article content`);
+  }
+
+  if (
+    imgSrcsetAttrPattern.test(emptiedAttributeContent)
+    || imgSrcsetQuoteAbuttedPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(`Unsafe article content in "${slug}": srcset attributes are not allowed in article content`);
   }
 
   const decoded = decodeForSchemeScan(content);
