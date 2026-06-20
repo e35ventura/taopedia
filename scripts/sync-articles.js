@@ -149,6 +149,12 @@ const unsafeContentPatterns = [
   // (`position:fixed`), or spoof content — all with no script, handler, or
   // flagged scheme. Article bodies are plain prose, so the attribute is blocked.
   { pattern: /\sstyle\s*=/i, reason: 'inline style attributes are not allowed in article content' },
+  // bgcolor= is the obsolete presentational sibling of style=: on an allowed
+  // <table>/<td>/<tr> (or <body>) it paints an arbitrary background colour with no
+  // attribute the style= rule covers — a content-spoofing surface (a fake red
+  // "alert" box around injected text) with no script, handler, or flagged scheme.
+  // Article tables never set colours, so block the attribute like style=.
+  { pattern: /\sbgcolor\s*=/i, reason: 'bgcolor attributes are not allowed in article content' },
   { pattern: /\sxmlns(?:\s*:\s*[\w-]+)?\s*=\s*/i, reason: 'xmlns attributes are not allowed in article content' },
   { pattern: /\son[a-z]+\s*=/i, reason: 'inline event handlers are not allowed in article content' },
   // The `ping` attribute on an <a> (an allowed element) turns a normal-looking

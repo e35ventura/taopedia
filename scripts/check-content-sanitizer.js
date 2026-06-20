@@ -345,6 +345,13 @@ rejects('A link <a href="/wiki/stake/" style="color:red">stake</a> here.', 'styl
 accepts('The visual style of the site is defined in a separate stylesheet.', 'benign style prose');
 accepts('A lifestyle choice is unrelated to CSS and must not be flagged.', 'benign lifestyle substring');
 
+// bgcolor= is the obsolete presentational sibling of style=: it paints an arbitrary
+// background colour (a fake red "alert" box) without an attribute the style= rule
+// covers. Blocked like style=.
+rejects('Intro.\n\n<table bgcolor="red"><tr><td>WALLET COMPROMISED</td></tr></table>', 'plain bgcolor attribute');
+rejects('Intro.\n\n<  td   bgcolor = "#ff0000">x</td>', 'spaced bgcolor attribute');
+accepts('The background colour of an infobox is set in the stylesheet, not inline.', 'benign bgcolor prose');
+
 // xmlns namespace attribute assignments must not appear in article bodies.
 rejects('Intro.\n\n<svg xmlns="http://www.w3.org/2000/svg"></svg>', 'plain xmlns attribute');
 rejects('Intro.\n\n<svg xmlns = "http://www.w3.org/2000/svg"></svg>', 'spaced equals xmlns attribute');
