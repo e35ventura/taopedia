@@ -143,6 +143,12 @@ export function validateCspConfig(config) {
     ["'self'"],
     "CSP must set worker-src 'self' for Pagefind's same-origin search worker",
   );
+  // The wiki renders only with system font stacks (no @font-face, no web-font
+  // downloads), so a font load has no legitimate source. Without an explicit
+  // font-src, fonts fall back to default-src 'self' and still permit same-origin
+  // font injection (e.g. an injected @font-face exfiltrating via a unicode-range
+  // request). Deny fonts outright ('none', not 'self') like object-src/media-src.
+  assert.deepEqual(directives.get('font-src'), ["'none'"], "CSP must set font-src 'none'");
 
   return directives;
 }
@@ -291,7 +297,7 @@ validateCrossDomainPoliciesConfig(config);
 // previously only verified a header appeared *after* the `for = "/*"` marker, which
 // also passes when the header is declared in a later, narrower headers block.
 const VALID_CSP =
-  "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; media-src 'none'; manifest-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; script-src-attr 'none'; connect-src 'self'; worker-src 'self'";
+  "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; media-src 'none'; font-src 'none'; manifest-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; script-src-attr 'none'; connect-src 'self'; worker-src 'self'";
 
 const BASELINE_HEADER_VALUES = Object.fromEntries(BASELINE_SECURITY_HEADERS);
 const baselineHeadersToml = (headers = BASELINE_HEADER_VALUES, path = '/*') =>
@@ -582,6 +588,30 @@ assert.throws(
     ),
   /media-src/,
   "a CSP with media-src 'self' must be rejected",
+);
+
+// A CSP missing font-src must be REJECTED — without it, font loads fall back to
+// default-src 'self' instead of being denied. Derived from VALID_CSP so the
+// fixture stays in sync with the canonical policy.
+assert.throws(
+  () =>
+    validateCspConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "${VALID_CSP.replace("font-src 'none'; ", '')}"\n`,
+    ),
+  /font-src/,
+  'a CSP missing font-src must be rejected',
+);
+
+// A font-src wider than 'none' (e.g. 'self') must be REJECTED — the wiki ships no
+// web fonts, so 'self' only restates the default-src fallback and re-permits
+// same-origin font loads.
+assert.throws(
+  () =>
+    validateCspConfig(
+      `[[headers]]\n  for = "/*"\n  [headers.values]\n    Content-Security-Policy = "${VALID_CSP.replace("font-src 'none'", "font-src 'self'")}"\n`,
+    ),
+  /font-src/,
+  "a CSP with font-src 'self' must be rejected",
 );
 
 // A CSP missing script-src-attr must be REJECTED — without it, script-src
