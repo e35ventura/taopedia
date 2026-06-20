@@ -117,6 +117,12 @@ rejects('Intro.\n\n<summary>Click here</summary>', 'standalone <summary>');
 accepts('Details about staking are described here only as prose.', 'benign details prose');
 accepts('A summary section is ordinary writing without a summary element tag.', 'benign summary prose');
 
+// <noscript> is parsed under scripting-state-dependent rules — a known mXSS /
+// sanitizer-confusion surface — and a glossary never needs script-fallback markup.
+rejects('Intro.\n\n<noscript><img src="//evil.example/x"></noscript>', 'plain <noscript>');
+rejects('Intro.\n\n<  noscript  >fallback</noscript>', 'spaced <noscript>');
+accepts('Progressive enhancement and noscript fallbacks are described here as prose.', 'benign noscript prose');
+
 // Plain dangerous URL schemes remain blocked.
 rejects('See [x](javascript:alert(1)).', 'plain javascript:');
 rejects('See [x](vbscript:msgbox(1)).', 'plain vbscript:');
