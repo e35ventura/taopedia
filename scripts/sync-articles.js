@@ -210,6 +210,10 @@ const unsafeContentPatterns = [
   // leaks the full referring URL to an external destination, defeating that
   // policy with no script or flagged scheme. Block the attribute.
   { pattern: /\sreferrerpolicy\s*=/i, reason: 'referrerpolicy attributes are not allowed in article content' },
+  // dir= on an allowed element sets base text direction (ltr/rtl/auto). Combined with
+  // Unicode bidi it enables Trojan Source visual spoofing (CVE-2021-42574) even though
+  // the <bdo> override element and raw bidi controls are already blocked above.
+  { pattern: /\sdir\s*=/i, reason: 'dir attributes are not allowed in article content' },
   { pattern: /\bjavascript\s*:/i, reason: 'javascript: URLs are not allowed in article content' },
   { pattern: /\bvbscript\s*:/i, reason: 'vbscript: URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
@@ -267,7 +271,7 @@ const nonSpaceDelimitedHandlerPattern = /<[^>]*[/"'`]on[a-z]+\s*=/i;
 // attribute (`href="x"contenteditable=…>`, `class=x/tabindex=`). Scan with quoted
 // values emptied like the handler check so benign URLs such as src="/online=1" pass.
 const nonSpaceDelimitedInteractionSurfaceAttrPattern =
-  /<[^>]*[/"'`](?:contenteditable|tabindex|draggable|download|popover|usemap|accesskey|referrerpolicy)\s*=/i;
+  /<[^>]*[/"'`](?:contenteditable|tabindex|draggable|download|popover|usemap|accesskey|referrerpolicy|dir)\s*=/i;
 
 function emptyQuotedAttributeValues(content) {
   return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
@@ -518,7 +522,7 @@ export function validateArticleContent(slug, content) {
 
   if (nonSpaceDelimitedInteractionSurfaceAttrPattern.test(emptyQuotedAttributeValues(content))) {
     throw new Error(
-      `Unsafe article content in "${slug}": contenteditable, tabindex, draggable, download, popover, usemap, accesskey, and referrerpolicy attributes are not allowed in article content`,
+      `Unsafe article content in "${slug}": contenteditable, tabindex, draggable, download, popover, usemap, accesskey, referrerpolicy, and dir attributes are not allowed in article content`,
     );
   }
 
