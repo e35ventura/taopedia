@@ -280,6 +280,12 @@ const nonSpaceDelimitedInteractionSurfaceAttrPattern =
 const imgDimensionAttrPattern = /<\s*img\b[^>]*\s(?:width|height)\s*=/i;
 const nonSpaceDelimitedImgDimensionAttrPattern = /<\s*img\b[^>]*[/"'`](?:width|height)\s*=/i;
 
+// hidden on allowed elements removes content from layout but keeps it in the DOM —
+// an injected <a hidden href="…"> is still a navigable link with no script.
+// Same tag-boundary / quote-abutted detection as autofocus (no slash delimiter).
+const hiddenAttrPattern = /<[^>]*\shidden(?=[\s>/=])/i;
+const quoteAbuttedHiddenAttrPattern = /<[^>]*["'`]hidden(?=[\s>/=])/i;
+
 function emptyQuotedAttributeValues(content) {
   return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
 }
@@ -542,6 +548,13 @@ export function validateArticleContent(slug, content) {
     throw new Error(
       `Unsafe article content in "${slug}": width and height attributes are not allowed in article content`,
     );
+  }
+
+  if (
+    hiddenAttrPattern.test(emptiedAttributeContent)
+    || quoteAbuttedHiddenAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(`Unsafe article content in "${slug}": hidden attributes are not allowed in article content`);
   }
 
   const decoded = decodeForSchemeScan(content);

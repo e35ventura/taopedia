@@ -474,6 +474,17 @@ rejects('<img src=x/height="2000">', 'slash-delimited img height attribute');
 accepts('<img src="/wiki/fig.png" alt="default width=800 pixels">', 'benign width= text inside img alt');
 accepts('Image width and height are described here only as prose.', 'benign width/height prose');
 
+// hidden removes content from layout but keeps it in the DOM — an injected hidden
+// link is still navigable. Tag-boundary lookahead; no slash delimiter.
+rejects('Intro.\n\n<a hidden href="https://evil.example/">go</a>', 'plain hidden attribute on anchor');
+rejects('Intro.\n\n<div hidden>panel</div>', 'bare hidden attribute');
+rejects('Intro.\n\n<div hidden class="x">panel</div>', 'hidden before another attribute');
+rejects('Intro.\n\n<  p   hidden = "until-found">x</p>', 'spaced hidden attribute with value');
+rejects('<a href="x"hidden>go</a>', 'quote-abutted hidden attribute');
+accepts('<div class=x/hidden>not a hidden attribute</div>', 'benign slash inside unquoted class value');
+accepts('Hidden text and hidden sections are described here only as prose.', 'benign hidden prose');
+accepts('<img src="/wiki/fig.png" alt="a hidden treasure map">', 'benign hidden word inside img alt');
+
 // Prose that merely mentions these English words without the directive colon
 // must still pass — guard the new patterns against false positives.
 accepts('This client is set to define the class list style, and the server is fast.', 'benign client/server/set/class/define prose');
