@@ -491,6 +491,13 @@ accepts('Autofocus the search field before the reader starts typing.', 'benign a
 accepts('Use autofocus carefully when designing keyboard flows.', 'benign autofocus prose mid-sentence');
 accepts('<img src="/wiki/fig.png" alt="the autofocus attribute is obsolete">', 'benign autofocus word inside img alt');
 
+// sizes= on <img> pairs with srcset for responsive URL selection in modern browsers.
+rejects('Intro.\n\n<img src="/wiki/fig.png" sizes="100vw" srcset="/a 100w" alt="x">', 'plain img sizes attribute');
+rejects('Intro.\n\n<  img   src="/wiki/fig.png"   sizes = "50vw">', 'spaced img sizes attribute');
+rejects('<img src="/wiki/fig.png"sizes="100vw">', 'quote-abutted img sizes attribute');
+accepts('<img src=/wiki/sizes-demo.png alt=diagram>', 'benign unquoted img src path containing sizes substring');
+accepts('Media sizes and breakpoints are described here only as prose.', 'benign sizes prose');
+
 // Prose that merely mentions these English words without the directive colon
 // must still pass — guard the new patterns against false positives.
 accepts('This client is set to define the class list style, and the server is fast.', 'benign client/server/set/class/define prose');

@@ -287,6 +287,11 @@ const nonSpaceDelimitedImgDimensionAttrPattern = /<\s*img\b[^>]*[/"'`](?:width|h
 const autofocusAttrPattern = /<[^>]*\sautofocus(?=[\s>/=])/i;
 const quoteAbuttedAutofocusAttrPattern = /<[^>]*["'`]autofocus(?=[\s>/=])/i;
 
+// sizes= on an allowed <img> pairs with srcset to pick which candidate URL the browser
+// loads at each viewport width — same responsive-steering gap as srcset= above.
+const imgSizesAttrPattern = /<\s*img\b[^>]*\ssizes\s*=/i;
+const imgSizesQuoteAbuttedPattern = /<\s*img\b[^>]*["'`]sizes\s*=/i;
+
 function emptyQuotedAttributeValues(content) {
   return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
 }
@@ -556,6 +561,13 @@ export function validateArticleContent(slug, content) {
     || quoteAbuttedAutofocusAttrPattern.test(emptiedAttributeContent)
   ) {
     throw new Error(`Unsafe article content in "${slug}": autofocus attributes are not allowed in article content`);
+  }
+
+  if (
+    imgSizesAttrPattern.test(emptiedAttributeContent)
+    || imgSizesQuoteAbuttedPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(`Unsafe article content in "${slug}": sizes attributes are not allowed in article content`);
   }
 
   const decoded = decodeForSchemeScan(content);
