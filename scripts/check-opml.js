@@ -37,6 +37,16 @@ const projectRoot = path.resolve(__dirname, '..');
     '<head> must contain a <title>',
   );
   assert.match(opml, /<ownerName>[^<]+<\/ownerName>/, '<head> must contain an <ownerName>');
+  // OPML 2.0 lists <docs> (absolute URL to the OPML spec) as a recommended
+  // <head> child so consumers can resolve the spec version. The value must be
+  // an absolute http(s) URL pointing at the canonical OPML 2.0 specification.
+  const docsMatch = opml.match(/<docs>([^<]+)<\/docs>/);
+  assert.ok(docsMatch, '<head> must contain an OPML 2.0 <docs> element (absolute URL to the OPML spec) so consumers can resolve the spec version');
+  assert.match(
+    docsMatch[1],
+    /^https?:\/\//,
+    `<docs> must be an absolute http(s) URL, got ${docsMatch[1]}`,
+  );
   // OPML 2.0 lists <dateModified> (RFC 822) as a <head> child so feed readers
   // can tell when the index was last refreshed. The emitted value must parse
   // as a real instant (Date.parse accepts the toUTCString RFC 822 output).

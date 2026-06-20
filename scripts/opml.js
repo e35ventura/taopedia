@@ -110,6 +110,12 @@ export function buildOpml({
     '  <head>\n' +
     `    <title>${escapeXml(siteName)} feeds</title>\n` +
     `    <ownerName>${escapeXml(siteName)}</ownerName>\n` +
+    // OPML 2.0 lists <docs> (an absolute URL to the OPML specification) as a
+    // <head> child so consumers can resolve what version of the format the
+    // document follows. Omitting it leaves readers guessing the spec from
+    // <opml version="2.0"> alone. http://opml.org/spec2.opml is the canonical
+    // OPML 2.0 spec URL.
+    `    <docs>${escapeXml('http://opml.org/spec2.opml')}</docs>\n` +
     // OPML 2.0 lists <dateModified> (RFC 822) as a <head> child so readers can
     // tell when the index was last refreshed; without it staleness tracking and
     // cache revalidation have no anchor. Date#toUTCString emits the same
