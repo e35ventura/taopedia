@@ -155,6 +155,12 @@ const unsafeContentPatterns = [
   // "alert" box around injected text) with no script, handler, or flagged scheme.
   // Article tables never set colours, so block the attribute like style=.
   { pattern: /\sbgcolor\s*=/i, reason: 'bgcolor attributes are not allowed in article content' },
+  // background= is the obsolete presentational image sibling of bgcolor=: on an
+  // allowed <body>/<table>/<td> it loads an arbitrary external image as a tiled
+  // background. That makes it a no-script tracking beacon — like the blocked
+  // `ping=`, it leaks the reader's visit to an attacker-chosen URL — and a content
+  // spoof, with no handler or flagged scheme. Article markup never sets it.
+  { pattern: /\sbackground\s*=/i, reason: 'background attributes are not allowed in article content' },
   { pattern: /\sxmlns(?:\s*:\s*[\w-]+)?\s*=\s*/i, reason: 'xmlns attributes are not allowed in article content' },
   { pattern: /\son[a-z]+\s*=/i, reason: 'inline event handlers are not allowed in article content' },
   // The `ping` attribute on an <a> (an allowed element) turns a normal-looking
