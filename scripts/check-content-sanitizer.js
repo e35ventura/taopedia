@@ -144,6 +144,12 @@ rejects('Intro.\n\n<  basefont   face="Comic Sans">x</basefont>', 'spaced <basef
 rejects('Intro.\n\n<center>Fake centered alert</center>', 'plain <center>');
 accepts('Sans-serif fonts and centered layouts are described here only as prose.', 'benign font/center prose');
 
+// <multicol> is the obsolete multicolumn layout element — a content-layout spoof
+// without the blocked style= attribute, with no script or flagged scheme.
+rejects('Intro.\n\n<multicol cols="3">Injected columns</multicol>', 'plain <multicol>');
+rejects('Intro.\n\n<  multicol   cols="2">x</multicol>', 'spaced <multicol>');
+accepts('Multicolumn layout is described here only as prose.', 'benign multicol prose');
+
 // <big>/<strike>/<tt>/<nobr> are obsolete presentational text elements that restyle
 // text without the blocked style= attribute (the same spoof as <font>/<center>).
 rejects('Intro.\n\n<big>HUGE FAKE WARNING</big>', 'plain <big>');

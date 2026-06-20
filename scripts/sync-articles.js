@@ -114,6 +114,11 @@ const unsafeContentPatterns = [
   // warning), <basefont> restyles the whole page's text, and <center> repositions
   // content — all without the blocked attribute, with no script or flagged scheme.
   { pattern: /<\s*(font|basefont|center)\b/i, reason: 'font, basefont, and center elements are not allowed in article content' },
+  // <multicol> is the obsolete multicolumn layout element that browsers still parse.
+  // An injected <multicol> reflows article prose into attacker-chosen columns without
+  // the blocked inline style= attribute — a content-layout spoof with no script,
+  // handler, or flagged scheme. Block it like <center> above.
+  { pattern: /<\s*multicol\b/i, reason: 'multicol elements are not allowed in article content' },
   // <big>/<strike>/<tt>/<nobr> are the obsolete presentational text elements that
   // browsers still render: they re-style text (enlarge, strike through, force
   // monospace, suppress wrapping) without the blocked inline style= attribute — the
