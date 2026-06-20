@@ -190,6 +190,14 @@ rejects('<a href="x"referrerpolicy="unsafe-url">go</a>', 'quote-abutted referrer
 rejects('<img src="/a.png"/referrerpolicy="unsafe-url">', 'slash-delimited referrerpolicy attribute');
 accepts('A site-wide referrer policy is configured in the response headers, described here as prose.', 'benign referrer policy prose');
 
+// crossorigin= overrides CORS fetch mode on allowed img/a — use-credentials sends cookies
+// to an attacker-chosen cross-origin URL with no script or flagged scheme.
+rejects('Intro.\n\n<img src="https://evil.example/x.png" crossorigin="use-credentials">', 'plain crossorigin attribute');
+rejects('Intro.\n\n<  a   href="/wiki/foo/"   crossorigin = "anonymous">', 'spaced crossorigin attribute');
+rejects('<a href="x"crossorigin="use-credentials">go</a>', 'quote-abutted crossorigin attribute');
+rejects('<img src="/a.png"/crossorigin="anonymous">', 'slash-delimited crossorigin attribute');
+accepts('Cross-origin requests require CORS headers on the server.', 'benign cross-origin prose');
+
 // dir= on allowed elements sets text direction — a Trojan Source / visual-spoof
 // primitive (CVE-2021-42574) even though <bdo> and raw bidi controls are blocked.
 rejects('Intro.\n\n<p dir="rtl">moc.elpmaxe-live//:sptth</p>', 'plain dir attribute');

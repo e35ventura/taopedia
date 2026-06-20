@@ -210,6 +210,11 @@ const unsafeContentPatterns = [
   // leaks the full referring URL to an external destination, defeating that
   // policy with no script or flagged scheme. Block the attribute.
   { pattern: /\sreferrerpolicy\s*=/i, reason: 'referrerpolicy attributes are not allowed in article content' },
+  // crossorigin= on an allowed <img>/<a> overrides the CORS fetch mode for that
+  // element (anonymous vs use-credentials). An injected crossorigin="use-credentials"
+  // sends cookies on a cross-origin subresource request to an attacker-chosen URL,
+  // defeating the site's same-origin/CORP posture with no script or flagged scheme.
+  { pattern: /\scrossorigin\s*=/i, reason: 'crossorigin attributes are not allowed in article content' },
   // dir= on an allowed element sets base text direction (ltr/rtl/auto). Combined with
   // Unicode bidi it enables Trojan Source visual spoofing (CVE-2021-42574) even though
   // the <bdo> override element and raw bidi controls are already blocked above.
@@ -271,7 +276,7 @@ const nonSpaceDelimitedHandlerPattern = /<[^>]*[/"'`]on[a-z]+\s*=/i;
 // attribute (`href="x"contenteditable=…>`, `class=x/tabindex=`). Scan with quoted
 // values emptied like the handler check so benign URLs such as src="/online=1" pass.
 const nonSpaceDelimitedInteractionSurfaceAttrPattern =
-  /<[^>]*[/"'`](?:contenteditable|tabindex|draggable|download|popover|usemap|accesskey|referrerpolicy|dir)\s*=/i;
+  /<[^>]*[/"'`](?:contenteditable|tabindex|draggable|download|popover|usemap|accesskey|referrerpolicy|dir|crossorigin)\s*=/i;
 
 function emptyQuotedAttributeValues(content) {
   return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
@@ -522,7 +527,7 @@ export function validateArticleContent(slug, content) {
 
   if (nonSpaceDelimitedInteractionSurfaceAttrPattern.test(emptyQuotedAttributeValues(content))) {
     throw new Error(
-      `Unsafe article content in "${slug}": contenteditable, tabindex, draggable, download, popover, usemap, accesskey, referrerpolicy, and dir attributes are not allowed in article content`,
+      `Unsafe article content in "${slug}": contenteditable, tabindex, draggable, download, popover, usemap, accesskey, referrerpolicy, dir, and crossorigin attributes are not allowed in article content`,
     );
   }
 
