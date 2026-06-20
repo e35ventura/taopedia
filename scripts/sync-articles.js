@@ -204,6 +204,10 @@ const unsafeContentPatterns = [
   // usemap= pairs an allowed <img> with a <map>/<area> click region — blocked above,
   // but the attribute alone still signals an image-map injection attempt.
   { pattern: /\susemap\s*=/i, reason: 'usemap attributes are not allowed in article content' },
+  // ismap on an allowed <img> enables server-side image-map clicks: the browser sends
+  // click coordinates to the image URL, a clickjacking primitive paired with usemap=
+  // (client-side maps, blocked above). Article figures never need either mechanism.
+  { pattern: /\sismap\b/i, reason: 'ismap attributes are not allowed in article content' },
   // referrerpolicy= on an allowed <a>/<img> overrides, for that element, the
   // strict `Referrer-Policy: strict-origin-when-cross-origin` header the site
   // deliberately ships (netlify.toml). An injected referrerpolicy="unsafe-url"
@@ -268,6 +272,9 @@ const nonSpaceDelimitedHandlerPattern = /<[^>]*[/"'`]on[a-z]+\s*=/i;
 // values emptied like the handler check so benign URLs such as src="/online=1" pass.
 const nonSpaceDelimitedInteractionSurfaceAttrPattern =
   /<[^>]*[/"'`](?:contenteditable|tabindex|draggable|download|popover|usemap|accesskey|referrerpolicy)\s*=/i;
+
+// ismap is a boolean attribute and can appear quote-abutted without `=` (`src="x"ismap>`).
+const nonSpaceDelimitedIsmapAttrPattern = /<[^>]*[/"'`]ismap\b/i;
 
 function emptyQuotedAttributeValues(content) {
   return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
@@ -520,6 +527,10 @@ export function validateArticleContent(slug, content) {
     throw new Error(
       `Unsafe article content in "${slug}": contenteditable, tabindex, draggable, download, popover, usemap, accesskey, and referrerpolicy attributes are not allowed in article content`,
     );
+  }
+
+  if (nonSpaceDelimitedIsmapAttrPattern.test(emptyQuotedAttributeValues(content))) {
+    throw new Error(`Unsafe article content in "${slug}": ismap attributes are not allowed in article content`);
   }
 
   const decoded = decodeForSchemeScan(content);
