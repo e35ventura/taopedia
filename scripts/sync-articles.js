@@ -127,6 +127,12 @@ const unsafeContentPatterns = [
   // usemap= pairs an allowed <img> with a <map>/<area> click region — blocked above,
   // but the attribute alone still signals an image-map injection attempt.
   { pattern: /\susemap\s*=/i, reason: 'usemap attributes are not allowed in article content' },
+  // referrerpolicy= on an allowed <a>/<img> overrides, for that element, the
+  // strict `Referrer-Policy: strict-origin-when-cross-origin` header the site
+  // deliberately ships (netlify.toml). An injected referrerpolicy="unsafe-url"
+  // leaks the full referring URL to an external destination, defeating that
+  // policy with no script or flagged scheme. Block the attribute.
+  { pattern: /\sreferrerpolicy\s*=/i, reason: 'referrerpolicy attributes are not allowed in article content' },
   { pattern: /\bjavascript\s*:/i, reason: 'javascript: URLs are not allowed in article content' },
   { pattern: /\bvbscript\s*:/i, reason: 'vbscript: URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
@@ -184,7 +190,7 @@ const nonSpaceDelimitedHandlerPattern = /<[^>]*[/"'`]on[a-z]+\s*=/i;
 // attribute (`href="x"contenteditable=…>`, `class=x/tabindex=`). Scan with quoted
 // values emptied like the handler check so benign URLs such as src="/online=1" pass.
 const nonSpaceDelimitedInteractionSurfaceAttrPattern =
-  /<[^>]*[/"'`](?:contenteditable|tabindex|draggable|download|popover|usemap|accesskey)\s*=/i;
+  /<[^>]*[/"'`](?:contenteditable|tabindex|draggable|download|popover|usemap|accesskey|referrerpolicy)\s*=/i;
 
 function emptyQuotedAttributeValues(content) {
   return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
@@ -435,7 +441,7 @@ export function validateArticleContent(slug, content) {
 
   if (nonSpaceDelimitedInteractionSurfaceAttrPattern.test(emptyQuotedAttributeValues(content))) {
     throw new Error(
-      `Unsafe article content in "${slug}": contenteditable, tabindex, draggable, download, popover, usemap, and accesskey attributes are not allowed in article content`,
+      `Unsafe article content in "${slug}": contenteditable, tabindex, draggable, download, popover, usemap, accesskey, and referrerpolicy attributes are not allowed in article content`,
     );
   }
 
