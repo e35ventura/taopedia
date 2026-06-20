@@ -136,6 +136,14 @@ rejects('Intro.\n\n<marquee>Your wallet is compromised — visit evil.example</m
 rejects('Intro.\n\n<  marquee   behavior="alternate">x</marquee>', 'spaced <marquee>');
 accepts('Scrolling marquee banners are a legacy UI pattern described here as prose.', 'benign marquee prose');
 
+// <font>/<basefont>/<center> are obsolete presentational elements that re-introduce
+// the colour/size/alignment content spoof the inline style= block prevents, without
+// the attribute. Blocked like the other obsolete rendered elements.
+rejects('Intro.\n\n<font color="red" size="7">WALLET COMPROMISED</font>', 'plain <font>');
+rejects('Intro.\n\n<  basefont   face="Comic Sans">x</basefont>', 'spaced <basefont>');
+rejects('Intro.\n\n<center>Fake centered alert</center>', 'plain <center>');
+accepts('Sans-serif fonts and centered layouts are described here only as prose.', 'benign font/center prose');
+
 // <plaintext>/<xmp>/<listing> are obsolete raw-text elements the parser still
 // honors. An injected <plaintext> renders all following content as literal text —
 // a concrete page-defacement vector — so block them.
