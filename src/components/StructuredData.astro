@@ -14,6 +14,9 @@ const { title, description, image, type = 'website', canonicalUrl, siteDescripti
 
 const siteUrl = new URL('/', Astro.site).toString();
 const imageUrl = image ? new URL(image, Astro.site).toString() : undefined;
+// The site brand mark (public/logo.svg) as an absolute URL for the Organization
+// publisher node's logo, resolved like the canonical/image URLs.
+const logoUrl = new URL('/logo.svg', Astro.site).toString();
 
 // Article pages carry datePublished/dateModified derived from the source
 // repository's commit history (already generated to public/history/<slug>.json).
@@ -49,6 +52,7 @@ const structuredData = buildStructuredData({
   siteUrl,
   canonicalUrl,
   imageUrl,
+  logoUrl,
   title,
   description,
   type,

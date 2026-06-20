@@ -20,6 +20,7 @@ export function buildStructuredData({
   siteUrl,
   canonicalUrl,
   imageUrl,
+  logoUrl,
   title,
   description,
   type = 'website',
@@ -31,14 +32,27 @@ export function buildStructuredData({
 }) {
   const root = `${trimTrailingSlash(siteUrl)}/`;
   const websiteId = `${root}#website`;
+  const organizationId = `${root}#organization`;
 
   const graph = [
+    // The publisher, marked up once site-wide as a single @id that every other
+    // node references, so search engines attribute every page to one entity and
+    // can surface its name/logo. Google's logo guidance wants an ImageObject, so
+    // the brand mark is emitted as one whenever a logo URL is supplied.
+    {
+      '@type': 'Organization',
+      '@id': organizationId,
+      name: siteName,
+      url: root,
+      ...(logoUrl ? { logo: { '@type': 'ImageObject', url: logoUrl } } : {}),
+    },
     {
       '@type': 'WebSite',
       '@id': websiteId,
       url: root,
       name: siteName,
       ...(siteDescription ? { description: siteDescription } : {}),
+      publisher: { '@id': organizationId },
       inLanguage: 'en',
       potentialAction: {
         '@type': 'SearchAction',
@@ -62,10 +76,12 @@ export function buildStructuredData({
       ...(imageUrl ? { image: imageUrl } : {}),
       ...(datePublished ? { datePublished } : {}),
       ...(dateModified ? { dateModified } : {}),
-      // Taopedia articles are collaboratively maintained, so the publisher is
-      // the author. Using the Organization (not individual git committers)
-      // keeps contributor names out of the public head metadata.
-      author: { '@type': 'Organization', name: siteName, url: root },
+      // Taopedia articles are collaboratively maintained, so both the author and
+      // the publisher are the site Organization (not individual git committers,
+      // keeping contributor names out of the public head metadata). Reference the
+      // single site-wide Organization @id rather than re-inlining it.
+      author: { '@id': organizationId },
+      publisher: { '@id': organizationId },
       inLanguage: 'en',
     });
 

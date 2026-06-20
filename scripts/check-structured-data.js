@@ -21,6 +21,27 @@ assert.equal(
   'https://taopedia.org/search/?q={search_term_string}',
   'SearchAction must target the canonical /search/ route',
 );
+
+// Every page carries one site-wide Organization (publisher) node that the other
+// nodes reference by @id, so search engines attribute the page to one entity.
+const organization = home['@graph'].find((node) => node['@type'] === 'Organization');
+assert.ok(organization, 'every page must include an Organization (publisher) node');
+assert.equal(organization['@id'], 'https://taopedia.org/#organization', 'Organization must carry the canonical site @id');
+assert.equal(organization.name, 'Taopedia', 'Organization name must be Taopedia');
+assert.equal(organization.url, 'https://taopedia.org/', 'Organization url must be the site root');
+assert.equal(website.publisher?.['@id'], organization['@id'], 'WebSite must reference the Organization as its publisher');
+// The logo is emitted as a Google-compliant ImageObject only when a logo URL is
+// supplied, and omitted cleanly otherwise (no empty logo key).
+assert.equal('logo' in organization, false, 'Organization logo is omitted when no logo URL is supplied');
+const withLogo = buildStructuredData({
+  siteUrl,
+  canonicalUrl: 'https://taopedia.org/',
+  type: 'website',
+  logoUrl: 'https://taopedia.org/logo.svg',
+});
+const orgWithLogo = withLogo['@graph'].find((node) => node['@type'] === 'Organization');
+assert.equal(orgWithLogo.logo?.['@type'], 'ImageObject', 'Organization logo must be an ImageObject');
+assert.equal(orgWithLogo.logo?.url, 'https://taopedia.org/logo.svg', 'Organization logo url must be the supplied logo URL');
 assert.equal(
   home['@graph'].some((node) => node['@type'] === 'Article'),
   false,
@@ -51,8 +72,8 @@ assert.equal(articleNode.url, 'https://taopedia.org/wiki/tao/', 'Article url mus
 assert.equal(articleNode.image, 'https://taopedia.org/og/tao.png', 'Article must carry the OG image');
 assert.equal(articleNode.datePublished, '2024-01-01T00:00:00.000Z', 'Article must carry datePublished from history');
 assert.equal(articleNode.dateModified, '2024-06-01T00:00:00.000Z', 'Article must carry dateModified from history');
-assert.equal(articleNode.author?.['@type'], 'Organization', 'Article author must be the Taopedia organization');
-assert.equal(articleNode.author?.name, 'Taopedia', 'Article author name must be Taopedia');
+assert.equal(articleNode.author?.['@id'], 'https://taopedia.org/#organization', 'Article author must reference the site Organization');
+assert.equal(articleNode.publisher?.['@id'], 'https://taopedia.org/#organization', 'Article publisher must reference the site Organization');
 
 // Dates are optional: an article with no commit history must omit them cleanly
 // (no datePublished/dateModified keys) while still carrying the author.
@@ -65,7 +86,7 @@ const articleNoDates = buildStructuredData({
 const articleNoDatesNode = articleNoDates['@graph'].find((node) => node['@type'] === 'Article');
 assert.equal('datePublished' in articleNoDatesNode, false, 'datePublished must be omitted when no history exists');
 assert.equal('dateModified' in articleNoDatesNode, false, 'dateModified must be omitted when no history exists');
-assert.equal(articleNoDatesNode.author?.['@type'], 'Organization', 'author must be present even without dates');
+assert.equal(articleNoDatesNode.author?.['@id'], 'https://taopedia.org/#organization', 'author reference must be present even without dates');
 assert.ok(breadcrumb, 'article pages must include a BreadcrumbList');
 assert.equal(breadcrumb.itemListElement.length, 2, 'breadcrumb must list Home and the article');
 assert.equal(breadcrumb.itemListElement[1].item, 'https://taopedia.org/wiki/tao/', 'breadcrumb leaf must be canonical');
