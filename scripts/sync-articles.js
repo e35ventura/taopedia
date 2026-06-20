@@ -280,6 +280,13 @@ const nonSpaceDelimitedInteractionSurfaceAttrPattern =
 const imgDimensionAttrPattern = /<\s*img\b[^>]*\s(?:width|height)\s*=/i;
 const nonSpaceDelimitedImgDimensionAttrPattern = /<\s*img\b[^>]*[/"'`](?:width|height)\s*=/i;
 
+// ismap on <img> inside <a href="…"> appends click coordinates to the link URL.
+// Tag-scoped, scanned on emptyQuotedAttributeValues() only. Whitespace and
+// quote-abutted boolean forms only — no slash delimiter, which false-positives on
+// unquoted src paths such as /wiki/ismap.png (Codex #449 feedback).
+const imgIsmapWhitespacePattern = /<\s*img\b[^>]*\sismap\b/i;
+const imgIsmapQuoteAbuttedPattern = /<\s*img\b[^>]*["'`]ismap\b/i;
+
 function emptyQuotedAttributeValues(content) {
   return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
 }
@@ -542,6 +549,13 @@ export function validateArticleContent(slug, content) {
     throw new Error(
       `Unsafe article content in "${slug}": width and height attributes are not allowed in article content`,
     );
+  }
+
+  if (
+    imgIsmapWhitespacePattern.test(emptiedAttributeContent)
+    || imgIsmapQuoteAbuttedPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(`Unsafe article content in "${slug}": ismap attributes are not allowed in article content`);
   }
 
   const decoded = decodeForSchemeScan(content);

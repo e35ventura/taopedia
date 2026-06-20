@@ -474,6 +474,16 @@ rejects('<img src=x/height="2000">', 'slash-delimited img height attribute');
 accepts('<img src="/wiki/fig.png" alt="default width=800 pixels">', 'benign width= text inside img alt');
 accepts('Image width and height are described here only as prose.', 'benign width/height prose');
 
+// ismap on <img> inside <a href="…"> appends click coordinates to the link URL.
+// Whitespace and quote-abutted forms only (no slash delimiter — avoids src=/wiki/ismap.png FP).
+rejects('Intro.\n\n<img src="/wiki/fig.png" ismap alt="diagram">', 'plain ismap attribute');
+rejects('Intro.\n\n<  img   src="/wiki/fig.png"   ismap>', 'spaced ismap attribute');
+rejects('<img src="/wiki/fig.png"ismap>', 'quote-abutted ismap attribute');
+accepts('The ismap attribute is obsolete on server-side image maps.', 'benign ismap prose');
+accepts('<img src="/wiki/fig.png" alt="obsolete ismap example">', 'benign ismap word inside quoted img alt');
+accepts('<img src=/wiki/ismap.png alt=diagram>', 'benign unquoted img src path containing ismap segment');
+accepts('<img src="/wiki/ismap.png" alt="diagram">', 'benign quoted img src path containing ismap segment');
+
 // Prose that merely mentions these English words without the directive colon
 // must still pass — guard the new patterns against false positives.
 accepts('This client is set to define the class list style, and the server is fast.', 'benign client/server/set/class/define prose');
