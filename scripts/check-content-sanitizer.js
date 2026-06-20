@@ -107,6 +107,22 @@ rejects('<a href="x"accesskey="s">go</a>', 'quote-abutted accesskey attribute');
 rejects('<p class=x/accesskey="z">trap</p>', 'slash-delimited accesskey attribute');
 accepts('An accesskey hint can document a keyboard shortcut without setting one.', 'benign accesskey prose');
 
+// autofocus steals keyboard focus on page load — focus-theft / clickjacking with no
+// script. Host elements are div/p/a (not pre-blocked input/button). Scanned on
+// emptyQuotedAttributeValues() so alt text mentioning autofocus does not false-positive.
+rejects('Intro.\n\n<div autofocus>trap</div>', 'bare autofocus attribute');
+rejects('Intro.\n\n<div autofocus="">trap</div>', 'empty quoted autofocus attribute');
+rejects('Intro.\n\n<div autofocus=\'\'>trap</div>', 'single-quoted autofocus attribute');
+rejects('Intro.\n\n<div  autofocus   =   "x">trap</div>', 'spaced equals autofocus attribute');
+rejects('Intro.\n\n<div autofocus/>', 'self-closing autofocus attribute');
+rejects('Intro.\n\n<p autofocus=true>trap</p>', 'unquoted autofocus attribute value');
+rejects('Intro.\n\n<a href="/wiki/foo/" autofocus>link</a>', 'autofocus on allowed anchor');
+rejects('<div class=x/autofocus>', 'slash-delimited autofocus attribute');
+rejects('<a href="x"autofocus>go</a>', 'quote-abutted autofocus attribute');
+accepts('Autofocus the search field before the reader starts typing.', 'benign autofocus prose at sentence start');
+accepts('Use autofocus carefully when designing keyboard flows.', 'benign autofocus prose mid-sentence');
+accepts('<img src="/wiki/fig.png" alt="the autofocus attribute is obsolete">', 'benign autofocus word inside img alt');
+
 // <details>/<summary> expose interactive disclosure UI with no script or inline
 // style — the same unwanted interactive surface as the already-blocked <dialog>.
 rejects('Intro.\n\n<details open><summary>Seed phrase</summary>evil</details>', 'plain <details>');

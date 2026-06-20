@@ -273,6 +273,14 @@ const nonSpaceDelimitedHandlerPattern = /<[^>]*[/"'`]on[a-z]+\s*=/i;
 const nonSpaceDelimitedInteractionSurfaceAttrPattern =
   /<[^>]*[/"'`](?:contenteditable|tabindex|draggable|download|popover|usemap|accesskey|referrerpolicy|dir)\s*=/i;
 
+// autofocus steals keyboard focus on page load — a focus-theft / clickjacking primitive
+// on any allowed element with no script or flagged scheme. Scanned on
+// emptyQuotedAttributeValues() only so quoted alt/title prose mentioning autofocus
+// does not false-positive. Covers bare, quoted, unquoted, and self-closing forms.
+const autofocusAttrPattern = /\sautofocus(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>/]+)|\s*[>/])/i;
+const nonSpaceDelimitedAutofocusAttrPattern =
+  /<[^>]*[/"'`](?:autofocus(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>/]+)|\b))/i;
+
 function emptyQuotedAttributeValues(content) {
   return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
 }
@@ -516,14 +524,23 @@ export function validateArticleContent(slug, content) {
     }
   }
 
-  if (nonSpaceDelimitedHandlerPattern.test(emptyQuotedAttributeValues(content))) {
+  const emptiedAttributeContent = emptyQuotedAttributeValues(content);
+
+  if (nonSpaceDelimitedHandlerPattern.test(emptiedAttributeContent)) {
     throw new Error(`Unsafe article content in "${slug}": inline event handlers are not allowed in article content`);
   }
 
-  if (nonSpaceDelimitedInteractionSurfaceAttrPattern.test(emptyQuotedAttributeValues(content))) {
+  if (nonSpaceDelimitedInteractionSurfaceAttrPattern.test(emptiedAttributeContent)) {
     throw new Error(
       `Unsafe article content in "${slug}": contenteditable, tabindex, draggable, download, popover, usemap, accesskey, referrerpolicy, and dir attributes are not allowed in article content`,
     );
+  }
+
+  if (
+    autofocusAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAutofocusAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(`Unsafe article content in "${slug}": autofocus attributes are not allowed in article content`);
   }
 
   const decoded = decodeForSchemeScan(content);
