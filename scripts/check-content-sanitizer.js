@@ -144,6 +144,14 @@ rejects('Intro.\n\n<  basefont   face="Comic Sans">x</basefont>', 'spaced <basef
 rejects('Intro.\n\n<center>Fake centered alert</center>', 'plain <center>');
 accepts('Sans-serif fonts and centered layouts are described here only as prose.', 'benign font/center prose');
 
+// <big>/<strike>/<tt>/<nobr> are obsolete presentational text elements that restyle
+// text without the blocked style= attribute (the same spoof as <font>/<center>).
+rejects('Intro.\n\n<big>HUGE FAKE WARNING</big>', 'plain <big>');
+rejects('Intro.\n\n<  strike  >struck</strike>', 'spaced <strike>');
+rejects('Intro.\n\n<tt>monospace</tt>', 'plain <tt>');
+rejects('Intro.\n\n<nobr>unwrapped</nobr>', 'plain <nobr>');
+accepts('Big monospace headings and strike-through prices are described here as prose.', 'benign obsolete-text prose');
+
 // <plaintext>/<xmp>/<listing> are obsolete raw-text elements the parser still
 // honors. An injected <plaintext> renders all following content as literal text —
 // a concrete page-defacement vector — so block them.
