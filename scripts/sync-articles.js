@@ -173,6 +173,12 @@ const unsafeContentPatterns = [
   // element — a content-layout spoof (e.g. an injected paragraph floated over the
   // real text) with no script, handler, or flagged scheme. Block them like style=.
   { pattern: /\s(?:align|valign)\s*=/i, reason: 'align and valign attributes are not allowed in article content' },
+  // border=/cellpadding=/cellspacing=/hspace=/vspace= are obsolete presentational
+  // sizing/spacing attributes (on <table>/<td>/<img>) that size and space content
+  // without the blocked inline style= attribute — e.g. an injected <td hspace> or
+  // oversized border reflows the real text, a content-layout spoof with no script,
+  // handler, or flagged scheme. Block them like the other presentational attrs.
+  { pattern: /\s(?:border|cellpadding|cellspacing|hspace|vspace)\s*=/i, reason: 'border, cellpadding, cellspacing, hspace, and vspace attributes are not allowed in article content' },
   { pattern: /\sxmlns(?:\s*:\s*[\w-]+)?\s*=\s*/i, reason: 'xmlns attributes are not allowed in article content' },
   { pattern: /\son[a-z]+\s*=/i, reason: 'inline event handlers are not allowed in article content' },
   // The `ping` attribute on an <a> (an allowed element) turns a normal-looking
