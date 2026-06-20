@@ -273,6 +273,13 @@ const nonSpaceDelimitedHandlerPattern = /<[^>]*[/"'`]on[a-z]+\s*=/i;
 const nonSpaceDelimitedInteractionSurfaceAttrPattern =
   /<[^>]*[/"'`](?:contenteditable|tabindex|draggable|download|popover|usemap|accesskey|referrerpolicy|dir)\s*=/i;
 
+// width=/height= on an allowed <img> reserve an oversized layout box without the
+// blocked inline style= attribute — a layout-defacement surface (the same class
+// as border=/hspace= on tables, merged in #438). Tag-scoped to <img> and scanned
+// on emptyQuotedAttributeValues() so quoted alt text mentioning dimensions passes.
+const imgDimensionAttrPattern = /<\s*img\b[^>]*\s(?:width|height)\s*=/i;
+const nonSpaceDelimitedImgDimensionAttrPattern = /<\s*img\b[^>]*[/"'`](?:width|height)\s*=/i;
+
 function emptyQuotedAttributeValues(content) {
   return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
 }
@@ -516,13 +523,24 @@ export function validateArticleContent(slug, content) {
     }
   }
 
-  if (nonSpaceDelimitedHandlerPattern.test(emptyQuotedAttributeValues(content))) {
+  const emptiedAttributeContent = emptyQuotedAttributeValues(content);
+
+  if (nonSpaceDelimitedHandlerPattern.test(emptiedAttributeContent)) {
     throw new Error(`Unsafe article content in "${slug}": inline event handlers are not allowed in article content`);
   }
 
-  if (nonSpaceDelimitedInteractionSurfaceAttrPattern.test(emptyQuotedAttributeValues(content))) {
+  if (nonSpaceDelimitedInteractionSurfaceAttrPattern.test(emptiedAttributeContent)) {
     throw new Error(
       `Unsafe article content in "${slug}": contenteditable, tabindex, draggable, download, popover, usemap, accesskey, referrerpolicy, and dir attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    imgDimensionAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedImgDimensionAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": width and height attributes are not allowed in article content`,
     );
   }
 
