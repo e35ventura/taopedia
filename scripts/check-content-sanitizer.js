@@ -136,6 +136,12 @@ rejects('Intro.\n\n<marquee>Your wallet is compromised — visit evil.example</m
 rejects('Intro.\n\n<  marquee   behavior="alternate">x</marquee>', 'spaced <marquee>');
 accepts('Scrolling marquee banners are a legacy UI pattern described here as prose.', 'benign marquee prose');
 
+// <blink> flashes text for attention in browsers that still honor it — a content-
+// spoofing / phishing surface with no script, blocked like <marquee>.
+rejects('Intro.\n\n<blink>Your wallet is compromised</blink>', 'plain <blink>');
+rejects('Intro.\n\n<  blink  >urgent alert</blink>', 'spaced <blink>');
+accepts('Hyperlink styling and blink animations are described here only as prose.', 'benign blink prose');
+
 // <font>/<basefont>/<center> are obsolete presentational elements that re-introduce
 // the colour/size/alignment content spoof the inline style= block prevents, without
 // the attribute. Blocked like the other obsolete rendered elements.

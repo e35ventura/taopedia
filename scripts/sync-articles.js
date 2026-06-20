@@ -107,6 +107,10 @@ const unsafeContentPatterns = [
   // alert) with no script, handler, or flagged scheme. Block it like the other
   // unwanted rendered elements (video/audio/picture, dialog, details).
   { pattern: /<\s*marquee\b/i, reason: 'marquee elements are not allowed in article content' },
+  // <blink> is the other legacy attention-grabbing element: browsers that still
+  // honor it flash text on/off (a fake urgent "wallet compromised" alert) with no
+  // script, handler, or flagged scheme — the animated sibling of <marquee> above.
+  { pattern: /<\s*blink\b/i, reason: 'blink elements are not allowed in article content' },
   // <font>/<basefont>/<center> are obsolete presentational elements that every
   // browser still renders. They re-introduce the exact content-styling spoof the
   // inline `style=` attribute is blocked to prevent — <font color/size/face> sets
