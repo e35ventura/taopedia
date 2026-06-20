@@ -145,6 +145,13 @@ rejects('Intro.\n\n<bdo dir="rtl">moc.elpmaxe-live//:sptth</bdo>', 'plain <bdo>'
 rejects('Intro.\n\n<  bdo   dir="rtl">x</bdo>', 'spaced <bdo>');
 accepts('Bidirectional override and the bdo element are described here only as prose.', 'benign bdo prose');
 
+// <meter>/<progress> render native gauge/progress-bar widgets — an injected one
+// is a content-spoofing surface (a fake "scan 80%" bar or risk gauge) a glossary
+// never needs, blocked like the other non-prose rendered elements.
+rejects('Intro.\n\n<progress value="0.8" max="1">80%</progress>', 'plain <progress>');
+rejects('Intro.\n\n<  meter   value="0.9" min="0" max="1">risk</meter>', 'spaced <meter>');
+accepts('A progress bar or a risk meter is described here only as prose.', 'benign meter/progress prose');
+
 // referrerpolicy= overrides the site's strict Referrer-Policy header for one
 // element — an injected referrerpolicy="unsafe-url" leaks the full referring URL
 // to an external destination. Blocked like the other interaction attributes.
