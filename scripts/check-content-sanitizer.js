@@ -159,6 +159,12 @@ rejects('Intro.\n\n<progress value="0.8" max="1">80%</progress>', 'plain <progre
 rejects('Intro.\n\n<  meter   value="0.9" min="0" max="1">risk</meter>', 'spaced <meter>');
 accepts('A progress bar or a risk meter is described here only as prose.', 'benign meter/progress prose');
 
+// <canvas> renders a sized bitmap region; an injected oversized one defaces the
+// article layout, and it is the scripting-companion drawing element prose never needs.
+rejects('Intro.\n\n<canvas width="1200" height="2000"></canvas>', 'plain <canvas>');
+rejects('Intro.\n\n<  canvas   id="x">fallback</canvas>', 'spaced <canvas>');
+accepts('The HTML canvas element is described here only as prose.', 'benign canvas prose');
+
 // referrerpolicy= overrides the site's strict Referrer-Policy header for one
 // element — an injected referrerpolicy="unsafe-url" leaks the full referring URL
 // to an external destination. Blocked like the other interaction attributes.

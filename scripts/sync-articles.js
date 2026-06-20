@@ -123,6 +123,12 @@ const unsafeContentPatterns = [
   // handler, or flagged scheme. A glossary never renders live status widgets, so
   // block them like the other non-prose rendered elements (marquee, video/audio).
   { pattern: /<\s*(meter|progress)\b/i, reason: 'meter and progress elements are not allowed in article content' },
+  // <canvas> renders a sized bitmap graphics region in every browser. An injected
+  // one (e.g. <canvas width="1200" height="2000">) reserves a large blank area
+  // that pushes the real article off-screen — a layout-defacement surface — and
+  // it is the scripting-companion drawing element a static glossary never needs.
+  // Block it like the other non-prose rendered elements.
+  { pattern: /<\s*canvas\b/i, reason: 'canvas elements are not allowed in article content' },
   { pattern: /\sslot\s*=/i, reason: 'slot attributes are not allowed in article content' },
   // The <style> element is already blocked above, but an inline `style=`
   // attribute on any allowed element is the matching gap: it lets injected CSS
