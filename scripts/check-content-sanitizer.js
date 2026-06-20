@@ -358,6 +358,12 @@ rejects('Intro.\n\n<body background="https://evil.example/track.png">x</body>', 
 rejects('Intro.\n\n<  table   background = "//evil.example/beacon.gif">x</table>', 'spaced background attribute');
 accepts('The page background is defined in the stylesheet and never set inline.', 'benign background prose');
 
+// align=/valign= are obsolete presentational layout attributes that reposition
+// content without the blocked style= attribute or <center> element. Blocked like style=.
+rejects('Intro.\n\n<div align="center">Fake centered alert</div>', 'plain align attribute');
+rejects('Intro.\n\n<  td   valign = "top">x</td>', 'spaced valign attribute');
+accepts('Text alignment and vertical alignment are controlled by the stylesheet.', 'benign align prose');
+
 // xmlns namespace attribute assignments must not appear in article bodies.
 rejects('Intro.\n\n<svg xmlns="http://www.w3.org/2000/svg"></svg>', 'plain xmlns attribute');
 rejects('Intro.\n\n<svg xmlns = "http://www.w3.org/2000/svg"></svg>', 'spaced equals xmlns attribute');
