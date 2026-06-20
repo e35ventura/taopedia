@@ -301,6 +301,12 @@ const imgSrcsetQuoteAbuttedPattern = /<\s*img\b[^>]*["'`]srcset\s*=/i;
 const imgSizesAttrPattern = /<\s*img\b[^>]*\ssizes\s*=/i;
 const imgSizesQuoteAbuttedPattern = /<\s*img\b[^>]*["'`]sizes\s*=/i;
 
+// loading= on an allowed <img> defers subresource fetch until the image nears the
+// viewport — a scroll-triggered tracking/beacon primitive on attacker-chosen URLs
+// (same img-scoped family as merged width/height #451 and srcset/sizes #461).
+const imgLoadingAttrPattern = /<\s*img\b[^>]*\sloading\s*=/i;
+const imgLoadingQuoteAbuttedPattern = /<\s*img\b[^>]*["'`]loading\s*=/i;
+
 function emptyQuotedAttributeValues(content) {
   return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
 }
@@ -588,6 +594,13 @@ export function validateArticleContent(slug, content) {
     throw new Error(
       `Unsafe article content in "${slug}": srcset and sizes attributes are not allowed in article content`,
     );
+  }
+
+  if (
+    imgLoadingAttrPattern.test(emptiedAttributeContent)
+    || imgLoadingQuoteAbuttedPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(`Unsafe article content in "${slug}": loading attributes are not allowed in article content`);
   }
 
   const decoded = decodeForSchemeScan(content);
