@@ -474,6 +474,23 @@ rejects('<img src=x/height="2000">', 'slash-delimited img height attribute');
 accepts('<img src="/wiki/fig.png" alt="default width=800 pixels">', 'benign width= text inside img alt');
 accepts('Image width and height are described here only as prose.', 'benign width/height prose');
 
+// autofocus steals keyboard focus on page load. Tag-boundary lookahead catches
+// autofocus before another attribute; no slash delimiter (class=x/autofocus is benign).
+rejects('Intro.\n\n<div autofocus>trap</div>', 'bare autofocus attribute');
+rejects('Intro.\n\n<div autofocus="">trap</div>', 'empty quoted autofocus attribute');
+rejects('Intro.\n\n<div autofocus=\'\'>trap</div>', 'single-quoted autofocus attribute');
+rejects('Intro.\n\n<div  autofocus   =   "x">trap</div>', 'spaced equals autofocus attribute');
+rejects('Intro.\n\n<div autofocus/>', 'self-closing autofocus attribute');
+rejects('Intro.\n\n<p autofocus=true>trap</p>', 'unquoted autofocus attribute value');
+rejects('Intro.\n\n<div autofocus class="x">trap</div>', 'autofocus before another attribute');
+rejects('Intro.\n\n<p autofocus id="main">trap</p>', 'autofocus mid-tag on paragraph');
+rejects('Intro.\n\n<a href="/wiki/foo/" autofocus>link</a>', 'autofocus on allowed anchor');
+rejects('<a href="x"autofocus>go</a>', 'quote-abutted autofocus attribute');
+accepts('<div class=x/autofocus>not an autofocus attribute</div>', 'benign slash inside unquoted class value');
+accepts('Autofocus the search field before the reader starts typing.', 'benign autofocus prose at sentence start');
+accepts('Use autofocus carefully when designing keyboard flows.', 'benign autofocus prose mid-sentence');
+accepts('<img src="/wiki/fig.png" alt="the autofocus attribute is obsolete">', 'benign autofocus word inside img alt');
+
 // Prose that merely mentions these English words without the directive colon
 // must still pass — guard the new patterns against false positives.
 accepts('This client is set to define the class list style, and the server is fast.', 'benign client/server/set/class/define prose');
