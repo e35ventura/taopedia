@@ -2,6 +2,7 @@ import { execFileSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
+import { slugFromContentPath } from './wiki-link-resolver.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -167,7 +168,7 @@ function main() {
 
   markdownFiles.forEach(filePath => {
     const relativePath = path.relative(contentDir, filePath);
-    const slug = path.dirname(relativePath).replace(/\\/g, '/');
+    const slug = slugFromContentPath(relativePath);
 
     // The generated article is synced from <articles>/content/pages/<slug>/index.{mdx,md},
     // so query the source repository's history for whichever file exists.

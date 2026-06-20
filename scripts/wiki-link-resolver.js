@@ -44,6 +44,23 @@ export function slugify(text) {
   return String(text || '').toLowerCase().replace(/ /g, '_').replace(/[^\w-]/g, '');
 }
 
+// Derive the route slug from a content-collection-relative path the SAME way the
+// Astro pages derive it from `page.id` (src/lib/article-history.ts `getPageSlug`):
+// strip a trailing `/index.{md,mdx}`, `/index`, or `.{md,mdx}`. The content
+// collection's loader glob is `**/*.{md,mdx}`, so an article can be either
+// `<slug>/index.md` OR a flat `<slug>.md`; deriving the slug from the directory
+// name (path.dirname) mishandles the flat form (it yields `.`) and collides two
+// `*.md` files in one directory, so the build-time link graph would disagree with
+// the rendered routes. Centralize the logic here so the generators and the pages
+// stay in lockstep. Backslashes are normalized so Windows paths derive the same slug.
+export function slugFromContentPath(relativePath) {
+  return String(relativePath || '')
+    .replace(/\\/g, '/')
+    .replace(/\/index\.(md|mdx)$/, '')
+    .replace(/\/index$/, '')
+    .replace(/\.(md|mdx)$/, '');
+}
+
 function decodePathSegment(value) {
   try {
     return decodeURIComponent(value);
@@ -133,7 +150,7 @@ export function loadSlugMapFromContent(contentDir) {
   const slugMap = {};
   for (const filePath of walkMarkdownFiles(contentDir)) {
     const relativePath = path.relative(contentDir, filePath);
-    const slug = path.dirname(relativePath).replace(/\\/g, '/');
+    const slug = slugFromContentPath(relativePath);
     const content = fs.readFileSync(filePath, 'utf-8');
     const { data } = matter(content);
 
