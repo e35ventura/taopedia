@@ -84,6 +84,11 @@ const unsafeContentPatterns = [
   // either element, so block them outright rather than relying on the script /
   // handler / scheme scans alone.
   { pattern: /<\s*(svg|math)\b/i, reason: 'SVG and MathML elements are not allowed in article content' },
+  // <noscript> is parsed under different rules depending on the browser's scripting
+  // state, a known mutation-XSS / sanitizer-confusion surface (sanitizers such as
+  // DOMPurify special-case it). A glossary never needs script-fallback markup, so
+  // block the element like the other parsing-context tags.
+  { pattern: /<\s*noscript\b/i, reason: 'noscript elements are not allowed in article content' },
   { pattern: /\sslot\s*=/i, reason: 'slot attributes are not allowed in article content' },
   // The <style> element is already blocked above, but an inline `style=`
   // attribute on any allowed element is the matching gap: it lets injected CSS
