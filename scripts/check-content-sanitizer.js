@@ -352,6 +352,12 @@ rejects('Intro.\n\n<table bgcolor="red"><tr><td>WALLET COMPROMISED</td></tr></ta
 rejects('Intro.\n\n<  td   bgcolor = "#ff0000">x</td>', 'spaced bgcolor attribute');
 accepts('The background colour of an infobox is set in the stylesheet, not inline.', 'benign bgcolor prose');
 
+// background= loads an arbitrary external image as a tiled background — a no-script
+// tracking beacon (like ping=) plus a content spoof. Blocked like bgcolor=/style=.
+rejects('Intro.\n\n<body background="https://evil.example/track.png">x</body>', 'plain background attribute');
+rejects('Intro.\n\n<  table   background = "//evil.example/beacon.gif">x</table>', 'spaced background attribute');
+accepts('The page background is defined in the stylesheet and never set inline.', 'benign background prose');
+
 // xmlns namespace attribute assignments must not appear in article bodies.
 rejects('Intro.\n\n<svg xmlns="http://www.w3.org/2000/svg"></svg>', 'plain xmlns attribute');
 rejects('Intro.\n\n<svg xmlns = "http://www.w3.org/2000/svg"></svg>', 'spaced equals xmlns attribute');
