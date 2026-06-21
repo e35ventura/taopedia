@@ -342,6 +342,15 @@ const quoteAbuttedAutofocusAttrPattern = /<[^>]*["'`]autofocus(?=[\s>/=])/i;
 const hiddenAttrPattern = /<[^>]*\shidden(?=[\s>/=])/i;
 const quoteAbuttedHiddenAttrPattern = /<[^>]*["'`]hidden(?=[\s>/=])/i;
 
+// aria-label=/aria-labelledby= override an allowed element's accessible name.
+// On links and images this can make screen-reader output differ from the visible
+// text or destination (e.g. a visible "claim TAO" link announced as "official
+// staking guide"), a no-script content-spoofing surface. Article prose does not
+// need custom accessible names, so block the name-overriding ARIA attributes
+// while leaving ordinary prose and URL/class substrings alone.
+const ariaNameAttrPattern = /<[^>]*\saria-(?:label|labelledby)\s*=/i;
+const nonSpaceDelimitedAriaNameAttrPattern = /<[^>]*[/"'`]aria-(?:label|labelledby)\s*=/i;
+
 // nowrap on allowed <td>/<th> disables text wrapping in the cell — an injected
 // long URL, fake wallet address, or padded phishing line breaks out of the
 // column, reflowing the real article text off-screen (a layout-defacement /
@@ -771,6 +780,15 @@ export function validateArticleContent(slug, content) {
     || quoteAbuttedHiddenAttrPattern.test(emptiedAttributeContent)
   ) {
     throw new Error(`Unsafe article content in "${slug}": hidden attributes are not allowed in article content`);
+  }
+
+  if (
+    ariaNameAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAriaNameAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": aria-label and aria-labelledby attributes are not allowed in article content`,
+    );
   }
 
   if (
