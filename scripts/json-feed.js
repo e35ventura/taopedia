@@ -53,6 +53,10 @@ export function buildJsonFeed({
     home_page_url: pageUrl,
     feed_url: feedUrl,
     description,
+    // Feed branding (JSON Feed `icon` is the large square logo, `favicon` the
+    // small one): readers display these next to the feed title.
+    icon: `${root}apple-touch-icon.png`,
+    favicon: `${root}favicon-32x32.png`,
     language,
     items: sortedItems.map((item) => {
       const url = cleanText(item.url);

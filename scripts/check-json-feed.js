@@ -41,6 +41,8 @@ assert.equal(feed.version, 'https://jsonfeed.org/version/1.1', 'declares JSON Fe
 assert.equal(feed.title, 'Taopedia', 'feed advertises the site name');
 assert.equal(feed.home_page_url, 'https://taopedia.org/', 'feed links to the site root');
 assert.equal(feed.feed_url, 'https://taopedia.org/feed.json', 'feed_url points to /feed.json');
+assert.equal(feed.icon, 'https://taopedia.org/apple-touch-icon.png', 'feed advertises the large brand icon');
+assert.equal(feed.favicon, 'https://taopedia.org/favicon-32x32.png', 'feed advertises the small favicon');
 assert.equal(
   feed.description,
   'Recently updated articles from Taopedia, a Bittensor-focused knowledge base.',
