@@ -41,7 +41,17 @@ function toRfc822(value) {
 
 function itemDate(item) {
   if (!item) return '';
-  return String(item.dateModified ?? item.date ?? item.datePublished ?? '');
+  // The ?? operator only falls through on null/undefined, not on empty strings.
+  // A caller that explicitly sets dateModified='' (e.g. a per-category endpoint
+  // that found no history for the article) would otherwise shadow the
+  // published-date fallback and lose the known-article date entirely. Treat
+  // empty/whitespace-only values the same as missing so the published-date
+  // fallback still fires for items the endpoint knows about but did not modify.
+  const candidates = [item.dateModified, item.date, item.datePublished];
+  for (const value of candidates) {
+    if (typeof value === 'string' && value.trim() !== '') return value;
+  }
+  return '';
 }
 
 export function buildRssFeed({
