@@ -570,6 +570,18 @@ accepts('Responsive srcset and media sizes are described here only as prose.', '
 
 // loading= on <img> defers fetch until near viewport — scroll-triggered beacon (merged #461 family).
 rejects('Intro.\n\n<img src="https://evil.example/pixel.gif" loading="lazy" alt="x">', 'plain img loading attribute');
+
+// char=/charoff= on allowed <td>/<th>/<tr> align column content to a
+// specific character — combined with the merged #436 align/valign and
+// #438 border/cellpadding rules, decimal-aligns attacker-controlled
+// "earnings" numbers against the wiki's own columns (financial-table spoof).
+rejects('Intro.\n\n<table><tr><td char="." charoff="50">x</td></tr></table>', 'plain td char/charoff attributes');
+rejects('Intro.\n\n<table><tr><th   char = ",">x</th></tr></table>', 'spaced th char attribute');
+rejects('<table><tr><td class="x"char=".">x</td></tr></table>', 'quote-abutted td char attribute');
+rejects('<td class=x/charoff="50">', 'slash-delimited td charoff attribute');
+
+accepts('<table><tr><td>x</td></tr></table>', 'plain table without char/charoff');
+accepts('A character alignment attribute on a cell is described here only as prose.', 'benign char/charoff prose');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   loading = "lazy">', 'spaced img loading attribute');
 rejects('<img src="/wiki/fig.png"loading="lazy">', 'quote-abutted img loading attribute');
 accepts('<img src=/wiki/loading-demo.png alt=diagram>', 'benign unquoted img src path containing loading substring');
