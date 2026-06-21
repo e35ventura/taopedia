@@ -286,7 +286,7 @@ const nonSpaceDelimitedHandlerPattern = /<[^>]*[/"'`]on[a-z]+\s*=/i;
 // quoted-value abutted forms (e.g. `href="x"ping="https://evil/track"`) slipped the
 // whitespace-delimited `\sping=` scan and reached the rendered article.
 const nonSpaceDelimitedInteractionSurfaceAttrPattern =
-  /<[^>]*[/"'`](?:contenteditable|tabindex|draggable|download|popover|usemap|accesskey|referrerpolicy|dir|ping)\s*=/i;
+  /<[^>]*[/"'`](?:contenteditable|tabindex|draggable|download|popover|usemap|accesskey|referrerpolicy|dir|ping|inert)\s*=/i;
 
 // align/valign/bgcolor/background/border/cellpadding/cellspacing/hspace/vspace
 // are blocked in the whitespace-delimited scan above (the merged #435/#438/etc.
@@ -341,6 +341,18 @@ const quoteAbuttedAutofocusAttrPattern = /<[^>]*["'`]autofocus(?=[\s>/=])/i;
 // Same tag-boundary / quote-abutted detection as autofocus (merged #453).
 const hiddenAttrPattern = /<[^>]*\shidden(?=[\s>/=])/i;
 const quoteAbuttedHiddenAttrPattern = /<[^>]*["'`]hidden(?=[\s>/=])/i;
+
+// inert= on an allowed element is a clickjacking / focus-hijack surface: it removes
+// the element from the tab order and pointer events, so an injected <a inert
+// href="https://evil/"> or <form inert>…</form> renders as visible "disabled-looking"
+// content that the reader can still middle-click (link) or focus via assistive tech
+// — a no-script content-spoofing primitive. inert is a boolean attribute, so the
+// lookahead is the same `(?=[\s>/=])` shape autofocus/hidden use. Same interaction-
+// surface family as the merged contenteditable/tabindex/draggable/popover/accesskey
+// blocks; same tag-boundary / quote-abutted detection so a benign class value like
+// `class="x/inert"` does not false-positive.
+const inertAttrPattern = /<[^>]*\sinert(?=[\s>/=])/i;
+const quoteAbuttedInertAttrPattern = /<[^>]*["'`]inert(?=[\s>/=])/i;
 
 // aria-label=/aria-labelledby= override an allowed element's accessible name.
 // On links and images this can make screen-reader output differ from the visible
@@ -780,6 +792,13 @@ export function validateArticleContent(slug, content) {
     || quoteAbuttedHiddenAttrPattern.test(emptiedAttributeContent)
   ) {
     throw new Error(`Unsafe article content in "${slug}": hidden attributes are not allowed in article content`);
+  }
+
+  if (
+    inertAttrPattern.test(emptiedAttributeContent)
+    || quoteAbuttedInertAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(`Unsafe article content in "${slug}": inert attributes are not allowed in article content`);
   }
 
   if (
