@@ -203,4 +203,25 @@ assert.ok(!empty.includes('<lastBuildDate>'), 'an empty feed omits lastBuildDate
   );
 }
 
+// Per-category endpoints pass dateModified as '' (empty string) when an article
+// has no recorded history. The ?? chain only falls through on null/undefined,
+// so a plain '' would shadow the published-date fallback and the article would
+// render with no <pubDate> even though datePublished is set. The shared itemDate
+// helper treats empty/whitespace-only values as missing so the published-date
+// fallback still fires — the same way the JSON feed's date_modified does (#510).
+{
+  const emptyDateModified = {
+    title: 'Empty Modified',
+    url: 'https://taopedia.org/wiki/empty_modified/',
+    datePublished: '2026-06-02T00:00:00Z',
+    dateModified: '',
+  };
+  const feed = buildRssFeed({ siteUrl, items: [emptyDateModified] });
+  assert.match(
+    feed,
+    /<title>Empty Modified<\/title>[\s\S]*<pubDate>Tue, 02 Jun 2026 00:00:00 GMT<\/pubDate>/,
+    'items with dateModified="" still fall back to datePublished for the RSS pubDate',
+  );
+}
+
 console.log('check-rss-feed: all assertions passed');
