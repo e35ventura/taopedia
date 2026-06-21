@@ -544,6 +544,17 @@ accepts('<div class=x/hidden>not a hidden attribute</div>', 'benign slash inside
 accepts('Hidden text and hidden sections are described here only as prose.', 'benign hidden prose');
 accepts('<img src="/wiki/fig.png" alt="a hidden treasure map">', 'benign hidden word inside img alt');
 
+// char=/charoff= on allowed <td>/<th>/<tr> align column content to a
+// specific character — deprecated in HTML5, but paired with the
+// already-blocked content-styling surface (text reflow / alignment spoof).
+rejects('Intro.\n\n<table><tr><td char="." charoff="50">x</td></tr></table>', 'plain td char/charoff attributes');
+rejects('Intro.\n\n<table><tr><th   char = ",">x</th></tr></table>', 'spaced th char attribute');
+rejects('<table><tr><td class="x"char=".">x</td></tr></table>', 'quote-abutted td char attribute');
+rejects('<td class=x/charoff="50">', 'slash-delimited td charoff attribute');
+
+accepts('<table><tr><td>x</td></tr></table>', 'plain table without char/charoff');
+accepts('A character alignment attribute on a cell is described here only as prose.', 'benign char/charoff prose');
+
 // srcset=/sizes= on <img> steer responsive loading — gap after #411 blocked picture/source.
 rejects('Intro.\n\n<img src="/wiki/fig.png" srcset="https://evil.example/x 1x" alt="x">', 'plain img srcset attribute');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   srcset = "https://evil.example/x 2x">', 'spaced img srcset attribute');

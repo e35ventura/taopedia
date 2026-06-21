@@ -347,6 +347,17 @@ const imgFetchpriorityQuoteAbuttedPattern = /<\s*img\b[^>]*["'`]fetchpriority\s*
 const imgIsmapAttrPattern = /<\s*img\b[^>]*\sismap(?=[\s>/=])/i;
 const quoteAbuttedImgIsmapAttrPattern = /<\s*img\b[^>]*["'`]ismap(?=[\s>/=])/i;
 
+// char=/charoff= on allowed <td>/<th>/<tr> align column content to a specific
+// character (e.g. char="." charoff="50" decimal-aligns numbers around the
+// decimal point). The attributes are deprecated in HTML5 — most current
+// browsers ignore them — but an injected char="," can be combined with the
+// already-blocked content-styling surface (text reflow / alignment spoof) and
+// is paired with charoff= so a partial attribute set still works. Tag-scoped
+// to td|th|tr so the substring in prose / class values doesn't false-positive,
+// and scanned on emptyQuotedAttributeValues() so benign prose passes.
+const tdThTrCharAttrPattern = /<\s*(?:td|th|tr)\b[^>]*\s(?:char|charoff)\s*=/i;
+const nonSpaceDelimitedTdThTrCharAttrPattern = /<\s*(?:td|th|tr)\b[^>]*[/"'`](?:char|charoff)\s*=/i;
+
 function emptyQuotedAttributeValues(content) {
   return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
 }
@@ -651,6 +662,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": srcset and sizes attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    tdThTrCharAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedTdThTrCharAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": char and charoff attributes are not allowed on td, th, or tr elements`,
     );
   }
 
