@@ -13,7 +13,9 @@ import path from 'node:path';
 // digital-credentials-get for unsolicited Digital Credentials API ID prompts;
 // storage-access for embedded content elevating to cross-site cookie access;
 // attribution-reporting for ad-conversion measurement/cross-site reporting;
-// compute-pressure for CPU/thermal-pressure side-channel and fingerprinting).
+// compute-pressure for CPU/thermal-pressure side-channel and fingerprinting;
+// translator for Chrome built-in AI content processing without user activation;
+// language-detector for the Language Detector side of the same Translation API surface).
 export const SUPPLEMENTAL_DENIED_FEATURES = [
   'execution-while-not-rendered',
   'execution-while-out-of-viewport',
@@ -21,6 +23,7 @@ export const SUPPLEMENTAL_DENIED_FEATURES = [
   'identity-credentials-get',
   'idle-detection',
   'keyboard-map',
+  'language-detector',
   'local-fonts',
   'otp-credentials',
   'publickey-credentials-create',
@@ -34,6 +37,7 @@ export const SUPPLEMENTAL_DENIED_FEATURES = [
   'private-state-token-redemption',
   'deferred-fetch',
   'deferred-fetch-minimal',
+  'translator',
 ];
 
 export function validateSupplementalPermissionsPolicy(value) {
@@ -413,6 +417,46 @@ assert.throws(
 assert.ok(
   FULL_POLICY.includes('deferred-fetch-minimal=()'),
   'production Permissions-Policy must deny deferred-fetch-minimal',
+);
+
+assert.throws(
+  () => validateSupplementalPermissionsPolicy(FULL_POLICY.replace('language-detector=(), ', '')),
+  /must deny language-detector/,
+  'a Permissions-Policy missing language-detector must be rejected',
+);
+
+assert.throws(
+  () =>
+    validateSupplementalPermissionsPolicy(
+      FULL_POLICY.replace('language-detector=()', 'language-detector=(self)'),
+    ),
+  /must deny language-detector/,
+  'a Permissions-Policy that grants language-detector to an origin must be rejected',
+);
+
+assert.ok(
+  FULL_POLICY.includes('language-detector=()'),
+  'production Permissions-Policy must deny language-detector',
+);
+
+assert.throws(
+  () => validateSupplementalPermissionsPolicy(FULL_POLICY.replace('translator=(), ', '')),
+  /must deny translator/,
+  'a Permissions-Policy missing translator must be rejected',
+);
+
+assert.throws(
+  () =>
+    validateSupplementalPermissionsPolicy(
+      FULL_POLICY.replace('translator=()', 'translator=(self)'),
+    ),
+  /must deny translator/,
+  'a Permissions-Policy that grants translator to an origin must be rejected',
+);
+
+assert.ok(
+  FULL_POLICY.includes('translator=()'),
+  'production Permissions-Policy must deny translator',
 );
 
 console.log('Supplemental Permissions-Policy check passed');
