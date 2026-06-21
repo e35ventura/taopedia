@@ -527,6 +527,28 @@ rejects('<img src="/wiki/fig.png"fetchpriority="high">', 'quote-abutted img fetc
 accepts('<img src=/wiki/fetchpriority-demo.png alt=diagram>', 'benign unquoted img src path containing fetchpriority substring');
 accepts('Fetch priority hints improve performance and are described here only as prose.', 'benign fetchpriority prose');
 
+// ismap on <img> is the server-side image-map primitive (counterpart to the
+// already-blocked client-side <map>/<area>/usemap= in #411). When the <img> sits
+// inside an <a href="...">, clicking the image appends ?x,y coordinates to the
+// link URL — a click beacon with no script, handler, or flagged scheme.
+rejects('Intro.\n\n<a href="https://evil.example/log"><img ismap src="https://evil.example/track.gif" alt="x"></a>', 'plain img ismap inside anchor');
+rejects('Intro.\n\n<img src="/wiki/fig.png" ismap alt="x">', 'plain img ismap standalone');
+rejects('Intro.\n\n<img ismap src="/wiki/fig.png" alt="x">', 'bare img ismap before other attrs');
+rejects('Intro.\n\n<img src="/wiki/fig.png"   ismap   alt="x">', 'spaced img ismap attribute');
+rejects('Intro.\n\n<img ismap  =  "x" src="/wiki/fig.png" alt="x">', 'spaced equals img ismap attribute');
+rejects('Intro.\n\n<img ismap=true src="/wiki/fig.png" alt="x">', 'unquoted img ismap attribute value');
+rejects('Intro.\n\n<img src="/wiki/fig.png"ismap alt="x">', 'quote-abutted img ismap attribute');
+
+// Prose that mentions the literal word "ismap" without an attribute assignment,
+// and alt text that contains the word, must still pass — guards the new pattern
+// against the Codex false positives that closed #445 (plain prose) and #449
+// (unquoted URL with "ismap" substring in the path).
+accepts('The ismap attribute is obsolete on server-side image maps.', 'benign ismap prose');
+accepts('HTML authors discussed the ismap attribute in earlier drafts.', 'benign ismap prose mid-sentence');
+accepts('<img src="/wiki/fig.png" alt="the ismap attribute is obsolete">', 'benign ismap word inside img alt');
+accepts('<img src=/wiki/ismap-demo.png alt=diagram>', 'benign unquoted img src path containing ismap substring');
+accepts('<img src=/wiki/ismap.png alt=diagram>', 'benign unquoted img src path with ismap followed by extension dot');
+
 // Prose that merely mentions these English words without the directive colon
 // must still pass — guard the new patterns against false positives.
 accepts('This client is set to define the class list style, and the server is fast.', 'benign client/server/set/class/define prose');

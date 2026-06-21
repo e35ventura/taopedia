@@ -312,6 +312,19 @@ const imgLoadingQuoteAbuttedPattern = /<\s*img\b[^>]*["'`]loading\s*=/i;
 const imgFetchpriorityAttrPattern = /<\s*img\b[^>]*\sfetchpriority\s*=/i;
 const imgFetchpriorityQuoteAbuttedPattern = /<\s*img\b[^>]*["'`]fetchpriority\s*=/i;
 
+// ismap on an allowed <img> is the server-side image-map primitive (the counterpart
+// to the already-blocked client-side <map>/<area>/usemap= in #411). When set on an
+// <img> nested in an <a href="...">, the browser appends the click coordinates
+// (e.g. ?37,128) to the link URL — a click beacon with no script, handler, or
+// flagged scheme. Tag-scoped to <img> and scanned on emptyQuotedAttributeValues()
+// so alt text containing the literal word "ismap" passes. Delimiter is whitespace,
+// quote, or backtick (NOT /); including / as a delimiter triggers the #449 false
+// positive Codex flagged on unquoted URLs containing "/ismap." (e.g.
+// /wiki/ismap-demo.png), and slash-delimited boolean attributes are not a realistic
+// Markdown injection surface — same tradeoff as the merged autofocus/hidden rules.
+const imgIsmapAttrPattern = /<\s*img\b[^>]*\sismap(?=[\s>/=])/i;
+const quoteAbuttedImgIsmapAttrPattern = /<\s*img\b[^>]*["'`]ismap(?=[\s>/=])/i;
+
 function emptyQuotedAttributeValues(content) {
   return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
 }
@@ -615,6 +628,13 @@ export function validateArticleContent(slug, content) {
     throw new Error(
       `Unsafe article content in "${slug}": fetchpriority attributes are not allowed in article content`,
     );
+  }
+
+  if (
+    imgIsmapAttrPattern.test(emptiedAttributeContent)
+    || quoteAbuttedImgIsmapAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(`Unsafe article content in "${slug}": ismap attributes are not allowed in article content`);
   }
 
   const decoded = decodeForSchemeScan(content);
