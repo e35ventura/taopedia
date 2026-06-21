@@ -560,6 +560,19 @@ rejects('<table><tr><td class="x"nowrap>x</td></tr></table>', 'quote-abutted td 
 
 accepts('<table><tr><td>x</td></tr></table>', 'plain table without nowrap');
 accepts('A nowrap attribute on a cell is described here only as prose.', 'benign nowrap prose');
+
+// colspan=/rowspan= on allowed <td>/<th> merge or split cells — same layout-defacement
+// class as merged #465 (table dimensions) and #479 (nowrap).
+rejects('Intro.\n\n<table><tr><td colspan="99">x</td></tr></table>', 'plain td colspan attribute');
+rejects('Intro.\n\n<table><tr><td   colspan = "99">x</td></tr></table>', 'spaced td colspan attribute');
+rejects('Intro.\n\n<table><tr><th rowspan="99">x</th></tr></table>', 'plain th rowspan attribute');
+rejects('Intro.\n\n<table><tr><th   rowspan = "99">x</th></tr></table>', 'spaced th rowspan attribute');
+rejects('<td class="x"colspan="99">', 'quote-abutted td colspan attribute');
+rejects('<th class=x/rowspan="99">', 'slash-delimited th rowspan attribute');
+
+accepts('<table><tr><td>x</td></tr></table>', 'plain td without colspan/rowspan');
+accepts('Column span and row span are described here only as prose.', 'benign colspan/rowspan prose');
+
 rejects('Intro.\n\n<div hidden>panel</div>', 'bare hidden attribute');
 rejects('Intro.\n\n<div hidden class="x">panel</div>', 'hidden before another attribute');
 rejects('Intro.\n\n<  p   hidden = "until-found">x</p>', 'spaced hidden attribute with value');
