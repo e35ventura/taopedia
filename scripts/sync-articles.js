@@ -285,6 +285,18 @@ const nonSpaceDelimitedHandlerPattern = /<[^>]*[/"'`]on[a-z]+\s*=/i;
 const nonSpaceDelimitedInteractionSurfaceAttrPattern =
   /<[^>]*[/"'`](?:contenteditable|tabindex|draggable|download|popover|usemap|accesskey|referrerpolicy|dir)\s*=/i;
 
+// align/valign/bgcolor/background/border/cellpadding/cellspacing/hspace/vspace
+// are blocked in the whitespace-delimited scan above (the merged #435/#438/etc.
+// blocks), but the same quote-abutted bypass used by contenteditable —
+// `<img src="x"align="top">` or `<table src="x"border="5">` after a prior
+// quoted attribute — slipped those `\s…=` scans. Same presentational-layout
+// spoof class as the merged whitespace-delimited blocks; add them to a single
+// non-space-delimited alternation so any `[/"\'`]` boundary before the
+// attribute name is caught (still runs over emptyQuotedAttributeValues() so
+// benign URLs / class values pass).
+const nonSpaceDelimitedPresentationalLayoutAttrPattern =
+  /<[^>]*[/"'`](?:align|valign|bgcolor|background|border|cellpadding|cellspacing|hspace|vspace)\s*=/i;
+
 // width=/height= on an allowed <img> reserve an oversized layout box without the
 // blocked inline style= attribute — a layout-defacement surface (the same class
 // as border=/hspace= on tables, merged in #438). Tag-scoped to <img> and scanned
@@ -696,6 +708,12 @@ export function validateArticleContent(slug, content) {
   if (nonSpaceDelimitedInteractionSurfaceAttrPattern.test(emptiedAttributeContent)) {
     throw new Error(
       `Unsafe article content in "${slug}": contenteditable, tabindex, draggable, download, popover, usemap, accesskey, referrerpolicy, and dir attributes are not allowed in article content`,
+    );
+  }
+
+  if (nonSpaceDelimitedPresentationalLayoutAttrPattern.test(emptiedAttributeContent)) {
+    throw new Error(
+      `Unsafe article content in "${slug}": align, valign, bgcolor, background, border, cellpadding, cellspacing, hspace, and vspace attributes are not allowed in article content`,
     );
   }
 
