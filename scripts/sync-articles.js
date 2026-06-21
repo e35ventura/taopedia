@@ -290,6 +290,18 @@ const nonSpaceDelimitedImgDimensionAttrPattern = /<\s*img\b[^>]*[/"'`](?:width|h
 const tableDimensionAttrPattern = /<\s*(?:table|td|th)\b[^>]*\s(?:width|height)\s*=/i;
 const nonSpaceDelimitedTableDimensionAttrPattern = /<\s*(?:table|td|th)\b[^>]*[/"'`](?:width|height)\s*=/i;
 
+// width=/height= on allowed <tr>/<hr>/<pre> reserve oversized layout boxes
+// without the blocked inline style= attribute — the remaining half of the
+// dimension-attribute surface merged #451 / #465 close for <img> /
+// <table>/<td>/<th>. <hr width="5000"> draws a horizontal line that pushes the
+// article body; <pre width="5000"> reserves an oversized preformatted block;
+// <tr height="9999"> claims a row that pushes real content off-screen. Same
+// layout-defacement class as the merged #438 / #451 / #465 rules. Tag-scoped
+// and scanned on emptyQuotedAttributeValues() so benign prose and class values
+// pass.
+const rowHrPreDimensionAttrPattern = /<\s*(?:tr|hr|pre)\b[^>]*\s(?:width|height)\s*=/i;
+const nonSpaceDelimitedRowHrPreDimensionAttrPattern = /<\s*(?:tr|hr|pre)\b[^>]*[/"'`](?:width|height)\s*=/i;
+
 // autofocus steals keyboard focus on page load — a focus-theft primitive on allowed
 // elements with no script. Tag-boundary lookahead catches autofocus before another
 // attribute (<div autofocus class="x">). Quote-abutted only — no slash delimiter,
@@ -605,6 +617,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": width and height attributes are not allowed on table elements`,
+    );
+  }
+
+  if (
+    rowHrPreDimensionAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedRowHrPreDimensionAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": width and height attributes are not allowed on tr, hr, or pre elements`,
     );
   }
 
