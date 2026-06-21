@@ -307,6 +307,11 @@ const imgSizesQuoteAbuttedPattern = /<\s*img\b[^>]*["'`]sizes\s*=/i;
 const imgLoadingAttrPattern = /<\s*img\b[^>]*\sloading\s*=/i;
 const imgLoadingQuoteAbuttedPattern = /<\s*img\b[^>]*["'`]loading\s*=/i;
 
+// fetchpriority= on an allowed <img> bumps subresource fetch priority for attacker-chosen
+// URLs ahead of legitimate page assets (same img-scoped family as loading #462).
+const imgFetchpriorityAttrPattern = /<\s*img\b[^>]*\sfetchpriority\s*=/i;
+const imgFetchpriorityQuoteAbuttedPattern = /<\s*img\b[^>]*["'`]fetchpriority\s*=/i;
+
 function emptyQuotedAttributeValues(content) {
   return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
 }
@@ -601,6 +606,15 @@ export function validateArticleContent(slug, content) {
     || imgLoadingQuoteAbuttedPattern.test(emptiedAttributeContent)
   ) {
     throw new Error(`Unsafe article content in "${slug}": loading attributes are not allowed in article content`);
+  }
+
+  if (
+    imgFetchpriorityAttrPattern.test(emptiedAttributeContent)
+    || imgFetchpriorityQuoteAbuttedPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": fetchpriority attributes are not allowed in article content`,
+    );
   }
 
   const decoded = decodeForSchemeScan(content);

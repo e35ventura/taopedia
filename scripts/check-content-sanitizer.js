@@ -520,6 +520,13 @@ rejects('<img src="/wiki/fig.png"loading="lazy">', 'quote-abutted img loading at
 accepts('<img src=/wiki/loading-demo.png alt=diagram>', 'benign unquoted img src path containing loading substring');
 accepts('Lazy loading improves performance and is described here only as prose.', 'benign loading prose');
 
+// fetchpriority= on <img> bumps attacker URL fetch ahead of page assets — same family as loading #462.
+rejects('Intro.\n\n<img src="https://evil.example/pixel.gif" fetchpriority="high" alt="x">', 'plain img fetchpriority attribute');
+rejects('Intro.\n\n<  img   src="/wiki/fig.png"   fetchpriority = "high">', 'spaced img fetchpriority attribute');
+rejects('<img src="/wiki/fig.png"fetchpriority="high">', 'quote-abutted img fetchpriority attribute');
+accepts('<img src=/wiki/fetchpriority-demo.png alt=diagram>', 'benign unquoted img src path containing fetchpriority substring');
+accepts('Fetch priority hints improve performance and are described here only as prose.', 'benign fetchpriority prose');
+
 // Prose that merely mentions these English words without the directive colon
 // must still pass — guard the new patterns against false positives.
 accepts('This client is set to define the class list style, and the server is fast.', 'benign client/server/set/class/define prose');
