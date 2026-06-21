@@ -375,6 +375,13 @@ const nonSpaceDelimitedOlStartAttrPattern = /<\s*ol\b[^>]*[/"'`]start\s*=/i;
 const liValueAttrPattern = /<\s*li\b[^>]*\svalue\s*=/i;
 const nonSpaceDelimitedLiValueAttrPattern = /<\s*li\b[^>]*[/"'`]value\s*=/i;
 
+// type= on allowed list elements changes marker semantics without CSS: an injected
+// <ol type="A"> or <li type="I"> can make procedural steps look like a different
+// sequence, while <ul type="square"> restyles bullets as a callout-like block.
+// Same list-spoof family as the merged start=/value= block (#483).
+const listTypeAttrPattern = /<\s*(?:ol|ul|li)\b[^>]*\stype\s*=/i;
+const nonSpaceDelimitedListTypeAttrPattern = /<\s*(?:ol|ul|li)\b[^>]*[/"'`]type\s*=/i;
+
 // fetchpriority= on an allowed <img> bumps subresource fetch priority for attacker-chosen
 // URLs ahead of legitimate page assets (same img-scoped family as loading #462).
 const imgFetchpriorityAttrPattern = /<\s*img\b[^>]*\sfetchpriority\s*=/i;
@@ -792,6 +799,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": start and value attributes are not allowed on ol and li elements`,
+    );
+  }
+
+  if (
+    listTypeAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedListTypeAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": type attributes are not allowed on list elements`,
     );
   }
 

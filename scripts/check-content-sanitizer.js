@@ -608,9 +608,16 @@ rejects('Intro.\n\n<ol><li value="5">x</li></ol>', 'plain li value attribute');
 rejects('Intro.\n\n<ol><li   value = "10">x</li></ol>', 'spaced li value attribute');
 rejects('<ol><li class="x"value="5">x</li></ol>', 'quote-abutted li value attribute');
 rejects('<ol><li class=x/value="5">x</li></ol>', 'slash-delimited li value attribute');
+rejects('Intro.\n\n<ol type="A"><li>Fake step A</li></ol>', 'plain ol type attribute');
+rejects('Intro.\n\n<ul   type = "square"><li>callout</li></ul>', 'spaced ul type attribute');
+rejects('Intro.\n\n<ol><li type="I">Fake step I</li></ol>', 'plain li type attribute');
+rejects('<ol class="x"type="A">x</ol>', 'quote-abutted ol type attribute');
+rejects('<ul class=x/type="square">', 'slash-delimited ul type attribute');
 
 accepts('<ol><li>plain item</li></ol>', 'plain ordered list without start/value');
+accepts('<ul class="topics"><li>plain item</li></ul>', 'plain unordered list without type');
 accepts('Step 1: setup; Step 2: build. The numbering must remain default.', 'benign step numbering prose');
+accepts('A list marker type can be described in prose without setting an attribute.', 'benign list type prose');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   loading = "lazy">', 'spaced img loading attribute');
 rejects('<img src="/wiki/fig.png"loading="lazy">', 'quote-abutted img loading attribute');
 accepts('<img src=/wiki/loading-demo.png alt=diagram>', 'benign unquoted img src path containing loading substring');
