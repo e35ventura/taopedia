@@ -396,6 +396,27 @@ rejects('Intro.\n\n<  img   hspace = "40" vspace="40">', 'spaced hspace attribut
 rejects('Intro.\n\n<td cellspacing="30">x</td>', 'plain cellspacing attribute');
 accepts('Table borders and cell padding are defined in the stylesheet, not inline.', 'benign border/padding prose');
 
+// Quote-abutted / slash-delimited forms of the presentational-layout attributes
+// (align / valign / bgcolor / background / border / cellpadding / cellspacing /
+// hspace / vspace) slipped the whitespace-delimited `\s…=` scans above because
+// there is no whitespace before the attribute name after a prior quoted
+// attribute (`<img src="x"align="top">`, `<table src="x"border="5">`). Same
+// presentational-layout spoof class as the merged whitespace-delimited blocks
+// (#434/#435/#436/#438); the non-space-delimited alternation catches the
+// abutted forms without affecting benign URLs / class values.
+rejects('Intro.\n\n<img src="x"align="top">', 'quote-abutted align attribute');
+rejects('Intro.\n\n<td src="x"valign="middle">x</td>', 'quote-abutted valign attribute');
+rejects('Intro.\n\n<table src="x"bgcolor="red"><tr><td>x</td></tr></table>', 'quote-abutted bgcolor attribute');
+rejects('Intro.\n\n<body src="x"background="https://evil.example/track.png">x</body>', 'quote-abutted background attribute');
+rejects('Intro.\n\n<img src="x"border="5">', 'quote-abutted border attribute');
+rejects('Intro.\n\n<img src="x"hspace="40"vspace="40">', 'quote-abutted hspace and vspace');
+rejects('Intro.\n\n<table src="x"cellpadding="10"cellspacing="10">x</table>', 'quote-abutted cellpadding/cellspacing');
+rejects('Intro.\n\n<img class=x/align=top>', 'slash-abutted align attribute');
+rejects('Intro.\n\n<table class=x/border=5><tr><td>x</td></tr></table>', 'slash-abutted border attribute');
+// Benign class values / URLs that merely mention the attribute name still pass.
+accepts('<p class="align top">centered prose</p>', 'benign align inside class value');
+accepts('<a href="/wiki/stake?border=5">stake docs</a>', 'benign border= inside quoted href');
+
 // xmlns namespace attribute assignments must not appear in article bodies.
 rejects('Intro.\n\n<svg xmlns="http://www.w3.org/2000/svg"></svg>', 'plain xmlns attribute');
 rejects('Intro.\n\n<svg xmlns = "http://www.w3.org/2000/svg"></svg>', 'spaced equals xmlns attribute');
