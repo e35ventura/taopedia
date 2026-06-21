@@ -347,6 +347,18 @@ const imgFetchpriorityQuoteAbuttedPattern = /<\s*img\b[^>]*["'`]fetchpriority\s*
 const imgIsmapAttrPattern = /<\s*img\b[^>]*\sismap(?=[\s>/=])/i;
 const quoteAbuttedImgIsmapAttrPattern = /<\s*img\b[^>]*["'`]ismap(?=[\s>/=])/i;
 
+// nowrap on allowed <td>/<th> disables text wrapping in the cell without the
+// blocked inline style= attribute — a layout-defacement surface (an injected
+// <td nowrap> cell forces long lines to overflow and reflow the real text)
+// plus a content-spoofing primitive (a fake "wallet address:" header followed
+// by an unwrapped alphanumeric string forces the address into one line, the
+// same class as the merged <td width> / <th width> / <td height> blocks in
+// #451 / #465). Same layout-defacement class as the merged #438 / #451 / #465
+// rules. Tag-scoped to td/th and scanned on emptyQuotedAttributeValues() so
+// benign prose and class values pass.
+const tdThNowrapAttrPattern = /<\s*(?:td|th)\b[^>]*\snowrap(?=[\s>/=])/i;
+const quoteAbuttedTdThNowrapAttrPattern = /<\s*(?:td|th)\b[^>]*["'`]nowrap(?=[\s>/=])/i;
+
 function emptyQuotedAttributeValues(content) {
   return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
 }
@@ -651,6 +663,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": srcset and sizes attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    tdThNowrapAttrPattern.test(emptiedAttributeContent)
+    || quoteAbuttedTdThNowrapAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": nowrap attributes are not allowed on td or th elements`,
     );
   }
 

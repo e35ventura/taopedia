@@ -533,6 +533,16 @@ accepts('Autofocus the search field before the reader starts typing.', 'benign a
 accepts('Use autofocus carefully when designing keyboard flows.', 'benign autofocus prose mid-sentence');
 accepts('<img src="/wiki/fig.png" alt="the autofocus attribute is obsolete">', 'benign autofocus word inside img alt');
 
+// nowrap on allowed <td>/<th> disables text wrapping without the blocked
+// inline style= attribute — a layout-defacement / content-spoofing primitive
+// (an injected cell forces long lines to overflow and reflow real text).
+rejects('Intro.\n\n<table><tr><td nowrap>x</td></tr></table>', 'plain td nowrap attribute');
+rejects('Intro.\n\n<table><tr><th   nowrap   >x</th></tr></table>', 'spaced th nowrap attribute');
+rejects('<table><tr><td class="x"nowrap>x</td></tr></table>', 'quote-abutted td nowrap attribute');
+
+accepts('<table><tr><td>x</td></tr></table>', 'plain table without nowrap');
+accepts('A nowrap attribute on a cell is described here only as prose.', 'benign nowrap prose');
+
 // hidden removes content from layout but keeps it in the DOM — an injected hidden
 // link is still navigable. Same detection as merged autofocus (#453).
 rejects('Intro.\n\n<a hidden href="https://evil.example/">go</a>', 'plain hidden attribute on anchor');
