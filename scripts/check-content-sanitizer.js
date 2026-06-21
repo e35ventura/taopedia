@@ -529,6 +529,18 @@ rejects('<table class=x/rules="all">', 'slash-delimited table rules attribute');
 accepts('<table><tr><td>x</td></tr></table>', 'plain table without frame/rules/summary');
 accepts('Table frame border and inner rules are described here only as prose.', 'benign table frame/rules prose');
 
+// colspan=/rowspan= on allowed <td>/<th> merge or split cells — same layout-defacement
+// class as the merged table dimension attributes (#465).
+rejects('Intro.\n\n<table><tr><td colspan="99">x</td></tr></table>', 'plain td colspan attribute');
+rejects('Intro.\n\n<table><tr><td   colspan = "99">x</td></tr></table>', 'spaced td colspan attribute');
+rejects('Intro.\n\n<table><tr><th rowspan="99">x</th></tr></table>', 'plain th rowspan attribute');
+rejects('Intro.\n\n<table><tr><th   rowspan = "99">x</th></tr></table>', 'spaced th rowspan attribute');
+rejects('<td class="x"colspan="99">', 'quote-abutted td colspan attribute');
+rejects('<th class=x/rowspan="99">', 'slash-delimited th rowspan attribute');
+
+accepts('<table><tr><td>x</td></tr></table>', 'plain td without colspan/rowspan');
+accepts('Column span and row span are described here only as prose.', 'benign colspan/rowspan prose');
+
 // autofocus steals keyboard focus on page load. Tag-boundary lookahead catches
 // autofocus before another attribute; no slash delimiter (class=x/autofocus is benign).
 rejects('Intro.\n\n<div autofocus>trap</div>', 'bare autofocus attribute');

@@ -359,6 +359,13 @@ const quoteAbuttedImgIsmapAttrPattern = /<\s*img\b[^>]*["'`]ismap(?=[\s>/=])/i;
 const tableFrameRulesAttrPattern = /<\s*table\b[^>]*\s(?:frame|rules|summary)\s*=/i;
 const nonSpaceDelimitedTableFrameRulesAttrPattern = /<\s*table\b[^>]*[/"'`](?:frame|rules|summary)\s*=/i;
 
+// colspan=/rowspan= on allowed <td>/<th> merge or split table cells without the
+// blocked inline style= attribute — e.g. colspan="99" makes one injected cell
+// span the full table width, a content-layout spoof with no script, handler, or
+// flagged scheme. Same class as the merged table dimension attributes (#465).
+const tdThSpanAttrPattern = /<\s*(?:td|th)\b[^>]*\s(?:colspan|rowspan)\s*=/i;
+const nonSpaceDelimitedTdThSpanAttrPattern = /<\s*(?:td|th)\b[^>]*[/"'`](?:colspan|rowspan)\s*=/i;
+
 function emptyQuotedAttributeValues(content) {
   return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
 }
@@ -672,6 +679,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": frame, rules, and summary attributes are not allowed on table elements`,
+    );
+  }
+
+  if (
+    tdThSpanAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedTdThSpanAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": colspan and rowspan attributes are not allowed on table cells`,
     );
   }
 
