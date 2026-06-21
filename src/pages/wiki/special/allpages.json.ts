@@ -1,0 +1,41 @@
+import type { APIRoute } from 'astro';
+import { getCollection } from 'astro:content';
+import { getPageSlug } from '../../../lib/article-history';
+import { buildAllPages } from '../../../../scripts/allpages.js';
+
+// Machine-readable article directory at /wiki/special/allpages.json. Mirrors
+// the HTML Special:AllPages page as structured JSON for programmatic
+// consumers (dashboards, search indexes, link rotators). The computation
+// lives in scripts/allpages.js (pure function) and reuses the exact same
+// `sortPagesByTitle` helper (src/lib/title-sort.js) the HTML page imports,
+// so the JSON and HTML surfaces never disagree on which articles are
+// listed, what their order is, or what the per-row fields are.
+
+export const GET: APIRoute = async ({ site }) => {
+  const origin = (site ?? new URL('https://taopedia.org')).origin;
+  const pages = await getCollection('pages');
+
+  const articles = buildAllPages({ pages, getPageSlug });
+
+  const body = JSON.stringify(
+    {
+      site: origin,
+      count: articles.length,
+      articles: articles.map((article) => ({
+        slug: article.slug,
+        title: article.title,
+        summary: article.summary || null,
+        url: article.url,
+        categories: article.categories,
+      })),
+    },
+    null,
+    2,
+  );
+
+  return new Response(body, {
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+    },
+  });
+};
