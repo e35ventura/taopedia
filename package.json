@@ -80,6 +80,7 @@
     "test:search-index": "node scripts/check-search-index.js",
     "test:most-linked": "node scripts/check-most-linked.js",
     "test:most-linked-json": "node scripts/check-most-linked-json.js",
+    "test:long-pages": "node scripts/check-long-pages.js",
     "test:categories-json": "node scripts/check-categories-json.js",
     "test:subnets-json": "node scripts/check-subnets-json.js",
     "test:allpages-json": "node scripts/check-allpages-json.js",

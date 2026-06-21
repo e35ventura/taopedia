@@ -1,0 +1,73 @@
+---
+import WikiLayout from '../../../layouts/WikiLayout.astro';
+import { getCollection } from 'astro:content';
+import { getPageSlug } from '../../../lib/article-history';
+import { compareTitles } from '../../../lib/title-sort.js';
+
+const pages = await getCollection('pages');
+
+const longPages = pages
+  .map((page) => ({
+    slug: getPageSlug(page),
+    title: page.data.title,
+    wordCount: (page.body ?? '').trim().split(/\s+/).filter(Boolean).length,
+  }))
+  .filter((page) => page.wordCount > 0)
+  .sort((a, b) => b.wordCount - a.wordCount || compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug));
+---
+
+<WikiLayout
+  title="Long pages"
+  description="The longest articles across the Taopedia Bittensor knowledge base, ranked by article body word count."
+>
+  <div class="mw-body-content">
+    <h1 class="firstHeading">Long pages</h1>
+
+    <div class="mw-parser-output">
+      <p>
+        Articles ranked by article body length, longest first. Use this page to jump into Taopedia's
+        deepest reference coverage.
+      </p>
+
+      {longPages.length === 0 ? (
+        <p>No long pages available yet.</p>
+      ) : (
+        <ol class="mw-longpages">
+          {longPages.map((page) => (
+            <li class="mw-lp-row">
+              <a class="mw-lp-title" href={`/wiki/${page.slug}/`}>{page.title}</a>
+              <span class="mw-lp-count">{page.wordCount} {page.wordCount === 1 ? 'word' : 'words'}</span>
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
+  </div>
+</WikiLayout>
+
+<style>
+  .mw-longpages {
+    margin: 16px 0;
+    padding-left: 32px;
+  }
+
+  .mw-lp-row {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border-color-subtle);
+    font-size: 14px;
+  }
+
+  .mw-lp-title {
+    font-weight: 600;
+  }
+
+  .mw-lp-count {
+    margin-left: auto;
+    font-size: 13px;
+    white-space: nowrap;
+    color: var(--color-base-subtle);
+  }
+</style>
