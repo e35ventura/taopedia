@@ -17,7 +17,12 @@
 
 const REPO = 'https://github.com/e35ventura/taopedia';
 
+function trimTrailingSlash(value) {
+  return String(value || '').replace(/\/+$/, '');
+}
+
 export function buildSecurityTxt({ origin, now = new Date() }) {
+  const canonicalOrigin = trimTrailingSlash(origin || 'https://taopedia.org');
   const expires = new Date(now.getTime());
   expires.setUTCFullYear(expires.getUTCFullYear() + 1);
   expires.setUTCDate(expires.getUTCDate() - 1);
@@ -27,7 +32,7 @@ export function buildSecurityTxt({ origin, now = new Date() }) {
     '',
     `Contact: ${REPO}/security/advisories/new`,
     `Policy: ${REPO}/blob/main/SECURITY.md`,
-    `Canonical: ${origin}/.well-known/security.txt`,
+    `Canonical: ${canonicalOrigin}/.well-known/security.txt`,
     'Preferred-Languages: en',
     `Expires: ${expires.toISOString()}`,
     '',

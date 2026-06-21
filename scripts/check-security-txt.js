@@ -49,6 +49,11 @@ assert.match(
   'Canonical must point at the production /.well-known/security.txt URL',
 );
 assert.match(
+  buildSecurityTxt({ origin: 'https://taopedia.org/', now }),
+  /^Canonical: https:\/\/taopedia\.org\/\.well-known\/security\.txt$/m,
+  'Canonical must normalize a trailing slash on origin so the well-known URL is not emitted with //',
+);
+assert.match(
   txt,
   /^Policy: https:\/\/github\.com\/e35ventura\/taopedia\/blob\/main\/SECURITY\.md$/m,
   'Policy must reference the repository SECURITY.md',
