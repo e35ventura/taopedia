@@ -34,6 +34,38 @@ const featuredPages = featuredSlugs
   .map((slug) => pages.find((page) => getPageSlug(page) === slug))
   .filter(Boolean);
 
+const topicCount = categoryIndex.size;
+const subnetPageCount = pages.filter((page) => /^Subnet \d+/.test(page.data.title)).length;
+
+const homepageStats = [
+  { href: '/wiki/special/allpages', value: pages.length, label: 'Articles' },
+  { href: '/wiki/special/categories', value: topicCount, label: 'Topics' },
+  { href: '/wiki/special/subnets', value: subnetPageCount, label: 'Subnets' },
+];
+
+const heroEntryPoints = [
+  {
+    href: '/wiki/special/recentchanges',
+    title: 'Recent changes',
+    description: 'See the latest published edits and new article updates.',
+  },
+  {
+    href: '/wiki/special/mostlinkedpages',
+    title: 'Most linked',
+    description: 'Jump into the pages that connect the most Bittensor concepts.',
+  },
+  {
+    href: '/wiki/special/subnets',
+    title: 'Subnet registry',
+    description: 'Browse netuid pages, live subnet summaries, and network context.',
+  },
+  {
+    href: '/wiki/special/allpages',
+    title: 'A-Z directory',
+    description: 'Open the full article index when you already know the term.',
+  },
+];
+
 const alphaGroups = new Map<string, typeof pages>();
 for (const page of sortedPages) {
   const firstLetter = page.data.title.trim().charAt(0).toUpperCase();
@@ -133,7 +165,15 @@ const initialLetter = alphabet[0] ?? '#';
       }
 
       .home-hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.95fr);
+        gap: 24px;
+        align-items: start;
         padding: 44px 0 38px;
+      }
+
+      .home-hero-copy {
+        min-width: 0;
         max-width: 760px;
       }
 
@@ -225,6 +265,90 @@ const initialLetter = alphabet[0] ?? '#';
 
       .search-suggestions a:hover {
         text-decoration: underline;
+      }
+
+      .home-explore {
+        border: 1px solid var(--border-color-subtle);
+        background: var(--background-color-interactive);
+        padding: 16px;
+      }
+
+      .home-explore h2 {
+        margin: 0;
+        font-family: var(--font-family-serif);
+        font-size: 24px;
+        font-weight: 400;
+      }
+
+      .home-explore-intro {
+        margin: 8px 0 0;
+        color: var(--color-base-subtle);
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      .home-stat-grid,
+      .home-entry-grid {
+        display: grid;
+        gap: 8px;
+      }
+
+      .home-stat-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        margin-top: 16px;
+      }
+
+      .home-stat-link,
+      .home-entry-link {
+        display: block;
+        min-width: 0;
+        padding: 12px;
+        border: 1px solid var(--border-color-subtle);
+        background: var(--background-color-base);
+        color: var(--color-base);
+        text-decoration: none;
+      }
+
+      .home-stat-link:hover,
+      .home-entry-link:hover {
+        border-color: var(--color-link);
+        text-decoration: none;
+      }
+
+      .home-stat-value,
+      .home-entry-link strong {
+        display: block;
+        color: var(--color-link);
+      }
+
+      .home-stat-value {
+        font-size: 20px;
+        font-weight: 700;
+        line-height: 1.1;
+      }
+
+      .home-stat-label {
+        display: block;
+        margin-top: 4px;
+        color: var(--color-base-subtle);
+        font-size: 12px;
+      }
+
+      .home-entry-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin-top: 8px;
+      }
+
+      .home-entry-link strong {
+        font-size: 14px;
+      }
+
+      .home-entry-link span {
+        display: block;
+        margin-top: 6px;
+        color: var(--color-base-subtle);
+        font-size: 13px;
+        line-height: 1.45;
       }
 
       .home-section {
@@ -382,6 +506,10 @@ const initialLetter = alphabet[0] ?? '#';
           padding-top: 32px;
         }
 
+        .home-explore {
+          margin-top: 24px;
+        }
+
         h1 {
           font-size: 36px;
         }
@@ -399,6 +527,10 @@ const initialLetter = alphabet[0] ?? '#';
 
         .topic-grid,
         .article-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .home-entry-grid {
           grid-template-columns: 1fr;
         }
 
@@ -438,7 +570,7 @@ const initialLetter = alphabet[0] ?? '#';
       </header>
 
       <section class="home-hero">
-        <div>
+        <div class="home-hero-copy">
           <h1>Bittensor concepts, organized.</h1>
           <p class="home-intro">Short reference pages for builders, validators, miners, and TAO holders.</p>
           <form class="home-search" action="/search/" method="get">
@@ -449,13 +581,35 @@ const initialLetter = alphabet[0] ?? '#';
             <button type="submit">Search</button>
           </form>
           <div class="search-suggestions" aria-label="Suggested searches">
-            <span>{pages.length} articles</span>
+            <span>Popular starts</span>
             <a href="/wiki/wallets/">wallets</a>
             <a href="/wiki/category/Staking/">staking</a>
             <a href="/wiki/yuma_consensus/">Yuma Consensus</a>
             <a href="/wiki/dynamic_tao/">Dynamic TAO</a>
           </div>
         </div>
+        <aside class="home-explore" aria-labelledby="browse-taopedia">
+          <h2 id="browse-taopedia">Browse Taopedia</h2>
+          <p class="home-explore-intro">
+            Start with the highest-value wiki surfaces for subnet research, reference lookups, and current network context.
+          </p>
+          <div class="home-stat-grid">
+            {homepageStats.map((item) => (
+              <a class="home-stat-link" href={item.href}>
+                <span class="home-stat-value">{item.value}</span>
+                <span class="home-stat-label">{item.label}</span>
+              </a>
+            ))}
+          </div>
+          <div class="home-entry-grid">
+            {heroEntryPoints.map((item) => (
+              <a class="home-entry-link" href={item.href}>
+                <strong>{item.title}</strong>
+                <span>{item.description}</span>
+              </a>
+            ))}
+          </div>
+        </aside>
       </section>
 
       <section class="home-section">
