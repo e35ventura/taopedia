@@ -12,6 +12,16 @@ assert.match(body, /<ShortName>Taopedia<\/ShortName>/, 'OpenSearch description m
 assert.match(body, /<InputEncoding>UTF-8<\/InputEncoding>/, 'OpenSearch description must use UTF-8');
 assert.match(
   body,
+  /<Image width="16" height="16" type="image\/png">https:\/\/taopedia\.org\/favicon-16x16\.png<\/Image>/,
+  'OpenSearch description must advertise the 16x16 favicon image',
+);
+assert.match(
+  body,
+  /<Image width="32" height="32" type="image\/png">https:\/\/taopedia\.org\/favicon-32x32\.png<\/Image>/,
+  'OpenSearch description must advertise the 32x32 favicon image',
+);
+assert.match(
+  body,
   /<Url type="text\/html" method="get" template="https:\/\/taopedia\.org\/search\/\?q=\{searchTerms\}" \/>/,
   'OpenSearch URL template must target the canonical /search/ route',
 );

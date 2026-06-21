@@ -36,6 +36,11 @@ export function buildOpenSearchDescription({
     `  <ShortName>${escapeXml(siteName)}</ShortName>`,
     `  <Description>${escapeXml(description)}</Description>`,
     `  <InputEncoding>UTF-8</InputEncoding>`,
+    // The site favicons, so browsers render the Taopedia icon next to the search
+    // engine in the address-bar/search dropdown (OpenSearch <Image>; the 16x16 is
+    // the spec's recommended default size).
+    `  <Image width="16" height="16" type="image/png">${escapeXml(`${base}/favicon-16x16.png`)}</Image>`,
+    `  <Image width="32" height="32" type="image/png">${escapeXml(`${base}/favicon-32x32.png`)}</Image>`,
     `  <Url type="text/html" method="get" template="${escapeXml(searchTemplate)}" />`,
     '</OpenSearchDescription>',
     '',
