@@ -610,6 +610,18 @@ accepts('<div class=x/hidden>not a hidden attribute</div>', 'benign slash inside
 accepts('Hidden text and hidden sections are described here only as prose.', 'benign hidden prose');
 accepts('<img src="/wiki/fig.png" alt="a hidden treasure map">', 'benign hidden word inside img alt');
 
+// aria-label=/aria-labelledby= override an element's accessible name. On allowed
+// links/images this can make screen-reader output differ from visible article
+// text, a no-script content-spoofing surface.
+rejects('Intro.\n\n<a href="https://evil.example/" aria-label="Official staking guide">claim TAO</a>', 'plain aria-label attribute');
+rejects('Intro.\n\n<img src="/wiki/fig.png" aria-labelledby="fake-caption" alt="chart">', 'plain aria-labelledby attribute');
+rejects('Intro.\n\n<  a   href="/wiki/stake/"   aria-label = "Trusted staking guide">stake</a>', 'spaced aria-label attribute');
+rejects('<a href="x"aria-label="Trusted docs">go</a>', 'quote-abutted aria-label attribute');
+rejects('<img src="/wiki/fig.png"/aria-labelledby="fake-caption">', 'slash-delimited aria-labelledby attribute');
+accepts('ARIA labels are an accessibility concept described here only as prose.', 'benign aria label prose');
+accepts('<a href="/wiki/aria-label=demo">ARIA label docs</a>', 'benign aria-label substring in quoted href');
+accepts('<span class=x/aria-label-demo>ARIA label class example</span>', 'benign aria-label substring in class value');
+
 // srcset=/sizes= on <img> steer responsive loading — gap after #411 blocked picture/source.
 rejects('Intro.\n\n<img src="/wiki/fig.png" srcset="https://evil.example/x 1x" alt="x">', 'plain img srcset attribute');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   srcset = "https://evil.example/x 2x">', 'spaced img srcset attribute');
