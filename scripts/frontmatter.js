@@ -1,6 +1,6 @@
 import YAML from 'yaml';
 
-const frontmatterPattern = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/;
+const frontmatterPattern = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n(?:\r?\n)?|$)/;
 
 export function parseFrontmatter(input) {
   const source = String(input ?? '');
