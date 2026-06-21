@@ -206,6 +206,15 @@ assert.ok(
   'check-most-linked.js must sort slug ties with compareTitles, not localeCompare',
 );
 
+const relatedPagesSource = fs.readFileSync(path.join(projectRoot, 'src/lib/related-pages.ts'), 'utf8');
+assert.ok(
+  relatedPagesSource.includes('compareTitles(a.slug, b.slug)'),
+  'related-pages.ts must sort slug ties with compareTitles, not raw string order',
+);
+assert.ok(
+  !relatedPagesSource.includes('a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0'),
+  'related-pages.ts must not use raw string comparison for slug tiebreak',
+);
 
 // The homepage A–Z index groups sort letter keys with compareTitles so numeric
 // collation stays consistent with the rest of the title-sort contract.

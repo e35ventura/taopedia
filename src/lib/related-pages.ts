@@ -95,7 +95,7 @@ export function getRelatedPages({
     (a, b) =>
       b.score - a.score ||
       compareTitles(a.title, b.title) ||
-      (a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0),
+      compareTitles(a.slug, b.slug),
   );
 
   return scored.slice(0, max).map(({ slug, title, summary, tags }) => ({ slug, title, summary, tags }));
