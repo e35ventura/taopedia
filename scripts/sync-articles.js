@@ -329,6 +329,20 @@ const imgSizesQuoteAbuttedPattern = /<\s*img\b[^>]*["'`]sizes\s*=/i;
 const imgLoadingAttrPattern = /<\s*img\b[^>]*\sloading\s*=/i;
 const imgLoadingQuoteAbuttedPattern = /<\s*img\b[^>]*["'`]loading\s*=/i;
 
+// char=/charoff= on allowed <td>/<th>/<tr> align column content to a specific
+// character (e.g. char="." charoff="50" decimal-aligns numbers around the
+// decimal point). The attributes are deprecated in HTML5 — most current
+// browsers honor them for back-compat with financial tables. An injected
+// char="," combined with a column of decimal "APY" values can be used to
+// decimal-align attacker-controlled "earnings" numbers against the wiki's
+// own columns, the same content-spoof class as the merged #436 align/valign
+// and #438 border/cellpadding rules. charoff= is the paired offset and is
+// blocked alongside so a partial attribute set still has no effect. Tag-scoped
+// to td|th|tr and scanned on emptyQuotedAttributeValues() so benign prose
+// and class values pass.
+const tdThTrCharAttrPattern = /<\s*(?:td|th|tr)\b[^>]*\s(?:char|charoff)\s*=/i;
+const nonSpaceDelimitedTdThTrCharAttrPattern = /<\s*(?:td|th|tr)\b[^>]*[/"'`](?:char|charoff)\s*=/i;
+
 // fetchpriority= on an allowed <img> bumps subresource fetch priority for attacker-chosen
 // URLs ahead of legitimate page assets (same img-scoped family as loading #462).
 const imgFetchpriorityAttrPattern = /<\s*img\b[^>]*\sfetchpriority\s*=/i;
@@ -680,6 +694,15 @@ export function validateArticleContent(slug, content) {
     || imgLoadingQuoteAbuttedPattern.test(emptiedAttributeContent)
   ) {
     throw new Error(`Unsafe article content in "${slug}": loading attributes are not allowed in article content`);
+  }
+
+  if (
+    tdThTrCharAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedTdThTrCharAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": char and charoff attributes are not allowed on td, th, or tr elements`,
+    );
   }
 
   if (
