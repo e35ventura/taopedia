@@ -516,6 +516,25 @@ accepts('<pre>x</pre>', 'plain pre without dimensions');
 accepts('<table><tr><td>x</td></tr></table>', 'plain tr without dimensions');
 accepts('Line width and preformatted block height are described here only as prose.', 'benign width/height prose for hr/pre');
 
+// noshade (boolean) and color=/size= (value) on allowed <hr> set obsolete
+// presentational styling without the blocked inline style= attribute — same
+// content-styling spoof class as the merged bgcolor=/background= (#434, #435)
+// on <body>/<table>/<td> and the <font color/size/face> attributes (<font>
+// itself blocked in #433).
+rejects('Intro.\n\n<hr color="red" size="50">x</hr>', 'plain hr color/size attributes');
+rejects('Intro.\n\n<hr   size = "5">x</hr>', 'spaced hr size attribute');
+rejects('Intro.\n\n<hr color="#ff0000">x</hr>', 'plain hr hex color attribute');
+rejects('<hr class="x"color="red">', 'quote-abutted hr color attribute');
+rejects('<hr class=x/size="5">', 'slash-delimited hr size attribute');
+rejects('Intro.\n\n<hr noshade>x</hr>', 'plain hr noshade attribute');
+rejects('Intro.\n\n<hr   noshade   >x</hr>', 'spaced hr noshade attribute');
+rejects('<hr class="x"noshade>', 'quote-abutted hr noshade attribute');
+
+accepts('<hr>x</hr>', 'plain hr without visual styling');
+accepts('<hr class="divider">x</hr>', 'benign hr class attribute');
+accepts('<hr class=x/noshade>benign slash inside unquoted class value</hr>', 'benign slash-delimited noshade (same tradeoff as autofocus/hidden)');
+accepts('A horizontal rule without noshade or color is described here only as prose.', 'benign hr visual prose');
+
 // autofocus steals keyboard focus on page load. Tag-boundary lookahead catches
 // autofocus before another attribute; no slash delimiter (class=x/autofocus is benign).
 rejects('Intro.\n\n<div autofocus>trap</div>', 'bare autofocus attribute');

@@ -347,6 +347,21 @@ const imgFetchpriorityQuoteAbuttedPattern = /<\s*img\b[^>]*["'`]fetchpriority\s*
 const imgIsmapAttrPattern = /<\s*img\b[^>]*\sismap(?=[\s>/=])/i;
 const quoteAbuttedImgIsmapAttrPattern = /<\s*img\b[^>]*["'`]ismap(?=[\s>/=])/i;
 
+// noshade (boolean) and color=/size= (value) on an allowed <hr> set obsolete
+// presentational styling on a horizontal rule without the blocked inline
+// style= attribute — the same content-styling spoof class as bgcolor=/background=
+// (#434, #435) on <body>/<table>/<td> and the obsolete <font color/size/face>
+// attributes (<font> itself blocked in #433). An injected <hr color="red"
+// size="50"> is a single-line content spoof (a fake red "alert" divider), with
+// no script, handler, or flagged scheme. Tag-scoped to <hr>; the boolean
+// (noshade) half uses a [\s>/=] lookahead matching the merged autofocus/hidden
+// pattern (#453, #458), the value (color/size) half uses \s*= like the merged
+// img dimension pattern (#451). Both scanned on emptyQuotedAttributeValues().
+const hrNoshadeAttrPattern = /<\s*hr\b[^>]*\snoshade(?=[\s>/=])/i;
+const quoteAbuttedHrNoshadeAttrPattern = /<\s*hr\b[^>]*["'`]noshade(?=[\s>/=])/i;
+const hrColorSizeAttrPattern = /<\s*hr\b[^>]*\s(?:color|size)\s*=/i;
+const nonSpaceDelimitedHrColorSizeAttrPattern = /<\s*hr\b[^>]*[/"'`](?:color|size)\s*=/i;
+
 function emptyQuotedAttributeValues(content) {
   return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
 }
@@ -626,6 +641,17 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": width and height attributes are not allowed on tr, hr, or pre elements`,
+    );
+  }
+
+  if (
+    hrNoshadeAttrPattern.test(emptiedAttributeContent)
+    || quoteAbuttedHrNoshadeAttrPattern.test(emptiedAttributeContent)
+    || hrColorSizeAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedHrColorSizeAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": noshade, color, and size attributes are not allowed on hr elements`,
     );
   }
 
