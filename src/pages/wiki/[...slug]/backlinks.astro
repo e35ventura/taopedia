@@ -45,6 +45,8 @@ const backlinks = (backlinksData[slug] ?? [])
 const articleUrl = `/wiki/${slug}/`;
 const historyUrl = `/wiki/${slug}/history/`;
 const backlinksUrl = `/wiki/${slug}/backlinks/`;
+const citeUrl = `/wiki/${slug}/cite/`;
+const infoUrl = `/wiki/${slug}/info/`;
 const pageTitle = `Pages that link to "${page.data.title}"`;
 const pageDescription = `Articles across Taopedia that link to the "${page.data.title}" article.`;
 ---
@@ -55,6 +57,8 @@ const pageDescription = `Articles across Taopedia that link to the "${page.data.
       <a href={articleUrl}>Article</a>
       <a href={historyUrl}>History</a>
       <a href={backlinksUrl} class="active" aria-current="page">What links here</a>
+      <a href={citeUrl}>Cite this page</a>
+      <a href={infoUrl}>Page information</a>
     </nav>
 
     <h1 class="firstHeading">{pageTitle}</h1>
