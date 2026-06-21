@@ -549,6 +549,17 @@ accepts('<img src="/wiki/fig.png" alt="the autofocus attribute is obsolete">', '
 // hidden removes content from layout but keeps it in the DOM — an injected hidden
 // link is still navigable. Same detection as merged autofocus (#453).
 rejects('Intro.\n\n<a hidden href="https://evil.example/">go</a>', 'plain hidden attribute on anchor');
+
+// nowrap on allowed <td>/<th> disables text wrapping — a layout-defacement /
+// content-spoof primitive (an injected long URL or fake wallet address breaks
+// out of the column and reflows real article text off-screen), same class as
+// the merged #451 / #465 cell dimension blocks.
+rejects('Intro.\n\n<table><tr><td nowrap>x</td></tr></table>', 'plain td nowrap attribute');
+rejects('Intro.\n\n<table><tr><th   nowrap   >x</th></tr></table>', 'spaced th nowrap attribute');
+rejects('<table><tr><td class="x"nowrap>x</td></tr></table>', 'quote-abutted td nowrap attribute');
+
+accepts('<table><tr><td>x</td></tr></table>', 'plain table without nowrap');
+accepts('A nowrap attribute on a cell is described here only as prose.', 'benign nowrap prose');
 rejects('Intro.\n\n<div hidden>panel</div>', 'bare hidden attribute');
 rejects('Intro.\n\n<div hidden class="x">panel</div>', 'hidden before another attribute');
 rejects('Intro.\n\n<  p   hidden = "until-found">x</p>', 'spaced hidden attribute with value');
