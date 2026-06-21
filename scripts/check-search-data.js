@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import matter from 'gray-matter';
+import matter from './frontmatter.js';
 import { compareTitles } from '../src/lib/title-sort.js';
 
 const distDir = path.join(process.cwd(), 'dist');
