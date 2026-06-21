@@ -359,6 +359,22 @@ const imgSizesQuoteAbuttedPattern = /<\s*img\b[^>]*["'`]sizes\s*=/i;
 const imgLoadingAttrPattern = /<\s*img\b[^>]*\sloading\s*=/i;
 const imgLoadingQuoteAbuttedPattern = /<\s*img\b[^>]*["'`]loading\s*=/i;
 
+// start= on allowed <ol> and value= on allowed <li> renumber ordered-list
+// items — an injected <ol start="99"> <li value="1">Step 1: …</li> </ol> makes
+// a fake step-99 appear before legitimate step-1, mimicking a long-established
+// multi-step procedure (e.g. a fake "Step 99: withdraw your TAO to this
+// address" on a wallet tutorial). The wiki's 308+ articles use ordered lists
+// heavily (Step 1, Step 2, …); a malicious list start value rewrites the
+// reader's mental model of which step they're on. Same content-spoof class as
+// the merged frame/rules/summary table block (#471). value= is the per-item
+// counterpart (overrides the parent <ol>'s counter); paired so a partial
+// attribute set still has no effect. Tag-scoped to ol|li and scanned on
+// emptyQuotedAttributeValues() so benign prose and class values pass.
+const olStartAttrPattern = /<\s*ol\b[^>]*\sstart\s*=/i;
+const nonSpaceDelimitedOlStartAttrPattern = /<\s*ol\b[^>]*[/"'`]start\s*=/i;
+const liValueAttrPattern = /<\s*li\b[^>]*\svalue\s*=/i;
+const nonSpaceDelimitedLiValueAttrPattern = /<\s*li\b[^>]*[/"'`]value\s*=/i;
+
 // fetchpriority= on an allowed <img> bumps subresource fetch priority for attacker-chosen
 // URLs ahead of legitimate page assets (same img-scoped family as loading #462).
 const imgFetchpriorityAttrPattern = /<\s*img\b[^>]*\sfetchpriority\s*=/i;
@@ -766,6 +782,17 @@ export function validateArticleContent(slug, content) {
     || imgLoadingQuoteAbuttedPattern.test(emptiedAttributeContent)
   ) {
     throw new Error(`Unsafe article content in "${slug}": loading attributes are not allowed in article content`);
+  }
+
+  if (
+    olStartAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedOlStartAttrPattern.test(emptiedAttributeContent)
+    || liValueAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedLiValueAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": start and value attributes are not allowed on ol and li elements`,
+    );
   }
 
   if (
