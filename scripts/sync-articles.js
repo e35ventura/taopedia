@@ -282,8 +282,11 @@ const nonSpaceDelimitedHandlerPattern = /<[^>]*[/"'`]on[a-z]+\s*=/i;
 // contenteditable/tabindex/draggable can follow a non-space delimiter after a prior
 // attribute (`href="x"contenteditable=…>`, `class=x/tabindex=`). Scan with quoted
 // values emptied like the handler check so benign URLs such as src="/online=1" pass.
+// ping= is the same no-JS tracking-beacon family as the merged ping block (#419) —
+// quoted-value abutted forms (e.g. `href="x"ping="https://evil/track"`) slipped the
+// whitespace-delimited `\sping=` scan and reached the rendered article.
 const nonSpaceDelimitedInteractionSurfaceAttrPattern =
-  /<[^>]*[/"'`](?:contenteditable|tabindex|draggable|download|popover|usemap|accesskey|referrerpolicy|dir)\s*=/i;
+  /<[^>]*[/"'`](?:contenteditable|tabindex|draggable|download|popover|usemap|accesskey|referrerpolicy|dir|ping)\s*=/i;
 
 // width=/height= on an allowed <img> reserve an oversized layout box without the
 // blocked inline style= attribute — a layout-defacement surface (the same class
@@ -695,7 +698,7 @@ export function validateArticleContent(slug, content) {
 
   if (nonSpaceDelimitedInteractionSurfaceAttrPattern.test(emptiedAttributeContent)) {
     throw new Error(
-      `Unsafe article content in "${slug}": contenteditable, tabindex, draggable, download, popover, usemap, accesskey, referrerpolicy, and dir attributes are not allowed in article content`,
+      `Unsafe article content in "${slug}": contenteditable, tabindex, draggable, download, popover, usemap, accesskey, referrerpolicy, dir, and ping attributes are not allowed in article content`,
     );
   }
 
