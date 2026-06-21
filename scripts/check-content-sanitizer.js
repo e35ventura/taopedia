@@ -55,11 +55,19 @@ rejects('Intro.\n\n<output name="result">done</output>', 'standalone output');
 // is blocked as its own attribute, like slot= and the form controls above.
 rejects('Read [docs](https://x.example/) <a href="/wiki/stake/" ping="https://evil.example/track">stake</a>.', 'plain ping attribute');
 rejects('Intro.\n\n<  a   href="/wiki/stake/"   ping = "https://evil.example/track">x</a>', 'spaced ping attribute');
+// Quote-abutted / slash-delimited forms: `<a href="x"ping=…>` and `<a href=/x/ping=…>` slipped
+// the whitespace-delimited `\sping=` scan because there is no whitespace before `ping`.
+// Same quote-abutted pattern the merged contenteditable / tabindex / draggable blocks use.
+rejects('Intro.\n\n<a href="/wiki/stake/"ping="https://evil.example/track">x</a>', 'quote-abutted ping attribute');
+rejects('Intro.\n\n<a href=/wiki/stake/ping="https://evil.example/track">x</a>', 'slash-abutted ping attribute');
 
 // Prose mentioning "ping" without an attribute assignment — including the
 // "shipping"/"mapping" substrings — must still pass.
 accepts('Network latency such as a 20 ms ping is unrelated to markup.', 'benign ping prose');
 accepts('Shipping and mapping are ordinary words and must not be flagged.', 'benign ping substrings');
+// A benign href containing the literal substring `ping=` (e.g. a slug or query
+// string) must not trip the quote-abutted scan after the URL text is emptied.
+accepts('See <a href="/wiki/stake?ping=skip">stake docs</a> for details.', 'benign ping= inside quoted href');
 
 // contenteditable/tabindex/draggable on allowed elements expose editing, focus-trap,
 // and drag surfaces with no script or flagged scheme. Tests use only allowed tags.
