@@ -43,7 +43,7 @@ const TITLE_MAX_CHARS = 24;
 
 const DESC_X = 94;
 const DESC_LINE_HEIGHT = 36;
-const DESC_MAX_LINES = 3;
+const DESC_MAX_LINES = 4;
 const DESC_MAX_CHARS = 58;
 
 const FOOTER_BASELINE = 540;
