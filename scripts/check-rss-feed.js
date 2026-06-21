@@ -39,6 +39,11 @@ assert.match(feed, /<link>https:\/\/taopedia\.org\/<\/link>/, 'channel links to 
 assert.match(feed, /<language>en<\/language>/, 'declares the language');
 assert.match(
   feed,
+  /<image>\s*<url>https:\/\/taopedia\.org\/favicon-32x32\.png<\/url>\s*<title>Taopedia<\/title>\s*<link>https:\/\/taopedia\.org\/<\/link>\s*<\/image>/,
+  'channel carries a branding image (favicon) with url, title, and link',
+);
+assert.match(
+  feed,
   /<atom:link href="https:\/\/taopedia\.org\/rss\.xml" rel="self" type="application\/rss\+xml" \/>/,
   'advertises a self atom:link so readers can locate the feed',
 );

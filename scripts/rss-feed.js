@@ -100,6 +100,13 @@ export function buildRssFeed({
     `    <link>${escapeXml(channelHref)}</link>\n` +
     `    <description>${escapeXml(description)}</description>\n` +
     `    <language>${escapeXml(language)}</language>\n` +
+    // Channel branding: feed readers show this alongside the feed title. RSS
+    // <image> wants a raster within 144x400, so use the 32x32 favicon PNG.
+    '    <image>\n' +
+    `      <url>${escapeXml(`${root}favicon-32x32.png`)}</url>\n` +
+    `      <title>${escapeXml(title)}</title>\n` +
+    `      <link>${escapeXml(channelHref)}</link>\n` +
+    '    </image>\n' +
     (channelLastBuild ? `    <lastBuildDate>${escapeXml(channelLastBuild)}</lastBuildDate>\n` : '') +
     `    <atom:link href="${escapeXml(selfHref)}" rel="self" type="application/rss+xml" />\n` +
     (itemXml ? `${itemXml}\n` : '') +

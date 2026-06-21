@@ -105,6 +105,10 @@ export function buildAtomFeed({
     `  <subtitle>${escapeXml(description)}</subtitle>\n` +
     `  <link rel="alternate" href="${escapeXml(pageUrl)}" />\n` +
     `  <link rel="self" type="application/atom+xml" href="${escapeXml(feedUrl)}" />\n` +
+    // Feed branding: <logo> is the wider brand mark, <icon> the small square
+    // favicon, both shown by Atom readers next to the feed title.
+    `  <logo>${escapeXml(`${root}logo.svg`)}</logo>\n` +
+    `  <icon>${escapeXml(`${root}favicon-32x32.png`)}</icon>\n` +
     `  <updated>${escapeXml(feedUpdated)}</updated>\n` +
     `  <author><name>${escapeXml(authorName)}</name></author>\n` +
     (entryXml ? `${entryXml}\n` : '') +

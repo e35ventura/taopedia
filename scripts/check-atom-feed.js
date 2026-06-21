@@ -43,6 +43,8 @@ assert.match(
   'feed carries the default description',
 );
 assert.match(feed, /<link rel="alternate" href="https:\/\/taopedia\.org\/" \/>/, 'feed links to the site root');
+assert.match(feed, /<logo>https:\/\/taopedia\.org\/logo\.svg<\/logo>/, 'feed advertises the brand logo');
+assert.match(feed, /<icon>https:\/\/taopedia\.org\/favicon-32x32\.png<\/icon>/, 'feed advertises the favicon icon');
 assert.match(
   feed,
   /<link rel="self" type="application\/atom\+xml" href="https:\/\/taopedia\.org\/atom\.xml" \/>/,
