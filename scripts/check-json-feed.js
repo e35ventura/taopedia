@@ -105,13 +105,26 @@ assert.equal('tags' in undated, false, 'omits blank tags');
     url: 'https://taopedia.org/wiki/modified_older/',
     dateModified: '2026-06-01T00:00:00Z',
   };
-  const urls = JSON.parse(buildJsonFeed({ siteUrl, items: [modifiedOlder, publishedOnlyNewer] })).items.map(
-    (item) => item.url,
-  );
+  const items = JSON.parse(buildJsonFeed({ siteUrl, items: [modifiedOlder, publishedOnlyNewer] })).items;
+  const urls = items.map((item) => item.url);
   assert.deepEqual(
     urls,
     ['https://taopedia.org/wiki/published_only_newer/', 'https://taopedia.org/wiki/modified_older/'],
     'items with only datePublished must still sort by their known article date',
+  );
+  // date_modified on the published-only item should fall back to datePublished,
+  // matching the RSS (<pubDate>) and Atom (<updated>) fallback so all three
+  // feeds expose the same known-article date for the same article.
+  const publishedItem = items.find((item) => item.url === 'https://taopedia.org/wiki/published_only_newer/');
+  assert.equal(
+    publishedItem.date_modified,
+    '2026-06-02T00:00:00.000Z',
+    'published-only JSON Feed items must still emit date_modified from their known article date',
+  );
+  assert.equal(
+    publishedItem.date_published,
+    '2026-06-02T00:00:00.000Z',
+    'published-only JSON Feed items must still emit date_published unchanged',
   );
 }
 
