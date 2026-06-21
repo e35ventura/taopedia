@@ -95,6 +95,27 @@ assert.equal('tags' in undated, false, 'omits blank tags');
 }
 
 {
+  const publishedOnlyNewer = {
+    title: 'Published Only Newer',
+    url: 'https://taopedia.org/wiki/published_only_newer/',
+    datePublished: '2026-06-02T00:00:00Z',
+  };
+  const modifiedOlder = {
+    title: 'Modified Older',
+    url: 'https://taopedia.org/wiki/modified_older/',
+    dateModified: '2026-06-01T00:00:00Z',
+  };
+  const urls = JSON.parse(buildJsonFeed({ siteUrl, items: [modifiedOlder, publishedOnlyNewer] })).items.map(
+    (item) => item.url,
+  );
+  assert.deepEqual(
+    urls,
+    ['https://taopedia.org/wiki/published_only_newer/', 'https://taopedia.org/wiki/modified_older/'],
+    'items with only datePublished must still sort by their known article date',
+  );
+}
+
+{
   const sameDate = '2026-06-01T06:01:22Z';
   const nine = { title: 'Subnet 9', url: 'https://taopedia.org/wiki/subnet_9/', dateModified: sameDate };
   const ten = { title: 'Subnet 10', url: 'https://taopedia.org/wiki/subnet_10/', dateModified: sameDate };

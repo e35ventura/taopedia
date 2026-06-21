@@ -20,7 +20,7 @@ function toRfc3339(value) {
 }
 
 function itemDate(item) {
-  return String(item.dateModified ?? item.date ?? '');
+  return String(item.dateModified ?? item.date ?? item.datePublished ?? '');
 }
 
 export function buildJsonFeed({
