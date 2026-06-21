@@ -39,6 +39,11 @@ function toRfc822(value) {
   return Number.isNaN(date.getTime()) ? '' : date.toUTCString();
 }
 
+function itemDate(item) {
+  if (!item) return '';
+  return String(item.dateModified ?? item.date ?? item.datePublished ?? '');
+}
+
 export function buildRssFeed({
   siteUrl,
   items = [],
@@ -58,8 +63,8 @@ export function buildRssFeed({
   // (subnet_9 vs subnet_10), so compareTitles keeps ordering aligned with the
   // rest of the site rather than raw lexicographic string order.
   const sortedItems = [...items].sort((a, b) => {
-    const aDate = String(a.date ?? '');
-    const bDate = String(b.date ?? '');
+    const aDate = itemDate(a);
+    const bDate = itemDate(b);
     if (aDate !== bDate) return aDate < bDate ? 1 : -1;
     const aUrl = String(a.url ?? '');
     const bUrl = String(b.url ?? '');
@@ -68,7 +73,7 @@ export function buildRssFeed({
 
   const itemXml = sortedItems
     .map((item) => {
-      const pubDate = toRfc822(item.date);
+      const pubDate = toRfc822(itemDate(item));
       const categoryXml = (Array.isArray(item.categories) ? item.categories : [])
         .map((category) => String(category ?? '').trim())
         .filter(Boolean)
@@ -90,7 +95,7 @@ export function buildRssFeed({
     .join('\n');
 
   // Default the channel's lastBuildDate to the newest item date when not given.
-  const channelLastBuild = toRfc822(lastBuildDate ?? sortedItems.find((item) => item.date)?.date);
+  const channelLastBuild = toRfc822(lastBuildDate ?? itemDate(sortedItems.find((item) => itemDate(item))));
 
   return (
     '<?xml version="1.0" encoding="UTF-8"?>\n' +
