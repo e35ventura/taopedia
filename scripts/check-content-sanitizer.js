@@ -594,6 +594,23 @@ accepts('Responsive srcset and media sizes are described here only as prose.', '
 
 // loading= on <img> defers fetch until near viewport — scroll-triggered beacon (merged #461 family).
 rejects('Intro.\n\n<img src="https://evil.example/pixel.gif" loading="lazy" alt="x">', 'plain img loading attribute');
+
+// start= on <ol> and value= on <li> renumber ordered-list items — content-spoof
+// primitive (injected "Step 99" before legitimate "Step 1"). The wiki uses
+// ordered lists heavily (308+ articles); a malicious start value rewrites
+// the reader's mental model of which step they're on. Same content-spoof
+// class as the merged frame/rules/summary table block (#471).
+rejects('Intro.\n\n<ol start="99"><li>Step 99</li></ol>', 'plain ol start attribute');
+rejects('Intro.\n\n<ol   start = "5">x</ol>', 'spaced ol start attribute');
+rejects('<ol class="x"start="99">x</ol>', 'quote-abutted ol start attribute');
+rejects('<ol class=x/start="99">', 'slash-delimited ol start attribute');
+rejects('Intro.\n\n<ol><li value="5">x</li></ol>', 'plain li value attribute');
+rejects('Intro.\n\n<ol><li   value = "10">x</li></ol>', 'spaced li value attribute');
+rejects('<ol><li class="x"value="5">x</li></ol>', 'quote-abutted li value attribute');
+rejects('<ol><li class=x/value="5">x</li></ol>', 'slash-delimited li value attribute');
+
+accepts('<ol><li>plain item</li></ol>', 'plain ordered list without start/value');
+accepts('Step 1: setup; Step 2: build. The numbering must remain default.', 'benign step numbering prose');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   loading = "lazy">', 'spaced img loading attribute');
 rejects('<img src="/wiki/fig.png"loading="lazy">', 'quote-abutted img loading attribute');
 accepts('<img src=/wiki/loading-demo.png alt=diagram>', 'benign unquoted img src path containing loading substring');
