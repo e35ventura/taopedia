@@ -1,0 +1,38 @@
+import type { APIRoute } from 'astro';
+import { getCollection } from 'astro:content';
+import { getPageSlug, historyForSlug } from '../../../lib/article-history';
+import { buildCitations, CITATION_META } from '../../../../scripts/citations.js';
+
+export async function getStaticPaths() {
+  const pages = await getCollection('pages');
+  return pages.map((page) => {
+    const slug = getPageSlug(page);
+    return { params: { slug }, props: { page, slug } };
+  });
+}
+
+export const GET: APIRoute = async ({ site, props }) => {
+  const { page, slug } = props as { page: { data: { title: string } }; slug: string };
+  const url = new URL(`/wiki/${slug}/`, site ?? new URL('https://taopedia.org')).toString();
+  const date = historyForSlug(slug)[0]?.date ?? '';
+  const citations = buildCitations({ title: page.data.title, url, slug, date });
+
+  const body = JSON.stringify(
+    {
+      title: page.data.title,
+      slug,
+      url,
+      ...(date ? { date } : {}),
+      ...CITATION_META,
+      citations,
+    },
+    null,
+    2,
+  );
+
+  return new Response(body, {
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+    },
+  });
+};
