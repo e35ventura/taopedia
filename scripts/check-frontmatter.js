@@ -22,6 +22,19 @@ import matter from './frontmatter.js';
 }
 
 {
+  const parsed = matter('---\ntitle: Subnet 4: Targon\ninfoboxTitle: Subnet 4: Targon\n---\nBody\n');
+  assert.deepEqual(
+    parsed.data,
+    {
+      title: 'Subnet 4: Targon',
+      infoboxTitle: 'Subnet 4: Targon',
+    },
+    'parses top-level plain scalar values that contain colon-space',
+  );
+  assert.equal(parsed.content, 'Body\n', 'colon-scalar repair preserves the body');
+}
+
+{
   const parsed = matter('Body without frontmatter\n');
   assert.deepEqual(parsed.data, {}, 'missing frontmatter returns empty data');
   assert.equal(parsed.content, 'Body without frontmatter\n', 'missing frontmatter preserves the whole body');
