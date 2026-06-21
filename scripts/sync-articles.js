@@ -375,6 +375,12 @@ const nonSpaceDelimitedOlStartAttrPattern = /<\s*ol\b[^>]*[/"'`]start\s*=/i;
 const liValueAttrPattern = /<\s*li\b[^>]*\svalue\s*=/i;
 const nonSpaceDelimitedLiValueAttrPattern = /<\s*li\b[^>]*[/"'`]value\s*=/i;
 
+// reversed on allowed <ol> flips the marker sequence without CSS: a list authored
+// as Step 1, Step 2, Step 3 can render as 3, 2, 1, changing procedural meaning in
+// wallet/security walkthroughs. Same ordered-list spoof family as start=/value=.
+const olReversedAttrPattern = /<\s*ol\b[^>]*\sreversed(?=[\s>/=])/i;
+const quoteAbuttedOlReversedAttrPattern = /<\s*ol\b[^>]*["'`]reversed(?=[\s>/=])/i;
+
 // fetchpriority= on an allowed <img> bumps subresource fetch priority for attacker-chosen
 // URLs ahead of legitimate page assets (same img-scoped family as loading #462).
 const imgFetchpriorityAttrPattern = /<\s*img\b[^>]*\sfetchpriority\s*=/i;
@@ -793,6 +799,13 @@ export function validateArticleContent(slug, content) {
     throw new Error(
       `Unsafe article content in "${slug}": start and value attributes are not allowed on ol and li elements`,
     );
+  }
+
+  if (
+    olReversedAttrPattern.test(emptiedAttributeContent)
+    || quoteAbuttedOlReversedAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(`Unsafe article content in "${slug}": reversed attributes are not allowed on ol elements`);
   }
 
   if (

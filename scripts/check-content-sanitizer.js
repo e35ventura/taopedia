@@ -608,9 +608,15 @@ rejects('Intro.\n\n<ol><li value="5">x</li></ol>', 'plain li value attribute');
 rejects('Intro.\n\n<ol><li   value = "10">x</li></ol>', 'spaced li value attribute');
 rejects('<ol><li class="x"value="5">x</li></ol>', 'quote-abutted li value attribute');
 rejects('<ol><li class=x/value="5">x</li></ol>', 'slash-delimited li value attribute');
+rejects('Intro.\n\n<ol reversed><li>Step 1</li><li>Step 2</li></ol>', 'plain ol reversed attribute');
+rejects('Intro.\n\n<ol   reversed   ><li>x</li></ol>', 'spaced ol reversed attribute');
+rejects('Intro.\n\n<ol reversed="reversed"><li>x</li></ol>', 'valued ol reversed attribute');
+rejects('<ol class="x"reversed><li>x</li></ol>', 'quote-abutted ol reversed attribute');
 
 accepts('<ol><li>plain item</li></ol>', 'plain ordered list without start/value');
 accepts('Step 1: setup; Step 2: build. The numbering must remain default.', 'benign step numbering prose');
+accepts('A reversed list can be described in prose without setting an attribute.', 'benign reversed prose');
+accepts('<ol class=x/reversed-list><li>not a reversed attribute</li></ol>', 'benign slash inside class value before reversed');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   loading = "lazy">', 'spaced img loading attribute');
 rejects('<img src="/wiki/fig.png"loading="lazy">', 'quote-abutted img loading attribute');
 accepts('<img src=/wiki/loading-demo.png alt=diagram>', 'benign unquoted img src path containing loading substring');
