@@ -474,6 +474,28 @@ rejects('<img src=x/height="2000">', 'slash-delimited img height attribute');
 accepts('<img src="/wiki/fig.png" alt="default width=800 pixels">', 'benign width= text inside img alt');
 accepts('Image width and height are described here only as prose.', 'benign width/height prose');
 
+// width=/height= on allowed <table>/<td>/<th> reserve oversized layout boxes
+// without the blocked inline style= attribute — same layout-defacement class as
+// the merged border=/hspace=/vspace= (#438) on tables and width=/height= on
+// <img> (#451). Closes the table-family half the #451 comment foreshadows.
+rejects('Intro.\n\n<table width="5000"><tr><td>x</td></tr></table>', 'plain table width attribute');
+rejects('Intro.\n\n<  table   width = "5000">x</table>', 'spaced table width attribute');
+rejects('Intro.\n\n<table height="9999"><tr><td>x</td></tr></table>', 'plain table height attribute');
+rejects('Intro.\n\n<table><tr><td width="100%">x</td></tr></table>', 'plain td width attribute');
+rejects('Intro.\n\n<table><tr><th height="500">x</th></tr></table>', 'plain th height attribute');
+rejects('Intro.\n\n<table><tr><td   height = "500">x</td></tr></table>', 'spaced td height attribute');
+rejects('<table class="x"width="5000">', 'quote-abutted table width attribute');
+rejects('<table class=x/width="5000">', 'slash-delimited table width attribute');
+rejects('<td class="x"height="500">', 'quote-abutted td height attribute');
+rejects('<td class=x/height="500">', 'slash-delimited td height attribute');
+
+// Prose and HTML attributes that mention "width" or "height" without a real
+// table-family width/height assignment must still pass.
+accepts('<table><tr><td>plain cell</td></tr></table>', 'plain table with no dimensions');
+accepts('Table column width and row height are described here only as prose.', 'benign width/height prose');
+accepts('<table class="mw-subnets"><tr><td>x</td></tr></table>', 'benign table with class attribute only');
+accepts('<td class="x-height">x</td>', 'benign unquoted class value containing height substring');
+
 // autofocus steals keyboard focus on page load. Tag-boundary lookahead catches
 // autofocus before another attribute; no slash delimiter (class=x/autofocus is benign).
 rejects('Intro.\n\n<div autofocus>trap</div>', 'bare autofocus attribute');

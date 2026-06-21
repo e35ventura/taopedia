@@ -280,6 +280,16 @@ const nonSpaceDelimitedInteractionSurfaceAttrPattern =
 const imgDimensionAttrPattern = /<\s*img\b[^>]*\s(?:width|height)\s*=/i;
 const nonSpaceDelimitedImgDimensionAttrPattern = /<\s*img\b[^>]*[/"'`](?:width|height)\s*=/i;
 
+// width=/height= on allowed <table>/<td>/<th> reserve oversized layout boxes
+// without the blocked inline style= attribute — same layout-defacement class as
+// the merged border=/hspace=/vspace= (#438) on tables and width=/height= on
+// <img> (#451). Closing the table-family half the #451 comment explicitly
+// foreshadows. Tag-scoped to table-family elements (table/td/th) and scanned on
+// emptyQuotedAttributeValues() so benign prose or class values mentioning
+// "width"/"height" pass.
+const tableDimensionAttrPattern = /<\s*(?:table|td|th)\b[^>]*\s(?:width|height)\s*=/i;
+const nonSpaceDelimitedTableDimensionAttrPattern = /<\s*(?:table|td|th)\b[^>]*[/"'`](?:width|height)\s*=/i;
+
 // autofocus steals keyboard focus on page load — a focus-theft primitive on allowed
 // elements with no script. Tag-boundary lookahead catches autofocus before another
 // attribute (<div autofocus class="x">). Quote-abutted only — no slash delimiter,
@@ -586,6 +596,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": width and height attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    tableDimensionAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedTableDimensionAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": width and height attributes are not allowed on table elements`,
     );
   }
 
