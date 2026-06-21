@@ -24,14 +24,22 @@ const maxAssetBytes = 5 * 1024 * 1024;
 // obfuscated spelling like `set&colon;html` or `set:ht{soft-hyphen}ml` cannot
 // slip the literal scan, exactly as the dangerous URL schemes are. Shared by
 // both scans so the two lists cannot drift and cover a different directive set.
+//
+// The patterns are anchored to the EXACT set of Astro 4.x directive values
+// documented at https://docs.astro.build/en/reference/directives-reference/
+// — not `[a-z-]+` — so prose like "a vector is:one validator" no longer false-
+// positives after entity/control-character stripping decodes "is:\n" → "is:"
+// + the next word. Every known directive value is still blocked; only obvious
+// prose like "is:one" is now allowed through. Regression accept tests pin the
+// prose cases below.
 const directivePatterns = [
-  { pattern: /\bset:[a-z-]+\b/i, reason: 'set directives are not allowed in article content' },
+  { pattern: /\bset:(html|text)\b/i, reason: 'set directives are not allowed in article content' },
   { pattern: /\bclass:list\b/i, reason: 'class:list directives are not allowed in article content' },
-  { pattern: /\bclient:[a-z-]+\b/i, reason: 'client directives are not allowed in article content' },
-  { pattern: /\bserver:[a-z-]+\b/i, reason: 'server directives are not allowed in article content' },
-  { pattern: /\btransition:[a-z-]+\b/i, reason: 'transition directives are not allowed in article content' },
-  { pattern: /\bis:[a-z-]+\b/i, reason: 'is directives are not allowed in article content' },
-  { pattern: /\bdefine:[a-z-]+\b/i, reason: 'define directives are not allowed in article content' },
+  { pattern: /\bclient:(load|idle|visible|only|media)\b/i, reason: 'client directives are not allowed in article content' },
+  { pattern: /\bserver:(defer)\b/i, reason: 'server directives are not allowed in article content' },
+  { pattern: /\btransition:(animate|name|persist)\b/i, reason: 'transition directives are not allowed in article content' },
+  { pattern: /\bis:(raw|inline)\b/i, reason: 'is directives are not allowed in article content' },
+  { pattern: /\bdefine:(vars|env|style)\b/i, reason: 'define directives are not allowed in article content' },
 ];
 
 // Bidirectional control characters (Trojan Source, CVE-2021-42574) reorder how

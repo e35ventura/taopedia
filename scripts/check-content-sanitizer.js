@@ -334,7 +334,11 @@ rejects('Use define&#58;env to inject.', 'entity-encoded unlisted define directi
 
 // Every template directive — not just define:vars/style — must also be caught
 // after entity/zero-width deobfuscation, so an obfuscated spelling cannot slip
-// the literal scan the way `set&colon;html` once did.
+// the literal scan the way `set&colon;html` once did. The patterns are now
+// allowlisted to the documented Astro 4.x directive values, so the
+// obfuscation regression tests below cover listed values (vars, env, style,
+// etc.) only — unlisted "directive-shaped" tokens in prose pass through,
+// which is the intended behavior of the tightened regex.
 rejects('Inject set&#58;html here.', 'entity-encoded set:html');
 rejects('Inject set&colon;html here.', 'named-colon set:html');
 rejects(`Inject set:ht${SOFT_HYPHEN}ml here.`, 'soft-hyphen set:html');
@@ -344,7 +348,7 @@ rejects('Hydrate with client&#58;load here.', 'entity-encoded client: directive'
 rejects('Render via server&colon;defer here.', 'named-colon server: directive');
 rejects('Animate with transition&#58;animate here.', 'entity-encoded transition: directive');
 rejects('Render with is&colon;raw here.', 'named-colon is: directive');
-rejects(`Use define:pr${SOFT_HYPHEN}ops here.`, 'soft-hyphen unlisted define directive');
+rejects(`Inject define:va${SOFT_HYPHEN}rs here.`, 'soft-hyphen define:vars');
 
 // Astro slot attributes on raw HTML must not appear in article bodies.
 rejects('Intro.\n\n<div slot="sidebar">evil</div>', 'plain slot attribute');
@@ -607,5 +611,20 @@ accepts('<img src=/wiki/ismap.png alt=diagram>', 'benign unquoted img src path w
 // Prose that merely mentions these English words without the directive colon
 // must still pass — guard the new patterns against false positives.
 accepts('This client is set to define the class list style, and the server is fast.', 'benign client/server/set/class/define prose');
+
+// Prose with a directive-shaped token followed by a non-directive word must
+// pass — the tightened directive regexes (set/html|text, is/raw|inline,
+// client/load|idle|visible|only|media, server/defer, transition/animate|name|persist,
+// define/vars|env|style) intentionally reject only the documented Astro
+// directive values, not every [a-z-]+ token. The earlier "is:[a-z-]+" pattern
+// false-positived on prose like "a vector is:one validator's" once
+// deobfuscation stripped the newline, which broke article ingestion (the
+// cross-repo build failed on `weight_vector` and `subnet_1_apex`).
+accepts("What a vector is:one validator's structured signal must be readable.", 'benign "is:one" prose (was false-positive pre-fix)');
+accepts("A token set:foo inside prose is just a colon-terminated word, not a directive.", 'benign "set:foo" prose');
+accepts("The client:robot workflow is a normal phrase, not an Astro directive.", 'benign "client:robot" prose');
+accepts("Use server:test as a placeholder name in the documentation.", 'benign "server:test" prose');
+accepts("The transition:flip animation is described here only as prose.", 'benign "transition:flip" prose');
+accepts("A define:macro helper in the article body is prose, not a directive.", 'benign "define:macro" prose');
 
 console.log('Content sanitizer check passed');
