@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-import matter from 'gray-matter';
 import { fileURLToPath, pathToFileURL } from 'url';
+import matter from './frontmatter.js';
 import { buildSlugAliases, extractWikiLinks, resolveTargetSlug, slugFromContentPath } from './wiki-link-resolver.js';
 
 const __filename = fileURLToPath(import.meta.url);
