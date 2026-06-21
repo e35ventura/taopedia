@@ -327,6 +327,17 @@ const quoteAbuttedAutofocusAttrPattern = /<[^>]*["'`]autofocus(?=[\s>/=])/i;
 const hiddenAttrPattern = /<[^>]*\shidden(?=[\s>/=])/i;
 const quoteAbuttedHiddenAttrPattern = /<[^>]*["'`]hidden(?=[\s>/=])/i;
 
+// nowrap on allowed <td>/<th> disables text wrapping in the cell — an injected
+// long URL, fake wallet address, or padded phishing line breaks out of the
+// column, reflowing the real article text off-screen (a layout-defacement /
+// content-spoof primitive in the same class as the merged #451 / #465 cell
+// dimension blocks). Article tables in a glossary never set nowrap themselves —
+// the stylesheet handles wrapping via .mw-subnets / infobox classes. Tag-scoped
+// to td|th with the [\s>/=] boolean lookahead the merged autofocus/hidden rules
+// use, so benign prose and class values pass.
+const tdThNowrapAttrPattern = /<\s*(?:td|th)\b[^>]*\snowrap(?=[\s>/=])/i;
+const quoteAbuttedTdThNowrapAttrPattern = /<\s*(?:td|th)\b[^>]*["'`]nowrap(?=[\s>/=])/i;
+
 // srcset=/sizes= on an allowed <img> steer responsive image loading to attacker-chosen
 // URLs — the gap left after merged #411 blocked <picture>/<source> but not plain
 // <img srcset>/<img sizes>. Tag-scoped, emptyQuotedAttributeValues(), ["'`] only.
@@ -665,6 +676,15 @@ export function validateArticleContent(slug, content) {
     || quoteAbuttedHiddenAttrPattern.test(emptiedAttributeContent)
   ) {
     throw new Error(`Unsafe article content in "${slug}": hidden attributes are not allowed in article content`);
+  }
+
+  if (
+    tdThNowrapAttrPattern.test(emptiedAttributeContent)
+    || quoteAbuttedTdThNowrapAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": nowrap attributes are not allowed on td or th elements`,
+    );
   }
 
   if (
