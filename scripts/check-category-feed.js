@@ -45,6 +45,10 @@ assert.ok(
   source.includes('category: categorySlug(categoryName)'),
   'getStaticPaths must generate one slugified route param per category',
 );
+assert.ok(
+  source.includes("import { compareTitles }") && source.includes('.sort(compareTitles)'),
+  'getStaticPaths must sort category feed routes with compareTitles so numeric topic names match the category hub contract',
+);
 
 // THE load-bearing invariant: items are scoped to the requested category. Without
 // this filter every category feed would contain the full article corpus.

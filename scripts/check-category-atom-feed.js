@@ -37,6 +37,21 @@ const categories = fs
 
 assert.ok(categories.length > 0, 'no built category pages found');
 
+const endpointPath = path.join(
+  projectRoot,
+  'src',
+  'pages',
+  'wiki',
+  'category',
+  '[category]',
+  'atom.xml.ts',
+);
+const endpointSource = fs.readFileSync(endpointPath, 'utf8');
+assert.ok(
+  endpointSource.includes("import { compareTitles }") && endpointSource.includes('.sort(compareTitles)'),
+  'category Atom getStaticPaths must sort routes with compareTitles so numeric topic names match the category hub contract',
+);
+
 function escapeXml(value) {
   return String(value ?? '').replace(/[&<>"']/g, (char) => {
     switch (char) {

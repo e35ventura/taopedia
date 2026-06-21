@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { getPageSlug, historyForSlug } from '../../../../lib/article-history';
+import { compareTitles } from '../../../../lib/title-sort';
 import { buildAtomFeed } from '../../../../../scripts/atom-feed.js';
 
 const categorySlug = (categoryName: string) => categoryName.replace(/ /g, '_');
@@ -13,7 +14,7 @@ export async function getStaticPaths() {
     for (const category of page.data.categories ?? []) categories.add(category);
   }
 
-  return [...categories].sort().map((categoryName) => ({
+  return [...categories].sort(compareTitles).map((categoryName) => ({
     params: { category: categorySlug(categoryName) },
     props: { categoryName },
   }));

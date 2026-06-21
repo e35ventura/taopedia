@@ -45,6 +45,21 @@ const categories = fs
 
 assert.ok(categories.length > 0, 'no built category pages found');
 
+const endpointPath = path.join(
+  projectRoot,
+  'src',
+  'pages',
+  'wiki',
+  'category',
+  '[category]',
+  'feed.json.ts',
+);
+const endpointSource = fs.readFileSync(endpointPath, 'utf8');
+assert.ok(
+  endpointSource.includes("import { compareTitles }") && endpointSource.includes('.sort(compareTitles)'),
+  'category JSON Feed getStaticPaths must sort routes with compareTitles so numeric topic names match the category hub contract',
+);
+
 const canonicalArticleUrl = (url) => typeof url === 'string' && /^https:\/\/taopedia\.org\/wiki\/[^/]+\/$/.test(url);
 const slugFromUrl = (url) => url.slice('/wiki/'.length, url.length - 1); // strip leading /wiki/ and trailing /
 const isValidIsoDate = (value) => {
