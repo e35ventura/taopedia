@@ -172,4 +172,23 @@ assert.ok(!/<category term="\s*" \/>/.test(feed), 'never emits an empty category
   );
 }
 
+// Per-category endpoints pass dateModified as '' (empty string) when an article
+// has no recorded history. The shared itemDate helper treats empty/whitespace
+// values as missing so the published-date fallback still fires — the same way
+// the JSON feed's date_modified does (#510).
+{
+  const emptyDateModified = {
+    title: 'Empty Modified',
+    url: 'https://taopedia.org/wiki/empty_modified/',
+    datePublished: '2026-06-02T00:00:00.000Z',
+    dateModified: '',
+  };
+  const feed = buildAtomFeed({ siteUrl, items: [emptyDateModified] });
+  assert.match(
+    feed,
+    /<title>Empty Modified<\/title>[\s\S]*<updated>2026-06-02T00:00:00\.000Z<\/updated>/,
+    'items with dateModified="" still fall back to datePublished for the Atom updated date',
+  );
+}
+
 console.log('check-atom-feed: all assertions passed');
