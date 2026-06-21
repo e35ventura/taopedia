@@ -21,6 +21,15 @@ assert.ok(
   'the random page must select from the prebuilt search-data.json index',
 );
 
+// Only canonical article URLs from search-data.json may be used for the
+// redirect. If that metadata index ever grows utility/special/category entries,
+// Random article must keep its article-only contract instead of redirecting to
+// a non-article page.
+assert.ok(
+  html.includes("^\\/wiki\\/(?!special\\/|category\\/)[^?#]+\\/$"),
+  'the random page must filter search-data URLs to canonical article paths only',
+);
+
 // location.replace keeps the redirect out of session history so Back returns
 // to the page the reader came from instead of looping through the redirect.
 assert.ok(
