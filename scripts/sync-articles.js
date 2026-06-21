@@ -388,6 +388,12 @@ const nonSpaceDelimitedListTypeAttrPattern = /<\s*(?:ol|ul|li)\b[^>]*[/"'`]type\
 const olReversedAttrPattern = /<\s*ol\b[^>]*\sreversed(?=[\s>/=])/i;
 const quoteAbuttedOlReversedAttrPattern = /<\s*ol\b[^>]*["'`]reversed(?=[\s>/=])/i;
 
+// compact on allowed list elements asks the browser to render a denser list,
+// changing the visual weight of procedural/callout content without CSS. Same
+// obsolete presentational/list-spoof family as type= and reversed.
+const listCompactAttrPattern = /<\s*(?:ol|ul|dl)\b[^>]*\scompact(?=[\s>/=])/i;
+const quoteAbuttedListCompactAttrPattern = /<\s*(?:ol|ul|dl)\b[^>]*["'`]compact(?=[\s>/=])/i;
+
 // fetchpriority= on an allowed <img> bumps subresource fetch priority for attacker-chosen
 // URLs ahead of legitimate page assets (same img-scoped family as loading #462).
 const imgFetchpriorityAttrPattern = /<\s*img\b[^>]*\sfetchpriority\s*=/i;
@@ -822,6 +828,13 @@ export function validateArticleContent(slug, content) {
     || quoteAbuttedOlReversedAttrPattern.test(emptiedAttributeContent)
   ) {
     throw new Error(`Unsafe article content in "${slug}": reversed attributes are not allowed on ol elements`);
+  }
+
+  if (
+    listCompactAttrPattern.test(emptiedAttributeContent)
+    || quoteAbuttedListCompactAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(`Unsafe article content in "${slug}": compact attributes are not allowed on list elements`);
   }
 
   if (

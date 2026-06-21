@@ -617,6 +617,10 @@ rejects('Intro.\n\n<ol reversed><li>Step 1</li><li>Step 2</li></ol>', 'plain ol 
 rejects('Intro.\n\n<ol   reversed   ><li>x</li></ol>', 'spaced ol reversed attribute');
 rejects('Intro.\n\n<ol reversed="reversed"><li>x</li></ol>', 'valued ol reversed attribute');
 rejects('<ol class="x"reversed><li>x</li></ol>', 'quote-abutted ol reversed attribute');
+rejects('Intro.\n\n<ul compact><li>compressed warning</li></ul>', 'plain ul compact attribute');
+rejects('Intro.\n\n<ol   compact   ><li>x</li></ol>', 'spaced ol compact attribute');
+rejects('Intro.\n\n<dl compact="compact"><dt>x</dt></dl>', 'valued dl compact attribute');
+rejects('<ul class="x"compact><li>x</li></ul>', 'quote-abutted ul compact attribute');
 
 accepts('<ol><li>plain item</li></ol>', 'plain ordered list without start/value');
 accepts('<ul class="topics"><li>plain item</li></ul>', 'plain unordered list without type');
@@ -624,6 +628,8 @@ accepts('Step 1: setup; Step 2: build. The numbering must remain default.', 'ben
 accepts('A list marker type can be described in prose without setting an attribute.', 'benign list type prose');
 accepts('A reversed list can be described in prose without setting an attribute.', 'benign reversed prose');
 accepts('<ol class=x/reversed-list><li>not a reversed attribute</li></ol>', 'benign slash inside class value before reversed');
+accepts('A compact list can be described in prose without setting an attribute.', 'benign compact prose');
+accepts('<ul class=x/compact-list><li>not a compact attribute</li></ul>', 'benign slash inside class value before compact');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   loading = "lazy">', 'spaced img loading attribute');
 rejects('<img src="/wiki/fig.png"loading="lazy">', 'quote-abutted img loading attribute');
 accepts('<img src=/wiki/loading-demo.png alt=diagram>', 'benign unquoted img src path containing loading substring');
