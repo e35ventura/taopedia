@@ -64,7 +64,12 @@ export function buildJsonFeed({
       const summary = cleanText(item.description ?? item.summary);
       const contentText = cleanText(item.contentText ?? summary) || itemTitle || url;
       const datePublished = toRfc3339(item.datePublished);
-      const dateModified = toRfc3339(item.dateModified ?? item.date);
+      // date_modified uses the same known-date fallback as the RSS and Atom
+      // feeds (modified -> legacy date -> published). Without the published
+      // fallback a published-only item — a draft that has never been
+      // modified since publication — would emit no date_modified and lose
+      // the last-modified signal a feed reader sorts on.
+      const dateModified = toRfc3339(itemDate(item));
       const tags = (Array.isArray(item.categories) ? item.categories : [])
         .map(cleanText)
         .filter(Boolean);
