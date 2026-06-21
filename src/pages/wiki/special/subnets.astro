@@ -2,30 +2,22 @@
 import WikiLayout from '../../../layouts/WikiLayout.astro';
 import { getCollection } from 'astro:content';
 import { getPageSlug } from '../../../lib/article-history';
+import { buildSubnets } from '../../../../scripts/subnets.js';
 
 // Special:Subnets — a netuid-ordered registry of every numbered Bittensor subnet
 // article. Subnets are the dominant content type of the knowledge base, but the
 // only way to browse them was the Subnets topic page, which mixes in non-subnet
 // concept articles and renders as cards. This is a clean by-number reference: the
 // articles whose title is "Subnet <n>: <name>", ordered by netuid, with the
-// subnet name and one-line summary. Built only from the content collection
-// (title + summary) — no new data pipeline, no new dependencies.
+// subnet name and one-line summary.
+//
+// The parsing, fallback name, slug derivation, and netuid sort are shared with
+// /wiki/special/subnets.json through scripts/subnets.js (the same single
+// source of truth statistics.js / most-linked.js / categories.js use), so the
+// JSON and HTML surfaces never disagree on which articles are subnets or what
+// order they render in.
 const pages = await getCollection('pages');
-
-const subnets = pages
-  .map((page) => {
-    const match = page.data.title.match(/^Subnet (\d+)(?::\s*(.*))?$/);
-    if (!match) return null;
-    const name = (match[2] ?? '').trim();
-    return {
-      netuid: Number(match[1]),
-      name: name || `Subnet ${match[1]}`,
-      slug: getPageSlug(page),
-      summary: page.data.summary ?? '',
-    };
-  })
-  .filter((entry) => entry !== null)
-  .sort((a, b) => a.netuid - b.netuid);
+const subnets = buildSubnets({ pages, getPageSlug });
 ---
 
 <WikiLayout
