@@ -3,7 +3,7 @@ import YAML from 'yaml';
 const frontmatterPattern = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n(?:\r?\n)?|$)/;
 
 export function parseFrontmatter(input) {
-  const source = String(input ?? '');
+  const source = String(input ?? '').replace(/^\uFEFF/, '');
   const match = source.match(frontmatterPattern);
   if (!match) return { data: {}, content: source };
 

@@ -2,6 +2,12 @@ import assert from 'node:assert/strict';
 import matter from './frontmatter.js';
 
 {
+  const parsed = matter('\uFEFF---\ntitle: BOM Article\n---\nBody\n');
+  assert.deepEqual(parsed.data, { title: 'BOM Article' }, 'strips a leading UTF-8 BOM before parsing frontmatter');
+  assert.equal(parsed.content, 'Body\n', 'BOM handling preserves the body after the frontmatter block');
+}
+
+{
   const parsed = matter('---\r\ntitle: Dynamic TAO\r\ncategories:\r\n  - Subnets\r\n  - TAO\r\ninfoboxRows:\r\n  - label: Netuid\r\n    value: \"42\"\r\n---\r\nBody text\r\n');
   assert.deepEqual(
     parsed.data,
