@@ -338,6 +338,13 @@ const quoteAbuttedHiddenAttrPattern = /<[^>]*["'`]hidden(?=[\s>/=])/i;
 const tdThNowrapAttrPattern = /<\s*(?:td|th)\b[^>]*\snowrap(?=[\s>/=])/i;
 const quoteAbuttedTdThNowrapAttrPattern = /<\s*(?:td|th)\b[^>]*["'`]nowrap(?=[\s>/=])/i;
 
+// colspan=/rowspan= on allowed <td>/<th> merge or split table cells without the
+// blocked inline style= attribute — e.g. colspan="99" makes one injected cell
+// span the full table width, a content-layout spoof with no script, handler, or
+// flagged scheme. Same class as merged #465 (table dimensions) and #479 (nowrap).
+const tdThSpanAttrPattern = /<\s*(?:td|th)\b[^>]*\s(?:colspan|rowspan)\s*=/i;
+const nonSpaceDelimitedTdThSpanAttrPattern = /<\s*(?:td|th)\b[^>]*[/"'`](?:colspan|rowspan)\s*=/i;
+
 // srcset=/sizes= on an allowed <img> steer responsive image loading to attacker-chosen
 // URLs — the gap left after merged #411 blocked <picture>/<source> but not plain
 // <img srcset>/<img sizes>. Tag-scoped, emptyQuotedAttributeValues(), ["'`] only.
@@ -684,6 +691,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": nowrap attributes are not allowed on td or th elements`,
+    );
+  }
+
+  if (
+    tdThSpanAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedTdThSpanAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": colspan and rowspan attributes are not allowed on table cells`,
     );
   }
 
