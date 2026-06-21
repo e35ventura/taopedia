@@ -240,6 +240,20 @@ assert.ok(
   'sitemap.xml.ts must not use localeCompare for path sorting',
 );
 
+// Per-category feed routes must generate category paths in the same numeric
+// order as the category hub, sitemap, statistics, and OPML surfaces. Raw
+// Array#sort would put "Subnet 10" before "Subnet 9" and make feed route
+// generation drift from the rest of the category contract.
+for (const feedRoute of [
+  'src/pages/wiki/category/[category]/rss.xml.ts',
+  'src/pages/wiki/category/[category]/atom.xml.ts',
+  'src/pages/wiki/category/[category]/feed.json.ts',
+]) {
+  const source = fs.readFileSync(path.join(projectRoot, feedRoute), 'utf8');
+  assert.ok(source.includes('sort(compareTitles)'), `${feedRoute} must sort category paths with compareTitles`);
+  assert.ok(!source.includes('[...categories].sort().map'), `${feedRoute} must not use raw string category ordering`);
+}
+
 // Recent changes uses the same numeric slug tiebreak as backlinks and most-linked.
 const historySource = fs.readFileSync(
   path.join(projectRoot, 'src/lib/article-history.ts'),
