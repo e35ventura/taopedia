@@ -662,11 +662,11 @@ export function validateArticleContent(slug, content) {
   }
 
   if (
-    tdThTrCharAttrPattern.test(emptiedAttributeContent)
-    || nonSpaceDelimitedTdThTrCharAttrPattern.test(emptiedAttributeContent)
+    tableDimensionAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedTableDimensionAttrPattern.test(emptiedAttributeContent)
   ) {
     throw new Error(
-      `Unsafe article content in "${slug}": char and charoff attributes are not allowed on td, th, or tr elements`,
+      `Unsafe article content in "${slug}": width and height attributes are not allowed on table elements`,
     );
   }
 
