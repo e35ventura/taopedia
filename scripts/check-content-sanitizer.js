@@ -496,6 +496,26 @@ accepts('Table column width and row height are described here only as prose.', '
 accepts('<table class="mw-subnets"><tr><td>x</td></tr></table>', 'benign table with class attribute only');
 accepts('<td class="x-height">x</td>', 'benign unquoted class value containing height substring');
 
+// width=/height= on allowed <tr>/<hr>/<pre> reserve oversized layout boxes
+// without the blocked inline style= attribute — the remaining half of the
+// dimension-attribute surface merged #451 / #465 close for <img> /
+// <table>/<td>/<th>.
+rejects('Intro.\n\n<hr width="5000">x</hr>', 'plain hr width attribute');
+rejects('Intro.\n\n<hr   width = "5000">x</hr>', 'spaced hr width attribute');
+rejects('Intro.\n\n<hr height="500">x</hr>', 'plain hr height attribute');
+rejects('Intro.\n\n<table><tr height="9999"><td>x</td></tr></table>', 'plain tr height attribute');
+rejects('Intro.\n\n<table><tr   height = "9999"><td>x</td></tr></table>', 'spaced tr height attribute');
+rejects('Intro.\n\n<pre width="5000">x</pre>', 'plain pre width attribute');
+rejects('<hr class="x"width="5000">', 'quote-abutted hr width attribute');
+rejects('<hr class=x/width="5000">', 'slash-delimited hr width attribute');
+rejects('<tr class="x"height="500">', 'quote-abutted tr height attribute');
+rejects('<pre class="x"width="5000">', 'quote-abutted pre width attribute');
+
+accepts('<hr>x</hr>', 'plain hr without dimensions');
+accepts('<pre>x</pre>', 'plain pre without dimensions');
+accepts('<table><tr><td>x</td></tr></table>', 'plain tr without dimensions');
+accepts('Line width and preformatted block height are described here only as prose.', 'benign width/height prose for hr/pre');
+
 // autofocus steals keyboard focus on page load. Tag-boundary lookahead catches
 // autofocus before another attribute; no slash delimiter (class=x/autofocus is benign).
 rejects('Intro.\n\n<div autofocus>trap</div>', 'bare autofocus attribute');
