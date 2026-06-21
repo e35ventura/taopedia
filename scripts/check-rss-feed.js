@@ -175,4 +175,32 @@ assert.ok(!empty.includes('<lastBuildDate>'), 'an empty feed omits lastBuildDate
   );
 }
 
+// RSS callers that have structured article dates should get the same known-date
+// fallback as Atom and JSON Feed: modified first, legacy date next, published
+// date last. Otherwise a published-only item sorts as undated and loses pubDate.
+{
+  const publishedOnlyNewer = {
+    title: 'Published Only Newer',
+    url: 'https://taopedia.org/wiki/published_only_newer/',
+    datePublished: '2026-06-02T00:00:00Z',
+  };
+  const modifiedOlder = {
+    title: 'Modified Older',
+    url: 'https://taopedia.org/wiki/modified_older/',
+    dateModified: '2026-06-01T00:00:00Z',
+  };
+  const feed = buildRssFeed({ siteUrl, items: [modifiedOlder, publishedOnlyNewer] });
+  const publishedPos = feed.indexOf('/wiki/published_only_newer/');
+  const modifiedPos = feed.indexOf('/wiki/modified_older/');
+  assert.ok(
+    publishedPos >= 0 && modifiedPos >= 0 && publishedPos < modifiedPos,
+    'items with only datePublished must still sort by their known article date',
+  );
+  assert.match(
+    feed.slice(publishedPos, feed.indexOf('</item>', publishedPos)),
+    /<pubDate>Tue, 02 Jun 2026 00:00:00 GMT<\/pubDate>/,
+    'published-only RSS items still emit pubDate from their known article date',
+  );
+}
+
 console.log('check-rss-feed: all assertions passed');
