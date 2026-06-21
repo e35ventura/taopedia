@@ -72,4 +72,48 @@ assert.match(
   'Seo head must declare og:locale as en_US so social crawlers render the card in the site locale',
 );
 
+// Article pages already expose publish/modified dates through Schema.org JSON-LD
+// and the visible metadata footer. The Open Graph article timestamps let social
+// crawlers use the same freshness signal in link previews, without fetching or
+// parsing the JSON-LD graph.
+assert.match(
+  seo,
+  /<meta\s+property="article:published_time"\s+content=\{datePublished\}\s*\/>/,
+  'Seo head must expose article:published_time when an article publish date is known',
+);
+assert.match(
+  seo,
+  /<meta\s+property="article:modified_time"\s+content=\{dateModified\}\s*\/>/,
+  'Seo head must expose article:modified_time when an article modified date is known',
+);
+
+const wikiLayout = fs.readFileSync(path.join(projectRoot, 'src', 'layouts', 'WikiLayout.astro'), 'utf8');
+assert.match(
+  wikiLayout,
+  /datePublished=\{datePublished\}/,
+  'WikiLayout must pass article publish dates through to Seo',
+);
+assert.match(
+  wikiLayout,
+  /dateModified=\{dateModified\}/,
+  'WikiLayout must pass article modified dates through to Seo',
+);
+
+const articleRoute = fs.readFileSync(path.join(projectRoot, 'src', 'pages', 'wiki', '[...slug].astro'), 'utf8');
+assert.match(
+  articleRoute,
+  /const firstPublished = revisions\[revisions\.length - 1\]\?\.date \?\? '';/,
+  'article route must derive the publish date from the oldest generated history revision',
+);
+assert.match(
+  articleRoute,
+  /datePublished=\{firstPublished\}/,
+  'article route must pass the publish date into WikiLayout',
+);
+assert.match(
+  articleRoute,
+  /dateModified=\{lastUpdated\}/,
+  'article route must pass the modified date into WikiLayout',
+);
+
 console.log('Share metadata check passed');

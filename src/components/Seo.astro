@@ -12,13 +12,25 @@ interface Props {
   // page can auto-discover the scoped feed, not just /rss.xml and /feed.json.
   feeds?: Array<{ type: string; title: string; href: string }>;
   robots?: string;
+  datePublished?: string;
+  dateModified?: string;
 }
 
 const defaultTitle = 'Taopedia';
 const defaultDescription =
   'A Bittensor-focused knowledge base for TAO, subnets, wallets, staking, mining, validation, and consensus.';
 
-const { title, description = defaultDescription, image = '/og/home.png', type = 'website', path, feeds, robots } =
+const {
+  title,
+  description = defaultDescription,
+  image = '/og/home.png',
+  type = 'website',
+  path,
+  feeds,
+  robots,
+  datePublished,
+  dateModified,
+} =
   Astro.props;
 
 const pageTitle = title ? `${title} - Taopedia` : defaultTitle;
@@ -77,6 +89,8 @@ const imageAlt = title
 <meta property="og:image:height" content="630" />
 <meta property="og:image:alt" content={imageAlt} />
 <meta property="og:locale" content="en_US" />
+{type === 'article' && datePublished && <meta property="article:published_time" content={datePublished} />}
+{type === 'article' && dateModified && <meta property="article:modified_time" content={dateModified} />}
 
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content={pageTitle} />

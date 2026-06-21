@@ -131,7 +131,9 @@ const articleHistory = import.meta.glob('../../../public/history/**/*.json', { e
   string,
   { default?: { history?: Array<{ date?: string }> } }
 >;
-const lastUpdated = articleHistory[`../../../public/history/${slug}.json`]?.default?.history?.[0]?.date ?? '';
+const revisions = articleHistory[`../../../public/history/${slug}.json`]?.default?.history ?? [];
+const lastUpdated = revisions[0]?.date ?? '';
+const firstPublished = revisions[revisions.length - 1]?.date ?? '';
 const lastUpdatedLabel = lastUpdated
   ? new Date(lastUpdated).toLocaleDateString('en-US', { timeZone: 'UTC', year: 'numeric', month: 'long', day: 'numeric' })
   : '';
@@ -146,6 +148,8 @@ const readingMinutes = Math.max(1, Math.ceil(wordCount / 200));
   description={page.data.summary}
   image={`/og/${slug}.png`}
   type="article"
+  datePublished={firstPublished}
+  dateModified={lastUpdated}
 >
   {tocHeadings.length > 1 && (
     <div slot="sidebar" class="toc-sidebar" role="navigation" aria-labelledby="toc-heading">
