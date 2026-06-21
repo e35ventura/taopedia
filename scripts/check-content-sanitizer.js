@@ -207,6 +207,21 @@ rejects('<a href="x"dir="rtl">link</a>', 'quote-abutted dir attribute');
 accepts('The dir attribute sets base text direction on an element.', 'benign dir prose');
 accepts('A redirect sends the browser to another URL.', 'benign redirect substring');
 
+// inert= on an allowed element is a clickjacking / focus-hijack primitive: it
+// takes the element out of the tab order and pointer events, so an injected
+// <a inert href="https://evil/"> or <form inert>…</form> renders as visible
+// "disabled-looking" content that the reader can still middle-click (link)
+// or focus via assistive tech. Same interaction-surface class as the merged
+// contenteditable / tabindex / draggable / popover / accesskey blocks.
+rejects('Intro.\n\n<a href="https://evil.example/" inert>click me</a>', 'plain inert attribute');
+rejects('Intro.\n\n<  a   href = "/wiki/foo/"   inert  >link</a>', 'spaced inert attribute');
+rejects('Intro.\n\n<form inert action="https://evil.example/collect">go</form>', 'plain inert on form');
+rejects('<a href="x"inert>go</a>', 'quote-abutted inert attribute');
+rejects('Intro.\n\n<button inert type="button">Send</button>', 'plain inert on button');
+// Prose that mentions "inert" without an attribute assignment still passes.
+accepts('A deactivated control is functionally inert in the DOM.', 'benign inert prose');
+accepts('The inert attribute removes an element from the tab order.', 'benign inert attribute prose');
+
 // Plain dangerous URL schemes remain blocked.
 rejects('See [x](javascript:alert(1)).', 'plain javascript:');
 rejects('See [x](vbscript:msgbox(1)).', 'plain vbscript:');
