@@ -215,6 +215,7 @@ const DENIED_PERMISSIONS_FEATURES = [
   'usb',
   'web-share',
   'window-management',
+  'window-placement',
   'xr-spatial-tracking',
 ];
 export function validatePermissionsPolicyConfig(config) {
