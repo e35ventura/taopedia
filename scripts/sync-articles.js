@@ -371,6 +371,32 @@ const quoteAbuttedImgIsmapAttrPattern = /<\s*img\b[^>]*["'`]ismap(?=[\s>/=])/i;
 const tableFrameRulesAttrPattern = /<\s*table\b[^>]*\s(?:frame|rules|summary)\s*=/i;
 const nonSpaceDelimitedTableFrameRulesAttrPattern = /<\s*table\b[^>]*[/"'`](?:frame|rules|summary)\s*=/i;
 
+// noshade (boolean) and color=/size= (value) on an allowed <hr> set obsolete
+// presentational styling on a horizontal rule without the blocked inline
+// style= attribute — the same content-styling spoof class as the merged
+// bgcolor=/background= (#434, #435) on <body>/<table>/<td> and the
+// <font color/size/face> attributes (<font> itself blocked in #433).
+//
+// The wiki emits <hr> very heavily: 618+ horizontal-rule dividers are
+// generated from Markdown `---` source in articles across the corpus
+// (e.g. subnet_*, yuma_consensus, weight_vector). An injected
+// <hr color="red" size="50"> placed after prose like "WALLET COMPROMISED —
+// visit evil.example to recover funds" renders an oversized red horizontal
+// rule that visually mimics an admin security banner — the same
+// content-styling spoof class as the merged frame/rules/summary table block
+// (#471). Glossa­ry articles never style their own <hr>; the stylesheet
+// sizes them via .divider / theme variables.
+//
+// Slash-delimited coverage matches the value (color/size) patterns so the
+// title "block noshade, color, size" doesn't have an inconsistent gap
+// between boolean and value coverage (Codex flagged this on the prior
+// #470 attempt).
+const hrNoshadeAttrPattern = /<\s*hr\b[^>]*\snoshade(?=[\s>/=])/i;
+const quoteAbuttedHrNoshadeAttrPattern = /<\s*hr\b[^>]*["'`]noshade(?=[\s>/=])/i;
+const slashDelimitedHrNoshadeAttrPattern = /<\s*hr\b[^>]*[/"'`]noshade(?=[\s>/=])/i;
+const hrColorSizeAttrPattern = /<\s*hr\b[^>]*\s(?:color|size)\s*=/i;
+const nonSpaceDelimitedHrColorSizeAttrPattern = /<\s*hr\b[^>]*[/"'`](?:color|size)\s*=/i;
+
 function emptyQuotedAttributeValues(content) {
   return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
 }
@@ -636,11 +662,23 @@ export function validateArticleContent(slug, content) {
   }
 
   if (
-    tableDimensionAttrPattern.test(emptiedAttributeContent)
-    || nonSpaceDelimitedTableDimensionAttrPattern.test(emptiedAttributeContent)
+    tdThTrCharAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedTdThTrCharAttrPattern.test(emptiedAttributeContent)
   ) {
     throw new Error(
-      `Unsafe article content in "${slug}": width and height attributes are not allowed on table elements`,
+      `Unsafe article content in "${slug}": char and charoff attributes are not allowed on td, th, or tr elements`,
+    );
+  }
+
+  if (
+    hrNoshadeAttrPattern.test(emptiedAttributeContent)
+    || quoteAbuttedHrNoshadeAttrPattern.test(emptiedAttributeContent)
+    || slashDelimitedHrNoshadeAttrPattern.test(emptiedAttributeContent)
+    || hrColorSizeAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedHrColorSizeAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": noshade, color, and size attributes are not allowed on hr elements`,
     );
   }
 

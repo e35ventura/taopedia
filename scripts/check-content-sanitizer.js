@@ -621,4 +621,29 @@ accepts("The client:robot workflow is a normal phrase, not an Astro directive.",
 accepts("Use server:test as a placeholder name in the documentation.", 'benign "server:test" prose');
 accepts("A define:macro helper in the article body is prose, not a directive.", 'benign "define:macro" prose');
 
+// noshade (boolean) and color=/size= (value) on allowed <hr> set obsolete
+// presentational styling without the blocked inline style= attribute — same
+// content-styling spoof class as the merged bgcolor=/background= (#434, #435)
+// on <body>/<table>/<td> and the <font color/size/face> attributes (<font>
+// itself blocked in #433).
+//
+// The wiki emits <hr> very heavily: 618+ horizontal-rule dividers come from
+// Markdown `---` source across the article corpus. An injected
+// <hr color="red" size="50"> after "WALLET COMPROMISED" renders an oversized
+// red horizontal rule that mimics an admin security banner — same content-
+// styling class as the merged frame/rules/summary table block (#471).
+rejects('Intro.\n\n<hr color="red" size="50">x</hr>', 'plain hr color/size attributes');
+rejects('Intro.\n\n<hr   size = "5">x</hr>', 'spaced hr size attribute');
+rejects('Intro.\n\n<hr color="#ff0000">x</hr>', 'plain hr hex color attribute');
+rejects('<hr class="x"color="red">', 'quote-abutted hr color attribute');
+rejects('<hr class=x/size="5">', 'slash-delimited hr size attribute');
+rejects('Intro.\n\n<hr noshade>x</hr>', 'plain hr noshade attribute');
+rejects('Intro.\n\n<hr   noshade   >x</hr>', 'spaced hr noshade attribute');
+rejects('<hr class="x"noshade>', 'quote-abutted hr noshade attribute');
+rejects('<hr class=x/noshade>', 'slash-delimited hr noshade attribute');
+
+accepts('<hr>x</hr>', 'plain hr without visual styling');
+accepts('<hr class="divider">x</hr>', 'benign hr class attribute');
+accepts('A horizontal rule without noshade or color is described here only as prose.', 'benign hr visual prose');
+
 console.log('Content sanitizer check passed');
