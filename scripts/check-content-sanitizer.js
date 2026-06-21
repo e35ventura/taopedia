@@ -496,6 +496,19 @@ accepts('Table column width and row height are described here only as prose.', '
 accepts('<table class="mw-subnets"><tr><td>x</td></tr></table>', 'benign table with class attribute only');
 accepts('<td class="x-height">x</td>', 'benign unquoted class value containing height substring');
 
+// frame=/rules=/summary= on allowed <table> set obsolete presentational
+// table-border attributes without the blocked inline style= attribute — same
+// content-styling spoof class as the merged border=/cellpadding= (#438) and
+// the table dimension attributes (#465).
+rejects('Intro.\n\n<table frame="border" rules="all"><tr><td>x</td></tr></table>', 'plain table frame/rules attributes');
+rejects('Intro.\n\n<table   frame = "hsides">x</table>', 'spaced table frame attribute');
+rejects('Intro.\n\n<table summary="evil caption">x</table>', 'plain table summary attribute');
+rejects('<table class="x"frame="border">', 'quote-abutted table frame attribute');
+rejects('<table class=x/rules="all">', 'slash-delimited table rules attribute');
+
+accepts('<table><tr><td>x</td></tr></table>', 'plain table without frame/rules/summary');
+accepts('Table frame border and inner rules are described here only as prose.', 'benign table frame/rules prose');
+
 // autofocus steals keyboard focus on page load. Tag-boundary lookahead catches
 // autofocus before another attribute; no slash delimiter (class=x/autofocus is benign).
 rejects('Intro.\n\n<div autofocus>trap</div>', 'bare autofocus attribute');

@@ -335,6 +335,18 @@ const imgFetchpriorityQuoteAbuttedPattern = /<\s*img\b[^>]*["'`]fetchpriority\s*
 const imgIsmapAttrPattern = /<\s*img\b[^>]*\sismap(?=[\s>/=])/i;
 const quoteAbuttedImgIsmapAttrPattern = /<\s*img\b[^>]*["'`]ismap(?=[\s>/=])/i;
 
+// frame=/rules=/summary= on an allowed <table> set the obsolete presentational
+// table-border attributes without the blocked inline style= attribute — same
+// content-styling spoof class as the merged border=/cellpadding= (#438) and
+// the table dimension attributes (#465). frame= picks which sides of the outer
+// border to draw (e.g. frame="border"); rules= picks which inner borders
+// (e.g. rules="all" yields a heavy grid). summary= is the HTML4 accessibility
+// description (deprecated in HTML5, ignored by current screen readers as the
+// <caption> element supersedes it). Article tables never set their own border
+// styles — the stylesheet renders them via .mw-subnets / infobox classes.
+const tableFrameRulesAttrPattern = /<\s*table\b[^>]*\s(?:frame|rules|summary)\s*=/i;
+const nonSpaceDelimitedTableFrameRulesAttrPattern = /<\s*table\b[^>]*[/"'`](?:frame|rules|summary)\s*=/i;
+
 function emptyQuotedAttributeValues(content) {
   return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
 }
@@ -630,6 +642,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": srcset and sizes attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    tableFrameRulesAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedTableFrameRulesAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": frame, rules, and summary attributes are not allowed on table elements`,
     );
   }
 
