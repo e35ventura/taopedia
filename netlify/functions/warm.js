@@ -30,9 +30,11 @@ const DEFAULT_RATE_LIMIT_WINDOW_MS = 60_000;
 // x-nf-client-connection-ip header is absent). Override with WARM_RATE_LIMIT_MAX_IPS.
 const DEFAULT_RATE_LIMIT_MAX_IPS = 5000;
 
-// Per-instance fixed-window counter keyed by client IP. Limits blast radius if WARM_SECRET
-// leaks or an attacker hammers the endpoint with bad credentials.
+// Per-instance fixed-window counters keyed by client IP. Failed-auth attempts
+// are tracked separately from valid warm calls so bad secrets cannot spend the
+// same bucket a deploy hook needs after it sends the right secret.
 const rateLimitBuckets = new Map();
+const authFailureBuckets = new Map();
 
 function secretDigest(value) {
   return createHash('sha256').update(String(value ?? ''), 'utf8').digest();
@@ -96,29 +98,29 @@ function getClientIp(event) {
 // buckets first (they carry no live state); if still over the ceiling, evict the
 // oldest-inserted buckets (Map preserves insertion order). Eviction only grants
 // that IP a fresh window — the WARM_SECRET gate remains the primary control.
-function enforceBucketCap(now, maxIps) {
-  if (rateLimitBuckets.size <= maxIps) return;
-  for (const [key, bucket] of rateLimitBuckets) {
-    if (now >= bucket.resetAt) rateLimitBuckets.delete(key);
+function enforceBucketCap(now, maxIps, buckets = rateLimitBuckets) {
+  if (buckets.size <= maxIps) return;
+  for (const [key, bucket] of buckets) {
+    if (now >= bucket.resetAt) buckets.delete(key);
   }
-  for (const key of rateLimitBuckets.keys()) {
-    if (rateLimitBuckets.size <= maxIps) break;
-    rateLimitBuckets.delete(key);
+  for (const key of buckets.keys()) {
+    if (buckets.size <= maxIps) break;
+    buckets.delete(key);
   }
 }
 
-function checkRateLimit(ip) {
+function checkRateLimit(ip, buckets = rateLimitBuckets) {
   const { max, windowMs, maxIps } = getRateLimitConfig();
   const now = Date.now();
 
-  let bucket = rateLimitBuckets.get(ip);
+  let bucket = buckets.get(ip);
   if (!bucket || now >= bucket.resetAt) {
     bucket = { count: 0, resetAt: now + windowMs };
     // Re-insert so a refreshed key moves to the end of the Map's insertion order,
     // making eviction least-recently-active first.
-    rateLimitBuckets.delete(ip);
-    rateLimitBuckets.set(ip, bucket);
-    enforceBucketCap(now, maxIps);
+    buckets.delete(ip);
+    buckets.set(ip, bucket);
+    enforceBucketCap(now, maxIps, buckets);
   }
 
   bucket.count += 1;
@@ -129,10 +131,11 @@ function checkRateLimit(ip) {
 
 export function __resetRateLimitsForTests() {
   rateLimitBuckets.clear();
+  authFailureBuckets.clear();
 }
 
 export function __rateLimitStoreSizeForTests() {
-  return rateLimitBuckets.size;
+  return rateLimitBuckets.size + authFailureBuckets.size;
 }
 
 export const handler = async (event) => {
@@ -141,7 +144,28 @@ export const handler = async (event) => {
       return { statusCode: 405, body: 'Method Not Allowed' };
     }
 
-    const rateLimit = checkRateLimit(getClientIp(event));
+    const secret = process.env.WARM_SECRET;
+    if (!secret) {
+      return { statusCode: 500, body: 'WARM_SECRET not set' };
+    }
+    const clientIp = getClientIp(event);
+    const got = getHeader(event.headers, 'x-warm-secret');
+    if (!secretsMatch(got, secret)) {
+      const authLimit = checkRateLimit(clientIp, authFailureBuckets);
+      if (!authLimit.allowed) {
+        return {
+          statusCode: 429,
+          headers: {
+            'content-type': 'text/plain',
+            'retry-after': String(authLimit.retryAfterSec),
+          },
+          body: 'Too Many Requests',
+        };
+      }
+      return { statusCode: 401, body: 'Unauthorized' };
+    }
+
+    const rateLimit = checkRateLimit(clientIp);
     if (!rateLimit.allowed) {
       return {
         statusCode: 429,
@@ -151,15 +175,6 @@ export const handler = async (event) => {
         },
         body: 'Too Many Requests',
       };
-    }
-
-    const secret = process.env.WARM_SECRET;
-    if (!secret) {
-      return { statusCode: 500, body: 'WARM_SECRET not set' };
-    }
-    const got = getHeader(event.headers, 'x-warm-secret');
-    if (!secretsMatch(got, secret)) {
-      return { statusCode: 401, body: 'Unauthorized' };
     }
 
     const siteUrl = process.env.SITE_URL || 'https://taopedia.org';

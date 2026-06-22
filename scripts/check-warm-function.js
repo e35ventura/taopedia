@@ -250,7 +250,39 @@ try {
     },
     body: JSON.stringify({ slugs: ['taopedia'] }),
   });
-  assert.equal(response.statusCode, 429, 'rate limit should apply before auth checks');
+  assert.equal(
+    response.statusCode,
+    401,
+    'failed auth attempts should not spend the successful warm-call bucket',
+  );
+
+  const badSecretEvent = {
+    httpMethod: 'POST',
+    headers: {
+      'x-warm-secret': 'wrong',
+      'x-forwarded-for': '203.0.113.12',
+    },
+    body: JSON.stringify({ slugs: ['taopedia'] }),
+  };
+  response = await handler(badSecretEvent);
+  assert.equal(response.statusCode, 401, 'first failed auth attempt within its own limit returns 401');
+  response = await handler(badSecretEvent);
+  assert.equal(response.statusCode, 401, 'second failed auth attempt within its own limit returns 401');
+  response = await handler(badSecretEvent);
+  assert.equal(response.statusCode, 429, 'failed auth attempts are still rate-limited separately');
+
+  response = await handler({
+    ...badSecretEvent,
+    headers: {
+      'x-warm-secret': 'secret',
+      'x-forwarded-for': '203.0.113.12',
+    },
+  });
+  assert.equal(
+    response.statusCode,
+    200,
+    'a valid warm request should still work after the separate failed-auth bucket is exhausted',
+  );
 
   response = await handler({
     httpMethod: 'POST',
