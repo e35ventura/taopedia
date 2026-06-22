@@ -482,6 +482,17 @@ const nonSpaceDelimitedAriaKeyshortcutsAttrPattern = /<[^>]*[/"'`](?:aria-keysho
 const ariaCurrentAttrPattern = /<[^>]*\saria-current\s*=/i;
 const nonSpaceDelimitedAriaCurrentAttrPattern = /<[^>]*[/"'`](?:aria-current)\s*=/i;
 
+// HTML microdata attributes (itemscope, itemtype, itemprop, itemref, itemid)
+// inject Schema.org structured data into the rendered article body — same
+// content-spoof class as the merged aria-* blocks. Taopedia owns structured
+// data via the JSON-LD graph in src/components/StructuredData.astro, so prose
+// must not emit its own microdata. Same dual-pattern shape (whitespace +
+// quote/slash-abutted) as the merged aria-name / contenteditable / style
+// blocks. itemscope is boolean and uses the [\s>/=] lookahead.
+const microdataAttrPattern = /<[^>]*\s(?:itemscope|itemtype|itemprop|itemref|itemid)(?=[\s>/=])/i;
+const nonSpaceDelimitedMicrodataAttrPattern = /<[^>]*[/"'`](?:itemtype|itemprop|itemref|itemid)\s*=/i;
+const quoteAbuttedItemscopePattern = /<[^>]*["'`]itemscope(?=[\s>/=])/i;
+
 // nowrap on allowed <td>/<th> disables text wrapping in the cell — an injected
 // long URL, fake wallet address, or padded phishing line breaks out of the
 // column, reflowing the real article text off-screen (a layout-defacement /
@@ -1053,6 +1064,16 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": aria-current attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    microdataAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedMicrodataAttrPattern.test(emptiedAttributeContent)
+    || quoteAbuttedItemscopePattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": itemscope, itemtype, itemprop, itemref, and itemid microdata attributes are not allowed in article content`,
     );
   }
 
