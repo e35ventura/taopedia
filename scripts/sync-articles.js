@@ -430,6 +430,20 @@ const nonSpaceDelimitedAriaLiveRegionAttrPattern = /<[^>]*[/"'`](?:aria-(?:live|
 const ariaDisclosureAttrPattern = /<[^>]*\saria-(?:controls|expanded)\s*=/i;
 const nonSpaceDelimitedAriaDisclosureAttrPattern = /<[^>]*[/"'`](?:aria-(?:controls|expanded))\s*=/i;
 
+// aria-roledescription= overrides the default accessible role description that
+// assistive technology announces for an element — e.g.
+// aria-roledescription="Security Alert" makes a screen reader announce a plain
+// paragraph as a "Security Alert" instead of its actual role. Unlike obsolete
+// presentational attributes, aria-roledescription is a current WAI-ARIA 1.1+
+// attribute actively supported by NVDA, JAWS, and VoiceOver: injecting it into
+// article content lets an attacker make phishing blocks sound like trusted system
+// UI to screen-reader users. Same accessibility-spoof family as merged role
+// (#554), aria-label (#501), aria-describedby (#553), aria-hidden (#556),
+// aria-live (#558), and aria-controls (#559). Glossary articles never set custom
+// role descriptions — the site's components handle semantics via standard HTML.
+const ariaRoledescriptionAttrPattern = /<[^>]*\saria-roledescription\s*=/i;
+const nonSpaceDelimitedAriaRoledescriptionAttrPattern = /<[^>]*[/"'`](?:aria-roledescription)\s*=/i;
+
 // nowrap on allowed <td>/<th> disables text wrapping in the cell — an injected
 // long URL, fake wallet address, or padded phishing line breaks out of the
 // column, reflowing the real article text off-screen (a layout-defacement /
@@ -965,6 +979,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": aria-controls and aria-expanded attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    ariaRoledescriptionAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAriaRoledescriptionAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": aria-roledescription attributes are not allowed in article content`,
     );
   }
 
