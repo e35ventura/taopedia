@@ -121,6 +121,16 @@ for (const slug of articleSlugs) {
     `${ORIGIN}/wiki/${slug}/cite.bib`,
     `cite.json bibtexUrl must point at the sibling cite.bib export for ${slug}`,
   );
+  assert.equal(
+    doc.historyUrl,
+    `${ORIGIN}/wiki/${slug}/history/`,
+    `cite.json historyUrl must point at the sibling HTML history page for ${slug}`,
+  );
+  assert.equal(
+    doc.backlinksUrl,
+    `${ORIGIN}/wiki/${slug}/backlinks/`,
+    `cite.json backlinksUrl must point at the sibling HTML backlinks page for ${slug}`,
+  );
   if (date) {
     assert.equal(doc.date, date, `cite.json date must equal the article's last-revision date for ${slug}`);
   } else {
@@ -132,6 +142,14 @@ for (const slug of articleSlugs) {
   assert.deepEqual(Object.keys(doc.citations), CITE_KEYS, `cite.json citations must carry exactly [${CITE_KEYS.join(', ')}] for ${slug}`);
 
   const html = fs.readFileSync(path.join(wikiDir, slug, 'cite', 'index.html'), 'utf8');
+  assert.ok(
+    html.includes(`href="/wiki/${slug}/history/"`),
+    `/wiki/${slug}/cite/ toolbar must link to the article history page`,
+  );
+  assert.ok(
+    html.includes(`href="/wiki/${slug}/backlinks/"`),
+    `/wiki/${slug}/cite/ toolbar must link to the article backlinks page`,
+  );
   for (const key of CITE_KEYS) {
     assert.equal(doc.citations[key], expected[key], `cite.json ${key.toUpperCase()} must equal buildCitations() for ${slug}`);
     assert.equal(
