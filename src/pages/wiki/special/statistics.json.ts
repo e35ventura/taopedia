@@ -26,6 +26,8 @@ export const GET: APIRoute = async ({ site }) => {
     `${origin}/wiki/category/${name.replace(/ /g, '_')}/`;
   const topicArticlesUrl = (name: string) =>
     `${origin}/wiki/category/${name.replace(/ /g, '_')}/articles.json`;
+  const topicFeedUrl = (name: string) =>
+    `${origin}/wiki/category/${name.replace(/ /g, '_')}/feed.json`;
 
   const body = JSON.stringify(
     {
@@ -36,12 +38,14 @@ export const GET: APIRoute = async ({ site }) => {
             ...stats.largestTopic,
             url: topicUrl(stats.largestTopic.name),
             articlesUrl: topicArticlesUrl(stats.largestTopic.name),
+            feedUrl: topicFeedUrl(stats.largestTopic.name),
           }
         : null,
       topics: stats.topics.map((t: { name: string; count: number }) => ({
         ...t,
         url: topicUrl(t.name),
         articlesUrl: topicArticlesUrl(t.name),
+        feedUrl: topicFeedUrl(t.name),
       })),
     },
     null,
