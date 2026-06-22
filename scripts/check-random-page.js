@@ -26,7 +26,7 @@ assert.ok(
 // Random article must keep its article-only contract instead of redirecting to
 // a non-article page.
 assert.ok(
-  html.includes("^\\/wiki\\/(?!special\\/|category\\/)[^?#]+\\/$"),
+  html.includes("(?:https?:\\/\\/[^/]+)?\\/wiki\\/(?!special\\/|category\\/)[^?#]+\\/$"),
   'the random page must filter search-data URLs to canonical article paths only',
 );
 

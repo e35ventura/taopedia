@@ -29,7 +29,7 @@ const pageDescription = 'Jump to a randomly selected article in the Taopedia Bit
         const response = await fetch('/search-data.json');
         const entries = response.ok ? await response.json() : [];
         const articleEntries = Array.isArray(entries)
-          ? entries.filter((entry) => entry && typeof entry.url === 'string' && /^\/wiki\/(?!special\/|category\/)[^?#]+\/$/.test(entry.url))
+          ? entries.filter((entry) => entry && typeof entry.url === 'string' && /^(?:https?:\/\/[^/]+)?\/wiki\/(?!special\/|category\/)[^?#]+\/$/.test(entry.url))
           : [];
         if (articleEntries.length > 0) {
           const choice = articleEntries[Math.floor(Math.random() * articleEntries.length)];
