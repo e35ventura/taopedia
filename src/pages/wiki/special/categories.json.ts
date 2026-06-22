@@ -24,6 +24,7 @@ export const GET: APIRoute = async ({ site }) => {
         articles: topic.count,
         url: `${origin}/wiki/category/${topic.name.replace(/ /g, '_')}/`,
         articlesUrl: `${origin}/wiki/category/${topic.name.replace(/ /g, '_')}/articles.json`,
+        feedUrl: `${origin}/wiki/category/${topic.name.replace(/ /g, '_')}/feed.json`,
       })),
     },
     null,

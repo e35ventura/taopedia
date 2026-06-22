@@ -103,6 +103,19 @@ data.categories.forEach((row, i) => {
     `${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/articles.json`,
     `row ${i} articlesUrl must equal ${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/articles.json`,
   );
+  // feedUrl points at the category's JSON Feed (/wiki/category/<slug>/feed.json),
+  // so a feed-reader or programmatic consumer can subscribe to a category
+  // straight from the index without reconstructing the route. Same absolute-URL
+  // contract as url/articlesUrl.
+  assert.ok(
+    row.feedUrl.startsWith(`${data.site}/wiki/category/`),
+    `row ${i} feedUrl must be absolute and start with the envelope site (got ${row.feedUrl})`,
+  );
+  assert.equal(
+    row.feedUrl,
+    `${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/feed.json`,
+    `row ${i} feedUrl must equal ${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/feed.json`,
+  );
 });
 
 console.log(`Categories JSON check passed (${data.count} topics)`);
