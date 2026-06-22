@@ -1,0 +1,232 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { compareTitles } from '../src/lib/title-sort.js';
+import { buildRecentChangesAtomItems } from '../src/lib/recent-changes-feed.js';
+import { RECENT_LIMIT } from '../src/lib/recent-changes.js';
+
+const ORIGIN = 'https://taopedia.org';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const projectRoot = path.resolve(__dirname, '..');
+const wikiDir = path.join(projectRoot, 'dist', 'wiki');
+const atomFile = path.join(wikiDir, 'special', 'recentchanges', 'atom.xml');
+const htmlFile = path.join(wikiDir, 'special', 'recentchanges', 'index.html');
+const historyDir = path.join(projectRoot, 'public', 'history');
+const slugmapFile = path.join(projectRoot, 'public', 'data', 'slugmap.json');
+
+const decodeXml = (value) =>
+  String(value ?? '')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, '&');
+
+const recentChangeSummary = (change) => {
+  const authorName = typeof change?.authorName === 'string' ? change.authorName.trim() : '';
+  const message = typeof change?.message === 'string' ? change.message.trim() : '';
+  if (authorName && message) return `Edited by ${authorName}: ${message}`;
+  if (authorName) return `Edited by ${authorName}`;
+  return message;
+};
+
+const textFor = (xml, tagName, label) => {
+  const match = xml.match(new RegExp(`<${tagName}>([\\s\\S]*?)</${tagName}>`));
+  assert.ok(match, `${label}: missing <${tagName}>`);
+  return decodeXml(match[1]);
+};
+
+const hasAlternateLink = (linkTags, type, href) =>
+  linkTags.some(
+    (tag) =>
+      tag.includes('rel="alternate"') && tag.includes(`type="${type}"`) && tag.includes(`href="${href}"`),
+  );
+
+// ---- 1) Unit: recent-changes item mapping ---------------------------------
+{
+  const items = buildRecentChangesAtomItems({
+    origin: ORIGIN,
+    changes: [
+      {
+        slug: 'subnet_9',
+        title: 'Subnet 9',
+        sha: 'abc123',
+        date: '2026-06-21T10:53:45.000Z',
+        authorName: 'Alice',
+        message: 'Fix title & improve <summary>',
+      },
+      {
+        slug: 'subnet_10',
+        title: 'Subnet 10',
+        sha: 'def456',
+        date: '2026-06-21T09:28:57.000Z',
+        authorName: 'Bob',
+        message: '',
+      },
+    ],
+  });
+
+  assert.deepEqual(
+    items,
+    [
+      {
+        id: 'urn:sha1:abc123',
+        title: 'Subnet 9',
+        url: `${ORIGIN}/wiki/subnet_9/`,
+        image: `${ORIGIN}/og/subnet_9.png`,
+        description: 'Edited by Alice: Fix title & improve <summary>',
+        datePublished: '2026-06-21T10:53:45.000Z',
+        dateModified: '2026-06-21T10:53:45.000Z',
+      },
+      {
+        id: 'urn:sha1:def456',
+        title: 'Subnet 10',
+        url: `${ORIGIN}/wiki/subnet_10/`,
+        image: `${ORIGIN}/og/subnet_10.png`,
+        description: 'Edited by Bob',
+        datePublished: '2026-06-21T09:28:57.000Z',
+        dateModified: '2026-06-21T09:28:57.000Z',
+      },
+    ],
+    'helper must build stable Atom items with per-revision ids, canonical URLs, OG images, and summaries',
+  );
+}
+
+// ---- 2) Built-output checks -----------------------------------------------
+assert.ok(fs.existsSync(atomFile), 'dist/wiki/special/recentchanges/atom.xml not found; run the build first');
+assert.ok(fs.existsSync(htmlFile), 'dist/wiki/special/recentchanges/index.html not found; run the build first');
+assert.ok(fs.existsSync(historyDir), 'public/history not found; run the build first');
+assert.ok(fs.existsSync(slugmapFile), 'public/data/slugmap.json not found; run the build first');
+
+const feed = fs.readFileSync(atomFile, 'utf8');
+const html = fs.readFileSync(htmlFile, 'utf8');
+const slugmap = JSON.parse(fs.readFileSync(slugmapFile, 'utf8'));
+const headMatch = html.match(/<head\b[^>]*>([\s\S]*?)<\/head>/i);
+
+assert.ok(headMatch, 'Recent changes page must render a <head> block');
+
+const linkTags = [...headMatch[1].matchAll(/<link\b[^>]*>/gi)].map((match) => match[0]);
+
+assert.ok(feed.startsWith('<?xml version="1.0" encoding="UTF-8"?>'), 'recentchanges Atom feed must declare the XML prolog');
+assert.match(feed, /<feed xmlns="http:\/\/www\.w3\.org\/2005\/Atom" xml:lang="en">/, 'recentchanges Atom feed must declare Atom 1.0');
+assert.equal(
+  textFor(feed, 'id', 'recentchanges atom'),
+  `${ORIGIN}/wiki/special/recentchanges/atom.xml`,
+  'recentchanges Atom feed id must be the canonical feed URL',
+);
+assert.equal(
+  textFor(feed, 'title', 'recentchanges atom'),
+  'Taopedia - Recent changes',
+  'recentchanges Atom feed title must name the surface',
+);
+assert.equal(
+  textFor(feed, 'subtitle', 'recentchanges atom'),
+  'Most recent revision events across published Taopedia articles.',
+  'recentchanges Atom feed subtitle must describe the revision-level scope',
+);
+assert.ok(
+  feed.includes(`<link rel="alternate" href="${ORIGIN}/wiki/special/recentchanges/" />`),
+  'recentchanges Atom feed alternate link must point at the Recent changes page',
+);
+assert.ok(
+  feed.includes(`<link rel="self" type="application/atom+xml" href="${ORIGIN}/wiki/special/recentchanges/atom.xml" />`),
+  'recentchanges Atom feed self link must point at the recentchanges Atom endpoint',
+);
+assert.match(feed, /<author><name>Taopedia<\/name><\/author>/, 'recentchanges Atom feed must declare the required Atom author');
+assert.ok(
+  hasAlternateLink(linkTags, 'application/atom+xml', '/wiki/special/recentchanges/atom.xml'),
+  'Recent changes page <head> must advertise rel="alternate" type="application/atom+xml" href="/wiki/special/recentchanges/atom.xml"',
+);
+
+const expectedChanges = [];
+for (const file of fs.readdirSync(historyDir)) {
+  if (!file.endsWith('.json')) continue;
+  const slug = file.replace(/\.json$/, '');
+  const title = slugmap[slug]?.title;
+  if (!title) continue;
+  if (!fs.existsSync(path.join(wikiDir, slug, 'index.html'))) continue;
+
+  const history = JSON.parse(fs.readFileSync(path.join(historyDir, file), 'utf8')).history ?? [];
+  for (const entry of history) {
+    if (typeof entry?.date !== 'string' || !entry.date) continue;
+    if (typeof entry?.sha !== 'string' || !entry.sha) continue;
+    expectedChanges.push({
+      slug,
+      title,
+      date: entry.date,
+      sha: entry.sha,
+      authorName: typeof entry?.authorName === 'string' ? entry.authorName : '',
+      message: typeof entry?.message === 'string' ? entry.message : '',
+    });
+  }
+}
+
+expectedChanges.sort((a, b) => {
+  if (a.date !== b.date) return a.date < b.date ? 1 : -1;
+  return compareTitles(a.slug, b.slug);
+});
+
+const limitedChanges = expectedChanges.slice(0, RECENT_LIMIT);
+assert.ok(limitedChanges.length > 0, 'recentchanges Atom feed must contain at least one revision event');
+
+const entries = [...feed.matchAll(/<entry>([\s\S]*?)<\/entry>/g)].map((match) => match[1]);
+assert.equal(
+  entries.length,
+  limitedChanges.length,
+  `recentchanges Atom feed must contain ${limitedChanges.length} entries (got ${entries.length})`,
+);
+
+const feedUpdated = textFor(feed, 'updated', 'recentchanges atom');
+assert.equal(feedUpdated, limitedChanges[0].date, 'recentchanges Atom feed updated must equal the newest revision date');
+
+const seenIds = new Set();
+
+for (let i = 0; i < limitedChanges.length; i++) {
+  const expected = limitedChanges[i];
+  const entry = entries[i];
+  const entryId = textFor(entry, 'id', `entry ${i}`);
+  const entryTitle = textFor(entry, 'title', `entry ${i}`);
+  const entryUpdated = textFor(entry, 'updated', `entry ${i}`);
+  const entryPublished = textFor(entry, 'published', `entry ${i}`);
+  const entrySummaryMatch = entry.match(/<summary>([\s\S]*?)<\/summary>/);
+  const entrySummary = entrySummaryMatch ? decodeXml(entrySummaryMatch[1]) : '';
+  const link = entry.match(/<link rel="alternate" href="([^"]+)" \/>/);
+  const image = entry.match(/<link rel="enclosure" type="image\/png" href="([^"]+)" \/>/);
+
+  assert.ok(link, `entry ${i}: missing alternate article link`);
+  assert.ok(image, `entry ${i}: missing OG image enclosure`);
+  assert.equal(entryId, `urn:sha1:${expected.sha}`, `entry ${i}: id must use the revision sha`);
+  assert.ok(!seenIds.has(entryId), `entry ${i}: feed id ${entryId} must be unique`);
+  seenIds.add(entryId);
+
+  assert.equal(entryTitle, expected.title, `entry ${i}: title must match the article title`);
+  assert.equal(link[1], `${ORIGIN}/wiki/${expected.slug}/`, `entry ${i}: alternate link must be the canonical article URL`);
+  assert.equal(image[1], `${ORIGIN}/og/${expected.slug}.png`, `entry ${i}: enclosure must point at the article OG image`);
+  assert.equal(entryUpdated, expected.date, `entry ${i}: updated must equal the revision date`);
+  assert.equal(entryPublished, expected.date, `entry ${i}: published must equal the revision date`);
+
+  const expectedSummary = recentChangeSummary(expected);
+  assert.equal(entrySummary, expectedSummary, `entry ${i}: summary must match the author/message summary`);
+}
+
+const htmlRows = [...html.matchAll(/<li[^>]*class="mw-rc-row"[^>]*>([\s\S]*?)<\/li>/g)].map(([, block]) => ({
+  date: (block.match(/datetime="([^"]+)"/) || [])[1],
+  slug: ((block.match(/mw-rc-title[^>]*href="([^"]+)"/) || [])[1] || '').split('/')[2],
+}));
+
+assert.equal(
+  htmlRows.length,
+  limitedChanges.length,
+  `recentchanges Atom feed (${limitedChanges.length}) and Recent changes HTML (${htmlRows.length}) must list the same number of entries`,
+);
+
+htmlRows.forEach((row, index) => {
+  assert.equal(limitedChanges[index].slug, row.slug, `entry ${index}: Atom slug must match the Recent changes HTML row slug`);
+  assert.equal(limitedChanges[index].date, row.date, `entry ${index}: Atom date must match the Recent changes HTML row date`);
+});
+
+console.log(
+  `Recent changes Atom feed check passed (${limitedChanges.length} entries, newest ${limitedChanges[0].date}; history-ground-truth + HTML parity verified)`,
+);
