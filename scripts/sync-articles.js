@@ -495,6 +495,19 @@ const nonSpaceDelimitedAriaCurrentAttrPattern = /<[^>]*[/"'`](?:aria-current)\s*
 const ariaErrormessageAttrPattern = /<[^>]*\saria-errormessage\s*=/i;
 const nonSpaceDelimitedAriaErrormessageAttrPattern = /<[^>]*[/"'`](?:aria-errormessage)\s*=/i;
 
+// aria-owns= reparents elements in the accessibility tree — e.g.
+// aria-owns="site-nav" makes assistive technology present the site's real
+// navigation as a child of the attacker's injected element, enabling
+// AT-level content/structure spoofing without any visual change.  Same
+// accessibility-attribute family as merged #570 (aria-errormessage), #568
+// (aria-current), #567 (aria-keyshortcuts), #564 (aria-flowto), #561
+// (aria-roledescription), #559 (aria-controls), #558 (aria-live), #556
+// (aria-hidden), #554 (role), #553 (aria-describedby), #550 (title), and #501
+// (aria-label).  Glossary articles never reparent accessibility tree nodes —
+// the site has no composite widgets that require ownership reassignment.
+const ariaOwnsAttrPattern = /<[^>]*\saria-owns\s*=/i;
+const nonSpaceDelimitedAriaOwnsAttrPattern = /<[^>]*[/"'`](?:aria-owns)\s*=/i;
+
 // nowrap on allowed <td>/<th> disables text wrapping in the cell — an injected
 // long URL, fake wallet address, or padded phishing line breaks out of the
 // column, reflowing the real article text off-screen (a layout-defacement /
@@ -1075,6 +1088,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": aria-errormessage attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    ariaOwnsAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAriaOwnsAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": aria-owns attributes are not allowed in article content`,
     );
   }
 

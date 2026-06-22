@@ -788,6 +788,18 @@ rejects('<p class=x/aria-errormessage="fake-error">x</p>', 'slash-delimited aria
 accepts('<a href="/wiki/aria-errormessage=demo">aria-errormessage docs</a>', 'benign aria-errormessage substring in quoted href');
 accepts('ARIA errormessage is an accessibility concept described here only as prose.', 'benign aria-errormessage prose');
 
+// aria-owns= reparents elements in the accessibility tree —
+// same family as merged #570 (aria-errormessage), #568 (aria-current),
+// #567 (aria-keyshortcuts), #564 (aria-flowto), #561 (aria-roledescription).
+rejects('Intro.\n\n<div aria-owns="site-nav">Hijacked navigation</div>', 'plain aria-owns attribute');
+rejects('Intro.\n\n<a href="https://evil.example/" aria-owns="main-content">claim TAO</a>', 'plain aria-owns attribute on anchor');
+rejects('Intro.\n\n<  a   href="/wiki/stake/"   aria-owns = "site-nav">stake</a>', 'spaced aria-owns attribute');
+rejects('<a href="x"aria-owns="site-nav">go</a>', 'quote-abutted aria-owns attribute');
+rejects('<p class=x/aria-owns="site-nav">x</p>', 'slash-delimited aria-owns attribute');
+
+accepts('<a href="/wiki/aria-owns=demo">aria-owns docs</a>', 'benign aria-owns substring in quoted href');
+accepts('ARIA owns is an accessibility concept described here only as prose.', 'benign aria-owns prose');
+
 // srcset=/sizes= on <img> steer responsive loading — gap after #411 blocked picture/source.
 rejects('Intro.\n\n<img src="/wiki/fig.png" srcset="https://evil.example/x 1x" alt="x">', 'plain img srcset attribute');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   srcset = "https://evil.example/x 2x">', 'spaced img srcset attribute');
