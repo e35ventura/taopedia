@@ -422,6 +422,14 @@ const nonSpaceDelimitedAriaHiddenAttrPattern = /<[^>]*[/"'`](?:aria-hidden)\s*=/
 const ariaLiveRegionAttrPattern = /<[^>]*\saria-(?:live|atomic)\s*=/i;
 const nonSpaceDelimitedAriaLiveRegionAttrPattern = /<[^>]*[/"'`](?:aria-(?:live|atomic))\s*=/i;
 
+// aria-controls=/aria-expanded= fake disclosure widgets in assistive tech — e.g.
+// aria-expanded="true" reports an injected link as an open panel, and aria-controls
+// points AT at attacker-chosen element ids. Same accessibility-spoof family as
+// merged #558 (aria-live), #556 (aria-hidden), and #554 (role). <details> is
+// already element-blocked; these are the attribute-only disclosure primitives.
+const ariaDisclosureAttrPattern = /<[^>]*\saria-(?:controls|expanded)\s*=/i;
+const nonSpaceDelimitedAriaDisclosureAttrPattern = /<[^>]*[/"'`](?:aria-(?:controls|expanded))\s*=/i;
+
 // nowrap on allowed <td>/<th> disables text wrapping in the cell — an injected
 // long URL, fake wallet address, or padded phishing line breaks out of the
 // column, reflowing the real article text off-screen (a layout-defacement /
@@ -948,6 +956,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": aria-live and aria-atomic attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    ariaDisclosureAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAriaDisclosureAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": aria-controls and aria-expanded attributes are not allowed in article content`,
     );
   }
 
