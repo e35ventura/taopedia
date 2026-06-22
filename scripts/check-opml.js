@@ -6,10 +6,11 @@ import { buildOpml } from './opml.js';
 
 // /feeds.opml is the OPML 2.0 subscription index: a single file a reader
 // imports into a feed reader (Feedly, Inoreader, Reeder, NetNewsWire) to
-// bulk-subscribe to every site-wide and per-category feed at once. The XML
-// contract is small but load-bearing — a malformed OPML silently fails to
-// import in every reader, and a missing or wrong xmlUrl silently drops a feed
-// from the bulk subscription. This check guards both:
+// bulk-subscribe to every site-wide feed, the site-wide Recent changes feed
+// family, and every per-category feed at once. The XML contract is small but
+// load-bearing — a malformed OPML silently fails to import in every reader, and
+// a missing or wrong xmlUrl silently drops a feed from the bulk subscription.
+// This check guards both:
 //   1) Unit-tests buildOpml with constructed inputs (catches builder regressions
 //      before the site is rendered).
 //   2) Parses the built dist/feeds.opml and cross-references it against
@@ -18,6 +19,15 @@ import { buildOpml } from './opml.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
+const escapeRegex = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const hasOutlineWithUrls = (opml, { xmlUrl, htmlUrl }) => {
+  const xmlUrlPattern = escapeRegex(xmlUrl);
+  const htmlUrlPattern = escapeRegex(htmlUrl);
+  return (
+    new RegExp(`<outline\\b[^>]*xmlUrl="${xmlUrlPattern}"[^>]*htmlUrl="${htmlUrlPattern}"[^>]*/>`).test(opml) ||
+    new RegExp(`<outline\\b[^>]*htmlUrl="${htmlUrlPattern}"[^>]*xmlUrl="${xmlUrlPattern}"[^>]*/>`).test(opml)
+  );
+};
 
 // ---- 1) Unit: buildOpml produces a well-formed OPML 2.0 document ----------
 {
@@ -46,12 +56,33 @@ const projectRoot = path.resolve(__dirname, '..');
     !Number.isNaN(Date.parse(dateModifiedMatch[1])),
     `<dateModified> must be a valid RFC 822 date, got ${dateModifiedMatch[1]}`,
   );
+  assert.ok(
+    opml.includes('<description>Taopedia — a Bittensor knowledge base. Subscribe to site-wide, recent-changes, and per-topic feeds.</description>'),
+    '<head> must describe the site-wide, recent-changes, and per-topic subscription coverage',
+  );
 
   // Site-wide feeds: RSS, Atom, JSON Feed — one outline each, with xmlUrl
   // pointing at the canonical site-wide route and htmlUrl at the homepage.
   assert.match(opml, /xmlUrl="https:\/\/taopedia\.org\/rss\.xml"/, 'must list the site-wide RSS feed');
   assert.match(opml, /xmlUrl="https:\/\/taopedia\.org\/atom\.xml"/, 'must list the site-wide Atom feed');
   assert.match(opml, /xmlUrl="https:\/\/taopedia\.org\/feed\.json"/, 'must list the site-wide JSON Feed feed');
+
+  // Recent changes has its own scoped RSS/Atom/JSON feed family. OPML imports
+  // should surface those page-scoped feeds too, using the Special:RecentChanges
+  // page as the htmlUrl for each format entry.
+  assert.match(
+    opml,
+    /<outline text="Recent changes" title="Recent changes">/,
+    'must group the Recent changes feed family under a dedicated outline',
+  );
+  const recentChangesHub = 'https://taopedia.org/wiki/special/recentchanges/';
+  for (const ext of ['rss.xml', 'atom.xml', 'feed.json']) {
+    const xmlUrl = `https://taopedia.org/wiki/special/recentchanges/${ext}`;
+    assert.ok(
+      hasOutlineWithUrls(opml, { xmlUrl, htmlUrl: recentChangesHub }),
+      `must list the Recent changes /${ext} feed with htmlUrl="${recentChangesHub}"`,
+    );
+  }
 
   // Each input category appears with all three per-category feed URLs, using
   // the space-to-underscore slug convention matching the category hub and
@@ -130,10 +161,28 @@ const builtOpml = fs.readFileSync(distOpml, 'utf8');
 const categoriesData = JSON.parse(fs.readFileSync(categoriesJsonPath, 'utf8'));
 const builtCategories = Object.keys(categoriesData);
 assert.ok(builtCategories.length > 0, 'no categories in public/data/categories.json');
+assert.ok(
+  builtOpml.includes('<description>Taopedia — a Bittensor knowledge base. Subscribe to site-wide, recent-changes, and per-topic feeds.</description>'),
+  'dist/feeds.opml must describe the site-wide, recent-changes, and per-topic subscription coverage',
+);
 
-// The built endpoint must contain every category already known to the rest of
-// the build, with all three per-category feed URLs. A dropped or mis-spelled
-// category silently fails the bulk subscription for that topic.
+// The built endpoint must contain the full Recent changes feed family and every
+// category already known to the rest of the build, with all three per-category
+// feed URLs. A dropped or mis-spelled entry silently fails the bulk
+// subscription for that stream.
+const builtRecentChangesHub = 'https://taopedia.org/wiki/special/recentchanges/';
+for (const ext of ['rss.xml', 'atom.xml', 'feed.json']) {
+  const xmlUrl = `https://taopedia.org/wiki/special/recentchanges/${ext}`;
+  assert.ok(
+    hasOutlineWithUrls(builtOpml, { xmlUrl, htmlUrl: builtRecentChangesHub }),
+    `dist/feeds.opml must list the Recent changes /${ext} feed with htmlUrl="${builtRecentChangesHub}"`,
+  );
+}
+assert.ok(
+  builtOpml.includes('<outline text="Recent changes" title="Recent changes">'),
+  'dist/feeds.opml must group the Recent changes feeds under a dedicated outline',
+);
+
 let checked = 0;
 for (const name of builtCategories) {
   const slug = String(name).replace(/ /g, '_');

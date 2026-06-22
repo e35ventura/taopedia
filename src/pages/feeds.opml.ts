@@ -2,10 +2,11 @@ import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { buildOpml } from '../../scripts/opml.js';
 
-// OPML 2.0 subscription index at /feeds.opml. Lists every site-wide and
-// per-category feed so a reader can bulk-subscribe in one import (Feedly,
-// Inoreader, Reeder, NetNewsWire, …) instead of subscribing to each feed URL
-// individually. The per-category xmlUrls mirror the routes already built by
+// OPML 2.0 subscription index at /feeds.opml. Lists every site-wide feed, the
+// Special:RecentChanges feed family, and every per-category feed so a reader
+// can bulk-subscribe in one import (Feedly, Inoreader, Reeder, NetNewsWire, …)
+// instead of subscribing to each feed URL individually. The per-category
+// xmlUrls mirror the routes already built by
 // src/pages/wiki/category/[category]/{rss.xml,atom.xml,feed.json}.ts.
 
 export const GET: APIRoute = async ({ site }) => {
