@@ -698,6 +698,16 @@ rejects('<p class=x/role="alert">x</p>', 'slash-delimited role attribute');
 accepts('<a href="/wiki/role=demo">role docs</a>', 'benign role substring in quoted href');
 accepts('Each subnet role and validator role are described here only as prose.', 'benign role prose');
 
+// aria-hidden= removes subtrees from the accessibility tree — same family as #554.
+rejects('Intro.\n\n<p aria-hidden="true">Do not send TAO here</p><p>Send TAO to evil.example</p>', 'plain aria-hidden dual-audience spoof');
+rejects('Intro.\n\n<a href="https://evil.example/" aria-hidden="true">claim TAO</a>', 'plain aria-hidden attribute on anchor');
+rejects('Intro.\n\n<  span   aria-hidden = "true">x</span>', 'spaced aria-hidden attribute');
+rejects('<a href="x"aria-hidden="true">go</a>', 'quote-abutted aria-hidden attribute');
+rejects('<p class=x/aria-hidden="true">x</p>', 'slash-delimited aria-hidden attribute');
+
+accepts('<a href="/wiki/aria-hidden=demo">aria-hidden docs</a>', 'benign aria-hidden substring in quoted href');
+accepts('ARIA hidden state is an accessibility concept described here only as prose.', 'benign aria-hidden prose');
+
 // srcset=/sizes= on <img> steer responsive loading — gap after #411 blocked picture/source.
 rejects('Intro.\n\n<img src="/wiki/fig.png" srcset="https://evil.example/x 1x" alt="x">', 'plain img srcset attribute');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   srcset = "https://evil.example/x 2x">', 'spaced img srcset attribute');
