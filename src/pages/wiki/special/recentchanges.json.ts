@@ -33,6 +33,8 @@ export const GET: APIRoute = async ({ site }) => {
         historyUrl: `${origin}/wiki/${change.slug}/history/`,
         date: change.date,
         authorName: change.authorName,
+        sha: change.sha,
+        message: change.message ?? '',
       })),
     },
     null,
