@@ -132,10 +132,25 @@ assert.ok(
 );
 assert.equal(data.largestTopic.name, data.topics[0].name, 'largestTopic.name must match topics[0].name');
 assert.equal(data.largestTopic.count, data.topics[0].count, 'largestTopic.count must match topics[0].count');
+assert.equal(
+  data.largestTopic.url,
+  `${data.site}/wiki/category/${data.largestTopic.name.replace(/ /g, '_')}/`,
+  'largestTopic.url must be the canonical absolute category URL',
+);
 
 // topics — array whose length matches totalTopics, ordered count-desc then
 // compareTitles-asc (NOT raw string — must match the HTML page's ordering).
 assert.ok(Array.isArray(data.topics) && data.topics.length === data.totalTopics, 'topics must be an array whose length matches totalTopics');
+// Every topic must carry a url pointing at its canonical category page — the
+// same URL shape the categories.json endpoint uses, so consumers of either
+// endpoint reach the same category hub.
+for (const topic of data.topics) {
+  assert.equal(
+    topic.url,
+    `${data.site}/wiki/category/${topic.name.replace(/ /g, '_')}/`,
+    `topic "${topic.name}" url must be the canonical absolute category URL`,
+  );
+}
 for (let i = 1; i < data.topics.length; i++) {
   const prev = data.topics[i - 1];
   const curr = data.topics[i];
