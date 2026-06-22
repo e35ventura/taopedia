@@ -2,6 +2,7 @@
 import WikiLayout from '../../../layouts/WikiLayout.astro';
 import { getCollection } from 'astro:content';
 import { getPageSlug, allRecentChanges } from '../../../lib/article-history';
+import { RECENT_LIMIT } from '../../../lib/recent-changes.js';
 import { formatRevisionDate } from '../../../lib/format-date.js';
 
 // Site-wide recent changes: the newest commits across every article's
@@ -14,7 +15,6 @@ for (const page of pages) {
   titleBySlug[getPageSlug(page)] = page.data.title;
 }
 
-const RECENT_LIMIT = 100;
 const changes = allRecentChanges(titleBySlug, RECENT_LIMIT);
 ---
 

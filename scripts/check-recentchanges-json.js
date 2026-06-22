@@ -1,0 +1,96 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { compareTitles } from '../src/lib/title-sort.js';
+import { RECENT_LIMIT } from '../src/lib/recent-changes.js';
+
+// /wiki/special/recentchanges.json exposes the site-wide recent-changes feed as
+// structured JSON, mirroring Special:RecentChanges for programmatic consumers
+// (alongside statistics.json / categories.json / mostlinkedpages.json /
+// allpages.json). The contract is load-bearing: a malformed response, a wrong or
+// extra change, a non-deterministic order, an orphaned slug, an off-by-one limit,
+// or a feed that disagrees with the HTML page would silently break consumers.
+// This validates all of those against the REAL history data and the rendered HTML
+// page — independent ground truth, so a buggy builder cannot satisfy it by
+// agreeing with itself. (The builder's same-date tiebreak itself is guarded in
+// check-title-sort.js; the HTML feed in check-recent-changes.js.)
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const projectRoot = path.resolve(__dirname, '..');
+const wikiDir = path.join(projectRoot, 'dist', 'wiki');
+const distFile = path.join(wikiDir, 'special', 'recentchanges.json');
+const htmlFile = path.join(wikiDir, 'special', 'recentchanges', 'index.html');
+const historyDir = path.join(projectRoot, 'public', 'history');
+const slugmapFile = path.join(projectRoot, 'public', 'data', 'slugmap.json');
+
+assert.ok(fs.existsSync(distFile), 'dist/wiki/special/recentchanges.json not found; run the build first');
+assert.ok(fs.existsSync(slugmapFile), 'public/data/slugmap.json not found; run the build first');
+const data = JSON.parse(fs.readFileSync(distFile, 'utf8'));
+const slugmap = JSON.parse(fs.readFileSync(slugmapFile, 'utf8'));
+
+// ---- 1) Shape + per-change field contract ---------------------------------
+assert.ok(typeof data.site === 'string' && /^https?:\/\//.test(data.site), `site must be a URL string (got ${JSON.stringify(data.site)})`);
+assert.equal(data.limit, RECENT_LIMIT, `limit must be the shared RECENT_LIMIT (${RECENT_LIMIT})`);
+assert.ok(Array.isArray(data.changes), 'changes must be an array');
+assert.equal(data.count, data.changes.length, 'count must equal changes.length');
+assert.ok(data.changes.length > 0, 'recentchanges.json must list at least one change');
+assert.ok(data.changes.length <= RECENT_LIMIT, `must list at most ${RECENT_LIMIT} changes (got ${data.changes.length})`);
+
+for (const change of data.changes) {
+  assert.ok(typeof change.slug === 'string' && change.slug, 'each change must carry a slug');
+  assert.ok(
+    fs.existsSync(path.join(wikiDir, change.slug, 'index.html')),
+    `change links to /wiki/${change.slug}/ but no such article page was built (orphaned history must be skipped)`,
+  );
+  assert.equal(change.url, `/wiki/${change.slug}/`, `change url must be the canonical article URL for ${change.slug}`);
+  assert.equal(change.title, slugmap[change.slug]?.title, `change title must match the article title for ${change.slug}`);
+  assert.ok(typeof change.date === 'string' && !Number.isNaN(Date.parse(change.date)), `change has an invalid date: ${change.date}`);
+}
+
+// ---- 2) Ordering: newest-first, same-date ties by compareTitles(slug) -----
+for (let i = 1; i < data.changes.length; i++) {
+  const prev = data.changes[i - 1];
+  const cur = data.changes[i];
+  assert.ok(prev.date >= cur.date, `changes must be newest-first (row ${i - 1} ${prev.date} < row ${i} ${cur.date})`);
+  if (prev.date === cur.date) {
+    assert.ok(
+      compareTitles(prev.slug, cur.slug) <= 0,
+      `same-timestamp changes must be ordered by compareTitles (numeric): ${prev.slug} > ${cur.slug} at ${cur.date}`,
+    );
+  }
+}
+
+// ---- 3) Independent ground truth from the real history data ---------------
+const dated = [];
+for (const file of fs.readdirSync(historyDir)) {
+  if (!file.endsWith('.json')) continue;
+  const slug = file.replace(/\.json$/, '');
+  if (!fs.existsSync(path.join(wikiDir, slug, 'index.html'))) continue; // unpublished/orphaned
+  const history = JSON.parse(fs.readFileSync(path.join(historyDir, file), 'utf8')).history || [];
+  for (const entry of history) {
+    if (typeof entry.date === 'string' && entry.date) dated.push(entry.date);
+  }
+}
+dated.sort((a, b) => (a < b ? 1 : a > b ? -1 : 0));
+assert.equal(
+  data.count,
+  Math.min(dated.length, RECENT_LIMIT),
+  `recentchanges.json must list ${Math.min(dated.length, RECENT_LIMIT)} changes (min of ${dated.length} published dated commits and ${RECENT_LIMIT})`,
+);
+assert.equal(data.changes[0].date, dated[0], `newest change (${data.changes[0].date}) must equal the newest commit across published articles (${dated[0]})`);
+
+// ---- 4) JSON/HTML parity: independent render path, proves no drift --------
+assert.ok(fs.existsSync(htmlFile), 'dist/wiki/special/recentchanges/index.html not found; run the build first');
+const html = fs.readFileSync(htmlFile, 'utf8');
+const htmlRows = [...html.matchAll(/<li[^>]*class="mw-rc-row"[^>]*>([\s\S]*?)<\/li>/g)].map(([, block]) => ({
+  date: (block.match(/datetime="([^"]+)"/) || [])[1],
+  slug: ((block.match(/mw-rc-title[^>]*href="([^"]+)"/) || [])[1] || '').split('/')[2],
+}));
+assert.equal(htmlRows.length, data.changes.length, `the JSON feed (${data.changes.length}) and HTML page (${htmlRows.length}) must list the same number of changes`);
+htmlRows.forEach((row, i) => {
+  assert.equal(data.changes[i].slug, row.slug, `change ${i}: JSON slug (${data.changes[i].slug}) must equal the HTML row slug (${row.slug})`);
+  assert.equal(data.changes[i].date, row.date, `change ${i}: JSON date must equal the HTML row date`);
+});
+
+console.log(`Recent changes JSON check passed (${data.count} changes, newest ${data.changes[0].date}; validated against history + HTML page)`);
