@@ -5,18 +5,20 @@
 //
 // OPML 2.0 (http://opml.org/spec2.opml) is the standard import/export format
 // used by feed readers (Feedly, Inoreader, Reeder, NetNewsWire, etc.) for bulk
-// subscription. A reader who wants to follow every Taopedia topic feed in one
-// action imports this file instead of subscribing to each of the 100+ feed
-// URLs individually. The index lists the three site-wide feeds (RSS, Atom,
-// JSON Feed) and one nested group per category, each carrying that category's
-// three feeds. Per-category feed URLs mirror the routes already built by
+// subscription. A reader who wants to follow Taopedia's site-wide article
+// stream, the site-wide Recent changes stream, and every per-topic feed in one
+// action imports this file instead of subscribing to each feed URL
+// individually. The index lists the three site-wide feeds (RSS, Atom, JSON
+// Feed), a Recent changes group with its three companion feeds, and one nested
+// group per category, each carrying that category's three feeds. Per-category
+// feed URLs mirror the routes already built by
 // src/pages/wiki/category/[category]/{rss.xml,atom.xml,feed.json}.ts and use
 // the same space-to-underscore slug convention as the category hub.
 
 import { compareTitles } from '../src/lib/title-sort.js';
 
 const SITE_NAME = 'Taopedia';
-const SITE_DESCRIPTION = 'Taopedia — a Bittensor knowledge base. Subscribe to site-wide and per-topic feeds.';
+const SITE_DESCRIPTION = 'Taopedia — a Bittensor knowledge base. Subscribe to site-wide, recent-changes, and per-topic feeds.';
 
 function escapeXml(value) {
   return String(value ?? '').replace(/[&<>"']/g, (char) => {
@@ -80,6 +82,26 @@ export function buildOpml({
     )
     .join('\n');
 
+  // Recent changes already ships three page-scoped companion feeds with the
+  // same discovery contract as categories. Include them here so an OPML import
+  // surfaces the site-wide editorial stream alongside the full-corpus feeds.
+  const recentChangesHub = `${root}/wiki/special/recentchanges/`;
+  const recentChangesBlock = `      <outline text="Recent changes" title="Recent changes">\n${[
+    { type: 'rss', label: 'Recent changes (RSS)', xmlUrl: `${root}/wiki/special/recentchanges/rss.xml` },
+    { type: 'atom', label: 'Recent changes (Atom)', xmlUrl: `${root}/wiki/special/recentchanges/atom.xml` },
+    { type: 'json', label: 'Recent changes (JSON Feed)', xmlUrl: `${root}/wiki/special/recentchanges/feed.json` },
+  ]
+    .map((f) =>
+      feedOutline({
+        label: f.label,
+        type: f.type,
+        xmlUrl: f.xmlUrl,
+        htmlUrl: recentChangesHub,
+        indent: '        ',
+      }),
+    )
+    .join('\n')}\n      </outline>`;
+
   // One nested outline per category, each carrying its three per-category
   // feeds. The href/slug derivation mirrors wiki/category/[category].astro
   // and the per-category feed routes so every xmlUrl resolves to a built file.
@@ -104,6 +126,10 @@ export function buildOpml({
     categoriesBlock = `      <outline text="Categories" title="Categories">\n${inner}\n      </outline>`;
   }
 
+  const rootChildren = [siteOutlines, recentChangesBlock, categoriesBlock]
+    .filter(Boolean)
+    .join('\n');
+
   return (
     '<?xml version="1.0" encoding="UTF-8"?>\n' +
     '<opml version="2.0">\n' +
@@ -119,8 +145,7 @@ export function buildOpml({
     '  </head>\n' +
     '  <body>\n' +
     `    <outline text="${escapeXml(siteName)}" title="${escapeXml(siteName)}">\n` +
-    `${siteOutlines}\n` +
-    `${categoriesBlock}\n` +
+    `${rootChildren}\n` +
     '    </outline>\n' +
     '  </body>\n' +
     '</opml>\n'
