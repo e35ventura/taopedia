@@ -408,6 +408,13 @@ const nonSpaceDelimitedAriaDescribedbyAttrPattern = /<[^>]*[/"'`](?:aria-describ
 const roleAttrPattern = /<[^>]*\srole\s*=/i;
 const nonSpaceDelimitedRoleAttrPattern = /<[^>]*[/"'`](?:role)\s*=/i;
 
+// aria-hidden= removes subtrees from the accessibility tree while leaving them
+// visible in the layout — a dual-audience spoof: sighted readers see injected
+// warnings or disclaimers that screen-reader users never hear (or vice versa).
+// Same accessibility-spoof family as merged #501, #550, #553, and #554.
+const ariaHiddenAttrPattern = /<[^>]*\saria-hidden\s*=/i;
+const nonSpaceDelimitedAriaHiddenAttrPattern = /<[^>]*[/"'`](?:aria-hidden)\s*=/i;
+
 // nowrap on allowed <td>/<th> disables text wrapping in the cell — an injected
 // long URL, fake wallet address, or padded phishing line breaks out of the
 // column, reflowing the real article text off-screen (a layout-defacement /
@@ -919,6 +926,13 @@ export function validateArticleContent(slug, content) {
     || nonSpaceDelimitedRoleAttrPattern.test(emptiedAttributeContent)
   ) {
     throw new Error(`Unsafe article content in "${slug}": role attributes are not allowed in article content`);
+  }
+
+  if (
+    ariaHiddenAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAriaHiddenAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(`Unsafe article content in "${slug}": aria-hidden attributes are not allowed in article content`);
   }
 
   if (
