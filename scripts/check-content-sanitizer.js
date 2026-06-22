@@ -574,6 +574,23 @@ accepts('<pre>x</pre>', 'plain pre without dimensions');
 accepts('<table><tr><td>x</td></tr></table>', 'plain tr without dimensions');
 accepts('Line width and preformatted block height are described here only as prose.', 'benign width/height prose for hr/pre');
 
+// width=/span= on allowed <col>/<colgroup> size and stretch table columns — the
+// last table-family elements left after the merged dimension surface covered
+// <table>/<td>/<th> (#465) and <tr>/<hr>/<pre>. <col width="5000"> collapses the
+// rest of the table; <col span="99">/<colgroup span="99"> stretches one column
+// rule across the whole table. Same layout-defacement class as the merged
+// #438 / #451 / #465 rules.
+rejects('Intro.\n\n<table><colgroup><col width="5000"></colgroup><tr><td>x</td></tr></table>', 'plain col width attribute');
+rejects('Intro.\n\n<table><colgroup><col   width = "5000"></colgroup></table>', 'spaced col width attribute');
+rejects('Intro.\n\n<table><col span="99"><tr><td>x</td></tr></table>', 'plain col span attribute');
+rejects('Intro.\n\n<table><colgroup span="99"></colgroup></table>', 'plain colgroup span attribute');
+rejects('<table><col class="x"width="5000"></table>', 'quote-abutted col width attribute');
+rejects('<table><col class=x/span="99"></table>', 'slash-delimited col span attribute');
+
+accepts('<table><colgroup><col></colgroup><tr><td>x</td></tr></table>', 'plain col/colgroup without dimensions');
+accepts('A column width and the span of a topic are described here only as prose.', 'benign col width/span prose');
+accepts('<span class="badge">inline</span> and <code>colspan</code> are unrelated.', 'benign span element and colspan word are not col attributes');
+
 // frame=/rules=/summary= on allowed <table> set obsolete presentational
 // table-border attributes without the blocked inline style= attribute — same
 // content-styling spoof class as the merged border=/cellpadding= (#438) and

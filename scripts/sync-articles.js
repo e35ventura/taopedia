@@ -339,6 +339,20 @@ const nonSpaceDelimitedTableDimensionAttrPattern = /<\s*(?:table|td|th)\b[^>]*[/
 const rowHrPreDimensionAttrPattern = /<\s*(?:tr|hr|pre)\b[^>]*\s(?:width|height)\s*=/i;
 const nonSpaceDelimitedRowHrPreDimensionAttrPattern = /<\s*(?:tr|hr|pre)\b[^>]*[/"'`](?:width|height)\s*=/i;
 
+// width=/span= on allowed <col>/<colgroup> size and stretch table columns without
+// the blocked inline style= attribute — the last table-family elements left after
+// the merged dimension surface walked <table>/<td>/<th> (#465) and <tr>/<hr>/<pre>.
+// A <colgroup><col width="5000"></colgroup> reserves an oversized column that
+// collapses the rest of the table and pushes the article body off-screen, and
+// <col span="99"> / <colgroup span="99"> stretches one column definition across the
+// whole table, distorting its layout — a content-layout spoof with no script,
+// handler, or flagged scheme. Same layout-defacement class as the merged
+// #438 / #451 / #465 rules. Tag-scoped to col/colgroup and scanned on
+// emptyQuotedAttributeValues() so benign prose or class values mentioning
+// "width"/"span" pass.
+const colDimensionAttrPattern = /<\s*(?:col|colgroup)\b[^>]*\s(?:width|span)\s*=/i;
+const nonSpaceDelimitedColDimensionAttrPattern = /<\s*(?:col|colgroup)\b[^>]*[/"'`](?:width|span)\s*=/i;
+
 // autofocus steals keyboard focus on page load — a focus-theft primitive on allowed
 // elements with no script. Tag-boundary lookahead catches autofocus before another
 // attribute (<div autofocus class="x">). Quote-abutted only — no slash delimiter,
@@ -787,6 +801,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": width and height attributes are not allowed on tr, hr, or pre elements`,
+    );
+  }
+
+  if (
+    colDimensionAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedColDimensionAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": width and span attributes are not allowed on col or colgroup elements`,
     );
   }
 
