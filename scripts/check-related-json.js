@@ -1,0 +1,222 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { buildArticleRelatedPages, getRelatedPages } from '../src/lib/related-pages.ts';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const projectRoot = path.resolve(__dirname, '..');
+const wikiDir = path.join(projectRoot, 'dist', 'wiki');
+const slugmapFile = path.join(projectRoot, 'public', 'data', 'slugmap.json');
+const categoriesFile = path.join(projectRoot, 'public', 'data', 'categories.json');
+const backlinksFile = path.join(projectRoot, 'public', 'data', 'backlinks.json');
+const linkgraphFile = path.join(projectRoot, 'public', 'data', 'linkgraph.json');
+const ORIGIN = 'https://taopedia.org';
+
+// ---- 1) Unit: helper + builder behavior -----------------------------------
+{
+  const slugMap = {
+    source: { title: 'Source', categories: ['Security'], summary: 'source summary' },
+    alpha: { title: 'Subnet 2', categories: ['Security'], summary: 'alpha summary' },
+    beta: { title: 'Subnet 10', categories: ['Security'], summary: 'beta summary' },
+    gamma: { title: 'Subnet 9', categories: ['Security', 'Consensus'], summary: '' },
+    delta: { title: 'Delta', categories: ['Consensus'], summary: 'delta summary' },
+  };
+  const categoriesIndex = {
+    Security: ['source', 'beta', 'gamma', 'alpha'],
+    Consensus: ['source', 'gamma', 'delta'],
+  };
+  const backlinks = {
+    source: [{ from: 'delta' }],
+  };
+  const outgoing = {
+    source: [{ target: 'beta' }, { target: 'missing' }],
+  };
+  const titleBySlug = Object.fromEntries(Object.entries(slugMap).map(([slug, meta]) => [slug, meta.title]));
+  const publishedSlugs = new Set(['source', 'alpha', 'beta', 'gamma', 'delta']);
+
+  const relatedPages = getRelatedPages({
+    slug: 'source',
+    slugMap,
+    categoriesIndex,
+    backlinks,
+    outgoing,
+    publishedSlugs,
+    titleBySlug,
+  });
+  assert.deepEqual(
+    relatedPages,
+    [
+      { slug: 'alpha', title: 'Subnet 2', summary: 'alpha summary', tags: ['Security'] },
+      { slug: 'gamma', title: 'Subnet 9', summary: '', tags: ['Security'] },
+      { slug: 'delta', title: 'Delta', summary: 'delta summary', tags: ['Consensus'] },
+    ],
+    'helper must exclude already-linked pages, keep published candidates only, rank by shared topics then backlinks, and sort numeric title ties correctly',
+  );
+
+  const doc = buildArticleRelatedPages({
+    slug: 'source',
+    title: 'Source',
+    origin: ORIGIN,
+    relatedPages,
+  });
+  assert.equal(doc.slug, 'source', 'builder: slug field');
+  assert.equal(doc.title, 'Source', 'builder: title field');
+  assert.equal(doc.url, `${ORIGIN}/wiki/source/`, 'builder: url field');
+  assert.equal(doc.count, 3, 'builder: count field');
+  assert.deepEqual(
+    doc.related,
+    [
+      {
+        slug: 'alpha',
+        title: 'Subnet 2',
+        summary: 'alpha summary',
+        tags: ['Security'],
+        url: `${ORIGIN}/wiki/alpha/`,
+      },
+      {
+        slug: 'gamma',
+        title: 'Subnet 9',
+        summary: null,
+        tags: ['Security'],
+        url: `${ORIGIN}/wiki/gamma/`,
+      },
+      {
+        slug: 'delta',
+        title: 'Delta',
+        summary: 'delta summary',
+        tags: ['Consensus'],
+        url: `${ORIGIN}/wiki/delta/`,
+      },
+    ],
+    'builder: related entry shape',
+  );
+
+  const empty = buildArticleRelatedPages({ slug: 'orphan', title: 'Orphan', origin: ORIGIN });
+  assert.equal(empty.count, 0, 'builder: empty count is 0');
+  assert.deepEqual(empty.related, [], 'builder: empty related array is []');
+}
+
+// ---- 2) Built-output checks -----------------------------------------------
+assert.ok(fs.existsSync(wikiDir), 'dist/wiki not found; run the build first');
+assert.ok(fs.existsSync(slugmapFile), 'public/data/slugmap.json not found; run the build first');
+assert.ok(fs.existsSync(categoriesFile), 'public/data/categories.json not found; run the build first');
+assert.ok(fs.existsSync(backlinksFile), 'public/data/backlinks.json not found; run the build first');
+assert.ok(fs.existsSync(linkgraphFile), 'public/data/linkgraph.json not found; run the build first');
+
+const slugMap = JSON.parse(fs.readFileSync(slugmapFile, 'utf8'));
+const categoriesIndex = JSON.parse(fs.readFileSync(categoriesFile, 'utf8'));
+const backlinksData = JSON.parse(fs.readFileSync(backlinksFile, 'utf8'));
+const linkgraphData = JSON.parse(fs.readFileSync(linkgraphFile, 'utf8'));
+
+const SUBPAGES = new Set(['history', 'backlinks', 'cite', 'info']);
+const articleSlugs = [];
+const walk = (dir) => {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      walk(full);
+      continue;
+    }
+    if (entry.name !== 'index.html') continue;
+    const segs = path.relative(wikiDir, full).split(path.sep);
+    if (segs.length < 2) continue;
+    if (segs[0] === 'special' || segs[0] === 'category') continue;
+    if (SUBPAGES.has(segs[segs.length - 2])) continue;
+    articleSlugs.push(segs.slice(0, -1).join('/'));
+  }
+};
+walk(wikiDir);
+assert.ok(articleSlugs.length > 0, 'no built article pages found to verify');
+
+const titleBySlug = Object.fromEntries(
+  articleSlugs.map((slug) => [slug, typeof slugMap[slug]?.title === 'string' ? slugMap[slug].title : slug]),
+);
+const publishedSlugs = new Set(articleSlugs);
+
+let withRelated = 0;
+let withEmpty = 0;
+
+for (const slug of articleSlugs) {
+  const jsonFile = path.join(wikiDir, slug, 'related.json');
+  const htmlFile = path.join(wikiDir, slug, 'index.html');
+  assert.ok(fs.existsSync(jsonFile), `every article must have a related.json, but /wiki/${slug}/related.json was not built`);
+  assert.ok(fs.existsSync(htmlFile), `missing built article page: /wiki/${slug}/`);
+
+  const doc = JSON.parse(fs.readFileSync(jsonFile, 'utf8'));
+  const expectedRelatedPages = getRelatedPages({
+    slug,
+    slugMap,
+    categoriesIndex,
+    backlinks: backlinksData,
+    outgoing: linkgraphData,
+    publishedSlugs,
+    titleBySlug,
+  });
+  const expectedDoc = buildArticleRelatedPages({
+    slug,
+    title: titleBySlug[slug],
+    origin: ORIGIN,
+    relatedPages: expectedRelatedPages,
+  });
+
+  assert.equal(typeof doc.slug, 'string', `${slug}: related.json slug must be a string`);
+  assert.equal(typeof doc.title, 'string', `${slug}: related.json title must be a string`);
+  assert.equal(doc.slug, slug, `${slug}: related.json slug must equal the article slug`);
+  assert.equal(doc.title, titleBySlug[slug], `${slug}: related.json title must equal the article title`);
+  assert.equal(doc.url, `${ORIGIN}/wiki/${slug}/`, `${slug}: related.json url must be the canonical article URL`);
+  assert.equal(typeof doc.count, 'number', `${slug}: related.json count must be a number`);
+  assert.ok(Array.isArray(doc.related), `${slug}: related.json related must be an array`);
+  assert.equal(doc.count, doc.related.length, `${slug}: related.json count must equal related.length`);
+  assert.ok(doc.count <= 4, `${slug}: related.json must cap related results at 4`);
+  assert.deepEqual(
+    doc.related,
+    expectedDoc.related,
+    `${slug}: related.json rows must match the shared related-pages helper exactly`,
+  );
+
+  for (const entry of doc.related) {
+    assert.equal(typeof entry.slug, 'string', `${slug}: every related entry must have a slug`);
+    assert.equal(typeof entry.title, 'string', `${slug}: every related entry must have a title`);
+    assert.equal(entry.url, `${ORIGIN}/wiki/${entry.slug}/`, `${slug}: every related entry url must be canonical`);
+    assert.ok(Array.isArray(entry.tags), `${slug}: every related entry must expose tags as an array`);
+    assert.ok(entry.tags.length <= 2, `${slug}: related entry ${entry.slug} must expose at most two tags`);
+  }
+
+  const html = fs.readFileSync(htmlFile, 'utf8');
+  const sectionMatch = html.match(/<section class="related-pages"[\s\S]*?<\/section>/);
+  if (!sectionMatch) {
+    assert.equal(doc.count, 0, `${slug}: related.json must be empty when the article page hides the related-pages block`);
+    assert.deepEqual(doc.related, [], `${slug}: related.json must be [] when no related-pages block is rendered`);
+  } else {
+    const orderedHtmlSlugs = [...sectionMatch[0].matchAll(/<a\b[^>]*>/g)]
+      .map((match) => {
+        const tag = match[0];
+        if (!tag.includes('related-pages-card')) return null;
+        return tag.match(/href="\/wiki\/([^"/]+)\/"/)?.[1] ?? null;
+      })
+      .filter(Boolean);
+    const orderedJsonSlugs = doc.related.map((entry) => entry.slug);
+
+    assert.equal(
+      orderedHtmlSlugs.length,
+      orderedJsonSlugs.length,
+      `${slug}: related.json and the rendered related-pages block must list the same number of entries`,
+    );
+    assert.deepEqual(
+      orderedJsonSlugs,
+      orderedHtmlSlugs,
+      `${slug}: related.json order must match the rendered related-pages block order exactly`,
+    );
+  }
+
+  if (doc.count > 0) withRelated++;
+  else withEmpty++;
+}
+
+assert.ok(withRelated > 0, 'expected at least one article with related pages to verify correctness');
+assert.ok(withEmpty > 0, 'expected at least one article with no related pages to verify the empty state');
+
+console.log(
+  `Related JSON check passed (${articleSlugs.length} articles: ${withRelated} with related pages, ${withEmpty} without; helper parity + HTML-order parity verified)`,
+);

@@ -38,6 +38,20 @@ export interface RelatedPage {
   tags: string[];
 }
 
+export interface ArticleRelatedPagesDocument {
+  slug: string;
+  title: string;
+  url: string;
+  count: number;
+  related: Array<{
+    slug: string;
+    title: string;
+    summary: string | null;
+    tags: string[];
+    url: string;
+  }>;
+}
+
 export function getRelatedPages({
   slug,
   slugMap,
@@ -99,4 +113,30 @@ export function getRelatedPages({
   );
 
   return scored.slice(0, max).map(({ slug, title, summary, tags }) => ({ slug, title, summary, tags }));
+}
+
+export function buildArticleRelatedPages({
+  slug,
+  title,
+  origin,
+  relatedPages = [],
+}: {
+  slug: string;
+  title: string;
+  origin: string;
+  relatedPages?: RelatedPage[];
+}): ArticleRelatedPagesDocument {
+  return {
+    slug,
+    title,
+    url: `${origin}/wiki/${slug}/`,
+    count: relatedPages.length,
+    related: relatedPages.map((entry) => ({
+      slug: entry.slug,
+      title: entry.title,
+      summary: entry.summary || null,
+      tags: entry.tags,
+      url: `${origin}/wiki/${entry.slug}/`,
+    })),
+  };
 }
