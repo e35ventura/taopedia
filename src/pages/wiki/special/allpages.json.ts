@@ -15,7 +15,7 @@ export const GET: APIRoute = async ({ site }) => {
   const origin = (site ?? new URL('https://taopedia.org')).origin;
   const pages = await getCollection('pages');
 
-  const articles = buildAllPages({ pages, getPageSlug });
+  const articles = buildAllPages({ pages, getPageSlug, origin });
 
   const body = JSON.stringify(
     {

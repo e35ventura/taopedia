@@ -19,6 +19,7 @@ import { buildAllPages } from './allpages.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
+const ORIGIN = 'https://taopedia.org';
 
 // ---- 1) Unit: buildAllPages with constructed inputs ---------------------
 {
@@ -28,13 +29,13 @@ const projectRoot = path.resolve(__dirname, '..');
     { id: 'c/index.mdx', data: { title: 'Charlie', summary: '', categories: ['Consensus'] } },
   ];
   const getPageSlug = (page) => page.id.replace(/\/index\.mdx$/, '');
-  const out = buildAllPages({ pages, getPageSlug });
+  const out = buildAllPages({ pages, getPageSlug, origin: ORIGIN });
 
   assert.equal(out.length, 3, 'one row per input page');
   assert.equal(out[0].slug, 'a', 'title sort: Apex first');
   assert.equal(out[1].slug, 'b', 'title sort: Bravo second');
   assert.equal(out[2].slug, 'c', 'title sort: Charlie third');
-  assert.equal(out[0].url, '/wiki/a/', 'url is the canonical /wiki/<slug>/ form');
+  assert.equal(out[0].url, `${ORIGIN}/wiki/a/`, 'url is the canonical absolute URL form');
   assert.equal(out[1].summary, 'bravo', 'summary is preserved');
   assert.equal(out[2].summary, '', 'empty summary preserved as empty string');
   assert.deepEqual(out[0].categories, ['Subnets'], 'categories preserved');
@@ -50,6 +51,7 @@ const projectRoot = path.resolve(__dirname, '..');
   const out = buildAllPages({
     pages,
     getPageSlug: (page) => page.id.replace(/\/index\.mdx$/, ''),
+    origin: ORIGIN,
   });
   assert.deepEqual(
     out.map((a) => a.title),
@@ -70,6 +72,7 @@ const projectRoot = path.resolve(__dirname, '..');
   const out = buildAllPages({
     pages,
     getPageSlug: (page) => page.id.replace(/\/index\.mdx$/, ''),
+    origin: ORIGIN,
   });
   assert.deepEqual(
     out.map((a) => a.slug),
@@ -81,7 +84,7 @@ const projectRoot = path.resolve(__dirname, '..');
 // Empty / missing inputs do not crash.
 {
   assert.deepEqual(
-    buildAllPages({ pages: [], getPageSlug: () => '' }),
+    buildAllPages({ pages: [], getPageSlug: () => '', origin: ORIGIN }),
     [],
     'empty pages yields an empty directory',
   );
@@ -92,15 +95,25 @@ const projectRoot = path.resolve(__dirname, '..');
   );
 }
 
+// Missing origin normalizes to a site-relative path (backwards compatibility).
+{
+  const out = buildAllPages({
+    pages: [{ id: 'x/index.mdx', data: { title: 'X' } }],
+    getPageSlug: (page) => page.id.replace(/\/index\.mdx$/, ''),
+  });
+  assert.equal(out[0].url, '/wiki/x/', 'missing origin falls back to a site-relative URL');
+}
+
 // Pages whose id is a `.md`/`.mdx` file (not a directory + index) must still
 // resolve to a clean slug.
 {
   const out = buildAllPages({
     pages: [{ id: 'foo.mdx', data: { title: 'Foo' } }],
     getPageSlug: (page) => page.id.replace(/\/(index\.(md|mdx))?$/, '').replace(/\.(md|mdx)$/, ''),
+    origin: ORIGIN,
   });
   assert.equal(out[0].slug, 'foo', 'foo.mdx normalizes to the slug "foo"');
-  assert.equal(out[0].url, '/wiki/foo/');
+  assert.equal(out[0].url, `${ORIGIN}/wiki/foo/`);
 }
 
 // Missing fields normalize to safe defaults.
@@ -108,6 +121,7 @@ const projectRoot = path.resolve(__dirname, '..');
   const out = buildAllPages({
     pages: [{ id: 'x/index.mdx', data: { title: 'X' } }],
     getPageSlug: (page) => page.id.replace(/\/index\.mdx$/, ''),
+    origin: ORIGIN,
   });
   assert.equal(out[0].summary, '', 'undefined summary normalizes to empty string');
   assert.deepEqual(out[0].categories, [], 'missing categories normalizes to an empty array');
@@ -164,7 +178,7 @@ const jsonSlugs = new Set();
 data.articles.forEach((row, i) => {
   assert.ok(typeof row.slug === 'string' && row.slug.length > 0, `row ${i} slug must be a non-empty string`);
   assert.ok(typeof row.title === 'string' && row.title.length > 0, `row ${i} title must be a non-empty string`);
-  assert.equal(row.url, `/wiki/${row.slug}/`, `row ${i} url must be the canonical /wiki/<slug>/ form`);
+  assert.equal(row.url, `${data.site}/wiki/${row.slug}/`, `row ${i} url must be an absolute canonical URL`);
   jsonSlugs.add(row.slug);
   // The article must point to a real, built article file.
   assert.ok(
