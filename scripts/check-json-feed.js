@@ -74,6 +74,30 @@ assert.equal('date_published' in undated, false, 'omits blank date_published val
 assert.equal('date_modified' in undated, false, 'omits blank date_modified values');
 assert.equal('tags' in undated, false, 'omits blank tags');
 
+// Revision-event feeds can point multiple items at the same canonical article
+// URL, so the shared serializer must preserve a caller-supplied distinct id.
+{
+  const revisionFeed = JSON.parse(
+    buildJsonFeed({
+      siteUrl,
+      items: [
+        {
+          id: 'urn:sha1:abc123',
+          title: 'Dynamic TAO revision',
+          url: 'https://taopedia.org/wiki/dynamic_tao/',
+          description: 'Edited by Alice',
+          dateModified: '2026-06-10T20:06:02Z',
+        },
+      ],
+    }),
+  );
+  assert.equal(
+    revisionFeed.items[0].id,
+    'urn:sha1:abc123',
+    'preserves an explicit item id when multiple feed items can share one article URL',
+  );
+}
+
 // Determinism: same-timestamp items must not depend on input order.
 {
   const sameDate = '2026-06-01T06:01:22Z';

@@ -27,3 +27,15 @@ export const buildRecentChangesRssItems = ({ changes = [], origin, categoriesByS
     categories: Array.isArray(categoriesBySlug[change.slug]) ? categoriesBySlug[change.slug] : [],
     date: change.date,
   }));
+
+export const buildRecentChangesJsonFeedItems = ({ changes = [], origin, categoriesBySlug = {} }) =>
+  changes.map((change) => ({
+    id: `urn:sha1:${change.sha}`,
+    title: change.title,
+    url: `${origin}/wiki/${change.slug}/`,
+    image: `${origin}/og/${change.slug}.png`,
+    description: changeSummary(change),
+    categories: Array.isArray(categoriesBySlug[change.slug]) ? categoriesBySlug[change.slug] : [],
+    datePublished: change.date,
+    dateModified: change.date,
+  }));
