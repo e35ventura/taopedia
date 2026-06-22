@@ -20,6 +20,7 @@ export const GET: APIRoute = async ({ site }) => {
   const body = JSON.stringify(
     {
       site: origin,
+      allpagesJsonUrl: `${origin}/wiki/special/allpages.json`,
       count: articles.length,
       articles: articles.map((article) => ({
         slug: article.slug,
