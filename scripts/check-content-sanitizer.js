@@ -708,6 +708,16 @@ rejects('<p class=x/aria-hidden="true">x</p>', 'slash-delimited aria-hidden attr
 accepts('<a href="/wiki/aria-hidden=demo">aria-hidden docs</a>', 'benign aria-hidden substring in quoted href');
 accepts('ARIA hidden state is an accessibility concept described here only as prose.', 'benign aria-hidden prose');
 
+// aria-live=/aria-atomic= create live regions — attribute counterpart to merged #554 role=alert.
+rejects('Intro.\n\n<div aria-live="assertive">Wallet compromised — act now</div>', 'plain aria-live assertive live-region spoof');
+rejects('Intro.\n\n<p aria-atomic="true">Send TAO to evil.example</p>', 'plain aria-atomic attribute');
+rejects('Intro.\n\n<  div   aria-live = "polite">x</div>', 'spaced aria-live attribute');
+rejects('<a href="x"aria-live="assertive">go</a>', 'quote-abutted aria-live attribute');
+rejects('<div class=x/aria-atomic="true">x</div>', 'slash-delimited aria-atomic attribute');
+
+accepts('<a href="/wiki/aria-live=demo">aria-live docs</a>', 'benign aria-live substring in quoted href');
+accepts('ARIA live regions are an accessibility concept described here only as prose.', 'benign aria-live prose');
+
 // srcset=/sizes= on <img> steer responsive loading — gap after #411 blocked picture/source.
 rejects('Intro.\n\n<img src="/wiki/fig.png" srcset="https://evil.example/x 1x" alt="x">', 'plain img srcset attribute');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   srcset = "https://evil.example/x 2x">', 'spaced img srcset attribute');
