@@ -800,6 +800,21 @@ rejects('<p class=x/aria-owns="site-nav">x</p>', 'slash-delimited aria-owns attr
 accepts('<a href="/wiki/aria-owns=demo">aria-owns docs</a>', 'benign aria-owns substring in quoted href');
 accepts('ARIA owns is an accessibility concept described here only as prose.', 'benign aria-owns prose');
 
+// aria-pressed=/aria-checked=/aria-selected= fake toggle and option state —
+// same family as merged #571 (aria-owns), #568 (aria-current), #559
+// (aria-expanded), and #556 (aria-hidden).
+rejects('Intro.\n\n<a href="https://evil.example/" aria-pressed="true">Continue</a>', 'plain aria-pressed attribute on anchor');
+rejects('Intro.\n\n<li aria-selected="true">Step 1</li>', 'plain aria-selected attribute on list item');
+rejects('Intro.\n\n<div aria-checked="mixed">50% verified</div>', 'plain aria-checked attribute');
+rejects('Intro.\n\n<  a   href="/wiki/stake/"   aria-pressed = "true">stake</a>', 'spaced aria-pressed attribute');
+rejects('<a href="x"aria-pressed="true">go</a>', 'quote-abutted aria-pressed attribute');
+rejects('<li class=x/aria-selected="true">x</li>', 'slash-delimited aria-selected attribute');
+rejects("<p class='x'aria-checked='mixed'>x</p>", 'single-quote-abutted aria-checked attribute');
+
+accepts('<a href="/wiki/aria-pressed=demo">aria-pressed docs</a>', 'benign aria-pressed substring in quoted href');
+accepts('ARIA pressed state is an accessibility concept described here only as prose.', 'benign aria-pressed prose');
+accepts('<span class=x/aria-selected-demo>not an aria-selected attribute</span>', 'benign aria-selected substring in class value');
+
 // srcset=/sizes= on <img> steer responsive loading — gap after #411 blocked picture/source.
 rejects('Intro.\n\n<img src="/wiki/fig.png" srcset="https://evil.example/x 1x" alt="x">', 'plain img srcset attribute');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   srcset = "https://evil.example/x 2x">', 'spaced img srcset attribute');
