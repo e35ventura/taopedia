@@ -73,6 +73,7 @@ export function buildJsonFeed({
       const url = cleanText(item.url);
       const itemTitle = cleanText(item.title);
       const summary = cleanText(item.description ?? item.summary);
+      const image = cleanText(item.image);
       const contentText = cleanText(item.contentText ?? summary) || itemTitle || url;
       const datePublished = toRfc3339(item.datePublished);
       // date_modified uses the same known-date fallback as the RSS and Atom
@@ -91,6 +92,10 @@ export function buildJsonFeed({
         ...(itemTitle ? { title: itemTitle } : {}),
         content_text: contentText,
         ...(summary ? { summary } : {}),
+        // Per-item article image (the Open Graph card): JSON Feed's first-class
+        // item-level image, the JSON counterpart to the RSS media:content / Atom
+        // enclosure, so JSON readers can show a thumbnail per entry too.
+        ...(image ? { image } : {}),
         ...(datePublished ? { date_published: datePublished } : {}),
         ...(dateModified ? { date_modified: dateModified } : {}),
         ...(tags.length > 0 ? { tags } : {}),

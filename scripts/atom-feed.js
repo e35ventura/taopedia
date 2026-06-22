@@ -96,6 +96,11 @@ export function buildAtomFeed({
         `    <id>${escapeXml(cleanText(item.id) || url)}</id>`,
         `    <title>${escapeXml(itemTitle || url)}</title>`,
         `    <link rel="alternate" href="${escapeXml(url)}" />`,
+        // Per-item article image (the Open Graph card) as an Atom enclosure link,
+        // so readers can show a thumbnail for each entry.
+        item.image
+          ? `    <link rel="enclosure" type="image/png" href="${escapeXml(cleanText(item.image))}" />`
+          : '',
         `    <updated>${escapeXml(dateModified)}</updated>`,
         datePublished ? `    <published>${escapeXml(datePublished)}</published>` : '',
         summary ? `    <summary>${escapeXml(summary)}</summary>` : '',

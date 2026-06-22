@@ -32,7 +32,7 @@ const feed = buildRssFeed({
 
 // Well-formed RSS 2.0 channel envelope.
 assert.ok(feed.startsWith('<?xml version="1.0" encoding="UTF-8"?>'), 'declares the XML prolog');
-assert.match(feed, /<rss version="2\.0" xmlns:atom="http:\/\/www\.w3\.org\/2005\/Atom">/, 'is RSS 2.0 with the atom namespace');
+assert.match(feed, /<rss version="2\.0" xmlns:atom="http:\/\/www\.w3\.org\/2005\/Atom" xmlns:media="http:\/\/search\.yahoo\.com\/mrss\/">/, 'is RSS 2.0 with the atom and Media RSS namespaces');
 assert.match(feed, /<channel>[\s\S]*<\/channel>/, 'wraps items in a channel');
 assert.match(feed, /<title>Taopedia<\/title>/, 'channel advertises the site name');
 assert.match(feed, /<link>https:\/\/taopedia\.org\/<\/link>/, 'channel links to the site root');
