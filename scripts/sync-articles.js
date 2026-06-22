@@ -482,6 +482,18 @@ const nonSpaceDelimitedAriaKeyshortcutsAttrPattern = /<[^>]*[/"'`](?:aria-keysho
 const ariaCurrentAttrPattern = /<[^>]*\saria-current\s*=/i;
 const nonSpaceDelimitedAriaCurrentAttrPattern = /<[^>]*[/"'`](?:aria-current)\s*=/i;
 
+// aria-pressed= / aria-checked= / aria-selected= override the toggle/option
+// state of an allowed element — an injected <a aria-pressed="true" href="…">
+// announces a link as "pressed/active" in assistive technology, <li
+// aria-selected="true"> announces a list item as the "selected" one, and
+// <div aria-checked="mixed"> fakes a "partially verified" indicator. Same
+// state-spoof family as the merged aria-current (#568) / aria-expanded
+// (#559) / aria-disabled blockers; glossary articles never mark their own
+// toggle state — the site UI manages pressed/selected/checked itself. Same
+// dual-pattern shape (whitespace + quote/slash-abutted).
+const ariaToggleStateAttrPattern = /<[^>]*\saria-(?:pressed|checked|selected)\s*=/i;
+const nonSpaceDelimitedAriaToggleStateAttrPattern = /<[^>]*[/"'`](?:aria-(?:pressed|checked|selected))\s*=/i;
+
 // nowrap on allowed <td>/<th> disables text wrapping in the cell — an injected
 // long URL, fake wallet address, or padded phishing line breaks out of the
 // column, reflowing the real article text off-screen (a layout-defacement /
@@ -1053,6 +1065,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": aria-current attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    ariaToggleStateAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAriaToggleStateAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": aria-pressed, aria-checked, and aria-selected attributes are not allowed in article content`,
     );
   }
 
