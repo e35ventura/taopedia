@@ -1,0 +1,129 @@
+---
+import WikiLayout from '../../../layouts/WikiLayout.astro';
+import { getCollection } from 'astro:content';
+import { getPageSlug } from '../../../lib/article-history';
+import { formatRevisionDate } from '../../../lib/format-date.js';
+import { buildContributors } from '../../../../scripts/contributors.js';
+
+// Special:Contributors — the people who have edited the wiki, ranked by edit
+// count, derived from the same build-time revision history (public/history/
+// <slug>.json) that powers Special:RecentChanges and the per-article history
+// page. The author-axis companion to the time-axis Recent changes feed, and the
+// attribution roster behind the site's CC BY-SA 4.0 content licence.
+//
+// Computation is shared with /wiki/special/contributors.json and the regression
+// check through scripts/contributors.js (pure), so the page, the endpoint, and
+// the test agree by construction. Loaded via glob so a dev run before history is
+// generated degrades to an empty roster.
+const pages = await getCollection('pages');
+const titleBySlug: Record<string, string> = {};
+for (const page of pages) {
+  titleBySlug[getPageSlug(page)] = page.data.title;
+}
+
+const historyModules = import.meta.glob('../../../../public/history/**/*.json', { eager: true }) as Record<
+  string,
+  { default?: { history?: Array<{ authorName?: string; date?: string }> } }
+>;
+const HISTORY_PREFIX = '../../../../public/history/';
+const historyBySlug: Record<string, Array<{ authorName?: string; date?: string }>> = {};
+for (const [key, mod] of Object.entries(historyModules)) {
+  if (!key.startsWith(HISTORY_PREFIX) || !key.endsWith('.json')) continue;
+  const slug = key.slice(HISTORY_PREFIX.length, -'.json'.length);
+  historyBySlug[slug] = mod?.default?.history ?? [];
+}
+
+const contributors = buildContributors({ historyBySlug, titleBySlug });
+const totalEdits = contributors.reduce((sum, contributor) => sum + contributor.edits, 0);
+---
+
+<WikiLayout
+  title="Contributors"
+  description="The people who have written and edited the Taopedia Bittensor knowledge base, ranked by number of edits."
+>
+  <div class="mw-body-content">
+    <h1 class="firstHeading">Contributors</h1>
+
+    <div class="mw-parser-output">
+      <p>
+        Everyone who has edited an article in the wiki, ranked by number of edits, most active
+        first. Attribution for the {totalEdits.toLocaleString('en-US')} edits behind Taopedia's
+        <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC&nbsp;BY-SA&nbsp;4.0</a> content.
+        Edits come from each article's revision history, the same source as
+        <a href="/wiki/special/recentchanges">Recent changes</a>.
+      </p>
+
+      {contributors.length === 0 ? (
+        <p>No contributors recorded yet.</p>
+      ) : (
+        <table class="mw-contributors">
+          <thead>
+            <tr>
+              <th scope="col" class="mw-cb-rank">#</th>
+              <th scope="col">Contributor</th>
+              <th scope="col" class="mw-cb-num">Edits</th>
+              <th scope="col" class="mw-cb-num">Articles</th>
+              <th scope="col" class="mw-cb-span">Active</th>
+            </tr>
+          </thead>
+          <tbody>
+            {contributors.map((contributor, index) => (
+              <tr>
+                <td class="mw-cb-rank">{index + 1}</td>
+                <td class="mw-cb-name">{contributor.name}</td>
+                <td class="mw-cb-num">{contributor.edits.toLocaleString('en-US')}</td>
+                <td class="mw-cb-num">{contributor.articles.toLocaleString('en-US')}</td>
+                <td class="mw-cb-span">
+                  <time datetime={contributor.firstEdit}>{formatRevisionDate(contributor.firstEdit)}</time>
+                  {contributor.firstEdit !== contributor.lastEdit && (
+                    <>
+                      <span aria-hidden="true"> – </span>
+                      <time datetime={contributor.lastEdit}>{formatRevisionDate(contributor.lastEdit)}</time>
+                    </>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  </div>
+</WikiLayout>
+
+<style>
+  .mw-contributors {
+    width: 100%;
+    margin: 16px 0;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  .mw-contributors th,
+  .mw-contributors td {
+    text-align: left;
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--border-color-subtle);
+  }
+  .mw-contributors thead th {
+    font-size: 13px;
+    color: var(--color-base-subtle);
+    border-bottom: 2px solid var(--border-color-base);
+  }
+  .mw-cb-name {
+    font-weight: 600;
+  }
+  .mw-cb-rank {
+    width: 1%;
+    white-space: nowrap;
+    color: var(--color-base-subtle);
+  }
+  .mw-cb-num {
+    text-align: right;
+    white-space: nowrap;
+  }
+  .mw-cb-span {
+    white-space: nowrap;
+    color: var(--color-base-subtle);
+    font-size: 13px;
+  }
+</style>
