@@ -12,7 +12,7 @@ import { compareTitles } from './title-sort.js';
 export const getPageSlug = (page: { id: string }): string =>
   page.id.replace(/\/index\.(md|mdx)$/, '').replace(/\/index$/, '').replace(/\.(md|mdx)$/, '');
 
-type HistoryEntry = { date?: string; authorName?: string };
+type HistoryEntry = { date?: string; authorName?: string; sha?: string; message?: string };
 const HISTORY_PREFIX = '../../public/history/';
 
 // The build generates per-article revision history at public/history/<slug>.json
@@ -39,6 +39,8 @@ export interface RecentChange {
   title: string;
   date: string;
   authorName?: string;
+  sha?: string;
+  message?: string;
 }
 
 // Pure: flatten per-slug revision histories into one newest-first list of
@@ -56,7 +58,14 @@ export const collectRecentChanges = (
     if (!title) continue;
     for (const entry of history) {
       if (typeof entry?.date !== 'string' || !entry.date) continue;
-      changes.push({ slug, title, date: entry.date, authorName: entry.authorName });
+      changes.push({
+        slug,
+        title,
+        date: entry.date,
+        authorName: entry.authorName,
+        sha: entry.sha,
+        message: entry.message,
+      });
     }
   }
   // ISO 8601 dates sort lexicographically by time; newest first.

@@ -16,11 +16,14 @@ for (const page of pages) {
 }
 
 const changes = allRecentChanges(titleBySlug, RECENT_LIMIT);
+const feedTitle = 'Taopedia - Recent changes';
+const feeds = [{ type: 'application/atom+xml', title: feedTitle, href: '/wiki/special/recentchanges/atom.xml' }];
 ---
 
 <WikiLayout
   title="Recent changes"
   description="The most recently updated articles across the Taopedia Bittensor knowledge base."
+  feeds={feeds}
 >
   <div class="mw-body-content">
     <h1 class="firstHeading">Recent changes</h1>
