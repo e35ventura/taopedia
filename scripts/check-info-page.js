@@ -34,6 +34,7 @@ const ORIGIN = 'https://taopedia.org';
   });
   assert.equal(result.url, `${ORIGIN}/wiki/recycling/`, 'builder: url');
   assert.equal(result.backlinksUrl, `${ORIGIN}/wiki/recycling/backlinks/`, 'builder: backlinksUrl');
+  assert.equal(result.backlinksJsonUrl, `${ORIGIN}/wiki/recycling/backlinks.json`, 'builder: backlinksJsonUrl');
   assert.equal(result.citeUrl, `${ORIGIN}/wiki/recycling/cite/`, 'builder: citeUrl');
   assert.equal(result.citeJsonUrl, `${ORIGIN}/wiki/recycling/cite.json`, 'builder: citeJsonUrl');
   assert.equal(result.bibtexUrl, `${ORIGIN}/wiki/recycling/cite.bib`, 'builder: bibtexUrl');
@@ -51,6 +52,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(empty.firstEdited, null, 'builder: default firstEdited is null');
   assert.equal(empty.lastEdited, null, 'builder: default lastEdited is null');
   assert.deepEqual(empty.categories, [], 'builder: default categories is []');
+  assert.equal(empty.backlinksJsonUrl, `${ORIGIN}/wiki/x/backlinks.json`, 'builder: backlinksJsonUrl with defaults');
   assert.equal(empty.citeUrl, `${ORIGIN}/wiki/x/cite/`, 'builder: citeUrl with defaults');
   assert.equal(empty.citeJsonUrl, `${ORIGIN}/wiki/x/cite.json`, 'builder: citeJsonUrl with defaults');
   assert.equal(empty.bibtexUrl, `${ORIGIN}/wiki/x/cite.bib`, 'builder: bibtexUrl with defaults');
@@ -185,6 +187,11 @@ for (const slug of articleSlugs) {
   // independent of the configured site value.
   const jsonOrigin = new URL(infoJson.url).origin;
   assert.equal(infoJson.backlinksUrl, `${jsonOrigin}/wiki/${slug}/backlinks/`, `/wiki/${slug}/info.json backlinksUrl`);
+  assert.equal(
+    infoJson.backlinksJsonUrl,
+    `${jsonOrigin}/wiki/${slug}/backlinks.json`,
+    `/wiki/${slug}/info.json backlinksJsonUrl`,
+  );
   assert.equal(infoJson.citeUrl, `${jsonOrigin}/wiki/${slug}/cite/`, `/wiki/${slug}/info.json citeUrl`);
   assert.equal(infoJson.citeJsonUrl, `${jsonOrigin}/wiki/${slug}/cite.json`, `/wiki/${slug}/info.json citeJsonUrl`);
   assert.equal(infoJson.bibtexUrl, `${jsonOrigin}/wiki/${slug}/cite.bib`, `/wiki/${slug}/info.json bibtexUrl`);
