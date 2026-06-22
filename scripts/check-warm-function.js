@@ -242,6 +242,8 @@ try {
   assert.equal(response.body, 'Too Many Requests');
   assert.equal(response.headers['retry-after'], '60');
 
+  __resetRateLimitsForTests();
+  process.env.WARM_RATE_LIMIT_MAX = '1';
   response = await handler({
     httpMethod: 'POST',
     headers: {
@@ -250,7 +252,19 @@ try {
     },
     body: JSON.stringify({ slugs: ['taopedia'] }),
   });
-  assert.equal(response.statusCode, 429, 'rate limit should apply before auth checks');
+  assert.equal(response.statusCode, 401, 'bad secrets should fail auth without consuming the valid warm bucket');
+  response = await handler(rateLimitedEvent);
+  assert.equal(response.statusCode, 200, 'a valid warm from the same IP should still succeed after a bad-secret attempt');
+  response = await handler({
+    httpMethod: 'POST',
+    headers: {
+      'x-warm-secret': 'wrong',
+      'x-forwarded-for': '203.0.113.10',
+    },
+    body: JSON.stringify({ slugs: ['taopedia'] }),
+  });
+  assert.equal(response.statusCode, 429, 'bad-secret attempts should still have their own rate limit');
+  process.env.WARM_RATE_LIMIT_MAX = '2';
 
   response = await handler({
     httpMethod: 'POST',
@@ -293,6 +307,34 @@ try {
   assert.ok(
     __rateLimitStoreSizeForTests() <= 50,
     `rate-limit store must stay bounded under many distinct unauthenticated IPs (got ${__rateLimitStoreSizeForTests()})`,
+  );
+
+  __resetRateLimitsForTests();
+  process.env.WARM_RATE_LIMIT_MAX_IPS = '50';
+  process.env.WARM_RATE_LIMIT_MAX = '1000';
+  for (let i = 0; i < 75; i += 1) {
+    await handler({
+      httpMethod: 'POST',
+      headers: {
+        'x-warm-secret': 'wrong',
+        'x-forwarded-for': `203.0.113.${i}`,
+      },
+      body: JSON.stringify({ slugs: ['taopedia'] }),
+    });
+  }
+  for (let i = 0; i < 75; i += 1) {
+    await handler({
+      httpMethod: 'POST',
+      headers: {
+        'x-warm-secret': 'secret',
+        'x-forwarded-for': `198.51.100.${i}`,
+      },
+      body: JSON.stringify({ slugs: ['taopedia'] }),
+    });
+  }
+  assert.ok(
+    __rateLimitStoreSizeForTests() <= 50,
+    `combined warm/auth rate-limit buckets must stay bounded under mixed traffic (got ${__rateLimitStoreSizeForTests()})`,
   );
 } finally {
   __resetRateLimitsForTests();
