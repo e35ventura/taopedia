@@ -38,7 +38,7 @@ for (const row of data.pages) {
     typeof row.url === 'string' && row.url.startsWith(`${data.site}/wiki/`),
     `${row.slug}: url must be absolute and start with the envelope site`,
   );
-  assert.equal(row.url, `${data.site}/wiki/${row.slug}/`, `${row.slug}: url must equal ${data.site}/wiki/${row.slug}/`);
+  assert.equal(row.url, `${data.site}/wiki/${encodeURIComponent(row.slug)}/`, `${row.slug}: url must equal ${data.site}/wiki/${row.slug}/`);
   assert.ok(
     Number.isInteger(row.words) && row.words >= 0,
     `${row.slug}: words must be a non-negative integer (got ${JSON.stringify(row.words)})`,
