@@ -43,7 +43,20 @@ for (const change of data.changes) {
     fs.existsSync(path.join(wikiDir, change.slug, 'index.html')),
     `change links to /wiki/${change.slug}/ but no such article page was built (orphaned history must be skipped)`,
   );
-  assert.equal(change.url, `/wiki/${change.slug}/`, `change url must be the canonical article URL for ${change.slug}`);
+  // Every change url must be absolute and start with the envelope site, the
+  // same self-contained contract the merged allpages.json / mostlinkedpages.json
+  // fixes (#580 and follow-up) established for every other per-article JSON
+  // endpoint: a programmatic consumer should never need to combine a relative
+  // url with the envelope site to reach the article.
+  assert.ok(
+    change.url.startsWith(`${data.site}/wiki/`),
+    `change url must be absolute and start with the envelope site (got ${change.url})`,
+  );
+  assert.equal(
+    change.url,
+    `${data.site}/wiki/${change.slug}/`,
+    `change url must equal ${data.site}/wiki/${change.slug}/ for ${change.slug}`,
+  );
   assert.equal(change.title, slugmap[change.slug]?.title, `change title must match the article title for ${change.slug}`);
   assert.ok(typeof change.date === 'string' && !Number.isNaN(Date.parse(change.date)), `change has an invalid date: ${change.date}`);
 }

@@ -29,7 +29,7 @@ export const GET: APIRoute = async ({ site }) => {
       changes: changes.map((change) => ({
         slug: change.slug,
         title: change.title,
-        url: `/wiki/${change.slug}/`,
+        url: `${origin}/wiki/${change.slug}/`,
         date: change.date,
       })),
     },
