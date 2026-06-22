@@ -53,10 +53,30 @@ const ORIGIN = 'https://taopedia.org';
   assert.deepEqual(
     doc.references,
     [
-      { slug: 'delta', title: 'Delta', url: `${ORIGIN}/wiki/delta/` },
-      { slug: 'alpha', title: 'Subnet 2', url: `${ORIGIN}/wiki/alpha/` },
-      { slug: 'gamma', title: 'Subnet 9', url: `${ORIGIN}/wiki/gamma/` },
-      { slug: 'beta', title: 'Subnet 10', url: `${ORIGIN}/wiki/beta/` },
+      {
+        slug: 'delta',
+        title: 'Delta',
+        url: `${ORIGIN}/wiki/delta/`,
+        historyUrl: `${ORIGIN}/wiki/delta/history/`,
+      },
+      {
+        slug: 'alpha',
+        title: 'Subnet 2',
+        url: `${ORIGIN}/wiki/alpha/`,
+        historyUrl: `${ORIGIN}/wiki/alpha/history/`,
+      },
+      {
+        slug: 'gamma',
+        title: 'Subnet 9',
+        url: `${ORIGIN}/wiki/gamma/`,
+        historyUrl: `${ORIGIN}/wiki/gamma/history/`,
+      },
+      {
+        slug: 'beta',
+        title: 'Subnet 10',
+        url: `${ORIGIN}/wiki/beta/`,
+        historyUrl: `${ORIGIN}/wiki/beta/history/`,
+      },
     ],
     'builder: reference entry shape',
   );
@@ -150,6 +170,11 @@ for (const slug of articleSlugs) {
     assert.equal(typeof entry.slug, 'string', `${slug}: every reference entry must have a slug`);
     assert.equal(typeof entry.title, 'string', `${slug}: every reference entry must have a title`);
     assert.equal(entry.url, `${ORIGIN}/wiki/${entry.slug}/`, `${slug}: every reference entry url must be the canonical article URL`);
+    assert.equal(
+      entry.historyUrl,
+      `${ORIGIN}/wiki/${entry.slug}/history/`,
+      `${slug}: every reference entry historyUrl must be the canonical article history URL`,
+    );
   }
 
   if (doc.count > 0) withReferences++;
