@@ -6,6 +6,7 @@ import { resolveArticleImageSource } from '../../lib/article-image-assets.js';
 import { buildSlugAliases, parseWikiLinkTokens, resolveTargetSlug } from '../../../scripts/wiki-link-resolver.js';
 import { getPageSlug } from '../../lib/article-history';
 import { getRelatedPages } from '../../lib/related-pages';
+import { oembedPath } from '../../lib/oembed';
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
@@ -146,6 +147,7 @@ const readingMinutes = Math.max(1, Math.ceil(wordCount / 200));
   description={page.data.summary}
   image={`/og/${slug}.png`}
   type="article"
+  feeds={[{ type: 'application/json+oembed', title: `${page.data.title} - Taopedia`, href: oembedPath(slug) }]}
 >
   {tocHeadings.length > 1 && (
     <div slot="sidebar" class="toc-sidebar" role="navigation" aria-labelledby="toc-heading">

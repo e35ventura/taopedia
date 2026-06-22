@@ -11,7 +11,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "prebuild": "node scripts/sync-articles.js && node scripts/generate-history.js && node scripts/build-linkgraph.js",
-    "postbuild": "npx pagefind --site dist && node scripts/prune-pagefind-assets.js && node scripts/check-article-meta.js && node scripts/check-category-feed-discovery.js && node scripts/check-category-atom-feed.js && node scripts/check-category-json-feed.js && node scripts/check-category-articles-json.js && node scripts/check-opml.js && node scripts/check-statistics-json.js && node scripts/check-most-linked-json.js && node scripts/check-categories-json.js && node scripts/check-article-og-image.js && node scripts/check-subnets-json.js && node scripts/check-allpages-json.js && node scripts/check-cite-json.js && node scripts/check-recentchanges-json.js && node scripts/check-recentchanges-atom.js && node scripts/check-recentchanges-rss.js && node scripts/check-recentchanges-json-feed.js && node scripts/check-feed-enclosure.js && node scripts/check-backlinks-json.js && node scripts/check-history-json.js && node scripts/check-references-json.js && node scripts/check-related-json.js",
+    "postbuild": "npx pagefind --site dist && node scripts/prune-pagefind-assets.js && node scripts/check-article-meta.js && node scripts/check-category-feed-discovery.js && node scripts/check-category-atom-feed.js && node scripts/check-category-json-feed.js && node scripts/check-category-articles-json.js && node scripts/check-opml.js && node scripts/check-statistics-json.js && node scripts/check-most-linked-json.js && node scripts/check-categories-json.js && node scripts/check-article-og-image.js && node scripts/check-subnets-json.js && node scripts/check-allpages-json.js && node scripts/check-cite-json.js && node scripts/check-recentchanges-json.js && node scripts/check-recentchanges-atom.js && node scripts/check-recentchanges-rss.js && node scripts/check-recentchanges-json-feed.js && node scripts/check-feed-enclosure.js && node scripts/check-backlinks-json.js && node scripts/check-history-json.js && node scripts/check-references-json.js && node scripts/check-related-json.js && node scripts/check-oembed.js",
     "preview": "astro preview",
     "astro": "astro",
     "test:article-slugmap": "node scripts/check-article-slugmap.js",
@@ -102,7 +102,8 @@
     "test:document-base": "node scripts/check-document-base.js",
     "test:search-typeahead": "node scripts/check-search-typeahead.js",
     "test:hovercards": "node scripts/check-hovercards.js",
-    "test:related-pages": "node scripts/check-related-pages.js"
+    "test:related-pages": "node scripts/check-related-pages.js",
+    "test:oembed": "node scripts/check-oembed.js"
   },
   "dependencies": {
     "@astrojs/mdx": "^5.0.6",
