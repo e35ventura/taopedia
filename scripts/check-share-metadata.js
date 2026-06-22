@@ -72,4 +72,59 @@ assert.match(
   'Seo head must declare og:locale as en_US so social crawlers render the card in the site locale',
 );
 
+// article:published_time / article:modified_time are the Open Graph article
+// object timestamps. The wiki's article pages already pass type="article" to
+// <Seo> and derive both values from the build-time revision history (oldest =
+// publishedTime, newest = modifiedTime), but the tags themselves were not
+// emitted — leaving social previews without a freshness signal and search
+// engines without a structured publish/modify date to index. Seo binds both
+// values to the rendered article via the publishedTime / modifiedTime props,
+// guarded by `type === "article"` and a non-empty trimmed value, so a
+// partially-revisioned article omits both tags cleanly instead of emitting a
+// malformed date.
+//
+// Lock the prop names AND the conditional emit so a future edit cannot drop
+// either the prop binding or the article-only gate without breaking this
+// check. Both tags must be bound to variables (not literal values) so they
+// stay wired to the article-history source Seo.astro reads from.
+assert.match(
+  seo,
+  /\{emitArticleTimes\s*&&\s*\([\s\S]*?<meta\s+property="article:published_time"\s+content=\{publishedTimeIso\}[\s\S]*?<meta\s+property="article:modified_time"\s+content=\{modifiedTimeIso\}[\s\S]*?\)\s*\}/,
+  'Seo head must emit article:published_time and article:modified_time bound to publishedTimeIso / modifiedTimeIso, gated by the emitArticleTimes flag',
+);
+// The guard itself must reference the og:type=article contract: the trimmed
+// publishedTimeIso / modifiedTimeIso strings and the `type === "article"`
+// branch, so a future edit cannot silently widen the emit to non-article
+// pages (where og:type=website would carry article:* tags that contradict it).
+assert.match(
+  seo,
+  /type\s*===\s*['"]article['"]\s*&&\s*publishedTimeIso\s*!==\s*['"]{2}\s*&&\s*modifiedTimeIso\s*!==\s*['"]{2}/,
+  'Seo head must gate article:published_time / article:modified_time on type === "article" and non-empty publishedTimeIso / modifiedTimeIso',
+);
+// The HTML and Astro props must carry the new prop names so wiki/[...slug].astro
+// can pass the values through. Without the prop binding the article page
+// cannot forward its history-derived timestamps and the tags stay empty.
+assert.match(
+  seo,
+  /publishedTime\?:/,
+  'Seo Props must declare a publishedTime?: string field',
+);
+assert.match(
+  seo,
+  /modifiedTime\?:/,
+  'Seo Props must declare a modifiedTime?: string field',
+);
+// The trim guard must normalize whitespace-only inputs to empty so a future
+// caller passing a stray " " date is rejected the same way a missing date is.
+assert.match(
+  seo,
+  /typeof\s+publishedTime\s*===\s*['"]string['"]\s*\?\s*publishedTime\.trim\(\)\s*:\s*['"]{2}/,
+  'Seo must trim publishedTime before checking it is non-empty',
+);
+assert.match(
+  seo,
+  /typeof\s+modifiedTime\s*===\s*['"]string['"]\s*\?\s*modifiedTime\.trim\(\)\s*:\s*['"]{2}/,
+  'Seo must trim modifiedTime before checking it is non-empty',
+);
+
 console.log('Share metadata check passed');

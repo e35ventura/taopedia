@@ -7,18 +7,25 @@ interface Props {
   image?: string;
   type?: 'website' | 'article';
   path?: string;
-  // Per-page feed alternates (e.g. a category hub advertising its own RSS/JSON
-  // feed). Rendered after the site-wide feeds so a feed reader landing on the
+  // Per-page feed alternates (e.g. a category hub advertising its own feeds).
+  // Rendered after the site-wide feeds so a feed reader landing on the
   // page can auto-discover the scoped feed, not just /rss.xml and /feed.json.
   feeds?: Array<{ type: string; title: string; href: string }>;
   robots?: string;
+  // Open Graph "article" object timestamps. Only emitted when type === 'article'
+  // and the value is a non-empty ISO 8601 string. Article pages derive both from
+  // the build-time revision history (newest = modifiedTime, oldest =
+  // publishedTime), so social crawlers and search-result freshness indicators
+  // see real article metadata instead of falling back to crawl-time guesses.
+  publishedTime?: string;
+  modifiedTime?: string;
 }
 
 const defaultTitle = 'Taopedia';
 const defaultDescription =
   'A Bittensor-focused knowledge base for TAO, subnets, wallets, staking, mining, validation, and consensus.';
 
-const { title, description = defaultDescription, image = '/og/home.png', type = 'website', path, feeds, robots } =
+const { title, description = defaultDescription, image = '/og/home.png', type = 'website', path, feeds, robots, publishedTime, modifiedTime } =
   Astro.props;
 
 const pageTitle = title ? `${title} - Taopedia` : defaultTitle;
@@ -29,6 +36,14 @@ const imageUrl = new URL(image, Astro.site).toString();
 const imageAlt = title
   ? `${title} — Taopedia, a Bittensor knowledge base`
   : 'Taopedia — a Bittensor knowledge base';
+// Trim each timestamp and emit the article:* meta tags only when both are
+// truthy strings — the og:type=article object contract expects ISO 8601
+// timestamps and a non-article type would never carry them. Empty values fall
+// through (omitting both tags) so a partially-revisioned article still renders
+// a valid og:type=article object without a malformed date.
+const publishedTimeIso = typeof publishedTime === 'string' ? publishedTime.trim() : '';
+const modifiedTimeIso = typeof modifiedTime === 'string' ? modifiedTime.trim() : '';
+const emitArticleTimes = type === 'article' && publishedTimeIso !== '' && modifiedTimeIso !== '';
 ---
 
 {/* Apply the saved color theme before paint, so a reader who chose Dark never
@@ -77,6 +92,12 @@ const imageAlt = title
 <meta property="og:image:height" content="630" />
 <meta property="og:image:alt" content={imageAlt} />
 <meta property="og:locale" content="en_US" />
+{emitArticleTimes && (
+  <>
+    <meta property="article:published_time" content={publishedTimeIso} />
+    <meta property="article:modified_time" content={modifiedTimeIso} />
+  </>
+)}
 
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content={pageTitle} />
