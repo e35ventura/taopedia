@@ -15,6 +15,7 @@ export const buildArticleInfo = ({
   incomingLinks,
   backlinksUrl: `${origin}/wiki/${slug}/backlinks/`,
   citeUrl: `${origin}/wiki/${slug}/cite/`,
+  bibtexUrl: `${origin}/wiki/${slug}/cite.bib`,
   infoUrl: `${origin}/wiki/${slug}/info/`,
   referencesUrl: `${origin}/wiki/${slug}/references.json`,
   relatedUrl: `${origin}/wiki/${slug}/related.json`,
