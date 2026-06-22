@@ -470,6 +470,18 @@ const nonSpaceDelimitedAriaFlowtoAttrPattern = /<[^>]*[/"'`](?:aria-flowto)\s*=/
 const ariaKeyshortcutsAttrPattern = /<[^>]*\saria-keyshortcuts\s*=/i;
 const nonSpaceDelimitedAriaKeyshortcutsAttrPattern = /<[^>]*[/"'`](?:aria-keyshortcuts)\s*=/i;
 
+// aria-current= marks an element as the "current" item within a set — e.g.
+// aria-current="page" makes assistive technology announce an injected link as
+// the current page, lending false navigational authority to attacker-chosen
+// destinations (a phishing / authority-spoof primitive).  Same accessibility-
+// attribute family as merged #567 (aria-keyshortcuts), #564 (aria-flowto),
+// #561 (aria-roledescription), #559 (aria-controls), #558 (aria-live), #556
+// (aria-hidden), #554 (role), #553 (aria-describedby), #550 (title), and #501
+// (aria-label).  Glossary articles never mark their own current-page state —
+// the site layout handles that in the navigation component.
+const ariaCurrentAttrPattern = /<[^>]*\saria-current\s*=/i;
+const nonSpaceDelimitedAriaCurrentAttrPattern = /<[^>]*[/"'`](?:aria-current)\s*=/i;
+
 // nowrap on allowed <td>/<th> disables text wrapping in the cell — an injected
 // long URL, fake wallet address, or padded phishing line breaks out of the
 // column, reflowing the real article text off-screen (a layout-defacement /
@@ -1032,6 +1044,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": aria-keyshortcuts attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    ariaCurrentAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAriaCurrentAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": aria-current attributes are not allowed in article content`,
     );
   }
 
