@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import matter from './frontmatter.js';
 import { compareTitles } from '../src/lib/title-sort.js';
+import { sortSearchEntries } from '../src/lib/search-data.js';
 
 const distDir = path.join(process.cwd(), 'dist');
 const searchDataPath = path.join(distDir, 'search-data.json');
@@ -18,6 +19,21 @@ const sitemapUrls = new Set(
 );
 const firstSitemapUrl = sitemapUrls.values().next().value;
 const ORIGIN = firstSitemapUrl ? new URL(firstSitemapUrl).origin : 'https://taopedia.org';
+
+// Duplicate titles are valid article metadata, so the search-data endpoint's
+// tiebreak must still use numeric collation on the canonical URL. A raw string
+// compare puts subnet_10 before subnet_9, which is deterministic but wrong.
+assert.deepEqual(
+  sortSearchEntries([
+    { title: 'Subnet Directory', summary: '', url: `${ORIGIN}/wiki/subnet_10/`, categories: [] },
+    { title: 'Subnet Directory', summary: '', url: `${ORIGIN}/wiki/subnet_9/`, categories: [] },
+  ]).map((entry) => entry.url),
+  [
+    `${ORIGIN}/wiki/subnet_9/`,
+    `${ORIGIN}/wiki/subnet_10/`,
+  ],
+  'same-title numeric-suffixed search entries must use compareTitles on the canonical URL tiebreak',
+);
 
 assert.ok(Array.isArray(searchEntries), 'search data must serialize an array');
 assert.ok(searchEntries.length > 0, 'search data must include article entries');
@@ -48,7 +64,7 @@ assert.equal(
 );
 
 // The entries must be in a deterministic order: by title (numeric collation),
-// then by canonical URL as a tiebreak. Re-derive the expected order
+// then by canonical URL with the SAME numeric collation as a tiebreak. Re-derive the expected order
 // independently from the article sources using the SAME comparator the endpoint
 // uses, and assert the built file matches exactly — so the ordering is pinned
 // and cannot silently regress or vary with the unspecified getCollection() order.
@@ -65,7 +81,7 @@ for (const dirent of fs.readdirSync(contentDir, { withFileTypes: true })) {
   if (!data || typeof data.title !== 'string') continue;
   expected.push({ title: data.title, url: `${ORIGIN}/wiki/${slug}/` });
 }
-expected.sort((a, b) => compareTitles(a.title, b.title) || (a.url < b.url ? -1 : a.url > b.url ? 1 : 0));
+expected.sort((a, b) => compareTitles(a.title, b.title) || compareTitles(a.url, b.url));
 
 assert.equal(
   searchEntries.length,
@@ -80,4 +96,4 @@ for (let i = 0; i < expected.length; i++) {
   );
 }
 
-console.log(`Search data check passed (${searchEntries.length} entries, canonical URLs, deterministic title+URL order)`);
+console.log(`Search data check passed (${searchEntries.length} entries, canonical URLs, deterministic title+numeric-URL order)`);
