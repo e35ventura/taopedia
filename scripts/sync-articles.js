@@ -539,6 +539,17 @@ const ariaToggleStateAttrPattern = /<[^>]*\saria-(?:pressed|checked|selected)\s*
 const nonSpaceDelimitedAriaToggleStateAttrPattern =
   /<[^>]*[/"'`](?:aria-(?:pressed|checked|selected))\s*=/i;
 
+// aria-disabled=/aria-readonly=/aria-required= fake form-widget state in
+// assistive technology — e.g. aria-disabled="true" makes a link sound inactive
+// while it remains navigable, aria-required="true" announces a fake mandatory
+// field, and aria-readonly="true" marks prose as an uneditable control. Same
+// accessibility-state spoof family as merged #583 (toggle state), #582
+// (aria-busy), #570 (aria-errormessage), and inert (#496). Glossary articles
+// never emit form-field ARIA on static prose.
+const ariaFormStateAttrPattern = /<[^>]*\saria-(?:disabled|readonly|required)\s*=/i;
+const nonSpaceDelimitedAriaFormStateAttrPattern =
+  /<[^>]*[/"'`](?:aria-(?:disabled|readonly|required))\s*=/i;
+
 // nowrap on allowed <td>/<th> disables text wrapping in the cell — an injected
 // long URL, fake wallet address, or padded phishing line breaks out of the
 // column, reflowing the real article text off-screen (a layout-defacement /
@@ -1156,6 +1167,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": aria-pressed, aria-checked, and aria-selected attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    ariaFormStateAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAriaFormStateAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": aria-disabled, aria-readonly, and aria-required attributes are not allowed in article content`,
     );
   }
 
