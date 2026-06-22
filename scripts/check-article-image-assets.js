@@ -9,6 +9,7 @@ import {
 const imageAssets = {
   '../../content/pages/local_asset/figure.png': '/_astro/figure.hash.png',
   '../../content/pages/local_asset/images/card.webp': '/_astro/card.hash.webp',
+  '../../content/pages/local_asset/images/card v2.webp': '/_astro/card-v2.hash.webp',
 };
 const TAB = String.fromCharCode(0x09);
 
@@ -34,6 +35,12 @@ assert.equal(
   resolveArticleImageSource('local_asset', './images/card.webp', imageAssets),
   '/_astro/card.hash.webp',
   'nested dot-prefixed local image paths should resolve to emitted asset URLs',
+);
+
+assert.equal(
+  resolveArticleImageSource('local_asset', './images/card%20v2.webp', imageAssets),
+  '/_astro/card-v2.hash.webp',
+  'percent-encoded local image paths should resolve to emitted asset URLs when the decoded file exists',
 );
 
 assert.equal(

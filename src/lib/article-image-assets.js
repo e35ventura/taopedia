@@ -93,7 +93,7 @@ export function normalizeArticleLocalImagePath(value) {
     return null;
   }
 
-  return normalized;
+  return decoded;
 }
 
 export function hasLocalImagePathTraversal(value) {
