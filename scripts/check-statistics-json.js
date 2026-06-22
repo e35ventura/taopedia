@@ -137,6 +137,11 @@ assert.equal(
   `${data.site}/wiki/category/${data.largestTopic.name.replace(/ /g, '_')}/`,
   'largestTopic.url must be the canonical absolute category URL',
 );
+assert.equal(
+  data.largestTopic.articlesUrl,
+  `${data.site}/wiki/category/${data.largestTopic.name.replace(/ /g, '_')}/articles.json`,
+  "largestTopic.articlesUrl must be the canonical absolute category articles.json URL",
+);
 
 // topics — array whose length matches totalTopics, ordered count-desc then
 // compareTitles-asc (NOT raw string — must match the HTML page's ordering).
@@ -149,6 +154,14 @@ for (const topic of data.topics) {
     topic.url,
     `${data.site}/wiki/category/${topic.name.replace(/ /g, '_')}/`,
     `topic "${topic.name}" url must be the canonical absolute category URL`,
+  );
+  // articlesUrl points at the topic's machine-readable article list, the same
+  // companion categories.json exposes per category, so a consumer of either
+  // endpoint can fetch the topic's articles without rebuilding the route.
+  assert.equal(
+    topic.articlesUrl,
+    `${data.site}/wiki/category/${topic.name.replace(/ /g, '_')}/articles.json`,
+    `topic "${topic.name}" articlesUrl must be the canonical absolute category articles.json URL`,
   );
 }
 for (let i = 1; i < data.topics.length; i++) {

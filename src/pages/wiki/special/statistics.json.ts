@@ -24,17 +24,24 @@ export const GET: APIRoute = async ({ site }) => {
 
   const topicUrl = (name: string) =>
     `${origin}/wiki/category/${name.replace(/ /g, '_')}/`;
+  const topicArticlesUrl = (name: string) =>
+    `${origin}/wiki/category/${name.replace(/ /g, '_')}/articles.json`;
 
   const body = JSON.stringify(
     {
       site: origin,
       ...stats,
       largestTopic: stats.largestTopic
-        ? { ...stats.largestTopic, url: topicUrl(stats.largestTopic.name) }
+        ? {
+            ...stats.largestTopic,
+            url: topicUrl(stats.largestTopic.name),
+            articlesUrl: topicArticlesUrl(stats.largestTopic.name),
+          }
         : null,
       topics: stats.topics.map((t: { name: string; count: number }) => ({
         ...t,
         url: topicUrl(t.name),
+        articlesUrl: topicArticlesUrl(t.name),
       })),
     },
     null,
