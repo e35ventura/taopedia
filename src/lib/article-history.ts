@@ -46,7 +46,11 @@ export interface RecentChange {
 // Pure: flatten per-slug revision histories into one newest-first list of
 // changes, keeping only slugs that resolve to a published article title (so an
 // orphaned history file — history exists but the article is no longer
-// published — is skipped) and entries that carry a date. Exported for testing.
+// published — is skipped) and entries that carry both a date and a sha. The sha
+// is required because it is the stable event-id component
+// (urn:taopedia:recentchanges:<slug>:<sha>, see recent-changes-feed.js); an
+// entry with no sha would leak a malformed `…:undefined` id into every feed.
+// Exported for testing.
 export const collectRecentChanges = (
   historyBySlug: Record<string, Array<HistoryEntry>>,
   titleBySlug: Record<string, string>,
@@ -58,6 +62,7 @@ export const collectRecentChanges = (
     if (!title) continue;
     for (const entry of history) {
       if (typeof entry?.date !== 'string' || !entry.date) continue;
+      if (typeof entry?.sha !== 'string' || !entry.sha) continue;
       changes.push({
         slug,
         title,
