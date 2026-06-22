@@ -651,6 +651,17 @@ accepts('ARIA labels are an accessibility concept described here only as prose.'
 accepts('<a href="/wiki/aria-label=demo">ARIA label docs</a>', 'benign aria-label substring in quoted href');
 accepts('<span class=x/aria-label-demo>ARIA label class example</span>', 'benign aria-label substring in class value');
 
+// title= sets the native hover tooltip — same auxiliary-text spoof as merged #501 ARIA names.
+rejects('Intro.\n\n<a href="https://evil.example/" title="Official staking guide">claim TAO</a>', 'plain title attribute on anchor');
+rejects('Intro.\n\n<img src="/wiki/fig.png" title="Trusted chart source" alt="chart">', 'plain title attribute on img');
+rejects('Intro.\n\n<  a   href="/wiki/stake/"   title = "Trusted staking guide">stake</a>', 'spaced title attribute');
+rejects('<a href="x"title="Trusted docs">go</a>', 'quote-abutted title attribute');
+rejects('<img src="/wiki/fig.png"/title="Hidden caption">', 'slash-delimited title attribute');
+
+accepts('<a href="/wiki/title=demo">title docs</a>', 'benign title substring in quoted href');
+accepts('<span class=x/title-demo>title class example</span>', 'benign title substring in class value');
+accepts('Article title and page title are described here only as prose.', 'benign title prose');
+
 // srcset=/sizes= on <img> steer responsive loading — gap after #411 blocked picture/source.
 rejects('Intro.\n\n<img src="/wiki/fig.png" srcset="https://evil.example/x 1x" alt="x">', 'plain img srcset attribute');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   srcset = "https://evil.example/x 2x">', 'spaced img srcset attribute');

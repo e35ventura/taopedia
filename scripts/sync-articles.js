@@ -373,6 +373,14 @@ const quoteAbuttedInertAttrPattern = /<[^>]*["'`]inert(?=[\s>/=])/i;
 const ariaNameAttrPattern = /<[^>]*\saria-(?:label|labelledby)\s*=/i;
 const nonSpaceDelimitedAriaNameAttrPattern = /<[^>]*[/"'`]aria-(?:label|labelledby)\s*=/i;
 
+// title= on allowed elements sets the native hover tooltip — the same auxiliary-
+// text spoof channel merged #501 closed for aria-label/aria-labelledby. A visible
+// "View official docs" link with title="Paste your seed phrase at evil.example"
+// shows attacker-chosen text on hover with no script or flagged scheme. Glossary
+// prose never needs title tooltips, so block the attribute alongside ARIA names.
+const titleAttrPattern = /<[^>]*\stitle\s*=/i;
+const nonSpaceDelimitedTitleAttrPattern = /<[^>]*[/"'`](?:title)\s*=/i;
+
 // nowrap on allowed <td>/<th> disables text wrapping in the cell — an injected
 // long URL, fake wallet address, or padded phishing line breaks out of the
 // column, reflowing the real article text off-screen (a layout-defacement /
@@ -832,6 +840,13 @@ export function validateArticleContent(slug, content) {
     throw new Error(
       `Unsafe article content in "${slug}": aria-label and aria-labelledby attributes are not allowed in article content`,
     );
+  }
+
+  if (
+    titleAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedTitleAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(`Unsafe article content in "${slug}": title attributes are not allowed in article content`);
   }
 
   if (
