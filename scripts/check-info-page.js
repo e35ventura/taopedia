@@ -2,19 +2,52 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { buildArticleInfo } from './article-info.js';
 
 // Load-bearing regression check for the per-article "Page information"
-// (action=info) pages at /wiki/<slug>/info/. It pins each rendered page's
-// metadata to the ground-truth build data: topics (slugmap), incoming links
-// (backlinks.json, published-only — the same join Special:WhatLinksHere uses),
-// and revision count + creation/latest dates (public/history/<slug>.json) — plus
-// coverage and the toolbar discovery link. If the page faked a figure, listed
-// the wrong topics/links/revisions, lost a date, or the toolbar stopped linking
-// to it, this fails the build's test suite.
+// (action=info) pages at /wiki/<slug>/info/ and their machine-readable companion
+// at /wiki/<slug>/info.json. It pins each rendered page's metadata to the
+// ground-truth build data: topics (slugmap), incoming links (backlinks.json,
+// published-only — the same join Special:WhatLinksHere uses), and revision
+// count + creation/latest dates (public/history/<slug>.json) — plus coverage,
+// the toolbar discovery link, and the JSON endpoint's companion-URL contract.
+// If the page faked a figure, listed the wrong topics/links/revisions, lost a
+// date, the toolbar stopped linking to it, or the JSON dropped a companion URL,
+// this fails the build's test suite.
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
 const wikiDir = path.join(projectRoot, 'dist', 'wiki');
+const ORIGIN = 'https://taopedia.org';
+
+// ---- 0) Unit: buildArticleInfo produces the correct JSON shape -------------
+{
+  const result = buildArticleInfo({
+    title: 'Recycling',
+    slug: 'recycling',
+    origin: ORIGIN,
+    categories: ['Consensus'],
+    incomingLinks: 5,
+    revisionCount: 3,
+    firstEdited: '2024-01-01T00:00:00.000Z',
+    lastEdited: '2024-06-01T00:00:00.000Z',
+  });
+  assert.equal(result.url, `${ORIGIN}/wiki/recycling/`, 'builder: url');
+  assert.equal(result.backlinksUrl, `${ORIGIN}/wiki/recycling/backlinks/`, 'builder: backlinksUrl');
+  assert.equal(result.citeUrl, `${ORIGIN}/wiki/recycling/cite/`, 'builder: citeUrl');
+  assert.equal(result.historyUrl, `${ORIGIN}/wiki/recycling/history/`, 'builder: historyUrl');
+  assert.deepEqual(result.categories, ['Consensus'], 'builder: categories');
+  assert.equal(result.incomingLinks, 5, 'builder: incomingLinks');
+  assert.equal(result.revisionCount, 3, 'builder: revisionCount');
+
+  const empty = buildArticleInfo({ title: 'X', slug: 'x', origin: ORIGIN });
+  assert.equal(empty.incomingLinks, 0, 'builder: default incomingLinks is 0');
+  assert.equal(empty.revisionCount, 0, 'builder: default revisionCount is 0');
+  assert.equal(empty.firstEdited, null, 'builder: default firstEdited is null');
+  assert.equal(empty.lastEdited, null, 'builder: default lastEdited is null');
+  assert.deepEqual(empty.categories, [], 'builder: default categories is []');
+  assert.equal(empty.citeUrl, `${ORIGIN}/wiki/x/cite/`, 'builder: citeUrl with defaults');
+}
 const historyDir = path.join(projectRoot, 'public', 'history');
 const slugmapFile = path.join(projectRoot, 'public', 'data', 'slugmap.json');
 const backlinksFile = path.join(projectRoot, 'public', 'data', 'backlinks.json');
@@ -126,6 +159,24 @@ for (const slug of articleSlugs) {
     articleHtml.includes(`href="/wiki/${slug}/info/"`),
     `the article toolbar for /wiki/${slug}/ must link to its Page information (discovery path)`,
   );
+
+  // info.json: the machine-readable companion must include every companion URL
+  // that the HTML toolbar advertises (article, backlinks, cite, history) so
+  // programmatic consumers can navigate the same link set.
+  const infoJsonFile = path.join(wikiDir, slug, 'info.json');
+  assert.ok(fs.existsSync(infoJsonFile), `/wiki/${slug}/info.json must be built alongside the HTML info page`);
+  const infoJson = JSON.parse(fs.readFileSync(infoJsonFile, 'utf8'));
+  assert.equal(infoJson.slug, slug, `/wiki/${slug}/info.json slug must match`);
+  assert.ok(
+    typeof infoJson.url === 'string' && /^https?:\/\//.test(infoJson.url),
+    `/wiki/${slug}/info.json url must be an absolute URL`,
+  );
+  // Extract the origin from the article URL so the companion-URL checks are
+  // independent of the configured site value.
+  const jsonOrigin = new URL(infoJson.url).origin;
+  assert.equal(infoJson.backlinksUrl, `${jsonOrigin}/wiki/${slug}/backlinks/`, `/wiki/${slug}/info.json backlinksUrl`);
+  assert.equal(infoJson.citeUrl, `${jsonOrigin}/wiki/${slug}/cite/`, `/wiki/${slug}/info.json citeUrl`);
+  assert.equal(infoJson.historyUrl, `${jsonOrigin}/wiki/${slug}/history/`, `/wiki/${slug}/info.json historyUrl`);
 
   if (inboundCountFor(slug) > 0) verifiedWithLinks++;
   if (history.length > 1) verifiedMultiRevision++;
