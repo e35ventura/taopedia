@@ -401,6 +401,13 @@ const nonSpaceDelimitedTitleAttrPattern = /<[^>]*[/"'`](?:title)\s*=/i;
 const ariaDescribedbyAttrPattern = /<[^>]*\saria-describedby\s*=/i;
 const nonSpaceDelimitedAriaDescribedbyAttrPattern = /<[^>]*[/"'`](?:aria-describedby)\s*=/i;
 
+// role= overrides an element's accessibility semantics — e.g. role="alert" makes
+// assistive tech announce injected text as an urgent live region, and role="button"
+// on a link changes how it is presented. Same accessibility-spoof family as merged
+// #501, #550, and #553. Glossary prose never needs custom roles.
+const roleAttrPattern = /<[^>]*\srole\s*=/i;
+const nonSpaceDelimitedRoleAttrPattern = /<[^>]*[/"'`](?:role)\s*=/i;
+
 // nowrap on allowed <td>/<th> disables text wrapping in the cell — an injected
 // long URL, fake wallet address, or padded phishing line breaks out of the
 // column, reflowing the real article text off-screen (a layout-defacement /
@@ -885,6 +892,13 @@ export function validateArticleContent(slug, content) {
     throw new Error(
       `Unsafe article content in "${slug}": aria-describedby attributes are not allowed in article content`,
     );
+  }
+
+  if (
+    roleAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedRoleAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(`Unsafe article content in "${slug}": role attributes are not allowed in article content`);
   }
 
   if (
