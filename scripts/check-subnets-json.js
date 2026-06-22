@@ -113,6 +113,13 @@ assert.ok(
   `site must be a non-empty URL string (got ${JSON.stringify(data.site)})`,
 );
 
+// url — the registry's own canonical endpoint URL.
+assert.equal(
+  data.url,
+  `${data.site}/wiki/special/subnets.json`,
+  `url must be the canonical subnets.json endpoint URL (got ${JSON.stringify(data.url)})`,
+);
+
 // count field.
 assert.ok(typeof data.count === 'number' && data.count > 0, `count must be a positive number (got ${data.count})`);
 assert.equal(data.count, data.subnets.length, 'count must equal subnets.length');
