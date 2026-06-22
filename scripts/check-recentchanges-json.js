@@ -57,6 +57,15 @@ for (const change of data.changes) {
     `${data.site}/wiki/${change.slug}/`,
     `change url must equal ${data.site}/wiki/${change.slug}/ for ${change.slug}`,
   );
+  assert.ok(
+    change.historyUrl.startsWith(`${data.site}/wiki/`),
+    `change historyUrl must be absolute and start with the envelope site (got ${change.historyUrl})`,
+  );
+  assert.equal(
+    change.historyUrl,
+    `${data.site}/wiki/${change.slug}/history/`,
+    `change historyUrl must equal ${data.site}/wiki/${change.slug}/history/ for ${change.slug}`,
+  );
   assert.equal(change.title, slugmap[change.slug]?.title, `change title must match the article title for ${change.slug}`);
   assert.ok(typeof change.date === 'string' && !Number.isNaN(Date.parse(change.date)), `change has an invalid date: ${change.date}`);
 }
@@ -99,11 +108,17 @@ const html = fs.readFileSync(htmlFile, 'utf8');
 const htmlRows = [...html.matchAll(/<li[^>]*class="mw-rc-row"[^>]*>([\s\S]*?)<\/li>/g)].map(([, block]) => ({
   date: (block.match(/datetime="([^"]+)"/) || [])[1],
   slug: ((block.match(/mw-rc-title[^>]*href="([^"]+)"/) || [])[1] || '').split('/')[2],
+  historyPath: (block.match(/mw-rc-hist[^>]*href="([^"]+)"/) || [])[1],
 }));
 assert.equal(htmlRows.length, data.changes.length, `the JSON feed (${data.changes.length}) and HTML page (${htmlRows.length}) must list the same number of changes`);
 htmlRows.forEach((row, i) => {
   assert.equal(data.changes[i].slug, row.slug, `change ${i}: JSON slug (${data.changes[i].slug}) must equal the HTML row slug (${row.slug})`);
   assert.equal(data.changes[i].date, row.date, `change ${i}: JSON date must equal the HTML row date`);
+  assert.equal(
+    data.changes[i].historyUrl,
+    `${data.site}${row.historyPath}`,
+    `change ${i}: JSON historyUrl must match the HTML hist link`,
+  );
 });
 
 console.log(`Recent changes JSON check passed (${data.count} changes, newest ${data.changes[0].date}; validated against history + HTML page)`);
