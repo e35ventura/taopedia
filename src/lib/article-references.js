@@ -20,6 +20,7 @@ export const buildArticleReferences = ({ slug, title, origin, references = [] })
   slug,
   title,
   url: `${origin}/wiki/${slug}/`,
+  referencesUrl: `${origin}/wiki/${slug}/references.json`,
   count: references.length,
   references: references.map((link) => ({
     slug: link.slug,
