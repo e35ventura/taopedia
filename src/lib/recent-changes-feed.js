@@ -6,6 +6,8 @@ const changeSummary = (change) => {
   return message;
 };
 
+const recentChangeJsonFeedId = (change) => `urn:taopedia:recentchanges:${change.slug}:${change.sha}`;
+
 export const buildRecentChangesAtomItems = ({ changes = [], origin }) =>
   changes.map((change) => ({
     id: `urn:sha1:${change.sha}`,
@@ -26,4 +28,16 @@ export const buildRecentChangesRssItems = ({ changes = [], origin, categoriesByS
     description: changeSummary(change),
     categories: Array.isArray(categoriesBySlug[change.slug]) ? categoriesBySlug[change.slug] : [],
     date: change.date,
+  }));
+
+export const buildRecentChangesJsonFeedItems = ({ changes = [], origin, categoriesBySlug = {} }) =>
+  changes.map((change) => ({
+    id: recentChangeJsonFeedId(change),
+    title: change.title,
+    url: `${origin}/wiki/${change.slug}/`,
+    image: `${origin}/og/${change.slug}.png`,
+    description: changeSummary(change),
+    categories: Array.isArray(categoriesBySlug[change.slug]) ? categoriesBySlug[change.slug] : [],
+    datePublished: change.date,
+    dateModified: change.date,
   }));
