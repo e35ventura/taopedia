@@ -862,6 +862,19 @@ accepts('<a href="/wiki/aria-disabled=demo">aria-disabled docs</a>', 'benign ari
 accepts('ARIA disabled state is an accessibility concept described here only as prose.', 'benign aria-disabled prose');
 accepts('<span class=x/aria-required-demo>not an aria-required attribute</span>', 'benign aria-required substring in class value');
 
+// aria-valuenow=/aria-valuemin=/aria-valuemax=/aria-valuetext= fake gauge readings —
+// same family as merged #587 (form state), #582 (aria-busy), and blocked
+// <meter>/<progress> elements.
+rejects('Intro.\n\n<div aria-valuenow="80" aria-valuetext="80% wallet scan complete">Scanning…</div>', 'plain aria-valuenow and aria-valuetext attributes');
+rejects('Intro.\n\n<div aria-valuemin="0" aria-valuemax="100" aria-valuenow="95">Risk gauge</div>', 'plain aria-value range attributes');
+rejects('Intro.\n\n<  div   aria-valuenow = "80">x</div>', 'spaced aria-valuenow attribute');
+rejects('<div class=x/aria-valuetext="complete">x</div>', 'slash-delimited aria-valuetext attribute');
+rejects("<p class='x'aria-valuemax='100'>x</p>", 'single-quote-abutted aria-valuemax attribute');
+
+accepts('<a href="/wiki/aria-valuenow=demo">aria-valuenow docs</a>', 'benign aria-valuenow substring in quoted href');
+accepts('ARIA value now is an accessibility concept described here only as prose.', 'benign aria-valuenow prose');
+accepts('<span class=x/aria-valuetext-demo>not an aria-valuetext attribute</span>', 'benign aria-valuetext substring in class value');
+
 // srcset=/sizes= on <img> steer responsive loading — gap after #411 blocked picture/source.
 rejects('Intro.\n\n<img src="/wiki/fig.png" srcset="https://evil.example/x 1x" alt="x">', 'plain img srcset attribute');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   srcset = "https://evil.example/x 2x">', 'spaced img srcset attribute');

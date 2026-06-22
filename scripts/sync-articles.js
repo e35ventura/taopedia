@@ -550,6 +550,17 @@ const ariaFormStateAttrPattern = /<[^>]*\saria-(?:disabled|readonly|required)\s*
 const nonSpaceDelimitedAriaFormStateAttrPattern =
   /<[^>]*[/"'`](?:aria-(?:disabled|readonly|required))\s*=/i;
 
+// aria-valuenow=/aria-valuemin=/aria-valuemax=/aria-valuetext= fake gauge and
+// range readings in assistive technology — e.g. aria-valuenow="80" with
+// aria-valuetext="80% wallet scan complete" announces a fake progress meter
+// even though <meter>/<progress> elements are already blocked (#156). Same
+// accessibility-state spoof family as merged #587 (form state), #582
+// (aria-busy), and the blocked meter/progress elements. Glossary prose never
+// emits live gauge ARIA on static HTML.
+const ariaValueAttrPattern = /<[^>]*\saria-(?:valuenow|valuemin|valuemax|valuetext)\s*=/i;
+const nonSpaceDelimitedAriaValueAttrPattern =
+  /<[^>]*[/"'`](?:aria-(?:valuenow|valuemin|valuemax|valuetext))\s*=/i;
+
 // nowrap on allowed <td>/<th> disables text wrapping in the cell — an injected
 // long URL, fake wallet address, or padded phishing line breaks out of the
 // column, reflowing the real article text off-screen (a layout-defacement /
@@ -1176,6 +1187,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": aria-disabled, aria-readonly, and aria-required attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    ariaValueAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAriaValueAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": aria-valuenow, aria-valuemin, aria-valuemax, and aria-valuetext attributes are not allowed in article content`,
     );
   }
 
