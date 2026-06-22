@@ -728,6 +728,24 @@ accepts('<img src="/wiki/fig.png" alt="the ismap attribute is obsolete">', 'beni
 accepts('<img src=/wiki/ismap-demo.png alt=diagram>', 'benign unquoted img src path containing ismap substring');
 accepts('<img src=/wiki/ismap.png alt=diagram>', 'benign unquoted img src path with ismap followed by extension dot');
 
+// target= on an allowed <a> overrides the site's deliberate link policy:
+// rehype-external-links always pairs target="_blank" with rel="noopener
+// noreferrer", so a raw author target="_blank" re-exposes the window.opener
+// reverse-tabnabbing / referrer leak that plugin prevents, and target="_top" or a
+// named-frame target hijacks the navigation context. Same policy-subversion class
+// as the merged referrerpolicy=/ping=/download= blocks; Markdown never emits
+// target= (the build adds it after sanitization). Scanned on
+// emptyQuotedAttributeValues() so a quoted href query string mentioning target passes.
+rejects('Read [docs](https://x.example/) <a href="https://evil.example/" target="_blank">claim TAO</a>.', 'plain anchor target attribute');
+rejects('Intro.\n\n<  a   href="/wiki/stake/"   target = "_blank">x</a>', 'spaced anchor target attribute');
+rejects('Intro.\n\n<a href="/wiki/stake/" target="_top">x</a>', 'anchor target _top navigation-context hijack');
+rejects('<a href="/wiki/stake/"target="_blank">x</a>', 'quote-abutted anchor target attribute');
+rejects('<a href=/wiki/stake/target=_blank>x</a>', 'slash-abutted anchor target attribute');
+
+accepts('See <a href="/wiki/stake?target=summer">stake docs</a> for details.', 'benign target= inside quoted href');
+accepts('Opening links in a new target window is described here only as prose.', 'benign target prose');
+accepts('<a href="/wiki/target-list">internal link</a>', 'benign target substring in quoted href');
+
 // Prose that merely mentions these English words without the directive colon
 // must still pass — guard the new patterns against false positives.
 accepts('This client is set to define the class list style, and the server is fast.', 'benign client/server/set/class/define prose');
