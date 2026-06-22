@@ -6,11 +6,11 @@ const changeSummary = (change) => {
   return message;
 };
 
-const recentChangeJsonFeedId = (change) => `urn:taopedia:recentchanges:${change.slug}:${change.sha}`;
+const recentChangeEventId = (change) => `urn:taopedia:recentchanges:${change.slug}:${change.sha}`;
 
 export const buildRecentChangesAtomItems = ({ changes = [], origin }) =>
   changes.map((change) => ({
-    id: `urn:sha1:${change.sha}`,
+    id: recentChangeEventId(change),
     title: change.title,
     url: `${origin}/wiki/${change.slug}/`,
     image: `${origin}/og/${change.slug}.png`,
@@ -21,7 +21,7 @@ export const buildRecentChangesAtomItems = ({ changes = [], origin }) =>
 
 export const buildRecentChangesRssItems = ({ changes = [], origin, categoriesBySlug = {} }) =>
   changes.map((change) => ({
-    guid: `urn:sha1:${change.sha}`,
+    guid: recentChangeEventId(change),
     title: change.title,
     url: `${origin}/wiki/${change.slug}/`,
     image: `${origin}/og/${change.slug}.png`,
@@ -32,7 +32,7 @@ export const buildRecentChangesRssItems = ({ changes = [], origin, categoriesByS
 
 export const buildRecentChangesJsonFeedItems = ({ changes = [], origin, categoriesBySlug = {} }) =>
   changes.map((change) => ({
-    id: recentChangeJsonFeedId(change),
+    id: recentChangeEventId(change),
     title: change.title,
     url: `${origin}/wiki/${change.slug}/`,
     image: `${origin}/og/${change.slug}.png`,

@@ -70,7 +70,7 @@ const hasAlternateLink = (linkTags, type, href) =>
       {
         slug: 'subnet_10',
         title: 'Subnet 10',
-        sha: 'def456',
+        sha: 'abc123',
         date: '2026-06-21T09:28:57.000Z',
         authorName: 'Bob',
         message: '',
@@ -82,7 +82,7 @@ const hasAlternateLink = (linkTags, type, href) =>
     items,
     [
       {
-        guid: 'urn:sha1:abc123',
+        guid: 'urn:taopedia:recentchanges:subnet_9:abc123',
         title: 'Subnet 9',
         url: `${ORIGIN}/wiki/subnet_9/`,
         image: `${ORIGIN}/og/subnet_9.png`,
@@ -91,7 +91,7 @@ const hasAlternateLink = (linkTags, type, href) =>
         date: '2026-06-21T10:53:45.000Z',
       },
       {
-        guid: 'urn:sha1:def456',
+        guid: 'urn:taopedia:recentchanges:subnet_10:abc123',
         title: 'Subnet 10',
         url: `${ORIGIN}/wiki/subnet_10/`,
         image: `${ORIGIN}/og/subnet_10.png`,
@@ -100,7 +100,7 @@ const hasAlternateLink = (linkTags, type, href) =>
         date: '2026-06-21T09:28:57.000Z',
       },
     ],
-    'helper must build stable RSS items with per-revision guids, canonical URLs, OG images, summaries, and categories',
+    'helper must build stable RSS items with per-event guids, canonical URLs, OG images, summaries, and categories even when multiple articles share one revision sha',
   );
 }
 
@@ -228,7 +228,11 @@ for (let i = 0; i < limitedChanges.length; i++) {
   assert.equal(title, expected.title, `item ${i}: title must match the article title`);
   assert.equal(link, `${ORIGIN}/wiki/${expected.slug}/`, `item ${i}: link must be the canonical article URL`);
   assert.equal(guidMatch[1], 'false', `item ${i}: guid must be marked as a non-permalink revision id`);
-  assert.equal(guid, `urn:sha1:${expected.sha}`, `item ${i}: guid must use the revision sha`);
+  assert.equal(
+    guid,
+    `urn:taopedia:recentchanges:${expected.slug}:${expected.sha}`,
+    `item ${i}: guid must use a stable per-event identifier`,
+  );
   assert.ok(!seenGuids.has(guid), `item ${i}: guid ${guid} must be unique`);
   seenGuids.add(guid);
   assert.equal(description, recentChangeSummary(expected), `item ${i}: description must match the author/message summary`);
