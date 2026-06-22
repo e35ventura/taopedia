@@ -743,6 +743,16 @@ rejects('<p class=x/aria-roledescription="Security Alert">x</p>', 'slash-delimit
 accepts('<a href="/wiki/aria-roledescription=demo">aria-roledescription docs</a>', 'benign aria-roledescription substring in quoted href');
 accepts('ARIA roledescription is an accessibility concept described here only as prose.', 'benign aria-roledescription prose');
 
+// aria-busy=/aria-current= fake status/navigation state — same family as merged #559–#561.
+rejects('Intro.\n\n<div aria-busy="true">Scanning wallet for vulnerabilities…</div>', 'plain aria-busy loading-status spoof');
+rejects('Intro.\n\n<a href="https://evil.example/" aria-current="page">Official staking page</a>', 'plain aria-current navigation spoof');
+rejects('Intro.\n\n<  div   aria-busy = "true">x</div>', 'spaced aria-busy attribute');
+rejects('<a href="x"aria-current="page">go</a>', 'quote-abutted aria-current attribute');
+rejects('<div class=x/aria-busy="true">x</div>', 'slash-delimited aria-busy attribute');
+
+accepts('<a href="/wiki/aria-busy=demo">aria-busy docs</a>', 'benign aria-busy substring in quoted href');
+accepts('ARIA busy state and current page markers are described here only as prose.', 'benign aria-busy/aria-current prose');
+
 // srcset=/sizes= on <img> steer responsive loading — gap after #411 blocked picture/source.
 rejects('Intro.\n\n<img src="/wiki/fig.png" srcset="https://evil.example/x 1x" alt="x">', 'plain img srcset attribute');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   srcset = "https://evil.example/x 2x">', 'spaced img srcset attribute');

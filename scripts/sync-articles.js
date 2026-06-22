@@ -444,6 +444,15 @@ const nonSpaceDelimitedAriaDisclosureAttrPattern = /<[^>]*[/"'`](?:aria-(?:contr
 const ariaRoledescriptionAttrPattern = /<[^>]*\saria-roledescription\s*=/i;
 const nonSpaceDelimitedAriaRoledescriptionAttrPattern = /<[^>]*[/"'`](?:aria-roledescription)\s*=/i;
 
+// aria-busy=/aria-current= report false status or navigation state to assistive
+// tech — aria-busy="true" announces a fake loading/updating region (the attribute
+// path left open after <meter>/<progress> elements were blocked), and aria-current
+// marks injected links as the current page in navigation. The site uses
+// aria-current only in Astro layouts (breadcrumbs, tabs), never in synced article
+// HTML. Same accessibility-spoof family as merged #559–#561.
+const ariaStatusNavAttrPattern = /<[^>]*\saria-(?:busy|current)\s*=/i;
+const nonSpaceDelimitedAriaStatusNavAttrPattern = /<[^>]*[/"'`](?:aria-(?:busy|current))\s*=/i;
+
 // nowrap on allowed <td>/<th> disables text wrapping in the cell — an injected
 // long URL, fake wallet address, or padded phishing line breaks out of the
 // column, reflowing the real article text off-screen (a layout-defacement /
@@ -988,6 +997,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": aria-roledescription attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    ariaStatusNavAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAriaStatusNavAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": aria-busy and aria-current attributes are not allowed in article content`,
     );
   }
 
