@@ -373,6 +373,30 @@ const quoteAbuttedInertAttrPattern = /<[^>]*["'`]inert(?=[\s>/=])/i;
 const ariaNameAttrPattern = /<[^>]*\saria-(?:label|labelledby)\s*=/i;
 const nonSpaceDelimitedAriaNameAttrPattern = /<[^>]*[/"'`]aria-(?:label|labelledby)\s*=/i;
 
+// HTML microdata attributes (itemscope, itemtype, itemprop, itemref, itemid)
+// inject Schema.org-style structured data into the rendered article body without
+// script and without any blocked scheme: an attacker-supplied
+// `<div itemscope itemtype="https://schema.org/Product"><span itemprop="name">TAO wallet</span>
+// <span itemprop="price">$0</span> <span itemprop="aggregateRating" itemscope
+// itemtype="https://schema.org/AggregateRating"><span itemprop="ratingValue">5</span></span></div>`
+// renders in the article body AND surfaces to Google as a Rich Result "Product
+// with 5-star rating" — a content-spoof primitive that survives every sanitizer
+// gate today (no element is blocked, no attribute is blocked, no scheme is
+// flagged) and bypasses the JSON-LD structured-data the build emits in
+// `src/components/StructuredData.astro` because the microdata becomes part of
+// the rendered article HTML. The wiki ships 308+ glossary articles indexed by
+// Google; a single article with injected Product/Offer/Rating/Review microdata
+// can poison the search-result snippet for every reader who lands on it. A
+// glossary body never needs Schema.org microdata of its own (the structured
+// data lives in the per-page JSON-LD graph, not in prose), so block the entire
+// microdata attribute family — itemscope (boolean, scoped by the same
+// [\s>/=] lookahead autofocus/hidden use), itemtype/itemprop/itemref/itemid
+// (value attributes, paired whitespace- and non-space-delimited scans like the
+// merged aria-label / contenteditable / style blocks).
+const microdataAttrPattern = /<[^>]*\s(?:itemscope|itemtype|itemprop|itemref|itemid)(?=[\s>/=])/i;
+const nonSpaceDelimitedMicrodataAttrPattern = /<[^>]*[/"'`](?:itemtype|itemprop|itemref|itemid)\s*=/i;
+const quoteAbuttedItemscopePattern = /<[^>]*["'`]itemscope(?=[\s>/=])/i;
+
 // nowrap on allowed <td>/<th> disables text wrapping in the cell — an injected
 // long URL, fake wallet address, or padded phishing line breaks out of the
 // column, reflowing the real article text off-screen (a layout-defacement /
@@ -817,6 +841,16 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": aria-label and aria-labelledby attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    microdataAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedMicrodataAttrPattern.test(emptiedAttributeContent)
+    || quoteAbuttedItemscopePattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": itemscope, itemtype, itemprop, itemref, and itemid microdata attributes are not allowed in article content`,
     );
   }
 

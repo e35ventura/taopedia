@@ -651,6 +651,28 @@ accepts('ARIA labels are an accessibility concept described here only as prose.'
 accepts('<a href="/wiki/aria-label=demo">ARIA label docs</a>', 'benign aria-label substring in quoted href');
 accepts('<span class=x/aria-label-demo>ARIA label class example</span>', 'benign aria-label substring in class value');
 
+// HTML microdata attributes (itemscope, itemtype, itemprop, itemref, itemid)
+// inject Schema.org-style structured data into the rendered article body. A
+// glossary body never needs microdata of its own — the build's structured data
+// lives in the JSON-LD graph in src/components/StructuredData.astro, not in
+// prose — so block the whole family.
+rejects('Intro.\n\n<div itemscope itemtype="https://schema.org/Product"><span itemprop="name">TAO wallet</span><span itemprop="price">$0</span></div>', 'plain microdata itemscope+itemtype+itemprop');
+rejects('Intro.\n\n<a href="/wiki/tao/" itemprop="url">tao</a>', 'plain itemprop on allowed <a>');
+rejects('Intro.\n\n<div itemscope></div>', 'plain itemscope boolean');
+rejects('Intro.\n\n<  div   itemscope   ></div>', 'spaced itemscope boolean');
+rejects('Intro.\n\n<img src="/wiki/fig.png" itemprop="image" alt="x">', 'plain img itemprop');
+rejects('Intro.\n\n<div itemref="summary"></div>', 'plain itemref attribute');
+rejects('Intro.\n\n<div itemid="urn:isbn:1234"></div>', 'plain itemid attribute');
+rejects('Intro.\n\n<div   itemtype = "https://schema.org/Product"></div>', 'spaced itemtype attribute');
+rejects('<a href="x"itemprop="name">go</a>', 'quote-abutted itemprop attribute');
+rejects('<img src="/wiki/fig.png"/itemtype="https://schema.org/Product">', 'slash-delimited itemtype attribute');
+rejects('<div class="x"itemscope></div>', 'quote-abutted itemscope boolean');
+accepts('Schema.org microdata is a vocabulary described here only as prose.', 'benign schema.org prose');
+accepts('itemscope, itemtype, and itemprop are HTML5 attributes; article bodies do not need them.', 'benign microdata attribute names in prose');
+accepts('<a href="/wiki/itemprop=demo">microdata attribute demo</a>', 'benign itemprop substring in quoted href');
+accepts('<span class=x/itemprop-demo>itemprop class example</span>', 'benign itemprop substring in class value');
+accepts('<div class="itemscope">plain div</div>', 'benign itemscope as a class value');
+
 // srcset=/sizes= on <img> steer responsive loading — gap after #411 blocked picture/source.
 rejects('Intro.\n\n<img src="/wiki/fig.png" srcset="https://evil.example/x 1x" alt="x">', 'plain img srcset attribute');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   srcset = "https://evil.example/x 2x">', 'spaced img srcset attribute');
