@@ -1,0 +1,21 @@
+export const buildArticleInfo = ({
+  title,
+  slug,
+  origin,
+  categories = [],
+  incomingLinks = 0,
+  revisionCount = 0,
+  firstEdited = null,
+  lastEdited = null,
+}) => ({
+  title,
+  slug,
+  url: `${origin}/wiki/${slug}/`,
+  categories,
+  incomingLinks,
+  backlinksUrl: `${origin}/wiki/${slug}/backlinks/`,
+  revisionCount,
+  historyUrl: `${origin}/wiki/${slug}/history/`,
+  firstEdited: firstEdited ?? null,
+  lastEdited: lastEdited ?? null,
+});
