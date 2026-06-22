@@ -688,6 +688,16 @@ rejects('<img src="/wiki/fig.png"/aria-describedby="fake-caption">', 'slash-deli
 accepts('<a href="/wiki/aria-describedby=demo">ARIA describedby docs</a>', 'benign aria-describedby substring in quoted href');
 accepts('ARIA describedby is an accessibility concept described here only as prose.', 'benign aria-describedby prose');
 
+// role= overrides accessibility semantics — same family as merged #501/#550/#553.
+rejects('Intro.\n\n<p role="alert">Wallet compromised — act now</p>', 'plain role=alert live-region spoof');
+rejects('Intro.\n\n<a href="https://evil.example/" role="button">claim TAO</a>', 'plain role attribute on anchor');
+rejects('Intro.\n\n<  p   role = "alert">x</p>', 'spaced role attribute');
+rejects('<a href="x"role="button">go</a>', 'quote-abutted role attribute');
+rejects('<p class=x/role="alert">x</p>', 'slash-delimited role attribute');
+
+accepts('<a href="/wiki/role=demo">role docs</a>', 'benign role substring in quoted href');
+accepts('Each subnet role and validator role are described here only as prose.', 'benign role prose');
+
 // srcset=/sizes= on <img> steer responsive loading — gap after #411 blocked picture/source.
 rejects('Intro.\n\n<img src="/wiki/fig.png" srcset="https://evil.example/x 1x" alt="x">', 'plain img srcset attribute');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   srcset = "https://evil.example/x 2x">', 'spaced img srcset attribute');
