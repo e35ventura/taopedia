@@ -1,3 +1,5 @@
+const trimTrailingSlash = (value) => String(value || '').replace(/\/+$/, '');
+
 export const buildArticleInfo = ({
   title,
   slug,
@@ -7,15 +9,19 @@ export const buildArticleInfo = ({
   revisionCount = 0,
   firstEdited = null,
   lastEdited = null,
-}) => ({
-  title,
-  slug,
-  url: `${origin}/wiki/${slug}/`,
-  categories,
-  incomingLinks,
-  backlinksUrl: `${origin}/wiki/${slug}/backlinks/`,
-  revisionCount,
-  historyUrl: `${origin}/wiki/${slug}/history/`,
-  firstEdited: firstEdited ?? null,
-  lastEdited: lastEdited ?? null,
-});
+}) => {
+  const canonicalOrigin = trimTrailingSlash(origin || 'https://taopedia.org');
+
+  return {
+    title,
+    slug,
+    url: `${canonicalOrigin}/wiki/${slug}/`,
+    categories,
+    incomingLinks,
+    backlinksUrl: `${canonicalOrigin}/wiki/${slug}/backlinks/`,
+    revisionCount,
+    historyUrl: `${canonicalOrigin}/wiki/${slug}/history/`,
+    firstEdited: firstEdited ?? null,
+    lastEdited: lastEdited ?? null,
+  };
+};

@@ -18,6 +18,26 @@ assert.ok(fs.existsSync(backlinksFile), 'public/data/backlinks.json not found; r
 
 const slugmap = JSON.parse(fs.readFileSync(slugmapFile, 'utf8'));
 const backlinksData = JSON.parse(fs.readFileSync(backlinksFile, 'utf8'));
+const infoWithSlashOrigin = buildArticleInfo({
+  title: 'Origin normalization fixture',
+  slug: 'origin_normalization',
+  origin: 'https://taopedia.org/',
+});
+assert.equal(
+  infoWithSlashOrigin.url,
+  'https://taopedia.org/wiki/origin_normalization/',
+  'info.json url must normalize a trailing slash on origin so the article URL is not emitted with //',
+);
+assert.equal(
+  infoWithSlashOrigin.backlinksUrl,
+  'https://taopedia.org/wiki/origin_normalization/backlinks/',
+  'info.json backlinksUrl must normalize a trailing slash on origin',
+);
+assert.equal(
+  infoWithSlashOrigin.historyUrl,
+  'https://taopedia.org/wiki/origin_normalization/history/',
+  'info.json historyUrl must normalize a trailing slash on origin',
+);
 const decode = (s) =>
   s
     .replace(/&lt;/g, '<')
