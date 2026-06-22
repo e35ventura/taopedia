@@ -415,6 +415,13 @@ const nonSpaceDelimitedRoleAttrPattern = /<[^>]*[/"'`](?:role)\s*=/i;
 const ariaHiddenAttrPattern = /<[^>]*\saria-hidden\s*=/i;
 const nonSpaceDelimitedAriaHiddenAttrPattern = /<[^>]*[/"'`](?:aria-hidden)\s*=/i;
 
+// aria-live=/aria-atomic= turn injected markup into live regions that interrupt
+// assistive tech with attacker-chosen text — the attribute counterpart to merged
+// #554 role="alert". aria-live="assertive" announces immediately; aria-atomic="true"
+// forces the whole region to be read. Glossary prose never needs live regions.
+const ariaLiveRegionAttrPattern = /<[^>]*\saria-(?:live|atomic)\s*=/i;
+const nonSpaceDelimitedAriaLiveRegionAttrPattern = /<[^>]*[/"'`](?:aria-(?:live|atomic))\s*=/i;
+
 // nowrap on allowed <td>/<th> disables text wrapping in the cell — an injected
 // long URL, fake wallet address, or padded phishing line breaks out of the
 // column, reflowing the real article text off-screen (a layout-defacement /
@@ -933,6 +940,15 @@ export function validateArticleContent(slug, content) {
     || nonSpaceDelimitedAriaHiddenAttrPattern.test(emptiedAttributeContent)
   ) {
     throw new Error(`Unsafe article content in "${slug}": aria-hidden attributes are not allowed in article content`);
+  }
+
+  if (
+    ariaLiveRegionAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAriaLiveRegionAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": aria-live and aria-atomic attributes are not allowed in article content`,
+    );
   }
 
   if (
