@@ -648,6 +648,23 @@ rejects('<th class=x/rowspan="99">', 'slash-delimited th rowspan attribute');
 accepts('<table><tr><td>x</td></tr></table>', 'plain td without colspan/rowspan');
 accepts('Column span and row span are described here only as prose.', 'benign colspan/rowspan prose');
 
+// char=/charoff= on allowed <td>/<th> are the obsolete HTML4 character-alignment
+// attributes: char= names the alignment character (e.g. char=".") and charoff= sets
+// the offset — together they control visual column alignment without the blocked
+// inline style= attribute. Same obsolete-presentational family as the merged
+// width/height (#465), colspan/rowspan (#479), and nowrap (#479) blocks on table cells.
+rejects('Intro.\n\n<table><tr><td char=".">1.00</td></tr></table>', 'plain td char attribute');
+rejects('Intro.\n\n<table><tr><td   char = ".">x</td></tr></table>', 'spaced td char attribute');
+rejects('Intro.\n\n<table><tr><th char=",">x</th></tr></table>', 'plain th char attribute');
+rejects('Intro.\n\n<table><tr><td charoff="20">x</td></tr></table>', 'plain td charoff attribute');
+rejects('Intro.\n\n<table><tr><td   charoff = "10">x</td></tr></table>', 'spaced td charoff attribute');
+rejects('Intro.\n\n<table><tr><th charoff="5">x</th></tr></table>', 'plain th charoff attribute');
+rejects('<td class="x"char=".">x</td>', 'quote-abutted td char attribute');
+rejects('<th class=x/charoff="20">', 'slash-delimited th charoff attribute');
+
+accepts('<table><tr><td>x</td></tr></table>', 'plain td without char/charoff');
+accepts('Character alignment and charoff are described here only as prose.', 'benign char/charoff prose');
+
 rejects('Intro.\n\n<div hidden>panel</div>', 'bare hidden attribute');
 rejects('Intro.\n\n<div hidden class="x">panel</div>', 'hidden before another attribute');
 rejects('Intro.\n\n<  p   hidden = "until-found">x</p>', 'spaced hidden attribute with value');

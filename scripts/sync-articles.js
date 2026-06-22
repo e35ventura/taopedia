@@ -433,6 +433,20 @@ const quoteAbuttedTdThNowrapAttrPattern = /<\s*(?:td|th)\b[^>]*["'`]nowrap(?=[\s
 const tdThSpanAttrPattern = /<\s*(?:td|th)\b[^>]*\s(?:colspan|rowspan)\s*=/i;
 const nonSpaceDelimitedTdThSpanAttrPattern = /<\s*(?:td|th)\b[^>]*[/"'`](?:colspan|rowspan)\s*=/i;
 
+// char=/charoff= on allowed <td>/<th> are the obsolete HTML4 character-alignment
+// attributes: char= names the alignment character (e.g. char=".") and charoff= sets
+// the offset from the cell edge. Together they let an injected cell control visual
+// column alignment without the blocked inline style= attribute — e.g.
+// <td char="." charoff="20"> shifts cell content to mimic a decimal-aligned column,
+// making a fake balance or fee table look like an official data layout. Same
+// obsolete-presentational family as the merged width/height (#465), colspan/rowspan
+// (#479), and nowrap (#479) blocks on table cells. Article tables never use
+// character alignment — the stylesheet handles alignment via CSS classes. Tag-scoped
+// to td|th and scanned on emptyQuotedAttributeValues() so benign prose or class
+// values mentioning "char" pass.
+const tdThCharAttrPattern = /<\s*(?:td|th)\b[^>]*\s(?:char|charoff)\s*=/i;
+const nonSpaceDelimitedTdThCharAttrPattern = /<\s*(?:td|th)\b[^>]*[/"'`](?:char|charoff)\s*=/i;
+
 // srcset=/sizes= on an allowed <img> steer responsive image loading to attacker-chosen
 // URLs — the gap left after merged #411 blocked <picture>/<source> but not plain
 // <img srcset>/<img sizes>. Tag-scoped, emptyQuotedAttributeValues(), ["'`] only.
@@ -950,6 +964,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": colspan and rowspan attributes are not allowed on table cells`,
+    );
+  }
+
+  if (
+    tdThCharAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedTdThCharAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": char and charoff attributes are not allowed on table cells`,
     );
   }
 
