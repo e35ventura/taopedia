@@ -60,7 +60,7 @@ const hasAlternateLink = (linkTags, type, href) =>
       {
         slug: 'subnet_10',
         title: 'Subnet 10',
-        sha: 'def456',
+        sha: 'abc123',
         date: '2026-06-21T09:28:57.000Z',
         authorName: 'Bob',
         message: '',
@@ -72,7 +72,7 @@ const hasAlternateLink = (linkTags, type, href) =>
     items,
     [
       {
-        id: 'urn:sha1:abc123',
+        id: 'urn:taopedia:recentchanges:subnet_9:abc123',
         title: 'Subnet 9',
         url: `${ORIGIN}/wiki/subnet_9/`,
         image: `${ORIGIN}/og/subnet_9.png`,
@@ -81,7 +81,7 @@ const hasAlternateLink = (linkTags, type, href) =>
         dateModified: '2026-06-21T10:53:45.000Z',
       },
       {
-        id: 'urn:sha1:def456',
+        id: 'urn:taopedia:recentchanges:subnet_10:abc123',
         title: 'Subnet 10',
         url: `${ORIGIN}/wiki/subnet_10/`,
         image: `${ORIGIN}/og/subnet_10.png`,
@@ -90,7 +90,7 @@ const hasAlternateLink = (linkTags, type, href) =>
         dateModified: '2026-06-21T09:28:57.000Z',
       },
     ],
-    'helper must build stable Atom items with per-revision ids, canonical URLs, OG images, and summaries',
+    'helper must build stable Atom items with per-event ids, canonical URLs, OG images, and summaries even when multiple articles share one revision sha',
   );
 }
 
@@ -197,7 +197,11 @@ for (let i = 0; i < limitedChanges.length; i++) {
 
   assert.ok(link, `entry ${i}: missing alternate article link`);
   assert.ok(image, `entry ${i}: missing OG image enclosure`);
-  assert.equal(entryId, `urn:sha1:${expected.sha}`, `entry ${i}: id must use the revision sha`);
+  assert.equal(
+    entryId,
+    `urn:taopedia:recentchanges:${expected.slug}:${expected.sha}`,
+    `entry ${i}: id must use a stable per-event identifier`,
+  );
   assert.ok(!seenIds.has(entryId), `entry ${i}: feed id ${entryId} must be unique`);
   seenIds.add(entryId);
 
