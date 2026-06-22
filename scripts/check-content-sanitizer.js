@@ -848,6 +848,21 @@ accepts('<a href="/wiki/aria-pressed=demo">aria-pressed docs</a>', 'benign aria-
 accepts('ARIA pressed state is an accessibility concept described here only as prose.', 'benign aria-pressed prose');
 accepts('<span class=x/aria-selected-demo>not an aria-selected attribute</span>', 'benign aria-selected substring in class value');
 
+// aria-haspopup= announces a popup trigger to AT — e.g. aria-haspopup="menu"
+// makes a link announce as a menu button (same family as merged #583 aria-pressed,
+// #559 aria-expanded). aria-modal= traps AT navigation inside the element — a
+// focus-jail primitive (same family as merged #556 aria-hidden, #554 role).
+rejects('Intro.\n\n<a href="https://evil.example/" aria-haspopup="menu">Wallet settings</a>', 'plain aria-haspopup attribute on anchor');
+rejects('Intro.\n\n<div aria-modal="true">Fake security dialog</div>', 'plain aria-modal attribute');
+rejects('Intro.\n\n<  a   href="/wiki/stake/"   aria-haspopup = "true">stake</a>', 'spaced aria-haspopup attribute');
+rejects('<a href="x"aria-haspopup="menu">go</a>', 'quote-abutted aria-haspopup attribute');
+rejects('<div class=x/aria-modal="true">x</div>', 'slash-delimited aria-modal attribute');
+rejects("<p class='x'aria-haspopup='listbox'>x</p>", 'single-quote-abutted aria-haspopup attribute');
+
+accepts('<a href="/wiki/aria-haspopup=demo">aria-haspopup docs</a>', 'benign aria-haspopup substring in quoted href');
+accepts('ARIA haspopup state is an accessibility concept described here only as prose.', 'benign aria-haspopup prose');
+accepts('<span class=x/aria-modal-demo>not an aria-modal attribute</span>', 'benign aria-modal substring in class value');
+
 // srcset=/sizes= on <img> steer responsive loading — gap after #411 blocked picture/source.
 rejects('Intro.\n\n<img src="/wiki/fig.png" srcset="https://evil.example/x 1x" alt="x">', 'plain img srcset attribute');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   srcset = "https://evil.example/x 2x">', 'spaced img srcset attribute');

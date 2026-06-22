@@ -539,6 +539,29 @@ const ariaToggleStateAttrPattern = /<[^>]*\saria-(?:pressed|checked|selected)\s*
 const nonSpaceDelimitedAriaToggleStateAttrPattern =
   /<[^>]*[/"'`](?:aria-(?:pressed|checked|selected))\s*=/i;
 
+// aria-haspopup= announces to assistive technology that an interactive element
+// triggers a popup — e.g. aria-haspopup="menu" on a link makes screen readers
+// announce it as a menu button that opens a native application menu, redirecting
+// AT users away from the actual link destination. Values include "true", "menu",
+// "listbox", "tree", "grid", and "dialog" — any value declares a fake popup
+// surface with no script or handler required. Same accessibility-widget spoof
+// family as merged #583 (aria-pressed/checked/selected), #582 (aria-busy), and
+// #559 (aria-expanded). Glossary articles never declare popup triggers — the
+// site's navigation components handle that in their own layout.
+const ariaHaspopupAttrPattern = /<[^>]*\saria-haspopup\s*=/i;
+const nonSpaceDelimitedAriaHaspopupAttrPattern = /<[^>]*[/"'`](?:aria-haspopup)\s*=/i;
+
+// aria-modal= restricts assistive technology navigation to the current dialog
+// container — e.g. aria-modal="true" on an attacker-authored <div> traps screen
+// reader and keyboard AT focus inside that container, a focus-jail primitive that
+// requires no script, handler, or CSS. Paired with aria-haspopup because both
+// declare popup/dialog widget behaviour via ARIA alone, with no blocked element
+// required. Same accessibility-spoof family as merged #583 (aria-pressed), #578
+// (microdata), #556 (aria-hidden), and #554 (role). Glossary articles never
+// restrict AT navigation — the site's dialog components manage their own scope.
+const ariaModalAttrPattern = /<[^>]*\saria-modal\s*=/i;
+const nonSpaceDelimitedAriaModalAttrPattern = /<[^>]*[/"'`](?:aria-modal)\s*=/i;
+
 // nowrap on allowed <td>/<th> disables text wrapping in the cell — an injected
 // long URL, fake wallet address, or padded phishing line breaks out of the
 // column, reflowing the real article text off-screen (a layout-defacement /
@@ -1156,6 +1179,17 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": aria-pressed, aria-checked, and aria-selected attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    ariaHaspopupAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAriaHaspopupAttrPattern.test(emptiedAttributeContent)
+    || ariaModalAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAriaModalAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": aria-haspopup and aria-modal attributes are not allowed in article content`,
     );
   }
 
