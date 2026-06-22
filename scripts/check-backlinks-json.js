@@ -37,6 +37,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.backlinksUrl, `${ORIGIN}/wiki/recycling/backlinks/`, 'builder: backlinksUrl field');
   assert.equal(result.backlinksJsonUrl, `${ORIGIN}/wiki/recycling/backlinks.json`, 'builder: backlinksJsonUrl field');
   assert.equal(result.historyUrl, `${ORIGIN}/wiki/recycling/history/`, 'builder: historyUrl field');
+  assert.equal(result.historyJsonUrl, `${ORIGIN}/wiki/recycling/history.json`, 'builder: historyJsonUrl field');
   assert.equal(result.count, 2, 'builder: count equals backlinks length');
   assert.equal(result.backlinks.length, 2, 'builder: backlinks array length');
   assert.equal(result.backlinks[0].slug, 'neuron', 'builder: backlinks[0].slug');
@@ -100,6 +101,7 @@ for (const slug of articleSlugs) {
   assert.equal(doc.backlinksUrl, `${ORIGIN}/wiki/${slug}/backlinks/`, `${slug}: backlinks.json backlinksUrl must point to the HTML page`);
   assert.equal(doc.backlinksJsonUrl, `${ORIGIN}/wiki/${slug}/backlinks.json`, `${slug}: backlinks.json must expose its own canonical backlinksJsonUrl`);
   assert.equal(doc.historyUrl, `${ORIGIN}/wiki/${slug}/history/`, `${slug}: backlinks.json historyUrl must point to the HTML history page`);
+  assert.equal(doc.historyJsonUrl, `${ORIGIN}/wiki/${slug}/history.json`, `${slug}: backlinks.json historyJsonUrl must point to the machine-readable history page`);
   assert.equal(typeof doc.count, 'number', `${slug}: backlinks.json count must be a number`);
   assert.ok(Array.isArray(doc.backlinks), `${slug}: backlinks.json backlinks must be an array`);
   assert.equal(doc.count, doc.backlinks.length, `${slug}: backlinks.json count must equal backlinks.length`);
