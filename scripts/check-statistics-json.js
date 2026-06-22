@@ -142,6 +142,11 @@ assert.equal(
   `${data.site}/wiki/category/${data.largestTopic.name.replace(/ /g, '_')}/articles.json`,
   "largestTopic.articlesUrl must be the canonical absolute category articles.json URL",
 );
+assert.equal(
+  data.largestTopic.feedUrl,
+  `${data.site}/wiki/category/${data.largestTopic.name.replace(/ /g, '_')}/feed.json`,
+  "largestTopic.feedUrl must be the canonical absolute category feed.json URL",
+);
 
 // topics — array whose length matches totalTopics, ordered count-desc then
 // compareTitles-asc (NOT raw string — must match the HTML page's ordering).
@@ -162,6 +167,13 @@ for (const topic of data.topics) {
     topic.articlesUrl,
     `${data.site}/wiki/category/${topic.name.replace(/ /g, '_')}/articles.json`,
     `topic "${topic.name}" articlesUrl must be the canonical absolute category articles.json URL`,
+  );
+  // feedUrl points at the topic's JSON Feed, the syndication companion
+  // categories.json also exposes, for feed-reader/programmatic subscription.
+  assert.equal(
+    topic.feedUrl,
+    `${data.site}/wiki/category/${topic.name.replace(/ /g, '_')}/feed.json`,
+    `topic "${topic.name}" feedUrl must be the canonical absolute category feed.json URL`,
   );
 }
 for (let i = 1; i < data.topics.length; i++) {
