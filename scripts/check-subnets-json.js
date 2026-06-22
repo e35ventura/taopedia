@@ -138,7 +138,15 @@ data.subnets.forEach((row, i) => {
   assert.equal(row.netuid, expected[i].netuid, `row ${i} netuid must match the slug-map-derived registry`);
   assert.equal(row.slug, expected[i].slug, `row ${i} slug must match the slug-map-derived registry`);
   assert.equal(row.name, expected[i].name, `row ${i} name must match the slug-map-derived registry`);
-  assert.equal(row.url, `/wiki/${expected[i].slug}/`, `row ${i} url must be the canonical article URL`);
+  assert.ok(
+    row.url.startsWith(`${data.site}/wiki/`),
+    `row ${i} url must be absolute and start with the envelope site (got ${row.url})`,
+  );
+  assert.equal(
+    row.url,
+    `${data.site}/wiki/${expected[i].slug}/`,
+    `row ${i} url must equal ${data.site}/wiki/${expected[i].slug}/`,
+  );
   assert.equal(
     row.summary,
     expected[i].summary || null,
