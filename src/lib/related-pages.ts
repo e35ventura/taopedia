@@ -42,6 +42,7 @@ export interface ArticleRelatedPagesDocument {
   slug: string;
   title: string;
   url: string;
+  relatedUrl: string;
   count: number;
   related: Array<{
     slug: string;
@@ -130,6 +131,7 @@ export function buildArticleRelatedPages({
     slug,
     title,
     url: `${origin}/wiki/${slug}/`,
+    relatedUrl: `${origin}/wiki/${slug}/related.json`,
     count: relatedPages.length,
     related: relatedPages.map((entry) => ({
       slug: entry.slug,
