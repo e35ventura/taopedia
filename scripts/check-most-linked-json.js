@@ -109,6 +109,18 @@ data.pages.forEach((row, i) => {
   assert.equal(row.title, expected[i].title, `row ${i} title must match the article title for ${expected[i].slug}`);
   assert.equal(row.backlinks, expected[i].count, `row ${i} backlinks count must match the link graph`);
   assert.ok(Number.isInteger(row.backlinks) && row.backlinks > 0, `row ${i} backlinks must be a positive integer`);
+  // historyUrl points at the article's revision-history page — the same
+  // companion subnets.json / recentchanges.json expose — so a consumer of the
+  // ranking can reach each top page's edit history without rebuilding the route.
+  assert.ok(
+    row.historyUrl.startsWith(`${data.site}/wiki/`),
+    `row ${i} historyUrl must be absolute and start with the envelope site (got ${row.historyUrl})`,
+  );
+  assert.equal(
+    row.historyUrl,
+    `${data.site}/wiki/${row.slug}/history/`,
+    `row ${i} historyUrl must equal ${data.site}/wiki/${row.slug}/history/`,
+  );
   assert.ok(
     row.backlinksUrl.startsWith(`${data.site}/wiki/`),
     `row ${i} backlinksUrl must be absolute and start with the envelope site (got ${row.backlinksUrl})`,
