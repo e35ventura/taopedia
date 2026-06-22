@@ -97,6 +97,12 @@ export function buildRssFeed({
         item.description ? `      <description>${escapeXml(item.description)}</description>` : '',
         ...categoryXml,
         pubDate ? `      <pubDate>${escapeXml(pubDate)}</pubDate>` : '',
+        // Per-item article image (the article's Open Graph card) so feed readers
+        // can show a thumbnail for each entry. Emitted via Media RSS, which —
+        // unlike an RSS <enclosure> — does not require a byte length.
+        item.image
+          ? `      <media:content url="${escapeXml(item.image)}" type="image/png" medium="image" width="1200" height="630" />`
+          : '',
         '    </item>',
       ]
         .filter(Boolean)
@@ -109,7 +115,7 @@ export function buildRssFeed({
 
   return (
     '<?xml version="1.0" encoding="UTF-8"?>\n' +
-    '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">\n' +
+    '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/">\n' +
     '  <channel>\n' +
     `    <title>${escapeXml(title)}</title>\n` +
     `    <link>${escapeXml(channelHref)}</link>\n` +

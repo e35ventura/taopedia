@@ -16,6 +16,7 @@ export const GET: APIRoute = async ({ site }) => {
     return {
       title: page.data.title,
       url: `${origin}/wiki/${slug}/`,
+      image: `${origin}/og/${slug}.png`,
       description: page.data.summary ?? '',
       categories: page.data.categories ?? [],
       date: lastmodForSlug(slug),
