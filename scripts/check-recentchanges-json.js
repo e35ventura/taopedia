@@ -134,6 +134,15 @@ for (let i = 0; i < data.changes.length; i++) {
     `${data.site}/wiki/${change.slug}/history/`,
     `change historyUrl must equal ${data.site}/wiki/${change.slug}/history/ for ${change.slug}`,
   );
+  // imageUrl is the article's OG share-card image — the same /og/<slug>.png the
+  // recentchanges RSS/Atom/JSON feeds already embed per item. The structured
+  // endpoint must expose it too so a consumer renders the same per-change
+  // thumbnail without falling back to the homepage card.
+  assert.equal(
+    change.imageUrl,
+    `${data.site}/og/${change.slug}.png`,
+    `change imageUrl must equal ${data.site}/og/${change.slug}.png for ${change.slug}`,
+  );
   assert.equal(change.title, slugmap[change.slug]?.title, `change title must match the article title for ${change.slug}`);
   assert.equal(change.authorName, expected.authorName, `change ${i} authorName must match the revision history`);
   assert.equal(change.sha, expected.sha, `change ${i} sha must match the revision history`);
