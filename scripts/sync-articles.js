@@ -482,6 +482,19 @@ const nonSpaceDelimitedAriaKeyshortcutsAttrPattern = /<[^>]*[/"'`](?:aria-keysho
 const ariaCurrentAttrPattern = /<[^>]*\saria-current\s*=/i;
 const nonSpaceDelimitedAriaCurrentAttrPattern = /<[^>]*[/"'`](?:aria-current)\s*=/i;
 
+// aria-errormessage= associates an element with a custom error message
+// element — e.g. aria-errormessage="fake-error" makes assistive technology
+// announce injected error text when the element enters an invalid state,
+// lending false urgency or credibility to attacker-chosen content (a phishing
+// / authority-spoof primitive).  Same accessibility-attribute family as merged
+// #568 (aria-current), #567 (aria-keyshortcuts), #564 (aria-flowto), #561
+// (aria-roledescription), #559 (aria-controls), #558 (aria-live), #556
+// (aria-hidden), #554 (role), #553 (aria-describedby), #550 (title), and #501
+// (aria-label).  Glossary articles never associate custom error messages —
+// the site has no form validation that would require them.
+const ariaErrormessageAttrPattern = /<[^>]*\saria-errormessage\s*=/i;
+const nonSpaceDelimitedAriaErrormessageAttrPattern = /<[^>]*[/"'`](?:aria-errormessage)\s*=/i;
+
 // nowrap on allowed <td>/<th> disables text wrapping in the cell — an injected
 // long URL, fake wallet address, or padded phishing line breaks out of the
 // column, reflowing the real article text off-screen (a layout-defacement /
@@ -1053,6 +1066,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": aria-current attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    ariaErrormessageAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAriaErrormessageAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": aria-errormessage attributes are not allowed in article content`,
     );
   }
 

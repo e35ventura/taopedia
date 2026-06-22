@@ -776,6 +776,18 @@ rejects('<p class=x/aria-current="true">x</p>', 'slash-delimited aria-current at
 accepts('<a href="/wiki/aria-current=demo">aria-current docs</a>', 'benign aria-current substring in quoted href');
 accepts('ARIA current is an accessibility concept described here only as prose.', 'benign aria-current prose');
 
+// aria-errormessage= associates an element with a custom error message —
+// same family as merged #568 (aria-current), #567 (aria-keyshortcuts), #564
+// (aria-flowto), #561 (aria-roledescription).
+rejects('Intro.\n\n<div aria-errormessage="fake-error" aria-invalid="true">Wallet compromised</div>', 'plain aria-errormessage attribute');
+rejects('Intro.\n\n<a href="https://evil.example/" aria-errormessage="fake-alert">claim TAO</a>', 'plain aria-errormessage attribute on anchor');
+rejects('Intro.\n\n<  a   href="/wiki/stake/"   aria-errormessage = "fake-error">stake</a>', 'spaced aria-errormessage attribute');
+rejects('<a href="x"aria-errormessage="fake-error">go</a>', 'quote-abutted aria-errormessage attribute');
+rejects('<p class=x/aria-errormessage="fake-error">x</p>', 'slash-delimited aria-errormessage attribute');
+
+accepts('<a href="/wiki/aria-errormessage=demo">aria-errormessage docs</a>', 'benign aria-errormessage substring in quoted href');
+accepts('ARIA errormessage is an accessibility concept described here only as prose.', 'benign aria-errormessage prose');
+
 // srcset=/sizes= on <img> steer responsive loading — gap after #411 blocked picture/source.
 rejects('Intro.\n\n<img src="/wiki/fig.png" srcset="https://evil.example/x 1x" alt="x">', 'plain img srcset attribute');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   srcset = "https://evil.example/x 2x">', 'spaced img srcset attribute');
