@@ -100,6 +100,13 @@ assert.ok(
   `site must be a non-empty URL string (got ${JSON.stringify(data.site)})`,
 );
 
+// url — the statistics document's own canonical endpoint URL.
+assert.equal(
+  data.url,
+  `${data.site}/wiki/special/statistics.json`,
+  `url must be the canonical statistics.json endpoint URL (got ${JSON.stringify(data.url)})`,
+);
+
 // Core numeric fields.
 assert.ok(typeof data.totalArticles === 'number' && data.totalArticles > 0, 'totalArticles must be a positive number');
 assert.ok(typeof data.totalTopics === 'number' && data.totalTopics > 0, 'totalTopics must be a positive number');
