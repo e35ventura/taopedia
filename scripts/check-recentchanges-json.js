@@ -129,6 +129,15 @@ for (let i = 0; i < data.changes.length; i++) {
     `${data.site}/wiki/${change.slug}/history/`,
     `change historyUrl must equal ${data.site}/wiki/${change.slug}/history/ for ${change.slug}`,
   );
+  assert.ok(
+    change.historyJsonUrl.startsWith(`${data.site}/wiki/`),
+    `change historyJsonUrl must be absolute and start with the envelope site (got ${change.historyJsonUrl})`,
+  );
+  assert.equal(
+    change.historyJsonUrl,
+    `${data.site}/wiki/${change.slug}/history.json`,
+    `change historyJsonUrl must equal ${data.site}/wiki/${change.slug}/history.json for ${change.slug}`,
+  );
   assert.equal(change.title, slugmap[change.slug]?.title, `change title must match the article title for ${change.slug}`);
   assert.equal(change.authorName, expected.authorName, `change ${i} authorName must match the revision history`);
   assert.equal(change.sha, expected.sha, `change ${i} sha must match the revision history`);
