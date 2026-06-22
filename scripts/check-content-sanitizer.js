@@ -718,6 +718,16 @@ rejects('<div class=x/aria-atomic="true">x</div>', 'slash-delimited aria-atomic 
 accepts('<a href="/wiki/aria-live=demo">aria-live docs</a>', 'benign aria-live substring in quoted href');
 accepts('ARIA live regions are an accessibility concept described here only as prose.', 'benign aria-live prose');
 
+// aria-controls=/aria-expanded= fake disclosure state — same family as merged #558/#554.
+rejects('Intro.\n\n<a href="https://evil.example/" aria-expanded="true">Wallet settings</a>', 'plain aria-expanded disclosure spoof');
+rejects('Intro.\n\n<div aria-controls="evil-panel" id="toggle">Security panel</div>', 'plain aria-controls attribute');
+rejects('Intro.\n\n<  a   aria-expanded = "true">x</a>', 'spaced aria-expanded attribute');
+rejects('<a href="x"aria-expanded="true">go</a>', 'quote-abutted aria-expanded attribute');
+rejects('<div class=x/aria-controls="evil-panel">x</div>', 'slash-delimited aria-controls attribute');
+
+accepts('<a href="/wiki/aria-expanded=demo">aria-expanded docs</a>', 'benign aria-expanded substring in quoted href');
+accepts('ARIA expanded state is an accessibility concept described here only as prose.', 'benign aria-expanded prose');
+
 // srcset=/sizes= on <img> steer responsive loading — gap after #411 blocked picture/source.
 rejects('Intro.\n\n<img src="/wiki/fig.png" srcset="https://evil.example/x 1x" alt="x">', 'plain img srcset attribute');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   srcset = "https://evil.example/x 2x">', 'spaced img srcset attribute');
