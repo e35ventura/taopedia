@@ -788,6 +788,17 @@ rejects('<p class=x/aria-errormessage="fake-error">x</p>', 'slash-delimited aria
 accepts('<a href="/wiki/aria-errormessage=demo">aria-errormessage docs</a>', 'benign aria-errormessage substring in quoted href');
 accepts('ARIA errormessage is an accessibility concept described here only as prose.', 'benign aria-errormessage prose');
 
+// aria-busy= fakes loading/updating status for AT users — same family as merged
+// #570 (aria-errormessage), #568 (aria-current), #567 (aria-keyshortcuts).
+rejects('Intro.\n\n<div aria-busy="true">Still syncing wallet data…</div>', 'plain aria-busy attribute');
+rejects('Intro.\n\n<a href="https://evil.example/" aria-busy="true">claim TAO</a>', 'plain aria-busy attribute on anchor');
+rejects('Intro.\n\n<  p   aria-busy = "true">loading</p>', 'spaced aria-busy attribute');
+rejects('<p class="x"aria-busy="true">x</p>', 'quote-abutted aria-busy attribute');
+rejects('<p class=x/aria-busy="true">x</p>', 'slash-delimited aria-busy attribute');
+
+accepts('<a href="/wiki/aria-busy=demo">aria-busy docs</a>', 'benign aria-busy substring in quoted href');
+accepts('ARIA busy is an accessibility concept described here only as prose.', 'benign aria-busy prose');
+
 // srcset=/sizes= on <img> steer responsive loading — gap after #411 blocked picture/source.
 rejects('Intro.\n\n<img src="/wiki/fig.png" srcset="https://evil.example/x 1x" alt="x">', 'plain img srcset attribute');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   srcset = "https://evil.example/x 2x">', 'spaced img srcset attribute');

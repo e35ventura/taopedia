@@ -495,6 +495,18 @@ const nonSpaceDelimitedAriaCurrentAttrPattern = /<[^>]*[/"'`](?:aria-current)\s*
 const ariaErrormessageAttrPattern = /<[^>]*\saria-errormessage\s*=/i;
 const nonSpaceDelimitedAriaErrormessageAttrPattern = /<[^>]*[/"'`](?:aria-errormessage)\s*=/i;
 
+// aria-busy= marks a subtree as loading or updating — e.g. aria-busy="true"
+// makes assistive technology announce a fake in-progress state for injected
+// content ("Still syncing wallet data…") even though glossary articles are
+// static HTML with no live update channel. Same accessibility-attribute family
+// as merged #570 (aria-errormessage), #568 (aria-current), #567
+// (aria-keyshortcuts), #564 (aria-flowto), #561 (aria-roledescription), #559
+// (aria-controls), #558 (aria-live), #556 (aria-hidden), #554 (role), #553
+// (aria-describedby), #550 (title), and #501 (aria-label). <meter>/<progress>
+// elements are already blocked; aria-busy is the remaining status-spoof path.
+const ariaBusyAttrPattern = /<[^>]*\saria-busy\s*=/i;
+const nonSpaceDelimitedAriaBusyAttrPattern = /<[^>]*[/"'`](?:aria-busy)\s*=/i;
+
 // nowrap on allowed <td>/<th> disables text wrapping in the cell — an injected
 // long URL, fake wallet address, or padded phishing line breaks out of the
 // column, reflowing the real article text off-screen (a layout-defacement /
@@ -1075,6 +1087,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": aria-errormessage attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    ariaBusyAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAriaBusyAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": aria-busy attributes are not allowed in article content`,
     );
   }
 
