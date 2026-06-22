@@ -38,6 +38,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.citeJsonUrl, `${ORIGIN}/wiki/recycling/cite.json`, 'builder: citeJsonUrl');
   assert.equal(result.bibtexUrl, `${ORIGIN}/wiki/recycling/cite.bib`, 'builder: bibtexUrl');
   assert.equal(result.infoUrl, `${ORIGIN}/wiki/recycling/info/`, 'builder: infoUrl');
+  assert.equal(result.historyJsonUrl, `${ORIGIN}/wiki/recycling/history.json`, 'builder: historyJsonUrl');
   assert.equal(result.historyUrl, `${ORIGIN}/wiki/recycling/history/`, 'builder: historyUrl');
   assert.equal(result.referencesUrl, `${ORIGIN}/wiki/recycling/references.json`, 'builder: referencesUrl');
   assert.equal(result.relatedUrl, `${ORIGIN}/wiki/recycling/related.json`, 'builder: relatedUrl');
@@ -55,6 +56,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(empty.citeJsonUrl, `${ORIGIN}/wiki/x/cite.json`, 'builder: citeJsonUrl with defaults');
   assert.equal(empty.bibtexUrl, `${ORIGIN}/wiki/x/cite.bib`, 'builder: bibtexUrl with defaults');
   assert.equal(empty.infoUrl, `${ORIGIN}/wiki/x/info/`, 'builder: infoUrl with defaults');
+  assert.equal(empty.historyJsonUrl, `${ORIGIN}/wiki/x/history.json`, 'builder: historyJsonUrl with defaults');
   assert.equal(empty.referencesUrl, `${ORIGIN}/wiki/x/references.json`, 'builder: referencesUrl with defaults');
   assert.equal(empty.relatedUrl, `${ORIGIN}/wiki/x/related.json`, 'builder: relatedUrl with defaults');
 }
@@ -189,6 +191,7 @@ for (const slug of articleSlugs) {
   assert.equal(infoJson.citeJsonUrl, `${jsonOrigin}/wiki/${slug}/cite.json`, `/wiki/${slug}/info.json citeJsonUrl`);
   assert.equal(infoJson.bibtexUrl, `${jsonOrigin}/wiki/${slug}/cite.bib`, `/wiki/${slug}/info.json bibtexUrl`);
   assert.equal(infoJson.infoUrl, `${jsonOrigin}/wiki/${slug}/info/`, `/wiki/${slug}/info.json infoUrl`);
+  assert.equal(infoJson.historyJsonUrl, `${jsonOrigin}/wiki/${slug}/history.json`, `/wiki/${slug}/info.json historyJsonUrl`);
   assert.equal(infoJson.historyUrl, `${jsonOrigin}/wiki/${slug}/history/`, `/wiki/${slug}/info.json historyUrl`);
   assert.equal(infoJson.referencesUrl, `${jsonOrigin}/wiki/${slug}/references.json`, `/wiki/${slug}/info.json referencesUrl`);
   assert.equal(infoJson.relatedUrl, `${jsonOrigin}/wiki/${slug}/related.json`, `/wiki/${slug}/info.json relatedUrl`);
