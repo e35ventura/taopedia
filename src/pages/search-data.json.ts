@@ -5,13 +5,14 @@ import { compareTitles } from '../lib/title-sort.js';
 const getPageSlug = (page: { id: string }) =>
   page.id.replace(/\/index\.(md|mdx)$/, '').replace(/\/index$/, '').replace(/\.(md|mdx)$/, '');
 
-export const GET: APIRoute = async () => {
+export const GET: APIRoute = async ({ site }) => {
+  const origin = (site ?? new URL('https://taopedia.org')).origin;
   const pages = await getCollection('pages');
   const searchEntries = pages
     .map((page) => ({
       title: page.data.title,
       summary: page.data.summary ?? '',
-      url: `/wiki/${getPageSlug(page)}/`,
+      url: `${origin}/wiki/${getPageSlug(page)}/`,
       categories: page.data.categories ?? [],
     }))
     // Order by title, then by the canonical URL (unique per article, 1:1 with

@@ -13,9 +13,11 @@ assert.ok(fs.existsSync(sitemapPath), 'dist/sitemap.xml must exist; run npm run 
 
 const searchEntries = JSON.parse(fs.readFileSync(searchDataPath, 'utf8'));
 const sitemap = fs.readFileSync(sitemapPath, 'utf8');
-const sitemapPaths = new Set(
-  Array.from(sitemap.matchAll(/<loc>https:\/\/taopedia\.org([^<]+)<\/loc>/g), (match) => match[1]),
+const sitemapUrls = new Set(
+  Array.from(sitemap.matchAll(/<loc>([^<]+)<\/loc>/g), (match) => match[1]),
 );
+const firstSitemapUrl = sitemapUrls.values().next().value;
+const ORIGIN = firstSitemapUrl ? new URL(firstSitemapUrl).origin : 'https://taopedia.org';
 
 assert.ok(Array.isArray(searchEntries), 'search data must serialize an array');
 assert.ok(searchEntries.length > 0, 'search data must include article entries');
@@ -24,12 +26,12 @@ const invalidUrls = [];
 const missingFromSitemap = [];
 
 for (const entry of searchEntries) {
-  if (typeof entry.url !== 'string' || !/^\/wiki\/[a-z0-9_-]+\/$/.test(entry.url)) {
+  if (typeof entry.url !== 'string' || !entry.url.startsWith(`${ORIGIN}/wiki/`)) {
     invalidUrls.push(entry.url);
     continue;
   }
 
-  if (!sitemapPaths.has(entry.url)) {
+  if (!sitemapUrls.has(entry.url)) {
     missingFromSitemap.push(entry.url);
   }
 }
@@ -61,7 +63,7 @@ for (const dirent of fs.readdirSync(contentDir, { withFileTypes: true })) {
   if (!source) continue;
   const { data } = matter(fs.readFileSync(source, 'utf8'));
   if (!data || typeof data.title !== 'string') continue;
-  expected.push({ title: data.title, url: `/wiki/${slug}/` });
+  expected.push({ title: data.title, url: `${ORIGIN}/wiki/${slug}/` });
 }
 expected.sort((a, b) => compareTitles(a.title, b.title) || (a.url < b.url ? -1 : a.url > b.url ? 1 : 0));
 

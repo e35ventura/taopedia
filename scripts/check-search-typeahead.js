@@ -22,7 +22,10 @@ const entries = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
 assert.ok(Array.isArray(entries) && entries.length >= 50, `expected the search-data array, found ${entries.length}`);
 for (const entry of entries) {
   assert.ok(entry && typeof entry.title === 'string' && entry.title.length, 'every search-data entry must have a title');
-  assert.ok(typeof entry.url === 'string' && entry.url.startsWith('/wiki/'), 'every search-data entry must have a /wiki/ url');
+  assert.ok(
+    typeof entry.url === 'string' && /^https?:\/\/[^/]+\/wiki\//.test(entry.url),
+    'every search-data entry must have an absolute /wiki/ url',
+  );
 }
 
 // 2) The combobox script must ship on both an article (layout) page and the
