@@ -26,5 +26,6 @@ export const buildArticleReferences = ({ slug, title, origin, references = [] })
     slug: link.slug,
     title: link.title,
     url: `${origin}/wiki/${link.slug}/`,
+    historyUrl: `${origin}/wiki/${link.slug}/history/`,
   })),
 });
