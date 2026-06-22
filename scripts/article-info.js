@@ -16,6 +16,7 @@ export const buildArticleInfo = ({
   backlinksUrl: `${origin}/wiki/${slug}/backlinks/`,
   citeUrl: `${origin}/wiki/${slug}/cite/`,
   infoUrl: `${origin}/wiki/${slug}/info/`,
+  referencesUrl: `${origin}/wiki/${slug}/references.json`,
   revisionCount,
   historyUrl: `${origin}/wiki/${slug}/history/`,
   firstEdited: firstEdited ?? null,
