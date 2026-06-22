@@ -89,6 +89,28 @@ assert.ok(!/<description>\s*<\/description>/.test(feed), 'never emits an empty d
   assert.ok(!/<category>\s*<\/category>/.test(blankCategoryFeed), 'never emits an empty category tag');
 }
 
+// Revision-event feeds can point multiple items at the same article URL, so the
+// shared serializer must support a caller-supplied non-permalink guid.
+{
+  const revisionFeed = buildRssFeed({
+    siteUrl,
+    items: [
+      {
+        title: 'Dynamic TAO revision',
+        url: 'https://taopedia.org/wiki/dynamic_tao/',
+        guid: 'urn:sha1:abc123',
+        description: 'Edited by Alice',
+        date: '2026-06-10T20:06:02Z',
+      },
+    ],
+  });
+  assert.match(
+    revisionFeed,
+    /<guid isPermaLink="false">urn:sha1:abc123<\/guid>/,
+    'supports an explicit non-permalink guid when multiple feed items share one article URL',
+  );
+}
+
 // Category-scoped feeds reuse the same builder but point the channel at the
 // category hub while keeping the atom:self URL on the nested feed endpoint.
 {

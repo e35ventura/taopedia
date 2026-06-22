@@ -93,7 +93,7 @@ export function buildRssFeed({
         '    <item>',
         `      <title>${escapeXml(item.title)}</title>`,
         `      <link>${escapeXml(item.url)}</link>`,
-        `      <guid isPermaLink="true">${escapeXml(item.url)}</guid>`,
+        `      <guid isPermaLink="${item.guid ? String(item.guidIsPermaLink ?? false) : 'true'}">${escapeXml(item.guid ?? item.url)}</guid>`,
         item.description ? `      <description>${escapeXml(item.description)}</description>` : '',
         ...categoryXml,
         pubDate ? `      <pubDate>${escapeXml(pubDate)}</pubDate>` : '',
