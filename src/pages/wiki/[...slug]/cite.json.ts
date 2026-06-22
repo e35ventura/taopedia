@@ -22,6 +22,7 @@ export const GET: APIRoute = async ({ site, props }) => {
       title: page.data.title,
       slug,
       url,
+      citeUrl: new URL(`/wiki/${slug}/cite/`, site ?? new URL('https://taopedia.org')).toString(),
       bibtexUrl: new URL(`/wiki/${slug}/cite.bib`, site ?? new URL('https://taopedia.org')).toString(),
       ...(date ? { date } : {}),
       ...CITATION_META,
