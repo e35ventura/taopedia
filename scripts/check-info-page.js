@@ -185,6 +185,13 @@ for (const slug of articleSlugs) {
     typeof infoJson.url === 'string' && /^https?:\/\//.test(infoJson.url),
     `/wiki/${slug}/info.json url must be an absolute URL`,
   );
+  // incomingLinks must use the same published-only inbound-link join as the HTML
+  // info page (and Special:WhatLinksHere), so the two surfaces cannot drift.
+  assert.equal(
+    infoJson.incomingLinks,
+    inboundCountFor(slug),
+    `/wiki/${slug}/info.json incomingLinks must match the published inbound-link count shown on the HTML info page`,
+  );
   // Extract the origin from the article URL so the companion-URL checks are
   // independent of the configured site value.
   const jsonOrigin = new URL(infoJson.url).origin;

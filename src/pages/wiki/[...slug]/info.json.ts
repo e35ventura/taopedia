@@ -3,16 +3,11 @@ import { getCollection } from 'astro:content';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
 import { buildArticleInfo } from '../../../../scripts/article-info.js';
 
-const slugmapModules = import.meta.glob('../../../../public/data/slugmap.json', { eager: true }) as Record<
-  string,
-  { default?: Record<string, { title?: string; categories?: string[] }> }
->;
 const backlinksModules = import.meta.glob('../../../../public/data/backlinks.json', { eager: true }) as Record<
   string,
   { default?: Record<string, Array<{ from: string }>> }
 >;
 
-const slugmap = Object.values(slugmapModules)[0]?.default ?? {};
 const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
 
 export async function getStaticPaths() {
@@ -36,7 +31,15 @@ export const GET: APIRoute = async ({ props, site }) => {
 
   const origin = (site ?? new URL('https://taopedia.org')).origin;
   const history = historyForSlug(slug);
-  const incomingLinks = (backlinksData[slug] ?? []).filter((entry) => slugmap[entry.from]).length;
+
+  // Count only inbound links from published articles, using the same content
+  // collection the HTML info page (info.astro) and Special:WhatLinksHere
+  // (backlinks.astro) join against — not slugmap.json, a separately generated
+  // artifact that can drift from the published set. This keeps info.json's
+  // incomingLinks identical to the figure rendered on /wiki/<slug>/info/.
+  const pages = await getCollection('pages');
+  const publishedSlugs = new Set(pages.map((p) => getPageSlug(p)));
+  const incomingLinks = (backlinksData[slug] ?? []).filter((entry) => publishedSlugs.has(entry.from)).length;
 
   const body = JSON.stringify(
     buildArticleInfo({
