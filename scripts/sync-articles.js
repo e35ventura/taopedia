@@ -490,6 +490,20 @@ const slashDelimitedHrNoshadeAttrPattern = /<\s*hr\b[^>]*[/"'`]noshade(?=[\s>/=]
 const hrColorSizeAttrPattern = /<\s*hr\b[^>]*\s(?:color|size)\s*=/i;
 const nonSpaceDelimitedHrColorSizeAttrPattern = /<\s*hr\b[^>]*[/"'`](?:color|size)\s*=/i;
 
+// target= on an allowed <a> overrides the site's deliberate link-handling policy.
+// rehype-external-links.js opens external links in a new tab and ALWAYS pairs that
+// with rel="noopener noreferrer" precisely because (its own comment) "adding
+// target=_blank without a safe rel would expose window.opener (reverse tabnabbing)
+// and leak the referrer." A raw author-set <a target="_blank"> re-introduces exactly
+// that opener/referrer leak with no paired rel, while target="_top"/target="_parent"
+// or a named-frame target hijacks the navigation context. Same "subverts the site's
+// deliberate link policy" surface as the merged referrerpolicy=/ping=/download=
+// blocks; Markdown never emits target= in source (the build adds it after
+// sanitization), so article content never needs it. Tag-scoped to <a> and scanned on
+// emptyQuotedAttributeValues() so a quoted href query string like ?target=summer passes.
+const anchorTargetAttrPattern = /<\s*a\b[^>]*\starget\s*=/i;
+const nonSpaceDelimitedAnchorTargetAttrPattern = /<\s*a\b[^>]*[/"'`]target\s*=/i;
+
 function emptyQuotedAttributeValues(content) {
   return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
 }
@@ -906,6 +920,13 @@ export function validateArticleContent(slug, content) {
     || quoteAbuttedImgIsmapAttrPattern.test(emptiedAttributeContent)
   ) {
     throw new Error(`Unsafe article content in "${slug}": ismap attributes are not allowed in article content`);
+  }
+
+  if (
+    anchorTargetAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAnchorTargetAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(`Unsafe article content in "${slug}": target attributes are not allowed on anchor elements`);
   }
 
   const decoded = decodeForSchemeScan(content);
