@@ -17,6 +17,8 @@ const collectRecentChanges = (historyBySlug, titleBySlug, limit) => {
         title,
         date: entry.date,
         authorName: entry.authorName,
+        sha: entry.sha,
+        message: entry.message ?? '',
       });
     }
   }
@@ -101,6 +103,10 @@ for (let i = 0; i < data.changes.length; i++) {
   );
   assert.equal(change.title, slugmap[change.slug]?.title, `change title must match the article title for ${change.slug}`);
   assert.equal(change.authorName, expected.authorName, `change ${i} authorName must match the revision history`);
+  assert.equal(change.sha, expected.sha, `change ${i} sha must match the revision history`);
+  assert.ok(typeof change.sha === 'string' && change.sha.length > 0, `change ${i} sha must be a non-empty string`);
+  assert.equal(change.message, expected.message, `change ${i} message must match the revision history`);
+  assert.ok(typeof change.message === 'string', `change ${i} message must be a string`);
   assert.ok(typeof change.date === 'string' && !Number.isNaN(Date.parse(change.date)), `change has an invalid date: ${change.date}`);
 }
 
