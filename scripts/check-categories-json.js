@@ -66,6 +66,11 @@ const data = JSON.parse(fs.readFileSync(distFile, 'utf8'));
 const known = JSON.parse(fs.readFileSync(categoriesJsonPath, 'utf8'));
 
 assert.ok(typeof data.site === 'string' && /^https?:\/\//.test(data.site), `site must be a URL string (got ${JSON.stringify(data.site)})`);
+assert.equal(
+  data.url,
+  `${data.site}/wiki/special/categories.json`,
+  `url must be the canonical categories.json endpoint URL (got ${JSON.stringify(data.url)})`,
+);
 assert.ok(Array.isArray(data.categories), 'categories must be an array');
 assert.equal(data.count, data.categories.length, 'count must equal categories.length');
 assert.ok(data.categories.length > 0, 'categories.json must list at least one topic');

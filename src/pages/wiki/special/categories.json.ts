@@ -18,6 +18,7 @@ export const GET: APIRoute = async ({ site }) => {
   const body = JSON.stringify(
     {
       site: origin,
+      url: `${origin}/wiki/special/categories.json`,
       count: topics.length,
       categories: topics.map((topic) => ({
         name: topic.name,
