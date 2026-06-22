@@ -73,6 +73,11 @@ assert.ok(data.changes.length <= RECENT_LIMIT, `must list at most ${RECENT_LIMIT
 for (let i = 0; i < data.changes.length; i++) {
   const change = data.changes[i];
   const expected = expectedChanges[i];
+  assert.equal(
+    change.id,
+    `urn:taopedia:recentchanges:${expected.slug}:${expected.sha}`,
+    `change ${i} id must use the stable per-event identifier`,
+  );
   assert.ok(typeof change.slug === 'string' && change.slug, 'each change must carry a slug');
   assert.ok(
     fs.existsSync(path.join(wikiDir, change.slug, 'index.html')),
@@ -109,6 +114,12 @@ for (let i = 0; i < data.changes.length; i++) {
   assert.ok(typeof change.message === 'string', `change ${i} message must be a string`);
   assert.ok(typeof change.date === 'string' && !Number.isNaN(Date.parse(change.date)), `change has an invalid date: ${change.date}`);
 }
+
+assert.equal(
+  new Set(data.changes.map((change) => change.id)).size,
+  data.changes.length,
+  'each recentchanges.json id must be unique',
+);
 
 // ---- 2) Ordering: newest-first, same-date ties by compareTitles(slug) -----
 for (let i = 1; i < data.changes.length; i++) {
