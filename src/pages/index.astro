@@ -4,6 +4,8 @@ import { getCollection } from 'astro:content';
 import Seo from '../components/Seo.astro';
 import SearchSuggest from '../components/SearchSuggest.astro';
 import { sortPagesByTitle, compareTitles } from '../lib/title-sort.js';
+import { allRecentChanges } from '../lib/article-history';
+import { formatRevisionDate } from '../lib/format-date.js';
 
 const pages = await getCollection('pages');
 const sortedPages = sortPagesByTitle(pages);
@@ -33,6 +35,26 @@ const featuredSlugs = [
 const featuredPages = featuredSlugs
   .map((slug) => pages.find((page) => getPageSlug(page) === slug))
   .filter(Boolean);
+
+// Most recently updated articles, newest first — the one piece of information
+// the landing page otherwise never shows (it carries no dates at all). Reuses
+// the same allRecentChanges() source as Special:RecentChanges; that flattens to
+// one entry per commit, so dedupe by slug to list each article once. The
+// featured Core Articles above are excluded so the two curated sections never
+// surface the same title twice on the page. limit 0 = consider every change,
+// then keep the newest distinct articles.
+const titleBySlug: Record<string, string> = {};
+for (const page of pages) titleBySlug[getPageSlug(page)] = page.data.title;
+
+const featuredSlugSet = new Set(featuredSlugs);
+const seenRecent = new Set<string>();
+const recentlyUpdated: Array<{ slug: string; title: string; date: string }> = [];
+for (const change of allRecentChanges(titleBySlug, 0)) {
+  if (seenRecent.has(change.slug) || featuredSlugSet.has(change.slug)) continue;
+  seenRecent.add(change.slug);
+  recentlyUpdated.push(change);
+  if (recentlyUpdated.length >= 6) break;
+}
 
 const alphaGroups = new Map<string, typeof pages>();
 for (const page of sortedPages) {
@@ -293,6 +315,40 @@ const initialLetter = alphabet[0] ?? '#';
         line-height: 1.45;
       }
 
+      .recent-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 10px;
+      }
+
+      .recent-item {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 16px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--border-color-subtle);
+      }
+
+      .recent-link {
+        color: var(--color-link);
+        font-size: 15px;
+        text-decoration: none;
+      }
+
+      .recent-link:hover {
+        text-decoration: underline;
+      }
+
+      .recent-date {
+        flex-shrink: 0;
+        color: var(--color-base-subtle);
+        font-size: 12px;
+        white-space: nowrap;
+      }
+
       .term-panel {
         padding-top: 4px;
       }
@@ -406,6 +462,15 @@ const initialLetter = alphabet[0] ?? '#';
           columns: 1;
         }
 
+        .recent-item {
+          flex-direction: column;
+          gap: 2px;
+        }
+
+        .recent-date {
+          white-space: normal;
+        }
+
         .alpha-nav {
           gap: 2px;
         }
@@ -487,6 +552,23 @@ const initialLetter = alphabet[0] ?? '#';
           ))}
         </div>
       </section>
+
+      {recentlyUpdated.length > 0 && (
+        <section class="home-section">
+          <div class="section-heading">
+            <h2>Recently Updated</h2>
+            <a href="/wiki/special/recentchanges">All recent changes</a>
+          </div>
+          <ul class="recent-list">
+            {recentlyUpdated.map((change) => (
+              <li class="recent-item">
+                <a class="recent-link" href={`/wiki/${change.slug}/`}>{change.title}</a>
+                <time class="recent-date" datetime={change.date}>{formatRevisionDate(change.date)}</time>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section class="home-section" id="article-index">
         <div class="section-heading">
