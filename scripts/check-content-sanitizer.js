@@ -718,6 +718,19 @@ rejects('<div class=x/aria-atomic="true">x</div>', 'slash-delimited aria-atomic 
 accepts('<a href="/wiki/aria-live=demo">aria-live docs</a>', 'benign aria-live substring in quoted href');
 accepts('ARIA live regions are an accessibility concept described here only as prose.', 'benign aria-live prose');
 
+// aria-roledescription= overrides the default accessible role description —
+// e.g. aria-roledescription="Security Alert" makes AT announce a plain paragraph
+// as a "Security Alert." Same accessibility-spoof family as merged role (#554),
+// aria-label (#501), and aria-hidden (#556).
+rejects('Intro.\n\n<p aria-roledescription="Security Alert">WALLET COMPROMISED</p>', 'plain aria-roledescription attribute');
+rejects('Intro.\n\n<a href="https://evil.example/" aria-roledescription="Official Notice">claim TAO</a>', 'plain aria-roledescription attribute on anchor');
+rejects('Intro.\n\n<  a   href="/wiki/stake/"   aria-roledescription = "Trusted Source">stake</a>', 'spaced aria-roledescription attribute');
+rejects('<a href="x"aria-roledescription="Official Notice">go</a>', 'quote-abutted aria-roledescription attribute');
+rejects('<p class=x/aria-roledescription="Security Alert">x</p>', 'slash-delimited aria-roledescription attribute');
+
+accepts('<a href="/wiki/aria-roledescription=demo">aria-roledescription docs</a>', 'benign aria-roledescription substring in quoted href');
+accepts('ARIA roledescription is an accessibility concept described here only as prose.', 'benign aria-roledescription prose');
+
 // srcset=/sizes= on <img> steer responsive loading — gap after #411 blocked picture/source.
 rejects('Intro.\n\n<img src="/wiki/fig.png" srcset="https://evil.example/x 1x" alt="x">', 'plain img srcset attribute');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   srcset = "https://evil.example/x 2x">', 'spaced img srcset attribute');

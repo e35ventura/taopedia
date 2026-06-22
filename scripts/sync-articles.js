@@ -422,6 +422,19 @@ const nonSpaceDelimitedAriaHiddenAttrPattern = /<[^>]*[/"'`](?:aria-hidden)\s*=/
 const ariaLiveRegionAttrPattern = /<[^>]*\saria-(?:live|atomic)\s*=/i;
 const nonSpaceDelimitedAriaLiveRegionAttrPattern = /<[^>]*[/"'`](?:aria-(?:live|atomic))\s*=/i;
 
+// aria-roledescription= overrides the default accessible role description that
+// assistive technology announces for an element — e.g.
+// aria-roledescription="Security Alert" makes a screen reader announce a plain
+// paragraph as a "Security Alert" instead of its actual role. This is a direct
+// content-spoofing surface: a phishing block or fake wallet-warning paragraph
+// gains false authority when AT presents it as a custom role the reader trusts.
+// Same accessibility-spoof family as merged role (#554), aria-label (#501),
+// title (#550), aria-describedby (#553), and aria-hidden (#556). Glossary
+// articles never set custom role descriptions — the site's components and
+// stylesheet handle semantics via standard HTML roles.
+const ariaRoledescriptionAttrPattern = /<[^>]*\saria-roledescription\s*=/i;
+const nonSpaceDelimitedAriaRoledescriptionAttrPattern = /<[^>]*[/"'`](?:aria-roledescription)\s*=/i;
+
 // nowrap on allowed <td>/<th> disables text wrapping in the cell — an injected
 // long URL, fake wallet address, or padded phishing line breaks out of the
 // column, reflowing the real article text off-screen (a layout-defacement /
@@ -949,6 +962,13 @@ export function validateArticleContent(slug, content) {
     throw new Error(
       `Unsafe article content in "${slug}": aria-live and aria-atomic attributes are not allowed in article content`,
     );
+  }
+
+  if (
+    ariaRoledescriptionAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAriaRoledescriptionAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(`Unsafe article content in "${slug}": aria-roledescription attributes are not allowed in article content`);
   }
 
   if (
