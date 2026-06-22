@@ -728,6 +728,21 @@ rejects('<div class=x/aria-controls="evil-panel">x</div>', 'slash-delimited aria
 accepts('<a href="/wiki/aria-expanded=demo">aria-expanded docs</a>', 'benign aria-expanded substring in quoted href');
 accepts('ARIA expanded state is an accessibility concept described here only as prose.', 'benign aria-expanded prose');
 
+// aria-roledescription= overrides the accessible role description announced by
+// screen readers (NVDA, JAWS, VoiceOver) — e.g. aria-roledescription="Security
+// Alert" makes a plain paragraph sound like trusted system UI to AT users. Unlike
+// obsolete presentational attributes, this is current WAI-ARIA 1.1+ and actively
+// rendered by all major screen readers. Same spoof family as merged role (#554),
+// aria-label (#501), aria-hidden (#556), aria-live (#558), aria-controls (#559).
+rejects('Intro.\n\n<p aria-roledescription="Security Alert">WALLET COMPROMISED</p>', 'plain aria-roledescription attribute');
+rejects('Intro.\n\n<a href="https://evil.example/" aria-roledescription="Official Notice">claim TAO</a>', 'plain aria-roledescription attribute on anchor');
+rejects('Intro.\n\n<  a   href="/wiki/stake/"   aria-roledescription = "Trusted Source">stake</a>', 'spaced aria-roledescription attribute');
+rejects('<a href="x"aria-roledescription="Official Notice">go</a>', 'quote-abutted aria-roledescription attribute');
+rejects('<p class=x/aria-roledescription="Security Alert">x</p>', 'slash-delimited aria-roledescription attribute');
+
+accepts('<a href="/wiki/aria-roledescription=demo">aria-roledescription docs</a>', 'benign aria-roledescription substring in quoted href');
+accepts('ARIA roledescription is an accessibility concept described here only as prose.', 'benign aria-roledescription prose');
+
 // srcset=/sizes= on <img> steer responsive loading — gap after #411 blocked picture/source.
 rejects('Intro.\n\n<img src="/wiki/fig.png" srcset="https://evil.example/x 1x" alt="x">', 'plain img srcset attribute');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   srcset = "https://evil.example/x 2x">', 'spaced img srcset attribute');
