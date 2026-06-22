@@ -118,6 +118,15 @@ data.pages.forEach((row, i) => {
     `${data.site}/wiki/${row.slug}/backlinks/`,
     `row ${i} backlinksUrl must equal ${data.site}/wiki/${row.slug}/backlinks/`,
   );
+  assert.ok(
+    row.backlinksJsonUrl.startsWith(`${data.site}/wiki/`),
+    `row ${i} backlinksJsonUrl must be absolute and start with the envelope site (got ${row.backlinksJsonUrl})`,
+  );
+  assert.equal(
+    row.backlinksJsonUrl,
+    `${data.site}/wiki/${row.slug}/backlinks.json`,
+    `row ${i} backlinksJsonUrl must equal ${data.site}/wiki/${row.slug}/backlinks.json`,
+  );
 });
 for (let i = 1; i < data.pages.length; i++) {
   assert.ok(data.pages[i - 1].backlinks >= data.pages[i].backlinks, `rows must be sorted by backlinks descending (row ${i - 1} >= row ${i})`);
