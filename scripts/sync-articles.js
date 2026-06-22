@@ -528,6 +528,17 @@ const quoteAbuttedItemscopePattern = /<[^>]*["'`]itemscope(?=[\s>/=])/i;
 const ariaBusyAttrPattern = /<[^>]*\saria-busy\s*=/i;
 const nonSpaceDelimitedAriaBusyAttrPattern = /<[^>]*[/"'`](?:aria-busy)\s*=/i;
 
+// aria-pressed=/aria-checked=/aria-selected= fake toggle and option state in
+// assistive technology — e.g. aria-pressed="true" makes a link sound pressed,
+// aria-selected="true" marks a list item as the chosen procedure step, and
+// aria-checked="mixed" reports a fake partial-verification indicator. Same
+// accessibility-state spoof family as merged #582 (aria-busy), #568
+// (aria-current), and #559 (aria-expanded). Glossary articles never set widget
+// toggle or selection state — the site layout handles that in its own components.
+const ariaToggleStateAttrPattern = /<[^>]*\saria-(?:pressed|checked|selected)\s*=/i;
+const nonSpaceDelimitedAriaToggleStateAttrPattern =
+  /<[^>]*[/"'`](?:aria-(?:pressed|checked|selected))\s*=/i;
+
 // nowrap on allowed <td>/<th> disables text wrapping in the cell — an injected
 // long URL, fake wallet address, or padded phishing line breaks out of the
 // column, reflowing the real article text off-screen (a layout-defacement /
@@ -1136,6 +1147,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": aria-busy attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    ariaToggleStateAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAriaToggleStateAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": aria-pressed, aria-checked, and aria-selected attributes are not allowed in article content`,
     );
   }
 
