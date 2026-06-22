@@ -820,6 +820,19 @@ accepts('<a href="/wiki/itemprop=demo">microdata demo</a>', 'benign itemprop sub
 accepts('<span class=x/itemprop-demo>itemprop class example</span>', 'benign itemprop substring in class value');
 accepts('<div class="itemscope">plain div</div>', 'benign itemscope as a class value');
 
+// aria-busy= fakes a loading/updating region for assistive technology — same
+// family as merged #578 (microdata), #571 (aria-owns), and #568 (aria-current).
+// <meter>/<progress> elements are already blocked; aria-busy is the remaining
+// status-spoof attribute path for static glossary prose.
+rejects('Intro.\n\n<div aria-busy="true">Still syncing wallet data…</div>', 'plain aria-busy attribute');
+rejects('Intro.\n\n<a href="https://evil.example/" aria-busy="true">Continue</a>', 'plain aria-busy on anchor');
+rejects('Intro.\n\n<  div   aria-busy = "true">x</div>', 'spaced aria-busy attribute');
+rejects('<a href="x"aria-busy="true">go</a>', 'quote-abutted aria-busy attribute');
+rejects('<p class=x/aria-busy="true">x</p>', 'slash-delimited aria-busy attribute');
+
+accepts('<a href="/wiki/aria-busy=demo">aria-busy docs</a>', 'benign aria-busy substring in quoted href');
+accepts('ARIA busy state is an accessibility concept described here only as prose.', 'benign aria-busy prose');
+
 // srcset=/sizes= on <img> steer responsive loading — gap after #411 blocked picture/source.
 rejects('Intro.\n\n<img src="/wiki/fig.png" srcset="https://evil.example/x 1x" alt="x">', 'plain img srcset attribute');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   srcset = "https://evil.example/x 2x">', 'spaced img srcset attribute');

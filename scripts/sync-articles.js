@@ -519,6 +519,15 @@ const microdataAttrPattern = /<[^>]*\s(?:itemscope|itemtype|itemprop|itemref|ite
 const nonSpaceDelimitedMicrodataAttrPattern = /<[^>]*[/"'`](?:itemtype|itemprop|itemref|itemid)\s*=/i;
 const quoteAbuttedItemscopePattern = /<[^>]*["'`]itemscope(?=[\s>/=])/i;
 
+// aria-busy= marks a region as updating in assistive technology — e.g.
+// aria-busy="true" makes screen readers announce "loading" for injected prose
+// even though glossary articles are static HTML with no live update channel.
+// <meter>/<progress> are already element-blocked (#156); aria-busy is the
+// remaining status-spoof path for AT users. Same accessibility-attribute
+// family as merged #578 (microdata), #571 (aria-owns), and #568 (aria-current).
+const ariaBusyAttrPattern = /<[^>]*\saria-busy\s*=/i;
+const nonSpaceDelimitedAriaBusyAttrPattern = /<[^>]*[/"'`](?:aria-busy)\s*=/i;
+
 // nowrap on allowed <td>/<th> disables text wrapping in the cell — an injected
 // long URL, fake wallet address, or padded phishing line breaks out of the
 // column, reflowing the real article text off-screen (a layout-defacement /
@@ -1118,6 +1127,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": itemscope, itemtype, itemprop, itemref, and itemid microdata attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    ariaBusyAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAriaBusyAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": aria-busy attributes are not allowed in article content`,
     );
   }
 
