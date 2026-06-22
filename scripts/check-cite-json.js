@@ -106,6 +106,11 @@ for (const slug of articleSlugs) {
   assert.equal(doc.title, title, `cite.json title must equal the article title for ${slug}`);
   assert.equal(doc.slug, slug, `cite.json slug must equal ${slug}`);
   assert.equal(doc.url, url, `cite.json url must be the canonical trailing-slash article URL for ${slug}`);
+  assert.equal(
+    doc.bibtexUrl,
+    `${ORIGIN}/wiki/${slug}/cite.bib`,
+    `cite.json bibtexUrl must point at the sibling cite.bib export for ${slug}`,
+  );
   if (date) {
     assert.equal(doc.date, date, `cite.json date must equal the article's last-revision date for ${slug}`);
   } else {
