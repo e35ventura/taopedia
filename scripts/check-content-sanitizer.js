@@ -800,6 +800,18 @@ rejects('<p class=x/aria-owns="site-nav">x</p>', 'slash-delimited aria-owns attr
 accepts('<a href="/wiki/aria-owns=demo">aria-owns docs</a>', 'benign aria-owns substring in quoted href');
 accepts('ARIA owns is an accessibility concept described here only as prose.', 'benign aria-owns prose');
 
+// aria-activedescendant= points assistive tech at a specific child as "active" —
+// same family as merged #571 (aria-owns), #570 (aria-errormessage), #568 (aria-current),
+// #567 (aria-keyshortcuts), #564 (aria-flowto), #561 (aria-roledescription).
+rejects('Intro.\n\n<div aria-activedescendant="evil-option">Fake focus</div>', 'plain aria-activedescendant attribute');
+rejects('Intro.\n\n<a href="https://evil.example/" aria-activedescendant="option-1">claim TAO</a>', 'plain aria-activedescendant attribute on anchor');
+rejects('Intro.\n\n<  a   href="/wiki/stake/"   aria-activedescendant = "evil-option">stake</a>', 'spaced aria-activedescendant attribute');
+rejects('<a href="x"aria-activedescendant="evil-option">go</a>', 'quote-abutted aria-activedescendant attribute');
+rejects('<p class=x/aria-activedescendant="evil-option">x</p>', 'slash-delimited aria-activedescendant attribute');
+
+accepts('<a href="/wiki/aria-activedescendant=demo">aria-activedescendant docs</a>', 'benign aria-activedescendant substring in quoted href');
+accepts('ARIA activedescendant is an accessibility concept described here only as prose.', 'benign aria-activedescendant prose');
+
 // srcset=/sizes= on <img> steer responsive loading — gap after #411 blocked picture/source.
 rejects('Intro.\n\n<img src="/wiki/fig.png" srcset="https://evil.example/x 1x" alt="x">', 'plain img srcset attribute');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   srcset = "https://evil.example/x 2x">', 'spaced img srcset attribute');

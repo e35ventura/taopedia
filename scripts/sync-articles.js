@@ -508,6 +508,21 @@ const nonSpaceDelimitedAriaErrormessageAttrPattern = /<[^>]*[/"'`](?:aria-errorm
 const ariaOwnsAttrPattern = /<[^>]*\saria-owns\s*=/i;
 const nonSpaceDelimitedAriaOwnsAttrPattern = /<[^>]*[/"'`](?:aria-owns)\s*=/i;
 
+// aria-activedescendant= points assistive technology at a specific child
+// element that should be announced as the "active" descendant — e.g.
+// aria-activedescendant="evil-option" makes a screen reader announce an
+// injected element as the currently focused item inside a composite widget,
+// enabling AT-level focus-redirection spoofing without any visual change.
+// Same accessibility-attribute family as merged #571 (aria-owns), #570
+// (aria-errormessage), #568 (aria-current), #567 (aria-keyshortcuts), #564
+// (aria-flowto), #561 (aria-roledescription), #559 (aria-controls), #558
+// (aria-live), #556 (aria-hidden), #554 (role), #553 (aria-describedby),
+// #550 (title), and #501 (aria-label).  Glossary articles never manage
+// composite-widget focus — the site has no listbox, tree, or grid widgets
+// that require active-descendant management.
+const ariaActivedescendantAttrPattern = /<[^>]*\saria-activedescendant\s*=/i;
+const nonSpaceDelimitedAriaActivedescendantAttrPattern = /<[^>]*[/"'`](?:aria-activedescendant)\s*=/i;
+
 // nowrap on allowed <td>/<th> disables text wrapping in the cell — an injected
 // long URL, fake wallet address, or padded phishing line breaks out of the
 // column, reflowing the real article text off-screen (a layout-defacement /
@@ -1097,6 +1112,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": aria-owns attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    ariaActivedescendantAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAriaActivedescendantAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": aria-activedescendant attributes are not allowed in article content`,
     );
   }
 
