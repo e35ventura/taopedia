@@ -3,30 +3,45 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { compareTitles } from '../src/lib/title-sort.js';
+import { RECENT_CHANGES_LIMIT } from '../src/lib/recent-changes.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
 const wikiDir = path.join(projectRoot, 'dist', 'wiki');
 const rcFile = path.join(wikiDir, 'special', 'recentchanges', 'index.html');
+const rcJsonFile = path.join(wikiDir, 'special', 'recentchanges.json');
 const historyDir = path.join(projectRoot, 'public', 'history');
-
-// Must match RECENT_LIMIT in src/pages/wiki/special/recentchanges.astro.
-const RECENT_LIMIT = 100;
+const ORIGIN = 'https://taopedia.org';
 
 assert.ok(fs.existsSync(rcFile), 'dist/wiki/special/recentchanges/index.html not found; run the build first');
+assert.ok(fs.existsSync(rcJsonFile), 'dist/wiki/special/recentchanges.json not found; run the build first');
 const html = fs.readFileSync(rcFile, 'utf8');
+const json = JSON.parse(fs.readFileSync(rcJsonFile, 'utf8'));
 
 // Parse the rendered rows: each <li class="mw-rc-row"> carries a <time
 // datetime>, a title link, and a history link. Match the <li> elements
 // specifically so the `.mw-rc-row` selector in the <style> block isn't counted.
+const decode = (s) =>
+  s
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, '&');
+
 const rows = [...html.matchAll(/<li[^>]*class="mw-rc-row"[^>]*>([\s\S]*?)<\/li>/g)].map(([, block]) => ({
   datetime: (block.match(/datetime="([^"]+)"/) || [])[1],
   titleHref: (block.match(/mw-rc-title[^>]*href="([^"]+)"/) || [])[1],
+  title: decode((block.match(/<a[^>]*class="mw-rc-title"[^>]*>([\s\S]*?)<\/a>/) || [])[1] || ''),
+  authorName: decode((block.match(/<span[^>]*class="mw-rc-author"[^>]*>([\s\S]*?)<\/span>/) || [])[1] || ''),
   histHref: (block.match(/mw-rc-hist[^>]*href="([^"]+)"/) || [])[1],
 }));
 
 assert.ok(rows.length > 0, 'recent changes page must render at least one change row');
-assert.ok(rows.length <= RECENT_LIMIT, `recent changes must show at most ${RECENT_LIMIT} rows (got ${rows.length})`);
+assert.ok(
+  rows.length <= RECENT_CHANGES_LIMIT,
+  `recent changes must show at most ${RECENT_CHANGES_LIMIT} rows (got ${rows.length})`,
+);
 
 // Every row must have a valid date, a resolvable article link, and a history link.
 for (const row of rows) {
@@ -76,9 +91,37 @@ for (const file of fs.readdirSync(historyDir)) {
 }
 dated.sort((a, b) => (a < b ? 1 : a > b ? -1 : 0));
 
-const expectedCount = Math.min(dated.length, RECENT_LIMIT);
-assert.equal(rows.length, expectedCount, `recent changes must show ${expectedCount} rows (min of ${dated.length} dated commits and ${RECENT_LIMIT})`);
+const expectedCount = Math.min(dated.length, RECENT_CHANGES_LIMIT);
+assert.equal(
+  rows.length,
+  expectedCount,
+  `recent changes must show ${expectedCount} rows (min of ${dated.length} dated commits and ${RECENT_CHANGES_LIMIT})`,
+);
 assert.equal(rows[0].datetime, dated[0], `newest row (${rows[0].datetime}) must equal the newest commit across published articles (${dated[0]})`);
+
+assert.equal(json.site, ORIGIN, `recentchanges.json site must equal ${ORIGIN}`);
+assert.equal(json.count, rows.length, 'recentchanges.json count must equal the rendered row count');
+assert.equal(
+  json.limit,
+  RECENT_CHANGES_LIMIT,
+  `recentchanges.json limit must equal the shared RECENT_CHANGES_LIMIT (${RECENT_CHANGES_LIMIT})`,
+);
+assert.ok(Array.isArray(json.changes), 'recentchanges.json changes must be an array');
+assert.equal(json.changes.length, rows.length, 'recentchanges.json must mirror every rendered recent-changes row');
+
+json.changes.forEach((change, i) => {
+  const row = rows[i];
+  assert.equal(change.slug, row.titleHref.split('/')[2], `json row ${i} slug must match the HTML page`);
+  assert.equal(change.title, row.title, `json row ${i} title must match the HTML page`);
+  assert.equal(change.date, row.datetime, `json row ${i} date must match the HTML page`);
+  assert.equal(change.url, `${ORIGIN}${row.titleHref}`, `json row ${i} url must be absolute and canonical`);
+  assert.equal(change.historyUrl, `${ORIGIN}${row.histHref}`, `json row ${i} historyUrl must be absolute and canonical`);
+  assert.equal(
+    change.authorName,
+    row.authorName || null,
+    `json row ${i} authorName must match the HTML page (null when omitted)`,
+  );
+});
 
 // On-site discovery must be coherent across the primary navigation surfaces, so
 // the page is reachable without inspecting the sitemap: the shared footer
@@ -95,4 +138,6 @@ assert.ok(
   'the homepage primary nav must link to /wiki/special/recentchanges (homepage discovery path)',
 );
 
-console.log(`Recent changes check passed (${rows.length} rows, newest ${rows[0].datetime}, footer + homepage discovery links present)`);
+console.log(
+  `Recent changes check passed (${rows.length} rows, newest ${rows[0].datetime}, html/json parity verified, footer + homepage discovery links present)`,
+);
