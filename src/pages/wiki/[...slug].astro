@@ -5,6 +5,7 @@ import Hovercards from '../../components/Hovercards.astro';
 import { resolveArticleImageSource } from '../../lib/article-image-assets.js';
 import { buildSlugAliases, parseWikiLinkTokens, resolveTargetSlug } from '../../../scripts/wiki-link-resolver.js';
 import { getPageSlug } from '../../lib/article-history';
+import { getArticleToc } from '../../lib/article-toc.js';
 import { getRelatedPages } from '../../lib/related-pages';
 
 export async function getStaticPaths() {
@@ -20,7 +21,7 @@ export async function getStaticPaths() {
 
 const { page, slug } = Astro.props;
 const { Content, headings } = await render(page);
-const tocHeadings = headings.filter((heading) => heading.depth >= 2 && heading.depth <= 4);
+const tocHeadings = getArticleToc(headings);
 
 // Try to load per-article infobox.json if present
 const infoboxModules = import.meta.glob('../../content/pages/**/infobox.json', { eager: true }) as Record<string, any>;
@@ -147,7 +148,7 @@ const readingMinutes = Math.max(1, Math.ceil(wordCount / 200));
   image={`/og/${slug}.png`}
   type="article"
 >
-  {tocHeadings.length > 1 && (
+  {tocHeadings.length > 0 && (
     <div slot="sidebar" class="toc-sidebar" role="navigation" aria-labelledby="toc-heading">
       <div class="toc-sidebar-inner">
         <div class="toc-header">
@@ -155,20 +156,15 @@ const readingMinutes = Math.max(1, Math.ceil(wordCount / 200));
           <button class="toc-hide" type="button" aria-label="Hide table of contents">hide</button>
         </div>
         <ul class="toc-list">
-          {tocHeadings.map((heading, index) => {
-            // Check if this heading has subsections (next heading has greater depth)
-            const hasSubsections = index < tocHeadings.length - 1 && tocHeadings[index + 1].depth > heading.depth;
-            const isSubsection = heading.depth > 2;
-            const parentLevel = heading.depth === 2 ? 0 : (heading.depth - 2) * 16;
-            
+          {tocHeadings.map((heading) => {
             return (
               <li 
-                class={`toc-level-${heading.depth}${isSubsection ? ' toc-subsection' : ''}`} 
+                class={`toc-level-${heading.depth}${heading.isSubsection ? ' toc-subsection' : ''}`} 
                 data-toc-level={heading.depth}
-                style={`padding-left: ${parentLevel}px;`}
+                style={`padding-left: ${heading.indent}px;`}
               >
                 <div class="toc-item-wrapper">
-                  {hasSubsections ? (
+                  {heading.hasSubsections ? (
                     <button class="toc-toggle" aria-label="Toggle subsections" data-slug={heading.slug}>
                       <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                         <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -177,8 +173,8 @@ const readingMinutes = Math.max(1, Math.ceil(wordCount / 200));
                   ) : (
                     <span class="toc-spacer"></span>
                   )}
-                  <a href={`#${heading.slug}`} class={hasSubsections ? 'has-subsections' : ''}>
-                    <span class="toc-number">{index + 1}</span> {heading.text}
+                  <a href={`#${heading.slug}`} class={heading.hasSubsections ? 'has-subsections' : ''}>
+                    <span class="toc-number">{heading.number}</span> {heading.title}
                   </a>
                 </div>
               </li>
