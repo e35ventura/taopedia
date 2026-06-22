@@ -1,0 +1,71 @@
+---
+// Reading-progress indicator. A thin bar pinned at the top of the viewport that
+// fills left-to-right as the reader scrolls down a long article, giving an
+// at-a-glance sense of how far through the page they are. It tracks whole-page
+// scroll position, so it sits at 0 at the very top and reaches exactly 100% at
+// the bottom of the page.
+//
+// Progressive enhancement: it's an empty (zero-width) bar with JS off, purely
+// presentational (aria-hidden, so no screen-reader noise), and uses the existing
+// --color-progressive token so it follows the light/dark theme. The bar tracks
+// scroll position directly (a transform, no transition), so there's no motion to
+// disable for reduced-motion users.
+---
+
+<div class="reading-progress" aria-hidden="true"></div>
+
+<script is:inline>
+  (function () {
+    if (window.__taopediaReadingProgress) return;
+    window.__taopediaReadingProgress = true;
+
+    function init() {
+      var bar = document.querySelector('.reading-progress');
+      if (!bar) return;
+      // The article layout's <main> has position:relative + z-index:1, creating a
+      // stacking context that would trap the bar below the fixed header (z:100).
+      // Moving the bar to <body> puts it in the root stacking context so z:1000 wins.
+      document.body.appendChild(bar);
+
+      var ticking = false;
+
+      function compute() {
+        ticking = false;
+        var docEl = document.documentElement;
+        // Whole-page scroll range: 0 at the top, exactly 1 at the bottom. When
+        // the page fits on screen there is nothing to scroll, so progress is 0
+        // and the (zero-width) bar stays invisible.
+        var max = docEl.scrollHeight - docEl.clientHeight;
+        var scrollY = window.scrollY || docEl.scrollTop || 0;
+        var progress = max > 0 ? scrollY / max : 0;
+        if (progress < 0) progress = 0;
+        else if (progress > 1) progress = 1;
+        bar.style.transform = 'scaleX(' + progress + ')';
+      }
+
+      function onScroll() {
+        if (ticking) return;
+        ticking = true;
+        window.requestAnimationFrame(compute);
+      }
+
+      window.addEventListener('scroll', onScroll, { passive: true });
+      window.addEventListener('resize', onScroll, { passive: true });
+      // Recompute after late layout shifts (images/fonts loading, the appearance
+      // Width toggle) even if the reader hasn't scrolled, so the bar can't go stale.
+      window.addEventListener('load', onScroll);
+      if (typeof ResizeObserver === 'function') {
+        try {
+          new ResizeObserver(onScroll).observe(document.body);
+        } catch (e) {}
+      }
+      compute();
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  })();
+</script>
