@@ -79,6 +79,21 @@ const backlinks = JSON.parse(fs.readFileSync(backlinksFile, 'utf8'));
 const slugmap = JSON.parse(fs.readFileSync(slugmapFile, 'utf8'));
 
 assert.ok(typeof data.site === 'string' && /^https?:\/\//.test(data.site), `site must be a URL string (got ${JSON.stringify(data.site)})`);
+// Every per-page url must be absolute and match the envelope site field, the
+// same self-contained contract the merged allpages.json fix (#580) established
+// for the per-article directory: a programmatic consumer should never need to
+// combine a relative url with the envelope site to reach the article.
+for (const row of data.pages) {
+  assert.ok(
+    row.url.startsWith(`${data.site}/wiki/`),
+    `row ${row.slug} url must be absolute and start with the envelope site (got ${row.url})`,
+  );
+  assert.equal(
+    row.url,
+    `${data.site}/wiki/${row.slug}/`,
+    `row ${row.slug} url must equal ${data.site}/wiki/${row.slug}/`,
+  );
+}
 assert.ok(Array.isArray(data.pages), 'pages must be an array');
 assert.equal(data.count, data.pages.length, 'count must equal pages.length');
 assert.ok(data.pages.length > 0, 'mostlinkedpages.json must list at least one ranked article');
@@ -92,7 +107,6 @@ assert.equal(data.pages.length, expected.length, `mostlinkedpages.json must list
 data.pages.forEach((row, i) => {
   assert.equal(row.slug, expected[i].slug, `row ${i} slug must match the link-graph ranking`);
   assert.equal(row.title, expected[i].title, `row ${i} title must match the article title for ${expected[i].slug}`);
-  assert.equal(row.url, `/wiki/${expected[i].slug}/`, `row ${i} url must be the canonical article URL`);
   assert.equal(row.backlinks, expected[i].count, `row ${i} backlinks count must match the link graph`);
   assert.ok(Number.isInteger(row.backlinks) && row.backlinks > 0, `row ${i} backlinks must be a positive integer`);
 });

@@ -32,7 +32,7 @@ export const GET: APIRoute = async ({ site }) => {
       pages: ranked.map((entry) => ({
         slug: entry.slug,
         title: entry.title,
-        url: `/wiki/${entry.slug}/`,
+        url: `${origin}/wiki/${entry.slug}/`,
         backlinks: entry.count,
       })),
     },
