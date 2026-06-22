@@ -5,6 +5,28 @@ import { fileURLToPath } from 'node:url';
 import { compareTitles } from '../src/lib/title-sort.js';
 import { RECENT_LIMIT } from '../src/lib/recent-changes.js';
 
+const collectRecentChanges = (historyBySlug, titleBySlug, limit) => {
+  const changes = [];
+  for (const [slug, history] of Object.entries(historyBySlug)) {
+    const title = titleBySlug[slug];
+    if (!title) continue;
+    for (const entry of history) {
+      if (typeof entry?.date !== 'string' || !entry.date) continue;
+      changes.push({
+        slug,
+        title,
+        date: entry.date,
+        authorName: entry.authorName,
+      });
+    }
+  }
+  changes.sort((a, b) => {
+    if (a.date !== b.date) return a.date < b.date ? 1 : -1;
+    return compareTitles(a.slug, b.slug);
+  });
+  return limit > 0 ? changes.slice(0, limit) : changes;
+};
+
 // /wiki/special/recentchanges.json exposes the site-wide recent-changes feed as
 // structured JSON, mirroring Special:RecentChanges for programmatic consumers
 // (alongside statistics.json / categories.json / mostlinkedpages.json /
@@ -28,6 +50,15 @@ assert.ok(fs.existsSync(distFile), 'dist/wiki/special/recentchanges.json not fou
 assert.ok(fs.existsSync(slugmapFile), 'public/data/slugmap.json not found; run the build first');
 const data = JSON.parse(fs.readFileSync(distFile, 'utf8'));
 const slugmap = JSON.parse(fs.readFileSync(slugmapFile, 'utf8'));
+const titleBySlug = Object.fromEntries(Object.entries(slugmap).map(([slug, entry]) => [slug, entry.title]));
+const historyBySlug = {};
+for (const file of fs.readdirSync(historyDir)) {
+  if (!file.endsWith('.json')) continue;
+  const slug = file.replace(/\.json$/, '');
+  if (!fs.existsSync(path.join(wikiDir, slug, 'index.html'))) continue;
+  historyBySlug[slug] = JSON.parse(fs.readFileSync(path.join(historyDir, file), 'utf8')).history || [];
+}
+const expectedChanges = collectRecentChanges(historyBySlug, titleBySlug, RECENT_LIMIT);
 
 // ---- 1) Shape + per-change field contract ---------------------------------
 assert.ok(typeof data.site === 'string' && /^https?:\/\//.test(data.site), `site must be a URL string (got ${JSON.stringify(data.site)})`);
@@ -37,7 +68,9 @@ assert.equal(data.count, data.changes.length, 'count must equal changes.length')
 assert.ok(data.changes.length > 0, 'recentchanges.json must list at least one change');
 assert.ok(data.changes.length <= RECENT_LIMIT, `must list at most ${RECENT_LIMIT} changes (got ${data.changes.length})`);
 
-for (const change of data.changes) {
+for (let i = 0; i < data.changes.length; i++) {
+  const change = data.changes[i];
+  const expected = expectedChanges[i];
   assert.ok(typeof change.slug === 'string' && change.slug, 'each change must carry a slug');
   assert.ok(
     fs.existsSync(path.join(wikiDir, change.slug, 'index.html')),
@@ -67,6 +100,7 @@ for (const change of data.changes) {
     `change historyUrl must equal ${data.site}/wiki/${change.slug}/history/ for ${change.slug}`,
   );
   assert.equal(change.title, slugmap[change.slug]?.title, `change title must match the article title for ${change.slug}`);
+  assert.equal(change.authorName, expected.authorName, `change ${i} authorName must match the revision history`);
   assert.ok(typeof change.date === 'string' && !Number.isNaN(Date.parse(change.date)), `change has an invalid date: ${change.date}`);
 }
 
@@ -109,6 +143,7 @@ const htmlRows = [...html.matchAll(/<li[^>]*class="mw-rc-row"[^>]*>([\s\S]*?)<\/
   date: (block.match(/datetime="([^"]+)"/) || [])[1],
   slug: ((block.match(/mw-rc-title[^>]*href="([^"]+)"/) || [])[1] || '').split('/')[2],
   historyPath: (block.match(/mw-rc-hist[^>]*href="([^"]+)"/) || [])[1],
+  authorName: (block.match(/mw-rc-author[^>]*>([^<]*)</) || [])[1]?.trim() || '',
 }));
 assert.equal(htmlRows.length, data.changes.length, `the JSON feed (${data.changes.length}) and HTML page (${htmlRows.length}) must list the same number of changes`);
 htmlRows.forEach((row, i) => {
@@ -118,6 +153,11 @@ htmlRows.forEach((row, i) => {
     data.changes[i].historyUrl,
     `${data.site}${row.historyPath}`,
     `change ${i}: JSON historyUrl must match the HTML hist link`,
+  );
+  assert.equal(
+    data.changes[i].authorName ?? '',
+    row.authorName,
+    `change ${i}: JSON authorName must match the HTML author when rendered`,
   );
 });
 
