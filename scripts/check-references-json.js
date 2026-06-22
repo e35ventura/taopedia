@@ -48,6 +48,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(doc.slug, 'source', 'builder: slug field');
   assert.equal(doc.title, 'Source', 'builder: title field');
   assert.equal(doc.url, `${ORIGIN}/wiki/source/`, 'builder: url field');
+  assert.equal(doc.referencesUrl, `${ORIGIN}/wiki/source/references.json`, 'builder: referencesUrl self field');
   assert.equal(doc.count, 4, 'builder: count field');
   assert.deepEqual(
     doc.references,
@@ -126,6 +127,11 @@ for (const slug of articleSlugs) {
   assert.equal(doc.slug, slug, `${slug}: references.json slug must equal the article slug`);
   assert.equal(doc.title, titleBySlug[slug], `${slug}: references.json title must equal the published article title`);
   assert.equal(doc.url, `${ORIGIN}/wiki/${slug}/`, `${slug}: references.json url must be the canonical article URL`);
+  assert.equal(
+    doc.referencesUrl,
+    `${ORIGIN}/wiki/${slug}/references.json`,
+    `${slug}: references.json must expose its own canonical referencesUrl`,
+  );
   assert.equal(typeof doc.count, 'number', `${slug}: references.json count must be a number`);
   assert.ok(Array.isArray(doc.references), `${slug}: references.json references must be an array`);
   assert.equal(doc.count, doc.references.length, `${slug}: references.json count must equal references.length`);
