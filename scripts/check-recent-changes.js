@@ -3,15 +3,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { compareTitles } from '../src/lib/title-sort.js';
+import { RECENT_LIMIT } from '../src/lib/recent-changes.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
 const wikiDir = path.join(projectRoot, 'dist', 'wiki');
 const rcFile = path.join(wikiDir, 'special', 'recentchanges', 'index.html');
 const historyDir = path.join(projectRoot, 'public', 'history');
-
-// Must match RECENT_LIMIT in src/pages/wiki/special/recentchanges.astro.
-const RECENT_LIMIT = 100;
 
 assert.ok(fs.existsSync(rcFile), 'dist/wiki/special/recentchanges/index.html not found; run the build first');
 const html = fs.readFileSync(rcFile, 'utf8');
