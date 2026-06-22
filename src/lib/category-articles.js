@@ -25,6 +25,7 @@ export const buildCategoryArticlesDocument = ({ origin, categoryName, categoryPa
   site: origin,
   category: categoryName,
   url: `${origin}/wiki/category/${categoryPath}/`,
+  feedUrl: `${origin}/wiki/category/${categoryPath}/feed.json`,
   count: articles.length,
   articles: articles.map((article) => ({
     slug: article.slug,

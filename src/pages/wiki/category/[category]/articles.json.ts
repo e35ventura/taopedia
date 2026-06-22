@@ -31,7 +31,10 @@ export async function getStaticPaths() {
 // Machine-readable per-category membership list. Exposes the existing category
 // hub article set as structured JSON using the same build artifacts that power
 // the category feed and article metadata surfaces, while keeping the route
-// strictly non-visual.
+// strictly non-visual. Each document carries a feedUrl so consumers can
+// navigate directly to the category's JSON Feed without constructing the path
+// themselves — the same convenience field info.json provides for citeUrl and
+// historyUrl.
 export const GET: APIRoute = async ({ props, site }) => {
   const { categoryName, categoryPath, articles } = props as {
     categoryName: string;
