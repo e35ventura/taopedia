@@ -848,6 +848,21 @@ accepts('<a href="/wiki/aria-pressed=demo">aria-pressed docs</a>', 'benign aria-
 accepts('ARIA pressed state is an accessibility concept described here only as prose.', 'benign aria-pressed prose');
 accepts('<span class=x/aria-selected-demo>not an aria-selected attribute</span>', 'benign aria-selected substring in class value');
 
+// aria-placeholder= announces hint text to AT on any element — a phishing
+// vector (same family as merged #583 aria-pressed, #501 aria-label).
+// aria-invalid= announces a validation failure to AT — mimics form validation
+// to mislead readers (same family as merged #582 aria-busy, #568 aria-current).
+rejects('Intro.\n\n<p aria-placeholder="Enter your seed phrase">type here</p>', 'plain aria-placeholder on paragraph');
+rejects('Intro.\n\n<div aria-invalid="true">Wallet address is invalid — re-enter below</div>', 'plain aria-invalid attribute');
+rejects('Intro.\n\n<  a   href="/wiki/stake/"   aria-placeholder = "Address">stake</a>', 'spaced aria-placeholder attribute');
+rejects('<a href="x"aria-placeholder="Seed phrase">go</a>', 'quote-abutted aria-placeholder attribute');
+rejects('<div class=x/aria-invalid="grammar">x</div>', 'slash-delimited aria-invalid attribute');
+rejects("<p class='x'aria-invalid='spelling'>x</p>", 'single-quote-abutted aria-invalid attribute');
+
+accepts('<a href="/wiki/aria-placeholder=demo">aria-placeholder docs</a>', 'benign aria-placeholder substring in quoted href');
+accepts('ARIA placeholder is an accessibility concept described here only as prose.', 'benign aria-placeholder prose');
+accepts('<span class=x/aria-invalid-demo>not an aria-invalid attribute</span>', 'benign aria-invalid substring in class value');
+
 // srcset=/sizes= on <img> steer responsive loading — gap after #411 blocked picture/source.
 rejects('Intro.\n\n<img src="/wiki/fig.png" srcset="https://evil.example/x 1x" alt="x">', 'plain img srcset attribute');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   srcset = "https://evil.example/x 2x">', 'spaced img srcset attribute');

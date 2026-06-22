@@ -539,6 +539,30 @@ const ariaToggleStateAttrPattern = /<[^>]*\saria-(?:pressed|checked|selected)\s*
 const nonSpaceDelimitedAriaToggleStateAttrPattern =
   /<[^>]*[/"'`](?:aria-(?:pressed|checked|selected))\s*=/i;
 
+// aria-placeholder= provides hint text for empty interactive fields — e.g.
+// aria-placeholder="Enter your seed phrase" on a read-only paragraph makes
+// screen readers announce fake input guidance, a social-engineering / phishing
+// vector that mimics a form field prompt with no script or handler. Unlike the
+// HTML placeholder= attribute (limited to form controls), aria-placeholder can
+// be applied to any element with no rendering, so it is a purely AT-facing text
+// injection channel. Same accessibility-spoof family as merged #583 (aria-pressed/
+// checked/selected), #582 (aria-busy), and #501 (aria-label). Glossary articles
+// never declare input hint text — the site's form components manage that.
+const ariaPlaceholderAttrPattern = /<[^>]*\saria-placeholder\s*=/i;
+const nonSpaceDelimitedAriaPlaceholderAttrPattern = /<[^>]*[/"'`](?:aria-placeholder)\s*=/i;
+
+// aria-invalid= marks a form control as containing an invalid value — e.g.
+// aria-invalid="true" on a paragraph announces a fake "invalid field" alert to
+// screen reader users, mimicking form validation feedback to mislead readers into
+// taking corrective action on attacker-authored instructions (e.g. "re-enter your
+// wallet seed" alongside a malicious link). The value "grammar" and "spelling"
+// trigger grammar-/spell-check announcements in AT, expanding the social-
+// engineering surface. Same accessibility-spoof family as merged #582 (aria-busy),
+// #568 (aria-current), and #559 (aria-expanded). Glossary articles never signal
+// form validation state — the site's form components handle that in their own layout.
+const ariaInvalidAttrPattern = /<[^>]*\saria-invalid\s*=/i;
+const nonSpaceDelimitedAriaInvalidAttrPattern = /<[^>]*[/"'`](?:aria-invalid)\s*=/i;
+
 // nowrap on allowed <td>/<th> disables text wrapping in the cell — an injected
 // long URL, fake wallet address, or padded phishing line breaks out of the
 // column, reflowing the real article text off-screen (a layout-defacement /
@@ -1156,6 +1180,17 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": aria-pressed, aria-checked, and aria-selected attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    ariaPlaceholderAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAriaPlaceholderAttrPattern.test(emptiedAttributeContent)
+    || ariaInvalidAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAriaInvalidAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": aria-placeholder and aria-invalid attributes are not allowed in article content`,
     );
   }
 
