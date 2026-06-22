@@ -848,6 +848,20 @@ accepts('<a href="/wiki/aria-pressed=demo">aria-pressed docs</a>', 'benign aria-
 accepts('ARIA pressed state is an accessibility concept described here only as prose.', 'benign aria-pressed prose');
 accepts('<span class=x/aria-selected-demo>not an aria-selected attribute</span>', 'benign aria-selected substring in class value');
 
+// aria-disabled=/aria-readonly=/aria-required= fake form-widget state —
+// same family as merged #583 (toggle state), #570 (aria-errormessage), and inert.
+rejects('Intro.\n\n<a href="https://evil.example/" aria-disabled="true">Verify wallet</a>', 'plain aria-disabled attribute on anchor');
+rejects('Intro.\n\n<div aria-required="true">Enter seed phrase</div>', 'plain aria-required attribute');
+rejects('Intro.\n\n<div aria-readonly="true">Paste seed phrase here</div>', 'plain aria-readonly attribute');
+rejects('Intro.\n\n<  a   href="/wiki/stake/"   aria-disabled = "true">stake</a>', 'spaced aria-disabled attribute');
+rejects('<a href="x"aria-disabled="true">go</a>', 'quote-abutted aria-disabled attribute');
+rejects('<div class=x/aria-required="true">x</div>', 'slash-delimited aria-required attribute');
+rejects("<p class='x'aria-readonly='true'>x</p>", 'single-quote-abutted aria-readonly attribute');
+
+accepts('<a href="/wiki/aria-disabled=demo">aria-disabled docs</a>', 'benign aria-disabled substring in quoted href');
+accepts('ARIA disabled state is an accessibility concept described here only as prose.', 'benign aria-disabled prose');
+accepts('<span class=x/aria-required-demo>not an aria-required attribute</span>', 'benign aria-required substring in class value');
+
 // srcset=/sizes= on <img> steer responsive loading — gap after #411 blocked picture/source.
 rejects('Intro.\n\n<img src="/wiki/fig.png" srcset="https://evil.example/x 1x" alt="x">', 'plain img srcset attribute');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   srcset = "https://evil.example/x 2x">', 'spaced img srcset attribute');
