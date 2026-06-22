@@ -12,6 +12,7 @@ const collectRecentChanges = (historyBySlug, titleBySlug, limit) => {
     if (!title) continue;
     for (const entry of history) {
       if (typeof entry?.date !== 'string' || !entry.date) continue;
+      if (typeof entry?.sha !== 'string' || !entry.sha) continue;
       changes.push({
         slug,
         title,
@@ -28,6 +29,28 @@ const collectRecentChanges = (historyBySlug, titleBySlug, limit) => {
   });
   return limit > 0 ? changes.slice(0, limit) : changes;
 };
+
+// Builder contract: a recent change is only valid if its entry carries both a
+// date AND a sha (the sha is the stable event-id component
+// urn:taopedia:recentchanges:<slug>:<sha>). Entries missing either are dropped,
+// matching the rss/atom/json-feed harnesses — so a date-only entry can never
+// leak a `…:undefined` event id into the JSON feed.
+{
+  const built = collectRecentChanges(
+    {
+      ok: [{ date: '2024-01-02T00:00:00Z', sha: 'abc123', message: 'm' }],
+      nosha: [{ date: '2024-01-03T00:00:00Z', message: 'no sha here' }],
+      nodate: [{ sha: 'def456', message: 'no date here' }],
+    },
+    { ok: 'Ok', nosha: 'No Sha', nodate: 'No Date' },
+    50,
+  );
+  assert.deepEqual(
+    built.map((c) => c.slug),
+    ['ok'],
+    'collectRecentChanges must drop entries missing a sha or a date (only the complete entry survives)',
+  );
+}
 
 // /wiki/special/recentchanges.json exposes the site-wide recent-changes feed as
 // structured JSON, mirroring Special:RecentChanges for programmatic consumers
