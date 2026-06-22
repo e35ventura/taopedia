@@ -36,6 +36,12 @@ assert.equal(
 );
 
 assert.equal(
+  normalizeLinkTarget('/wiki/Dynamic%20TAO/?ref=share'),
+  'Dynamic TAO',
+  'route-prefixed article paths should ignore query strings before alias resolution',
+);
+
+assert.equal(
   normalizeLinkTarget('wiki/Dynamic TAO'),
   'Dynamic TAO',
   'route-prefixed article paths should preserve the target text after removing the route prefix',
@@ -72,6 +78,12 @@ assert.equal(
 );
 
 assert.equal(
+  resolveTargetSlug('/wiki/Dynamic%20TAO/?ref=share', aliases),
+  'dynamic_tao',
+  'rendered wiki links should resolve route-prefixed targets even when the source URL carries a query string',
+);
+
+assert.equal(
   resolveTargetSlug('https://taopedia.org/wiki/dynamic_tao/', aliases),
   'dynamic_tao',
   'rendered wiki links should resolve canonical article URLs to canonical slugs',
@@ -87,6 +99,12 @@ assert.deepEqual(
   options.pageResolver('/wiki/Dynamic TAO'),
   ['dynamic_tao', 'Dynamic TAO', 'dynamic tao'],
   'remark wiki-link resolution should try the canonical slug before route-prefixed fallbacks',
+);
+
+assert.deepEqual(
+  options.pageResolver('/wiki/Dynamic%20TAO/?ref=share'),
+  ['dynamic_tao', 'Dynamic TAO', 'dynamic tao'],
+  'remark wiki-link resolution should ignore query strings on route-prefixed article targets',
 );
 
 assert.deepEqual(

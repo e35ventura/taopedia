@@ -82,8 +82,8 @@ export function normalizeLinkTarget(rawTarget) {
     // Not an absolute URL; keep handling normal wiki-link targets below.
   }
 
-  const withoutHash = target.trim().split('#')[0];
-  const withoutRoutePrefix = withoutHash
+  const withoutFragmentOrQuery = target.trim().split(/[?#]/)[0];
+  const withoutRoutePrefix = withoutFragmentOrQuery
     .replace(/^\/+/, '')
     .replace(/^wiki\//i, '')
     .replace(/\/+$/g, '');
