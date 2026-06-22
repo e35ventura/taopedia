@@ -109,9 +109,40 @@ data.pages.forEach((row, i) => {
   assert.equal(row.title, expected[i].title, `row ${i} title must match the article title for ${expected[i].slug}`);
   assert.equal(row.backlinks, expected[i].count, `row ${i} backlinks count must match the link graph`);
   assert.ok(Number.isInteger(row.backlinks) && row.backlinks > 0, `row ${i} backlinks must be a positive integer`);
+  assert.ok(
+    row.backlinksUrl.startsWith(`${data.site}/wiki/`),
+    `row ${i} backlinksUrl must be absolute and start with the envelope site (got ${row.backlinksUrl})`,
+  );
+  assert.equal(
+    row.backlinksUrl,
+    `${data.site}/wiki/${row.slug}/backlinks/`,
+    `row ${i} backlinksUrl must equal ${data.site}/wiki/${row.slug}/backlinks/`,
+  );
 });
 for (let i = 1; i < data.pages.length; i++) {
   assert.ok(data.pages[i - 1].backlinks >= data.pages[i].backlinks, `rows must be sorted by backlinks descending (row ${i - 1} >= row ${i})`);
 }
+
+// ---- 5) JSON/HTML parity: backlinksUrl must match the rendered count link ---
+const htmlFile = path.join(projectRoot, 'dist', 'wiki', 'special', 'mostlinkedpages', 'index.html');
+assert.ok(fs.existsSync(htmlFile), 'dist/wiki/special/mostlinkedpages/index.html not found; run the build first');
+const html = fs.readFileSync(htmlFile, 'utf8');
+const htmlRows = [...html.matchAll(/<li[^>]*class="mw-ml-row"[^>]*>([\s\S]*?)<\/li>/g)].map(([, block]) => ({
+  slug: (((block.match(/mw-ml-title[^>]*href="([^"]+)"/) || [])[1] || '').match(/^\/wiki\/(.+)\/$/) || [])[1],
+  backlinksPath: (block.match(/mw-ml-count[^>]*href="([^"]+)"/) || [])[1],
+}));
+assert.equal(
+  htmlRows.length,
+  data.pages.length,
+  `the JSON ranking (${data.pages.length}) and HTML page (${htmlRows.length}) must list the same number of rows`,
+);
+htmlRows.forEach((row, i) => {
+  assert.equal(data.pages[i].slug, row.slug, `row ${i}: JSON slug (${data.pages[i].slug}) must equal the HTML row slug (${row.slug})`);
+  assert.equal(
+    data.pages[i].backlinksUrl,
+    `${data.site}${row.backlinksPath}`,
+    `row ${i}: JSON backlinksUrl must match the HTML count link`,
+  );
+});
 
 console.log(`Most linked pages JSON check passed (${data.count} ranked articles, top=${data.pages[0].slug} with ${data.pages[0].backlinks} backlinks)`);
