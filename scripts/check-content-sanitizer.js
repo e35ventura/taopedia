@@ -743,6 +743,17 @@ rejects('<p class=x/aria-roledescription="Security Alert">x</p>', 'slash-delimit
 accepts('<a href="/wiki/aria-roledescription=demo">aria-roledescription docs</a>', 'benign aria-roledescription substring in quoted href');
 accepts('ARIA roledescription is an accessibility concept described here only as prose.', 'benign aria-roledescription prose');
 
+// aria-flowto= overrides the default AT reading order — same family as merged
+// #559 (aria-controls), #561 (aria-roledescription), #554 (role).
+rejects('Intro.\n\n<p aria-flowto="evil-panel">Continue reading here</p>', 'plain aria-flowto attribute');
+rejects('Intro.\n\n<a href="https://evil.example/" aria-flowto="phish-block">claim TAO</a>', 'plain aria-flowto attribute on anchor');
+rejects('Intro.\n\n<  a   href="/wiki/stake/"   aria-flowto = "evil-panel">stake</a>', 'spaced aria-flowto attribute');
+rejects('<a href="x"aria-flowto="evil-panel">go</a>', 'quote-abutted aria-flowto attribute');
+rejects('<p class=x/aria-flowto="evil-panel">x</p>', 'slash-delimited aria-flowto attribute');
+
+accepts('<a href="/wiki/aria-flowto=demo">aria-flowto docs</a>', 'benign aria-flowto substring in quoted href');
+accepts('ARIA flowto is an accessibility concept described here only as prose.', 'benign aria-flowto prose');
+
 // srcset=/sizes= on <img> steer responsive loading — gap after #411 blocked picture/source.
 rejects('Intro.\n\n<img src="/wiki/fig.png" srcset="https://evil.example/x 1x" alt="x">', 'plain img srcset attribute');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   srcset = "https://evil.example/x 2x">', 'spaced img srcset attribute');

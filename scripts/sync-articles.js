@@ -444,6 +444,19 @@ const nonSpaceDelimitedAriaDisclosureAttrPattern = /<[^>]*[/"'`](?:aria-(?:contr
 const ariaRoledescriptionAttrPattern = /<[^>]*\saria-roledescription\s*=/i;
 const nonSpaceDelimitedAriaRoledescriptionAttrPattern = /<[^>]*[/"'`](?:aria-roledescription)\s*=/i;
 
+// aria-flowto= overrides the default reading order that assistive technology
+// follows after the current element — e.g. aria-flowto="evil-panel" redirects
+// a screen reader from the article body to an attacker-injected phishing block.
+// Unlike the visual document flow (which users see), aria-flowto silently
+// reroutes the non-visual navigation path, making it a navigation-hijack
+// primitive for AT users. Same accessibility-spoof family as merged role (#554),
+// aria-label (#501), aria-describedby (#553), aria-hidden (#556), aria-live
+// (#558), aria-controls (#559), and aria-roledescription (#561). Glossary
+// articles never set custom reading order — the site relies on standard DOM
+// order for accessible navigation.
+const ariaFlowtoAttrPattern = /<[^>]*\saria-flowto\s*=/i;
+const nonSpaceDelimitedAriaFlowtoAttrPattern = /<[^>]*[/"'`](?:aria-flowto)\s*=/i;
+
 // nowrap on allowed <td>/<th> disables text wrapping in the cell — an injected
 // long URL, fake wallet address, or padded phishing line breaks out of the
 // column, reflowing the real article text off-screen (a layout-defacement /
@@ -988,6 +1001,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": aria-roledescription attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    ariaFlowtoAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAriaFlowtoAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": aria-flowto attributes are not allowed in article content`,
     );
   }
 
