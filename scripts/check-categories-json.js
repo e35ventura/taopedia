@@ -90,6 +90,19 @@ data.categories.forEach((row, i) => {
     `${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/`,
     `row ${i} url must equal ${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/`,
   );
+  // articlesUrl points at the category's machine-readable article list
+  // (/wiki/category/<slug>/articles.json), the companion the HTML url omits, so
+  // a consumer of the category index can fetch each category's articles without
+  // reconstructing the route. Same absolute-URL contract as url.
+  assert.ok(
+    row.articlesUrl.startsWith(`${data.site}/wiki/category/`),
+    `row ${i} articlesUrl must be absolute and start with the envelope site (got ${row.articlesUrl})`,
+  );
+  assert.equal(
+    row.articlesUrl,
+    `${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/articles.json`,
+    `row ${i} articlesUrl must equal ${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/articles.json`,
+  );
 });
 
 console.log(`Categories JSON check passed (${data.count} topics)`);
