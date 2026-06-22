@@ -35,7 +35,7 @@ export const GET: APIRoute = async ({ site }) => {
       pages: longPages.map((p) => ({
         slug: p.slug,
         title: p.title,
-        url: `${origin}/wiki/${p.slug}/`,
+        url: `${origin}/wiki/${encodeURIComponent(p.slug)}/`,
         words: p.words,
       })),
     },
