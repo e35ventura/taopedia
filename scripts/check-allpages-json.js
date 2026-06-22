@@ -184,6 +184,14 @@ data.articles.forEach((row, i) => {
   assert.ok(typeof row.slug === 'string' && row.slug.length > 0, `row ${i} slug must be a non-empty string`);
   assert.ok(typeof row.title === 'string' && row.title.length > 0, `row ${i} title must be a non-empty string`);
   assert.equal(row.url, `${data.site}/wiki/${row.slug}/`, `row ${i} url must be an absolute canonical URL`);
+  // historyUrl points at the article's revision-history page — the same
+  // companion subnets.json / mostlinkedpages.json expose — so a consumer of the
+  // directory can reach each article's edit history without rebuilding the route.
+  assert.equal(
+    row.historyUrl,
+    `${data.site}/wiki/${row.slug}/history/`,
+    `row ${i} historyUrl must equal ${data.site}/wiki/${row.slug}/history/`,
+  );
   jsonSlugs.add(row.slug);
   // The article must point to a real, built article file.
   assert.ok(
