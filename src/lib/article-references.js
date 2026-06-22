@@ -1,0 +1,29 @@
+import { compareTitles } from './title-sort.js';
+
+export const getArticleReferences = ({ slug, linkGraph = {}, titleBySlug = {} }) => {
+  const links = Array.isArray(linkGraph[slug]) ? linkGraph[slug] : [];
+  const seen = new Set();
+  const references = [];
+
+  for (const link of links) {
+    const target = typeof link?.target === 'string' ? link.target : '';
+    if (!target || target === slug || !titleBySlug[target] || seen.has(target)) continue;
+
+    seen.add(target);
+    references.push({ slug: target, title: titleBySlug[target] });
+  }
+
+  return references.sort((a, b) => compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug));
+};
+
+export const buildArticleReferences = ({ slug, title, origin, references = [] }) => ({
+  slug,
+  title,
+  url: `${origin}/wiki/${slug}/`,
+  count: references.length,
+  references: references.map((link) => ({
+    slug: link.slug,
+    title: link.title,
+    url: `${origin}/wiki/${link.slug}/`,
+  })),
+});
