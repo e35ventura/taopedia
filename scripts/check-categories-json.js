@@ -81,7 +81,15 @@ data.categories.forEach((row, i) => {
   assert.ok(typeof row.name === 'string' && row.name.length > 0, `row ${i} name must be a non-empty string`);
   assert.ok(knownNames.has(row.name), `row ${i} topic "${row.name}" is not a known category`);
   assert.ok(Number.isInteger(row.articles) && row.articles > 0, `row ${i} articles must be a positive integer`);
-  assert.equal(row.url, `/wiki/category/${row.name.replace(/ /g, '_')}/`, `row ${i} url must be the canonical hub URL`);
+  assert.ok(
+    row.url.startsWith(`${data.site}/wiki/category/`),
+    `row ${i} url must be absolute and start with the envelope site (got ${row.url})`,
+  );
+  assert.equal(
+    row.url,
+    `${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/`,
+    `row ${i} url must equal ${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/`,
+  );
 });
 
 console.log(`Categories JSON check passed (${data.count} topics)`);

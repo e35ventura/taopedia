@@ -22,7 +22,7 @@ export const GET: APIRoute = async ({ site }) => {
       categories: topics.map((topic) => ({
         name: topic.name,
         articles: topic.count,
-        url: `/wiki/category/${topic.name.replace(/ /g, '_')}/`,
+        url: `${origin}/wiki/category/${topic.name.replace(/ /g, '_')}/`,
       })),
     },
     null,
