@@ -36,6 +36,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.url, `${ORIGIN}/wiki/recycling/`, 'builder: url field');
   assert.equal(result.backlinksUrl, `${ORIGIN}/wiki/recycling/backlinks/`, 'builder: backlinksUrl field');
   assert.equal(result.backlinksJsonUrl, `${ORIGIN}/wiki/recycling/backlinks.json`, 'builder: backlinksJsonUrl field');
+  assert.equal(result.historyUrl, `${ORIGIN}/wiki/recycling/history/`, 'builder: historyUrl field');
   assert.equal(result.count, 2, 'builder: count equals backlinks length');
   assert.equal(result.backlinks.length, 2, 'builder: backlinks array length');
   assert.equal(result.backlinks[0].slug, 'neuron', 'builder: backlinks[0].slug');
@@ -98,6 +99,7 @@ for (const slug of articleSlugs) {
   assert.equal(doc.url, `${ORIGIN}/wiki/${slug}/`, `${slug}: backlinks.json url must be the canonical article URL`);
   assert.equal(doc.backlinksUrl, `${ORIGIN}/wiki/${slug}/backlinks/`, `${slug}: backlinks.json backlinksUrl must point to the HTML page`);
   assert.equal(doc.backlinksJsonUrl, `${ORIGIN}/wiki/${slug}/backlinks.json`, `${slug}: backlinks.json must expose its own canonical backlinksJsonUrl`);
+  assert.equal(doc.historyUrl, `${ORIGIN}/wiki/${slug}/history/`, `${slug}: backlinks.json historyUrl must point to the HTML history page`);
   assert.equal(typeof doc.count, 'number', `${slug}: backlinks.json count must be a number`);
   assert.ok(Array.isArray(doc.backlinks), `${slug}: backlinks.json backlinks must be an array`);
   assert.equal(doc.count, doc.backlinks.length, `${slug}: backlinks.json count must equal backlinks.length`);
@@ -130,11 +132,16 @@ for (const slug of articleSlugs) {
   // 6) HTML/JSON PARITY: same set of linking slugs as the HTML backlinks page
   const htmlFile = path.join(wikiDir, slug, 'backlinks', 'index.html');
   if (fs.existsSync(htmlFile)) {
-    const htmlSlugs = new Set(htmlBacklinkSlugs(fs.readFileSync(htmlFile, 'utf8')));
+    const html = fs.readFileSync(htmlFile, 'utf8');
+    const htmlSlugs = new Set(htmlBacklinkSlugs(html));
     assert.deepEqual(
       rendered,
       htmlSlugs,
       `/wiki/${slug}/backlinks.json and /wiki/${slug}/backlinks/ must list the same set of linking articles`,
+    );
+    assert.ok(
+      html.includes(`href="/wiki/${slug}/history/"`),
+      `/wiki/${slug}/backlinks/ toolbar must link to the article history page`,
     );
   }
 
