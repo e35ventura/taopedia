@@ -457,6 +457,19 @@ const nonSpaceDelimitedAriaRoledescriptionAttrPattern = /<[^>]*[/"'`](?:aria-rol
 const ariaFlowtoAttrPattern = /<[^>]*\saria-flowto\s*=/i;
 const nonSpaceDelimitedAriaFlowtoAttrPattern = /<[^>]*[/"'`](?:aria-flowto)\s*=/i;
 
+// aria-keyshortcuts= declares keyboard shortcuts that activate or focus an
+// element — e.g. aria-keyshortcuts="Alt+S" makes assistive technology announce
+// a fake shortcut for an injected phishing link or button, lending it false
+// platform-integration authority ("press Alt+S to verify your wallet").  The
+// attribute is a current WAI-ARIA 1.1+ property with full screen-reader
+// support (NVDA, JAWS, VoiceOver).  Same accessibility-spoof family as merged
+// role (#554), aria-label (#501), aria-describedby (#553), aria-hidden (#556),
+// aria-live (#558), aria-controls (#559), aria-roledescription (#561), and
+// aria-flowto (#564).  Glossary articles never declare keyboard shortcuts —
+// the site handles all keyboard interaction in its own layout scripts.
+const ariaKeyshortcutsAttrPattern = /<[^>]*\saria-keyshortcuts\s*=/i;
+const nonSpaceDelimitedAriaKeyshortcutsAttrPattern = /<[^>]*[/"'`](?:aria-keyshortcuts)\s*=/i;
+
 // nowrap on allowed <td>/<th> disables text wrapping in the cell — an injected
 // long URL, fake wallet address, or padded phishing line breaks out of the
 // column, reflowing the real article text off-screen (a layout-defacement /
@@ -1010,6 +1023,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": aria-flowto attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    ariaKeyshortcutsAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAriaKeyshortcutsAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": aria-keyshortcuts attributes are not allowed in article content`,
     );
   }
 
