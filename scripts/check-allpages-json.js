@@ -147,6 +147,11 @@ assert.ok(
   typeof data.site === 'string' && /^https?:\/\//.test(data.site),
   `site must be a non-empty URL string (got ${JSON.stringify(data.site)})`,
 );
+assert.equal(
+  data.allpagesJsonUrl,
+  `${data.site}/wiki/special/allpages.json`,
+  'allpagesJsonUrl must be the canonical self-URL of the endpoint',
+);
 assert.ok(typeof data.count === 'number' && data.count > 0, `count must be a positive number (got ${data.count})`);
 assert.equal(data.count, data.articles.length, 'count must equal articles.length');
 assert.ok(Array.isArray(data.articles), 'articles must be an array');
