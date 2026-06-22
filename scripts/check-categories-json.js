@@ -82,6 +82,10 @@ data.categories.forEach((row, i) => {
   assert.ok(knownNames.has(row.name), `row ${i} topic "${row.name}" is not a known category`);
   assert.ok(Number.isInteger(row.articles) && row.articles > 0, `row ${i} articles must be a positive integer`);
   assert.ok(
+    row.articlesUrl.startsWith(`${data.site}/wiki/category/`),
+    `row ${i} articlesUrl must be absolute and start with the envelope site (got ${row.articlesUrl})`,
+  );
+  assert.ok(
     row.url.startsWith(`${data.site}/wiki/category/`),
     `row ${i} url must be absolute and start with the envelope site (got ${row.url})`,
   );
@@ -89,6 +93,11 @@ data.categories.forEach((row, i) => {
     row.url,
     `${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/`,
     `row ${i} url must equal ${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/`,
+  );
+  assert.equal(
+    row.articlesUrl,
+    `${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/articles.json`,
+    `row ${i} articlesUrl must equal ${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/articles.json`,
   );
 });
 
