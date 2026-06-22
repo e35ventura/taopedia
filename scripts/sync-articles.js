@@ -439,6 +439,12 @@ const quoteAbuttedOlReversedAttrPattern = /<\s*ol\b[^>]*["'`]reversed(?=[\s>/=])
 const imgFetchpriorityAttrPattern = /<\s*img\b[^>]*\sfetchpriority\s*=/i;
 const imgFetchpriorityQuoteAbuttedPattern = /<\s*img\b[^>]*["'`]fetchpriority\s*=/i;
 
+// decoding= on an allowed <img> schedules bitmap decode off the main thread for
+// attacker-chosen URLs — another subresource scheduling primitive in the same
+// img-scoped family as merged loading #462 and fetchpriority #463.
+const imgDecodingAttrPattern = /<\s*img\b[^>]*\sdecoding\s*=/i;
+const imgDecodingQuoteAbuttedPattern = /<\s*img\b[^>]*["'`]decoding\s*=/i;
+
 // ismap on an allowed <img> is the server-side image-map primitive (the counterpart
 // to the already-blocked client-side <map>/<area>/usemap= in #411). When set on an
 // <img> nested in an <a href="...">, the browser appends the click coordinates
@@ -899,6 +905,13 @@ export function validateArticleContent(slug, content) {
     throw new Error(
       `Unsafe article content in "${slug}": fetchpriority attributes are not allowed in article content`,
     );
+  }
+
+  if (
+    imgDecodingAttrPattern.test(emptiedAttributeContent)
+    || imgDecodingQuoteAbuttedPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(`Unsafe article content in "${slug}": decoding attributes are not allowed in article content`);
   }
 
   if (

@@ -706,6 +706,13 @@ rejects('<img src="/wiki/fig.png"fetchpriority="high">', 'quote-abutted img fetc
 accepts('<img src=/wiki/fetchpriority-demo.png alt=diagram>', 'benign unquoted img src path containing fetchpriority substring');
 accepts('Fetch priority hints improve performance and are described here only as prose.', 'benign fetchpriority prose');
 
+// decoding= on <img> schedules async bitmap decode — same subresource family as loading #462.
+rejects('Intro.\n\n<img src="https://evil.example/pixel.gif" decoding="async" alt="x">', 'plain img decoding attribute');
+rejects('Intro.\n\n<  img   src="/wiki/fig.png"   decoding = "async">', 'spaced img decoding attribute');
+rejects('<img src="/wiki/fig.png"decoding="async">', 'quote-abutted img decoding attribute');
+accepts('<img src=/wiki/decoding-demo.png alt=diagram>', 'benign unquoted img src path containing decoding substring');
+accepts('Async decoding improves image performance and is described here only as prose.', 'benign decoding prose');
+
 // ismap on <img> is the server-side image-map primitive (counterpart to the
 // already-blocked client-side <map>/<area>/usemap= in #411). When the <img> sits
 // inside an <a href="...">, clicking the image appends ?x,y coordinates to the
