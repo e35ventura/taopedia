@@ -30,6 +30,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.title, 'Recycling', 'builder: title');
   assert.equal(result.url, `${ORIGIN}/wiki/recycling/`, 'builder: url');
   assert.equal(result.historyUrl, `${ORIGIN}/wiki/recycling/history/`, 'builder: historyUrl');
+  assert.equal(result.historyJsonUrl, `${ORIGIN}/wiki/recycling/history.json`, 'builder: historyJsonUrl');
   assert.equal(result.revisionCount, 2, 'builder: revisionCount');
   assert.equal(result.lastEdited, '2026-06-01T12:00:00.000Z', 'builder: lastEdited is revisions[0].date');
   assert.equal(result.firstEdited, '2025-01-10T08:00:00.000Z', 'builder: firstEdited is revisions[last].date');
@@ -97,6 +98,7 @@ for (const slug of articleSlugs) {
   assert.equal(typeof doc.title, 'string', `${slug}: history.json title must be a string`);
   assert.equal(doc.url, `${ORIGIN}/wiki/${slug}/`, `${slug}: history.json url must be the canonical article URL`);
   assert.equal(doc.historyUrl, `${ORIGIN}/wiki/${slug}/history/`, `${slug}: history.json historyUrl must point to the HTML page`);
+  assert.equal(doc.historyJsonUrl, `${ORIGIN}/wiki/${slug}/history.json`, `${slug}: history.json must expose its own canonical historyJsonUrl`);
   assert.equal(typeof doc.revisionCount, 'number', `${slug}: history.json revisionCount must be a number`);
   assert.ok(Array.isArray(doc.revisions), `${slug}: history.json revisions must be an array`);
   assert.equal(doc.revisionCount, doc.revisions.length, `${slug}: history.json revisionCount must equal revisions.length`);
