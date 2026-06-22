@@ -43,6 +43,7 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
   assert.equal(doc.site, ORIGIN, 'builder: site field');
   assert.equal(doc.category, 'Subnets', 'builder: category field');
   assert.equal(doc.url, `${ORIGIN}/wiki/category/Subnets/`, 'builder: category url');
+  assert.equal(doc.feedUrl, `${ORIGIN}/wiki/category/Subnets/feed.json`, 'builder: category feedUrl');
   assert.equal(doc.count, 3, 'builder: count field');
   assert.deepEqual(
     doc.articles,
@@ -97,6 +98,14 @@ for (const category of categories) {
   assert.equal(doc.site, ORIGIN, `${category}: site must be ${ORIGIN}`);
   assert.equal(doc.category, originalName, `${category}: category must match the original category name`);
   assert.equal(doc.url, `${ORIGIN}/wiki/category/${category}/`, `${category}: url must be the canonical category URL`);
+  // feedUrl advertises the category's JSON Feed (its syndication companion), so
+  // a consumer reading the machine-readable article list can subscribe to the
+  // category without reconstructing the route.
+  assert.equal(
+    doc.feedUrl,
+    `${ORIGIN}/wiki/category/${category}/feed.json`,
+    `${category}: feedUrl must be the canonical category feed.json URL`,
+  );
   assert.ok(Array.isArray(doc.articles), `${category}: articles must be an array`);
   assert.ok(Array.isArray(feed.items) && feed.items.length > 0, `${category}: feed.json must contain at least one item`);
   assert.equal(doc.count, doc.articles.length, `${category}: count must equal articles.length`);
