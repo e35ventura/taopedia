@@ -8,6 +8,9 @@ import { buildStatistics } from '../../../../scripts/statistics.js';
 // programmatic consumers (dashboards, monitoring, cross-referencing tools).
 // The computation is shared through scripts/statistics.js (pure function) so
 // the endpoint and the regression check derive from one source of truth.
+// Each topic carries a url so consumers can navigate directly to the category
+// page without constructing the path themselves — the same field the
+// categories.json endpoint already provides per category.
 
 export const GET: APIRoute = async ({ site }) => {
   const origin = (site ?? new URL('https://taopedia.org')).origin;
@@ -19,10 +22,20 @@ export const GET: APIRoute = async ({ site }) => {
     getPageSlug,
   });
 
+  const topicUrl = (name: string) =>
+    `${origin}/wiki/category/${name.replace(/ /g, '_')}/`;
+
   const body = JSON.stringify(
     {
       site: origin,
       ...stats,
+      largestTopic: stats.largestTopic
+        ? { ...stats.largestTopic, url: topicUrl(stats.largestTopic.name) }
+        : null,
+      topics: stats.topics.map((t: { name: string; count: number }) => ({
+        ...t,
+        url: topicUrl(t.name),
+      })),
     },
     null,
     2,
