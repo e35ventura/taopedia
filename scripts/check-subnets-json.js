@@ -162,6 +162,20 @@ data.subnets.forEach((row, i) => {
     `${data.site}/wiki/${expected[i].slug}/history/`,
     `row ${i} historyUrl must equal ${data.site}/wiki/${expected[i].slug}/history/`,
   );
+  // backlinksUrl / backlinksJsonUrl point at the subnet article's
+  // What-links-here page and its machine-readable companion, the same per-entry
+  // companions mostlinkedpages.json exposes, so a consumer of the registry can
+  // see what references each subnet without reconstructing the route.
+  assert.equal(
+    row.backlinksUrl,
+    `${data.site}/wiki/${expected[i].slug}/backlinks/`,
+    `row ${i} backlinksUrl must equal ${data.site}/wiki/${expected[i].slug}/backlinks/`,
+  );
+  assert.equal(
+    row.backlinksJsonUrl,
+    `${data.site}/wiki/${expected[i].slug}/backlinks.json`,
+    `row ${i} backlinksJsonUrl must equal ${data.site}/wiki/${expected[i].slug}/backlinks.json`,
+  );
   assert.equal(
     row.summary,
     expected[i].summary || null,
