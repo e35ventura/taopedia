@@ -116,6 +116,20 @@ data.categories.forEach((row, i) => {
     `${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/feed.json`,
     `row ${i} feedUrl must equal ${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/feed.json`,
   );
+  // atomUrl / rssUrl point at the category's Atom and RSS feeds
+  // (/wiki/category/<slug>/atom.xml and /rss.xml), which exist alongside the
+  // JSON feed. A feed reader that speaks Atom/RSS rather than JSON Feed needs
+  // these to subscribe straight from the index. Same absolute-URL contract.
+  assert.equal(
+    row.atomUrl,
+    `${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/atom.xml`,
+    `row ${i} atomUrl must equal ${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/atom.xml`,
+  );
+  assert.equal(
+    row.rssUrl,
+    `${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/rss.xml`,
+    `row ${i} rssUrl must equal ${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/rss.xml`,
+  );
 });
 
 console.log(`Categories JSON check passed (${data.count} topics)`);
