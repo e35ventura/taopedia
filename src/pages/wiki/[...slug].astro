@@ -2,6 +2,7 @@
 import { getCollection, render } from 'astro:content';
 import WikiLayout from '../../layouts/WikiLayout.astro';
 import Hovercards from '../../components/Hovercards.astro';
+import ReadingProgress from '../../components/ReadingProgress.astro';
 import { resolveArticleImageSource } from '../../lib/article-image-assets.js';
 import { buildSlugAliases, parseWikiLinkTokens, resolveTargetSlug } from '../../../scripts/wiki-link-resolver.js';
 import { getPageSlug } from '../../lib/article-history';
@@ -342,4 +343,5 @@ const readingMinutes = Math.max(1, Math.ceil(wordCount / 200));
   </script>
 
   <Hovercards />
+  <ReadingProgress />
 </WikiLayout>
