@@ -28,6 +28,10 @@ export const GET: APIRoute = async ({ site }) => {
     `${origin}/wiki/category/${name.replace(/ /g, '_')}/articles.json`;
   const topicFeedUrl = (name: string) =>
     `${origin}/wiki/category/${name.replace(/ /g, '_')}/feed.json`;
+  const topicAtomUrl = (name: string) =>
+    `${origin}/wiki/category/${name.replace(/ /g, '_')}/atom.xml`;
+  const topicRssUrl = (name: string) =>
+    `${origin}/wiki/category/${name.replace(/ /g, '_')}/rss.xml`;
 
   const body = JSON.stringify(
     {
@@ -39,6 +43,8 @@ export const GET: APIRoute = async ({ site }) => {
             url: topicUrl(stats.largestTopic.name),
             articlesUrl: topicArticlesUrl(stats.largestTopic.name),
             feedUrl: topicFeedUrl(stats.largestTopic.name),
+            atomUrl: topicAtomUrl(stats.largestTopic.name),
+            rssUrl: topicRssUrl(stats.largestTopic.name),
           }
         : null,
       topics: stats.topics.map((t: { name: string; count: number }) => ({
@@ -46,6 +52,8 @@ export const GET: APIRoute = async ({ site }) => {
         url: topicUrl(t.name),
         articlesUrl: topicArticlesUrl(t.name),
         feedUrl: topicFeedUrl(t.name),
+        atomUrl: topicAtomUrl(t.name),
+        rssUrl: topicRssUrl(t.name),
       })),
     },
     null,
