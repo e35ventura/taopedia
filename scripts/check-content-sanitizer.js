@@ -800,6 +800,26 @@ rejects('<p class=x/aria-owns="site-nav">x</p>', 'slash-delimited aria-owns attr
 accepts('<a href="/wiki/aria-owns=demo">aria-owns docs</a>', 'benign aria-owns substring in quoted href');
 accepts('ARIA owns is an accessibility concept described here only as prose.', 'benign aria-owns prose');
 
+// HTML microdata attributes (itemscope, itemtype, itemprop, itemref, itemid)
+// — content-spoof family like the merged aria-* blocks above.
+rejects('Intro.\n\n<div itemscope itemtype="https://schema.org/Product"><span itemprop="name">TAO wallet</span></div>', 'plain itemscope + itemtype + itemprop');
+rejects('Intro.\n\n<a href="/wiki/tao/" itemprop="url">tao</a>', 'plain itemprop on anchor');
+rejects('Intro.\n\n<div itemscope></div>', 'plain itemscope boolean');
+rejects('Intro.\n\n<  div   itemscope   ></div>', 'spaced itemscope boolean');
+rejects('Intro.\n\n<img src="/wiki/fig.png" itemprop="image" alt="x">', 'plain itemprop on img');
+rejects('Intro.\n\n<div itemref="summary"></div>', 'plain itemref attribute');
+rejects('Intro.\n\n<div itemid="urn:isbn:1234"></div>', 'plain itemid attribute');
+rejects('Intro.\n\n<div   itemtype = "https://schema.org/Product"></div>', 'spaced itemtype attribute');
+rejects('<a href="x"itemprop="name">go</a>', 'quote-abutted itemprop attribute');
+rejects('<img src="/wiki/fig.png"/itemtype="https://schema.org/Product">', 'slash-delimited itemtype attribute');
+rejects('<div class="x"itemscope></div>', 'quote-abutted itemscope boolean');
+
+accepts('Schema.org microdata is a vocabulary described here only as prose.', 'benign schema.org prose');
+accepts('itemscope, itemtype, itemprop, itemref, and itemid are HTML5 microdata attributes.', 'benign microdata attribute names in prose');
+accepts('<a href="/wiki/itemprop=demo">microdata demo</a>', 'benign itemprop substring in quoted href');
+accepts('<span class=x/itemprop-demo>itemprop class example</span>', 'benign itemprop substring in class value');
+accepts('<div class="itemscope">plain div</div>', 'benign itemscope as a class value');
+
 // srcset=/sizes= on <img> steer responsive loading — gap after #411 blocked picture/source.
 rejects('Intro.\n\n<img src="/wiki/fig.png" srcset="https://evil.example/x 1x" alt="x">', 'plain img srcset attribute');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   srcset = "https://evil.example/x 2x">', 'spaced img srcset attribute');
