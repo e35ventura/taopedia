@@ -87,6 +87,11 @@ const expectedChanges = collectRecentChanges(historyBySlug, titleBySlug, RECENT_
 
 // ---- 1) Shape + per-change field contract ---------------------------------
 assert.ok(typeof data.site === 'string' && /^https?:\/\//.test(data.site), `site must be a URL string (got ${JSON.stringify(data.site)})`);
+assert.equal(
+  data.recentchangesJsonUrl,
+  `${data.site}/wiki/special/recentchanges.json`,
+  `recentchangesJsonUrl must be the canonical absolute URL of the endpoint itself`,
+);
 assert.equal(data.limit, RECENT_LIMIT, `limit must be the shared RECENT_LIMIT (${RECENT_LIMIT})`);
 assert.ok(Array.isArray(data.changes), 'changes must be an array');
 assert.equal(data.count, data.changes.length, 'count must equal changes.length');

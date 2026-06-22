@@ -24,6 +24,7 @@ export const GET: APIRoute = async ({ site }) => {
   const body = JSON.stringify(
     {
       site: origin,
+      recentchangesJsonUrl: `${origin}/wiki/special/recentchanges.json`,
       limit: RECENT_LIMIT,
       count: changes.length,
       changes: changes.map((change) => ({
