@@ -27,6 +27,7 @@ export const GET: APIRoute = async ({ site }) => {
       limit: RECENT_LIMIT,
       count: changes.length,
       changes: changes.map((change) => ({
+        id: `urn:taopedia:recentchanges:${change.slug}:${change.sha}`,
         slug: change.slug,
         title: change.title,
         url: `${origin}/wiki/${change.slug}/`,
