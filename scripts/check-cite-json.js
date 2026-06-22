@@ -107,6 +107,11 @@ for (const slug of articleSlugs) {
   assert.equal(doc.slug, slug, `cite.json slug must equal ${slug}`);
   assert.equal(doc.url, url, `cite.json url must be the canonical trailing-slash article URL for ${slug}`);
   assert.equal(
+    doc.citeJsonUrl,
+    `${ORIGIN}/wiki/${slug}/cite.json`,
+    `cite.json citeJsonUrl must point at the canonical JSON citation endpoint for ${slug}`,
+  );
+  assert.equal(
     doc.citeUrl,
     `${ORIGIN}/wiki/${slug}/cite/`,
     `cite.json citeUrl must point at the sibling HTML cite page for ${slug}`,
