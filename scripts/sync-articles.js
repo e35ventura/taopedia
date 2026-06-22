@@ -381,6 +381,12 @@ const nonSpaceDelimitedAriaNameAttrPattern = /<[^>]*[/"'`]aria-(?:label|labelled
 const titleAttrPattern = /<[^>]*\stitle\s*=/i;
 const nonSpaceDelimitedTitleAttrPattern = /<[^>]*[/"'`](?:title)\s*=/i;
 
+// aria-describedby= points assistive tech at extra description text that can
+// differ from visible article content — completing the auxiliary-text spoof
+// family merged #501 (aria-label/aria-labelledby) and #550 (title) closed.
+const ariaDescribedbyAttrPattern = /<[^>]*\saria-describedby\s*=/i;
+const nonSpaceDelimitedAriaDescribedbyAttrPattern = /<[^>]*[/"'`](?:aria-describedby)\s*=/i;
+
 // nowrap on allowed <td>/<th> disables text wrapping in the cell — an injected
 // long URL, fake wallet address, or padded phishing line breaks out of the
 // column, reflowing the real article text off-screen (a layout-defacement /
@@ -847,6 +853,15 @@ export function validateArticleContent(slug, content) {
     || nonSpaceDelimitedTitleAttrPattern.test(emptiedAttributeContent)
   ) {
     throw new Error(`Unsafe article content in "${slug}": title attributes are not allowed in article content`);
+  }
+
+  if (
+    ariaDescribedbyAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAriaDescribedbyAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": aria-describedby attributes are not allowed in article content`,
+    );
   }
 
   if (

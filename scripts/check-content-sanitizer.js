@@ -662,6 +662,15 @@ accepts('<a href="/wiki/title=demo">title docs</a>', 'benign title substring in 
 accepts('<span class=x/title-demo>title class example</span>', 'benign title substring in class value');
 accepts('Article title and page title are described here only as prose.', 'benign title prose');
 
+// aria-describedby= points assistive tech at extra description text — same family as #501/#550.
+rejects('Intro.\n\n<a href="https://evil.example/" aria-describedby="fake-help">claim TAO</a>', 'plain aria-describedby attribute');
+rejects('Intro.\n\n<  a   href="/wiki/stake/"   aria-describedby = "trusted-help">stake</a>', 'spaced aria-describedby attribute');
+rejects('<a href="x"aria-describedby="trusted-help">go</a>', 'quote-abutted aria-describedby attribute');
+rejects('<img src="/wiki/fig.png"/aria-describedby="fake-caption">', 'slash-delimited aria-describedby attribute');
+
+accepts('<a href="/wiki/aria-describedby=demo">ARIA describedby docs</a>', 'benign aria-describedby substring in quoted href');
+accepts('ARIA describedby is an accessibility concept described here only as prose.', 'benign aria-describedby prose');
+
 // srcset=/sizes= on <img> steer responsive loading — gap after #411 blocked picture/source.
 rejects('Intro.\n\n<img src="/wiki/fig.png" srcset="https://evil.example/x 1x" alt="x">', 'plain img srcset attribute');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   srcset = "https://evil.example/x 2x">', 'spaced img srcset attribute');
