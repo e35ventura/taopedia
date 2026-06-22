@@ -35,6 +35,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.url, `${ORIGIN}/wiki/recycling/`, 'builder: url');
   assert.equal(result.backlinksUrl, `${ORIGIN}/wiki/recycling/backlinks/`, 'builder: backlinksUrl');
   assert.equal(result.citeUrl, `${ORIGIN}/wiki/recycling/cite/`, 'builder: citeUrl');
+  assert.equal(result.infoUrl, `${ORIGIN}/wiki/recycling/info/`, 'builder: infoUrl');
   assert.equal(result.historyUrl, `${ORIGIN}/wiki/recycling/history/`, 'builder: historyUrl');
   assert.deepEqual(result.categories, ['Consensus'], 'builder: categories');
   assert.equal(result.incomingLinks, 5, 'builder: incomingLinks');
@@ -47,6 +48,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(empty.lastEdited, null, 'builder: default lastEdited is null');
   assert.deepEqual(empty.categories, [], 'builder: default categories is []');
   assert.equal(empty.citeUrl, `${ORIGIN}/wiki/x/cite/`, 'builder: citeUrl with defaults');
+  assert.equal(empty.infoUrl, `${ORIGIN}/wiki/x/info/`, 'builder: infoUrl with defaults');
 }
 const historyDir = path.join(projectRoot, 'public', 'history');
 const slugmapFile = path.join(projectRoot, 'public', 'data', 'slugmap.json');
@@ -161,7 +163,7 @@ for (const slug of articleSlugs) {
   );
 
   // info.json: the machine-readable companion must include every companion URL
-  // that the HTML toolbar advertises (article, backlinks, cite, history) so
+  // that the HTML toolbar advertises (article, backlinks, cite, history, info) so
   // programmatic consumers can navigate the same link set.
   const infoJsonFile = path.join(wikiDir, slug, 'info.json');
   assert.ok(fs.existsSync(infoJsonFile), `/wiki/${slug}/info.json must be built alongside the HTML info page`);
@@ -176,6 +178,7 @@ for (const slug of articleSlugs) {
   const jsonOrigin = new URL(infoJson.url).origin;
   assert.equal(infoJson.backlinksUrl, `${jsonOrigin}/wiki/${slug}/backlinks/`, `/wiki/${slug}/info.json backlinksUrl`);
   assert.equal(infoJson.citeUrl, `${jsonOrigin}/wiki/${slug}/cite/`, `/wiki/${slug}/info.json citeUrl`);
+  assert.equal(infoJson.infoUrl, `${jsonOrigin}/wiki/${slug}/info/`, `/wiki/${slug}/info.json infoUrl`);
   assert.equal(infoJson.historyUrl, `${jsonOrigin}/wiki/${slug}/history/`, `/wiki/${slug}/info.json historyUrl`);
 
   if (inboundCountFor(slug) > 0) verifiedWithLinks++;
