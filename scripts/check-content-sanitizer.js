@@ -745,6 +745,21 @@ accepts("The client:robot workflow is a normal phrase, not an Astro directive.",
 accepts("Use server:test as a placeholder name in the documentation.", 'benign "server:test" prose');
 accepts("A define:macro helper in the article body is prose, not a directive.", 'benign "define:macro" prose');
 
+// clear= on allowed <br> is the obsolete HTML4 float-clear attribute: an
+// injected <br clear="all"> forces float clearing in the document flow,
+// pushing content below floated elements (like infobox images) — a layout-
+// defacement primitive in the same class as the merged align/valign block
+// (#435), with no script, handler, or flagged scheme.
+rejects('Intro.\n\n<br clear="all">', 'plain br clear attribute');
+rejects('Intro.\n\n<br   clear = "left">', 'spaced br clear attribute');
+rejects('Intro.\n\n<br clear="right">', 'plain br clear right attribute');
+rejects('<br class="x"clear="all">', 'quote-abutted br clear attribute');
+rejects('<br class=x/clear="all">', 'slash-delimited br clear attribute');
+
+accepts('<br>', 'plain br without clear');
+accepts('<br />', 'self-closing br without clear');
+accepts('A clear explanation of the break element is described here only as prose.', 'benign clear prose');
+
 // noshade (boolean) and color=/size= (value) on allowed <hr> set obsolete
 // presentational styling without the blocked inline style= attribute — same
 // content-styling spoof class as the merged bgcolor=/background= (#434, #435)

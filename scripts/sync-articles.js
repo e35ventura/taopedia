@@ -484,6 +484,17 @@ const nonSpaceDelimitedTableFrameRulesAttrPattern = /<\s*table\b[^>]*[/"'`](?:fr
 // title "block noshade, color, size" doesn't have an inconsistent gap
 // between boolean and value coverage (Codex flagged this on the prior
 // #470 attempt).
+// clear= on an allowed <br> is the obsolete HTML4 float-clear attribute: an
+// injected <br clear="all"> forces float clearing in the document flow, pushing
+// content below any floated elements (like infobox images) — a layout-defacement
+// primitive in the same class as the merged align/valign block (#435), with no
+// script, handler, or flagged scheme.  The wiki generates <br> from Markdown hard
+// breaks but never sets the obsolete clear attribute — the stylesheet handles
+// float clearing via CSS.  Tag-scoped to <br> with the same whitespace /
+// quote-abutted / slash-delimited detection the merged hr noshade block uses.
+const brClearAttrPattern = /<\s*br\b[^>]*\sclear\s*=/i;
+const nonSpaceDelimitedBrClearAttrPattern = /<\s*br\b[^>]*[/"'`]clear\s*=/i;
+
 const hrNoshadeAttrPattern = /<\s*hr\b[^>]*\snoshade(?=[\s>/=])/i;
 const quoteAbuttedHrNoshadeAttrPattern = /<\s*hr\b[^>]*["'`]noshade(?=[\s>/=])/i;
 const slashDelimitedHrNoshadeAttrPattern = /<\s*hr\b[^>]*[/"'`]noshade(?=[\s>/=])/i;
@@ -766,6 +777,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": width and height attributes are not allowed on table elements`,
+    );
+  }
+
+  if (
+    brClearAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedBrClearAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": clear attributes are not allowed on br elements`,
     );
   }
 
