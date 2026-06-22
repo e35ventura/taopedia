@@ -754,6 +754,17 @@ rejects('<p class=x/aria-flowto="evil-panel">x</p>', 'slash-delimited aria-flowt
 accepts('<a href="/wiki/aria-flowto=demo">aria-flowto docs</a>', 'benign aria-flowto substring in quoted href');
 accepts('ARIA flowto is an accessibility concept described here only as prose.', 'benign aria-flowto prose');
 
+// aria-keyshortcuts= declares fake keyboard shortcuts for AT users — same
+// family as merged #564 (aria-flowto), #561 (aria-roledescription), #554 (role).
+rejects('Intro.\n\n<p aria-keyshortcuts="Alt+S">Verify wallet</p>', 'plain aria-keyshortcuts attribute');
+rejects('Intro.\n\n<a href="https://evil.example/" aria-keyshortcuts="Alt+S">claim TAO</a>', 'plain aria-keyshortcuts attribute on anchor');
+rejects('Intro.\n\n<  a   href="/wiki/stake/"   aria-keyshortcuts = "Alt+S">stake</a>', 'spaced aria-keyshortcuts attribute');
+rejects('<a href="x"aria-keyshortcuts="Alt+S">go</a>', 'quote-abutted aria-keyshortcuts attribute');
+rejects('<p class=x/aria-keyshortcuts="Alt+S">x</p>', 'slash-delimited aria-keyshortcuts attribute');
+
+accepts('<a href="/wiki/aria-keyshortcuts=demo">aria-keyshortcuts docs</a>', 'benign aria-keyshortcuts substring in quoted href');
+accepts('ARIA keyshortcuts is an accessibility concept described here only as prose.', 'benign aria-keyshortcuts prose');
+
 // srcset=/sizes= on <img> steer responsive loading — gap after #411 blocked picture/source.
 rejects('Intro.\n\n<img src="/wiki/fig.png" srcset="https://evil.example/x 1x" alt="x">', 'plain img srcset attribute');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   srcset = "https://evil.example/x 2x">', 'spaced img srcset attribute');
