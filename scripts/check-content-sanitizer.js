@@ -765,6 +765,17 @@ rejects('<p class=x/aria-keyshortcuts="Alt+S">x</p>', 'slash-delimited aria-keys
 accepts('<a href="/wiki/aria-keyshortcuts=demo">aria-keyshortcuts docs</a>', 'benign aria-keyshortcuts substring in quoted href');
 accepts('ARIA keyshortcuts is an accessibility concept described here only as prose.', 'benign aria-keyshortcuts prose');
 
+// aria-current= marks an element as the "current" item — same family as
+// merged #567 (aria-keyshortcuts), #564 (aria-flowto), #561 (aria-roledescription).
+rejects('Intro.\n\n<a href="https://evil.example/" aria-current="page">Home</a>', 'plain aria-current attribute on anchor');
+rejects('Intro.\n\n<li aria-current="step">Step 1</li>', 'plain aria-current attribute on list item');
+rejects('Intro.\n\n<  a   href="/wiki/stake/"   aria-current = "page">stake</a>', 'spaced aria-current attribute');
+rejects('<a href="x"aria-current="page">go</a>', 'quote-abutted aria-current attribute');
+rejects('<p class=x/aria-current="true">x</p>', 'slash-delimited aria-current attribute');
+
+accepts('<a href="/wiki/aria-current=demo">aria-current docs</a>', 'benign aria-current substring in quoted href');
+accepts('ARIA current is an accessibility concept described here only as prose.', 'benign aria-current prose');
+
 // srcset=/sizes= on <img> steer responsive loading — gap after #411 blocked picture/source.
 rejects('Intro.\n\n<img src="/wiki/fig.png" srcset="https://evil.example/x 1x" alt="x">', 'plain img srcset attribute');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   srcset = "https://evil.example/x 2x">', 'spaced img srcset attribute');
