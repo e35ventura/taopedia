@@ -147,6 +147,16 @@ assert.equal(
   `${data.site}/wiki/category/${data.largestTopic.name.replace(/ /g, '_')}/feed.json`,
   "largestTopic.feedUrl must be the canonical absolute category feed.json URL",
 );
+assert.equal(
+  data.largestTopic.atomUrl,
+  `${data.site}/wiki/category/${data.largestTopic.name.replace(/ /g, '_')}/atom.xml`,
+  'largestTopic.atomUrl must be the canonical absolute category Atom feed URL',
+);
+assert.equal(
+  data.largestTopic.rssUrl,
+  `${data.site}/wiki/category/${data.largestTopic.name.replace(/ /g, '_')}/rss.xml`,
+  'largestTopic.rssUrl must be the canonical absolute category RSS feed URL',
+);
 
 // topics — array whose length matches totalTopics, ordered count-desc then
 // compareTitles-asc (NOT raw string — must match the HTML page's ordering).
@@ -174,6 +184,19 @@ for (const topic of data.topics) {
     topic.feedUrl,
     `${data.site}/wiki/category/${topic.name.replace(/ /g, '_')}/feed.json`,
     `topic "${topic.name}" feedUrl must be the canonical absolute category feed.json URL`,
+  );
+  // atomUrl / rssUrl point at the topic's Atom and RSS feeds, which exist for
+  // every category alongside the JSON Feed. A feed reader that speaks Atom/RSS
+  // can subscribe to a topic straight from the statistics document.
+  assert.equal(
+    topic.atomUrl,
+    `${data.site}/wiki/category/${topic.name.replace(/ /g, '_')}/atom.xml`,
+    `topic "${topic.name}" atomUrl must be the canonical absolute category Atom feed URL`,
+  );
+  assert.equal(
+    topic.rssUrl,
+    `${data.site}/wiki/category/${topic.name.replace(/ /g, '_')}/rss.xml`,
+    `topic "${topic.name}" rssUrl must be the canonical absolute category RSS feed URL`,
   );
 }
 for (let i = 1; i < data.topics.length; i++) {
