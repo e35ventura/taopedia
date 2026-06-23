@@ -125,6 +125,19 @@ for (let i = 0; i < data.changes.length; i++) {
     `${data.site}/wiki/${change.slug}/`,
     `change url must equal ${data.site}/wiki/${change.slug}/ for ${change.slug}`,
   );
+  // infoUrl / backlinksUrl point at the changed article's Page-information and
+  // What-links-here pages, so a consumer watching recent changes can reach a
+  // page's metadata and inbound links without reconstructing the route.
+  assert.equal(
+    change.infoUrl,
+    `${data.site}/wiki/${change.slug}/info/`,
+    `change infoUrl must equal ${data.site}/wiki/${change.slug}/info/ for ${change.slug}`,
+  );
+  assert.equal(
+    change.backlinksUrl,
+    `${data.site}/wiki/${change.slug}/backlinks/`,
+    `change backlinksUrl must equal ${data.site}/wiki/${change.slug}/backlinks/ for ${change.slug}`,
+  );
   assert.ok(
     change.historyUrl.startsWith(`${data.site}/wiki/`),
     `change historyUrl must be absolute and start with the envelope site (got ${change.historyUrl})`,
