@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildArticleHistory } from './article-history-json.js';
+import { getArticleReferences } from '../src/lib/article-references.js';
 import { publishedInboundLinkCount } from './most-linked.js';
 
 // Load-bearing check for /wiki/<slug>/history.json: the machine-readable
@@ -10,8 +11,10 @@ import { publishedInboundLinkCount } from './most-linked.js';
 // (2) confirms every article has a built history.json with the correct shape,
 // (3) verifies the revision list matches the ground-truth public/history/ files,
 // (4) checks firstEdited/lastEdited and revisionCount agree with the array,
-// (5) checks the empty state (no history → count 0, null dates, empty array),
-// and (6) confirms HTML/JSON parity — the JSON entry count and short SHAs must
+// (5) checks referencesCount agrees with the shared outbound-reference helper
+// and the sibling references.json envelope,
+// (6) checks the empty state (no history → count 0, null dates, empty array),
+// and (7) confirms HTML/JSON parity — the JSON entry count and short SHAs must
 // match what history.astro rendered so the two surfaces cannot drift.
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -26,7 +29,7 @@ const ORIGIN = 'https://taopedia.org';
     { sha: 'abc1234def5678', date: '2026-06-01T12:00:00.000Z', authorName: 'alice', message: 'initial commit' },
     { sha: '000aaabbbccc11', date: '2025-01-10T08:00:00.000Z', authorName: 'bob', message: 'update' },
   ];
-  const result = buildArticleHistory({ slug: 'recycling', title: 'Recycling', origin: ORIGIN, summary: 'Reclaiming emitted TAO.', categories: ['Consensus'], incomingLinks: 5, revisions: revs });
+  const result = buildArticleHistory({ slug: 'recycling', title: 'Recycling', origin: ORIGIN, summary: 'Reclaiming emitted TAO.', categories: ['Consensus'], incomingLinks: 5, referencesCount: 3, revisions: revs });
   assert.equal(result.slug, 'recycling', 'builder: slug');
   assert.equal(result.title, 'Recycling', 'builder: title');
   assert.equal(result.summary, 'Reclaiming emitted TAO.', 'builder: summary');
@@ -46,6 +49,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.imageUrl, `${ORIGIN}/og/recycling.png`, 'builder: imageUrl');
   assert.deepEqual(result.categories, ['Consensus'], 'builder: categories');
   assert.equal(result.incomingLinks, 5, 'builder: incomingLinks');
+  assert.equal(result.referencesCount, 3, 'builder: referencesCount');
   assert.equal(result.revisionCount, 2, 'builder: revisionCount');
   assert.equal(result.lastEdited, '2026-06-01T12:00:00.000Z', 'builder: lastEdited is revisions[0].date');
   assert.equal(result.firstEdited, '2025-01-10T08:00:00.000Z', 'builder: firstEdited is revisions[last].date');
@@ -67,6 +71,10 @@ const ORIGIN = 'https://taopedia.org';
   assert.deepEqual(empty.categories, [], 'builder: default categories is []');
   assert.equal(empty.summary, null, 'builder: default summary is null');
   assert.equal(empty.incomingLinks, 0, 'builder: default incomingLinks is 0');
+  assert.equal(empty.referencesCount, 0, 'builder: default referencesCount is 0');
+
+  const badCount = buildArticleHistory({ slug: 'x', title: 'X', origin: ORIGIN, referencesCount: NaN });
+  assert.equal(badCount.referencesCount, 0, 'builder: non-finite referencesCount defaults to 0');
 
   // message defaults to '' when absent in raw data
   const noMsg = buildArticleHistory({
@@ -87,6 +95,9 @@ const slugmap = JSON.parse(fs.readFileSync(slugmapFile, 'utf8'));
 const backlinksFile = path.join(projectRoot, 'public', 'data', 'backlinks.json');
 assert.ok(fs.existsSync(backlinksFile), 'public/data/backlinks.json not found; run the build first');
 const backlinksData = JSON.parse(fs.readFileSync(backlinksFile, 'utf8'));
+const linkgraphFile = path.join(projectRoot, 'public', 'data', 'linkgraph.json');
+assert.ok(fs.existsSync(linkgraphFile), 'public/data/linkgraph.json not found; run the build first');
+const linkgraphData = JSON.parse(fs.readFileSync(linkgraphFile, 'utf8'));
 const titleBySlug = Object.fromEntries(
   Object.entries(slugmap).map(([slug, meta]) => [slug, typeof meta?.title === 'string' ? meta.title : slug]),
 );
@@ -171,6 +182,23 @@ for (const slug of articleSlugs) {
     `${slug}: history.json incomingLinks must match the published inbound-link count`,
   );
   assert.ok(Number.isInteger(doc.incomingLinks) && doc.incomingLinks >= 0, `${slug}: history.json incomingLinks must be a non-negative integer`);
+  // referencesCount is the article's published outbound-reference count — the
+  // same figure references.json exposes as `count`, computed via the shared helper.
+  assert.equal(
+    doc.referencesCount,
+    getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length,
+    `${slug}: history.json referencesCount must match the published outbound-reference count`,
+  );
+  assert.ok(Number.isInteger(doc.referencesCount) && doc.referencesCount >= 0, `${slug}: history.json referencesCount must be a non-negative integer`);
+  const referencesJsonFile = path.join(wikiDir, slug, 'references.json');
+  if (fs.existsSync(referencesJsonFile)) {
+    const referencesDoc = JSON.parse(fs.readFileSync(referencesJsonFile, 'utf8'));
+    assert.equal(
+      doc.referencesCount,
+      referencesDoc.count,
+      `${slug}: history.json referencesCount must agree with the sibling references.json envelope`,
+    );
+  }
   const infoJsonFile = path.join(wikiDir, slug, 'info.json');
   if (fs.existsSync(infoJsonFile)) {
     const infoDoc = JSON.parse(fs.readFileSync(infoJsonFile, 'utf8'));
