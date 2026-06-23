@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { getPageSlug } from '../../../lib/article-history';
 import { buildArticleHistory } from '../../../../scripts/article-history-json.js';
+import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
 
 type RawRevision = { sha: string; date: string; authorName: string; message?: string };
 
@@ -35,12 +36,13 @@ export const GET: APIRoute = async ({ props, site }) => {
   const mod = historyModules[`../../../../public/history/${slug}.json`];
   const revisions: RawRevision[] = mod?.default?.history ?? [];
 
-  // incomingLinks: published-only inbound-link count, computed exactly as
-  // info.json computes it (filter backlinks.json by the published article set
-  // from the same content collection), so the two stats-bearing envelopes agree.
+  // incomingLinks: published-only inbound-link count, via the SAME shared
+  // publishedInboundLinkCount helper the directory JSON surfaces use, so the
+  // figure is computed in exactly one place and agrees with info.json.
   const pages = await getCollection('pages');
-  const publishedSlugs = new Set(pages.map((p) => getPageSlug(p)));
-  const incomingLinks = (backlinksData[slug] ?? []).filter((entry) => publishedSlugs.has(entry.from)).length;
+  const titleBySlug: Record<string, string> = {};
+  for (const p of pages) titleBySlug[getPageSlug(p)] = p.data.title;
+  const incomingLinks = publishedInboundLinkCount(backlinksData, slug, titleBySlug);
 
   const body = JSON.stringify(
     buildArticleHistory({ slug, title: page.data.title, origin, summary: page.data.summary ?? '', categories: page.data.categories ?? [], incomingLinks, revisions }),
