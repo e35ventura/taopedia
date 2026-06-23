@@ -68,6 +68,8 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(doc.historyJsonUrl, `${ORIGIN}/wiki/source/history.json`, 'builder: historyJsonUrl cross-link');
   assert.equal(doc.backlinksUrl, `${ORIGIN}/wiki/source/backlinks/`, 'builder: backlinksUrl cross-link');
   assert.equal(doc.backlinksJsonUrl, `${ORIGIN}/wiki/source/backlinks.json`, 'builder: backlinksJsonUrl cross-link');
+  assert.equal(doc.infoUrl, `${ORIGIN}/wiki/source/info/`, 'builder: infoUrl cross-link');
+  assert.equal(doc.infoJsonUrl, `${ORIGIN}/wiki/source/info.json`, 'builder: infoJsonUrl cross-link');
   assert.equal(doc.count, 3, 'builder: count field');
   assert.deepEqual(
     doc.related,
@@ -190,6 +192,10 @@ for (const slug of articleSlugs) {
   // cross-link cite.json / references.json envelopes expose.
   assert.equal(doc.backlinksUrl, `${ORIGIN}/wiki/${slug}/backlinks/`, `${slug}: related.json backlinksUrl must be the canonical article backlinks URL`);
   assert.equal(doc.backlinksJsonUrl, `${ORIGIN}/wiki/${slug}/backlinks.json`, `${slug}: related.json backlinksJsonUrl must be the canonical article backlinks.json URL`);
+  // infoUrl / infoJsonUrl link back to the canonical Page-information hub (which
+  // links out to every sibling), so a consumer of related.json can reach it.
+  assert.equal(doc.infoUrl, `${ORIGIN}/wiki/${slug}/info/`, `${slug}: related.json infoUrl must be the canonical article info URL`);
+  assert.equal(doc.infoJsonUrl, `${ORIGIN}/wiki/${slug}/info.json`, `${slug}: related.json infoJsonUrl must be the canonical article info.json URL`);
   assert.equal(typeof doc.count, 'number', `${slug}: related.json count must be a number`);
   assert.ok(Array.isArray(doc.related), `${slug}: related.json related must be an array`);
   assert.equal(doc.count, doc.related.length, `${slug}: related.json count must equal related.length`);
