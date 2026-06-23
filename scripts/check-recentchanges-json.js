@@ -174,6 +174,20 @@ for (let i = 0; i < data.changes.length; i++) {
     `${data.site}/wiki/${change.slug}/cite/`,
     `change citeUrl must equal ${data.site}/wiki/${change.slug}/cite/ for ${change.slug}`,
   );
+  // citeJsonUrl / bibtexUrl are the machine-readable citation companions of
+  // citeUrl: structured citation metadata (cite.json) and a BibTeX record
+  // (cite.bib), both of which exist per article — the trio info.json exposes —
+  // so a consumer watching changes can fetch a citation directly.
+  assert.equal(
+    change.citeJsonUrl,
+    `${data.site}/wiki/${change.slug}/cite.json`,
+    `change citeJsonUrl must equal ${data.site}/wiki/${change.slug}/cite.json for ${change.slug}`,
+  );
+  assert.equal(
+    change.bibtexUrl,
+    `${data.site}/wiki/${change.slug}/cite.bib`,
+    `change bibtexUrl must equal ${data.site}/wiki/${change.slug}/cite.bib for ${change.slug}`,
+  );
   assert.equal(
     change.referencesUrl,
     `${data.site}/wiki/${change.slug}/references.json`,

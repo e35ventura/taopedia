@@ -38,6 +38,8 @@ export const GET: APIRoute = async ({ site }) => {
         historyUrl: `${origin}/wiki/${change.slug}/history/`,
         historyJsonUrl: `${origin}/wiki/${change.slug}/history.json`,
         citeUrl: `${origin}/wiki/${change.slug}/cite/`,
+        citeJsonUrl: `${origin}/wiki/${change.slug}/cite.json`,
+        bibtexUrl: `${origin}/wiki/${change.slug}/cite.bib`,
         referencesUrl: `${origin}/wiki/${change.slug}/references.json`,
         relatedUrl: `${origin}/wiki/${change.slug}/related.json`,
         imageUrl: `${origin}/og/${change.slug}.png`,
