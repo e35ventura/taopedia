@@ -67,6 +67,9 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(doc.slug, 'source', 'builder: slug field');
   assert.equal(doc.title, 'Source', 'builder: title field');
   assert.equal(doc.url, `${ORIGIN}/wiki/source/`, 'builder: url field');
+  assert.equal(doc.tocJsonUrl, `${ORIGIN}/wiki/source/toc.json`, 'builder: tocJsonUrl self field');
+  assert.equal(doc.infoUrl, `${ORIGIN}/wiki/source/info/`, 'builder: infoUrl cross-link');
+  assert.equal(doc.infoJsonUrl, `${ORIGIN}/wiki/source/info.json`, 'builder: infoJsonUrl cross-link');
   assert.equal(doc.count, 3, 'builder: count field');
   assert.deepEqual(
     doc.sections,
@@ -146,6 +149,12 @@ for (const slug of articleSlugs) {
   assert.equal(typeof doc.title, 'string', `${slug}: toc.json title must be a string`);
   assert.equal(doc.slug, slug, `${slug}: toc.json slug must equal the article slug`);
   assert.equal(doc.url, `${ORIGIN}/wiki/${slug}/`, `${slug}: toc.json url must be the canonical article URL`);
+  // tocJsonUrl is the endpoint's own canonical URL; infoUrl / infoJsonUrl link
+  // back to the article's Page-information hub (the same self + info-hub
+  // cross-links the sibling per-article JSON endpoints expose).
+  assert.equal(doc.tocJsonUrl, `${ORIGIN}/wiki/${slug}/toc.json`, `${slug}: toc.json must expose its own canonical tocJsonUrl`);
+  assert.equal(doc.infoUrl, `${ORIGIN}/wiki/${slug}/info/`, `${slug}: toc.json infoUrl must point to the Page-information hub`);
+  assert.equal(doc.infoJsonUrl, `${ORIGIN}/wiki/${slug}/info.json`, `${slug}: toc.json infoJsonUrl must point to the info.json hub`);
   assert.equal(typeof doc.count, 'number', `${slug}: toc.json count must be a number`);
   assert.ok(Array.isArray(doc.sections), `${slug}: toc.json sections must be an array`);
   assert.equal(doc.count, doc.sections.length, `${slug}: toc.json count must equal sections.length`);
