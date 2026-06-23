@@ -51,6 +51,7 @@ export interface ArticleRelatedPagesDocument {
     tags: string[];
     url: string;
     historyUrl: string;
+    historyJsonUrl: string;
   }>;
 }
 
@@ -141,6 +142,7 @@ export function buildArticleRelatedPages({
       tags: entry.tags,
       url: `${origin}/wiki/${entry.slug}/`,
       historyUrl: `${origin}/wiki/${entry.slug}/history/`,
+      historyJsonUrl: `${origin}/wiki/${entry.slug}/history.json`,
     })),
   };
 }
