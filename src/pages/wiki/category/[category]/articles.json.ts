@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { buildCategoryArticlesDocument, getCategoryArticles } from '../../../../lib/category-articles.js';
+import { publishedInboundLinkCount } from '../../../../../scripts/most-linked.js';
 
 const categoriesModules = import.meta.glob('../../../../../public/data/categories.json', { eager: true }) as Record<
   string,
@@ -9,9 +10,17 @@ const slugmapModules = import.meta.glob('../../../../../public/data/slugmap.json
   string,
   { default?: Record<string, { title?: string; summary?: string }> }
 >;
+const backlinksModules = import.meta.glob('../../../../../public/data/backlinks.json', { eager: true }) as Record<
+  string,
+  { default?: Record<string, Array<{ from: string }>> }
+>;
 
 const categoriesIndex = Object.values(categoriesModules)[0]?.default ?? {};
 const slugMap = Object.values(slugmapModules)[0]?.default ?? {};
+const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
+const titleBySlug = Object.fromEntries(
+  Object.entries(slugMap).map(([slug, entry]) => [slug, entry?.title ?? slug]),
+);
 
 const categorySlug = (categoryName: string) => categoryName.replace(/ /g, '_');
 
@@ -23,7 +32,10 @@ export async function getStaticPaths() {
       props: {
         categoryName,
         categoryPath: categorySlug(categoryName),
-        articles: getCategoryArticles({ categoryName, categoriesIndex, slugMap }),
+        articles: getCategoryArticles({ categoryName, categoriesIndex, slugMap }).map((article) => ({
+          ...article,
+          backlinks: publishedInboundLinkCount(backlinksData, article.slug, titleBySlug),
+        })),
       },
     }));
 }
@@ -36,7 +48,7 @@ export const GET: APIRoute = async ({ props, site }) => {
   const { categoryName, categoryPath, articles } = props as {
     categoryName: string;
     categoryPath: string;
-    articles: Array<{ slug: string; title: string; summary: string }>;
+    articles: Array<{ slug: string; title: string; summary: string; backlinks: number }>;
   };
   const origin = (site ?? new URL('https://taopedia.org')).origin;
 

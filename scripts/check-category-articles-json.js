@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildCategoryArticlesDocument, getCategoryArticles } from '../src/lib/category-articles.js';
+import { publishedInboundLinkCount } from './most-linked.js';
 
 const ORIGIN = 'https://taopedia.org';
 
@@ -11,6 +12,7 @@ const projectRoot = path.resolve(__dirname, '..');
 const categoryDir = path.join(projectRoot, 'dist', 'wiki', 'category');
 const categoriesJsonPath = path.join(projectRoot, 'public', 'data', 'categories.json');
 const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json');
+const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.json');
 
 // ---- 1) Unit: helper and builder behavior ---------------------------------
 {
@@ -79,6 +81,7 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
         title: 'Subnet 2',
         summary: 'two',
         categories: ['Subnets', 'Economics'],
+        backlinks: 0,
         url: `${ORIGIN}/wiki/subnet_2/`,
         infoUrl: `${ORIGIN}/wiki/subnet_2/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/subnet_2/info.json`,
@@ -100,6 +103,7 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
         title: 'Subnet 9',
         summary: null,
         categories: [],
+        backlinks: 0,
         url: `${ORIGIN}/wiki/subnet_9/`,
         infoUrl: `${ORIGIN}/wiki/subnet_9/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/subnet_9/info.json`,
@@ -121,6 +125,7 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
         title: 'Subnet 10',
         summary: null,
         categories: [],
+        backlinks: 0,
         url: `${ORIGIN}/wiki/subnet_10/`,
         infoUrl: `${ORIGIN}/wiki/subnet_10/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/subnet_10/info.json`,
@@ -149,6 +154,12 @@ assert.ok(fs.existsSync(slugmapJsonPath), 'public/data/slugmap.json not found; r
 
 const categoriesIndex = JSON.parse(fs.readFileSync(categoriesJsonPath, 'utf8'));
 const slugMap = JSON.parse(fs.readFileSync(slugmapJsonPath, 'utf8'));
+assert.ok(fs.existsSync(backlinksJsonPath), 'public/data/backlinks.json not found; run the build first');
+const backlinksData = JSON.parse(fs.readFileSync(backlinksJsonPath, 'utf8'));
+const titleBySlug = Object.fromEntries(Object.entries(slugMap).map(([slug, entry]) => [slug, entry?.title ?? slug]));
+// Mirror the endpoint's enrichment: each article carries its published-only
+// inbound-link count, so the expected doc matches the built doc field-for-field.
+const withBacklinks = (list) => list.map((a) => ({ ...a, backlinks: publishedInboundLinkCount(backlinksData, a.slug, titleBySlug) }));
 
 const dirToOriginal = new Map();
 for (const name of Object.keys(categoriesIndex)) {
@@ -169,7 +180,7 @@ for (const category of categories) {
   const originalName = dirToOriginal.get(category);
   assert.ok(originalName, `${category}: built category directory must correspond to a known category label`);
 
-  const expectedArticles = getCategoryArticles({ categoryName: originalName, categoriesIndex, slugMap });
+  const expectedArticles = withBacklinks(getCategoryArticles({ categoryName: originalName, categoriesIndex, slugMap }));
   assert.ok(expectedArticles.length > 0, `${category}: expected at least one category article`);
 
   const articlesPath = path.join(categoryDir, category, 'articles.json');
@@ -234,6 +245,18 @@ for (const category of categories) {
       article.categories,
       slugMap[article.slug]?.categories ?? [],
       `${category}: article ${article.slug} categories must match the slug map's topics`,
+    );
+    // backlinks is the published-only inbound-link count — the same figure
+    // allpages.json / mostlinkedpages.json / subnets.json expose per row and
+    // info.json exposes as incomingLinks.
+    assert.equal(
+      article.backlinks,
+      publishedInboundLinkCount(backlinksData, article.slug, titleBySlug),
+      `${category}: article ${article.slug} backlinks must match the published inbound-link count`,
+    );
+    assert.ok(
+      Number.isInteger(article.backlinks) && article.backlinks >= 0,
+      `${category}: article ${article.slug} backlinks must be a non-negative integer (got ${article.backlinks})`,
     );
     assert.equal(
       article.infoUrl,
