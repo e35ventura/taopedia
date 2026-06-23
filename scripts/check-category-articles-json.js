@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildCategoryArticlesDocument, getCategoryArticles } from '../src/lib/category-articles.js';
+import { publishedInboundLinkCount } from './most-linked.js';
 
 const ORIGIN = 'https://taopedia.org';
 
@@ -94,6 +95,7 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
         infoJsonUrl: `${ORIGIN}/wiki/subnet_2/info.json`,
         tocJsonUrl: `${ORIGIN}/wiki/subnet_2/toc.json`,
         imageUrl: `${ORIGIN}/og/subnet_2.png`,
+        backlinks: 0,
       },
       {
         slug: 'subnet_9',
@@ -115,6 +117,7 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
         infoJsonUrl: `${ORIGIN}/wiki/subnet_9/info.json`,
         tocJsonUrl: `${ORIGIN}/wiki/subnet_9/toc.json`,
         imageUrl: `${ORIGIN}/og/subnet_9.png`,
+        backlinks: 0,
       },
       {
         slug: 'subnet_10',
@@ -136,6 +139,7 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
         infoJsonUrl: `${ORIGIN}/wiki/subnet_10/info.json`,
         tocJsonUrl: `${ORIGIN}/wiki/subnet_10/toc.json`,
         imageUrl: `${ORIGIN}/og/subnet_10.png`,
+        backlinks: 0,
       },
     ],
     'builder: article row shape',
@@ -146,9 +150,14 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
 assert.ok(fs.existsSync(categoryDir), 'dist/wiki/category not found; run the build first');
 assert.ok(fs.existsSync(categoriesJsonPath), 'public/data/categories.json not found; run the build first');
 assert.ok(fs.existsSync(slugmapJsonPath), 'public/data/slugmap.json not found; run the build first');
+const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.json');
+assert.ok(fs.existsSync(backlinksJsonPath), 'public/data/backlinks.json not found; run the build first');
 
 const categoriesIndex = JSON.parse(fs.readFileSync(categoriesJsonPath, 'utf8'));
 const slugMap = JSON.parse(fs.readFileSync(slugmapJsonPath, 'utf8'));
+const backlinks = JSON.parse(fs.readFileSync(backlinksJsonPath, 'utf8'));
+const titleBySlug = Object.fromEntries(Object.entries(slugMap).map(([slug, entry]) => [slug, entry.title]));
+const inboundLinkCount = (slug) => publishedInboundLinkCount(backlinks, slug, titleBySlug);
 
 const dirToOriginal = new Map();
 for (const name of Object.keys(categoriesIndex)) {
@@ -212,6 +221,7 @@ for (const category of categories) {
     categoryName: originalName,
     categoryPath: category,
     articles: expectedArticles,
+    inboundLinkCount,
   });
 
   assert.deepEqual(
@@ -249,6 +259,15 @@ for (const category of categories) {
       article.backlinksJsonUrl,
       `${ORIGIN}/wiki/${article.slug}/backlinks.json`,
       `${category}: article ${article.slug} backlinksJsonUrl must be the canonical backlinks.json URL`,
+    );
+    assert.equal(
+      article.backlinks,
+      inboundLinkCount(article.slug),
+      `${category}: article ${article.slug} backlinks must match the published inbound-link count`,
+    );
+    assert.ok(
+      Number.isInteger(article.backlinks) && article.backlinks >= 0,
+      `${category}: article ${article.slug} backlinks must be a non-negative integer (got ${article.backlinks})`,
     );
     assert.equal(
       article.citeUrl,

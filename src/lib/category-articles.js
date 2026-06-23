@@ -32,7 +32,13 @@ export const getCategoryArticles = ({ categoryName, categoriesIndex = {}, slugMa
   );
 };
 
-export const buildCategoryArticlesDocument = ({ origin, categoryName, categoryPath, articles = [] }) => ({
+export const buildCategoryArticlesDocument = ({
+  origin,
+  categoryName,
+  categoryPath,
+  articles = [],
+  inboundLinkCount = () => 0,
+}) => ({
   site: origin,
   category: categoryName,
   url: `${origin}/wiki/category/${categoryPath}/`,
@@ -60,5 +66,6 @@ export const buildCategoryArticlesDocument = ({ origin, categoryName, categoryPa
     relatedUrl: `${origin}/wiki/${article.slug}/related.json`,
     tocJsonUrl: `${origin}/wiki/${article.slug}/toc.json`,
     imageUrl: `${origin}/og/${article.slug}.png`,
+    backlinks: inboundLinkCount(article.slug),
   })),
 });

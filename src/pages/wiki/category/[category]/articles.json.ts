@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { buildCategoryArticlesDocument, getCategoryArticles } from '../../../../lib/category-articles.js';
+import { publishedInboundLinkCount } from '../../../../../scripts/most-linked.js';
 
 const categoriesModules = import.meta.glob('../../../../../public/data/categories.json', { eager: true }) as Record<
   string,
@@ -12,6 +13,11 @@ const slugmapModules = import.meta.glob('../../../../../public/data/slugmap.json
 
 const categoriesIndex = Object.values(categoriesModules)[0]?.default ?? {};
 const slugMap = Object.values(slugmapModules)[0]?.default ?? {};
+const backlinksModules = import.meta.glob('../../../../../public/data/backlinks.json', { eager: true }) as Record<
+  string,
+  { default?: Record<string, Array<{ from: string }>> }
+>;
+const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
 
 const categorySlug = (categoryName: string) => categoryName.replace(/ /g, '_');
 
@@ -39,9 +45,18 @@ export const GET: APIRoute = async ({ props, site }) => {
     articles: Array<{ slug: string; title: string; summary: string }>;
   };
   const origin = (site ?? new URL('https://taopedia.org')).origin;
+  const titleBySlug = Object.fromEntries(
+    Object.entries(slugMap).map(([slug, meta]) => [slug, typeof meta?.title === 'string' ? meta.title : '']),
+  );
 
   const body = JSON.stringify(
-    buildCategoryArticlesDocument({ origin, categoryName, categoryPath, articles }),
+    buildCategoryArticlesDocument({
+      origin,
+      categoryName,
+      categoryPath,
+      articles,
+      inboundLinkCount: (slug) => publishedInboundLinkCount(backlinksData, slug, titleBySlug),
+    }),
     null,
     2,
   );
