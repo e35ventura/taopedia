@@ -62,6 +62,7 @@ const ORIGIN = 'https://taopedia.org';
     slug: 'source',
     title: 'Source',
     origin: ORIGIN,
+    categories: ['Consensus', 'Security'],
     sections,
   });
   assert.equal(doc.slug, 'source', 'builder: slug field');
@@ -80,6 +81,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(doc.referencesUrl, `${ORIGIN}/wiki/source/references.json`, 'builder: referencesUrl cross-link');
   assert.equal(doc.relatedUrl, `${ORIGIN}/wiki/source/related.json`, 'builder: relatedUrl cross-link');
   assert.equal(doc.imageUrl, `${ORIGIN}/og/source.png`, 'builder: imageUrl');
+  assert.deepEqual(doc.categories, ['Consensus', 'Security'], 'builder: categories field');
   assert.equal(doc.count, 3, 'builder: count field');
   assert.deepEqual(
     doc.sections,
@@ -94,6 +96,10 @@ const ORIGIN = 'https://taopedia.org';
 
 // ---- 2) Built-output checks -----------------------------------------------
 assert.ok(fs.existsSync(wikiDir), 'dist/wiki not found; run the build first');
+
+const slugmapFile = path.join(projectRoot, 'public', 'data', 'slugmap.json');
+assert.ok(fs.existsSync(slugmapFile), 'public/data/slugmap.json not found; run the build first');
+const slugmap = JSON.parse(fs.readFileSync(slugmapFile, 'utf8'));
 
 const SUBPAGES = new Set(['history', 'backlinks', 'cite', 'info']);
 const articleSlugs = [];
@@ -182,6 +188,10 @@ for (const slug of articleSlugs) {
   assert.equal(doc.relatedUrl, `${ORIGIN}/wiki/${slug}/related.json`, `${slug}: toc.json relatedUrl must be canonical`);
   // imageUrl is the article's own OG share-card (/og/<slug>.png).
   assert.equal(doc.imageUrl, `${ORIGIN}/og/${slug}.png`, `${slug}: toc.json imageUrl must be the article's OG share-card URL`);
+  // categories must match the article's own topic categories from the slug map,
+  // the same field history.json / backlinks.json expose on their envelopes.
+  const expectedCategories = slugmap[slug]?.categories ?? [];
+  assert.deepEqual(doc.categories, expectedCategories, `${slug}: toc.json categories must match the article's topic categories from the slug map`);
   assert.equal(typeof doc.count, 'number', `${slug}: toc.json count must be a number`);
   assert.ok(Array.isArray(doc.sections), `${slug}: toc.json sections must be an array`);
   assert.equal(doc.count, doc.sections.length, `${slug}: toc.json count must equal sections.length`);
