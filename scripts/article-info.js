@@ -5,6 +5,7 @@ export const buildArticleInfo = ({
   summary = '',
   categories = [],
   incomingLinks = 0,
+  referencesCount = 0,
   revisionCount = 0,
   firstEdited = null,
   lastEdited = null,
@@ -15,6 +16,9 @@ export const buildArticleInfo = ({
   url: `${origin}/wiki/${slug}/`,
   categories,
   incomingLinks,
+  // The article's published outbound-reference count — the complement of
+  // incomingLinks, the same figure history.json / cite.json expose.
+  referencesCount,
   backlinksUrl: `${origin}/wiki/${slug}/backlinks/`,
   backlinksJsonUrl: `${origin}/wiki/${slug}/backlinks.json`,
   citeUrl: `${origin}/wiki/${slug}/cite/`,
