@@ -16,6 +16,7 @@ export async function getStaticPaths() {
         props: {
           slug,
           title: page.data.title,
+          categories: page.data.categories ?? [],
           sections: getArticleToc(headings),
         },
       };
@@ -27,14 +28,15 @@ export async function getStaticPaths() {
 // the same shared TOC helper the article page consumes, so the visibility,
 // numbering, and deep-link contract live in one runtime source of truth.
 export const GET: APIRoute = async ({ props, site }) => {
-  const { slug, title, sections } = props as {
+  const { slug, title, categories, sections } = props as {
     slug: string;
     title: string;
+    categories: string[];
     sections: Array<{ number: number; depth: number; slug: string; title: string }>;
   };
   const origin = (site ?? new URL('https://taopedia.org')).origin;
 
-  const body = JSON.stringify(buildArticleToc({ slug, title, origin, sections }), null, 2);
+  const body = JSON.stringify(buildArticleToc({ slug, title, origin, categories, sections }), null, 2);
 
   return new Response(body, {
     headers: { 'Content-Type': 'application/json; charset=utf-8' },
