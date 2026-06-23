@@ -44,6 +44,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.historyUrl, `${ORIGIN}/wiki/recycling/history/`, 'builder: historyUrl');
   assert.equal(result.referencesUrl, `${ORIGIN}/wiki/recycling/references.json`, 'builder: referencesUrl');
   assert.equal(result.relatedUrl, `${ORIGIN}/wiki/recycling/related.json`, 'builder: relatedUrl');
+  assert.equal(result.tocJsonUrl, `${ORIGIN}/wiki/recycling/toc.json`, 'builder: tocJsonUrl');
   assert.deepEqual(result.categories, ['Consensus'], 'builder: categories');
   assert.equal(result.incomingLinks, 5, 'builder: incomingLinks');
   assert.equal(result.revisionCount, 3, 'builder: revisionCount');
@@ -63,6 +64,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(empty.historyJsonUrl, `${ORIGIN}/wiki/x/history.json`, 'builder: historyJsonUrl with defaults');
   assert.equal(empty.referencesUrl, `${ORIGIN}/wiki/x/references.json`, 'builder: referencesUrl with defaults');
   assert.equal(empty.relatedUrl, `${ORIGIN}/wiki/x/related.json`, 'builder: relatedUrl with defaults');
+  assert.equal(empty.tocJsonUrl, `${ORIGIN}/wiki/x/toc.json`, 'builder: tocJsonUrl with defaults');
 }
 const historyDir = path.join(projectRoot, 'public', 'history');
 const slugmapFile = path.join(projectRoot, 'public', 'data', 'slugmap.json');
@@ -212,6 +214,7 @@ for (const slug of articleSlugs) {
   assert.equal(infoJson.historyUrl, `${jsonOrigin}/wiki/${slug}/history/`, `/wiki/${slug}/info.json historyUrl`);
   assert.equal(infoJson.referencesUrl, `${jsonOrigin}/wiki/${slug}/references.json`, `/wiki/${slug}/info.json referencesUrl`);
   assert.equal(infoJson.relatedUrl, `${jsonOrigin}/wiki/${slug}/related.json`, `/wiki/${slug}/info.json relatedUrl`);
+  assert.equal(infoJson.tocJsonUrl, `${jsonOrigin}/wiki/${slug}/toc.json`, `/wiki/${slug}/info.json tocJsonUrl`);
 
   if (inboundCountFor(slug) > 0) verifiedWithLinks++;
   if (history.length > 1) verifiedMultiRevision++;
