@@ -1,0 +1,130 @@
+---
+import WikiLayout from '../../../layouts/WikiLayout.astro';
+import { buildBrokenLinks } from '../../../../scripts/broken-links.js';
+
+// Special:Broken links — every missing internal link target across the wiki,
+// ranked by how many published articles link to it. Uses the same build-time
+// link graph and slug map the article pages use for red-link detection.
+const linkgraphModules = import.meta.glob('../../../../public/data/linkgraph.json', { eager: true }) as Record<
+  string,
+  { default?: Record<string, Array<{ target: string; text?: string }>> }
+>;
+const slugmapModules = import.meta.glob('../../../../public/data/slugmap.json', { eager: true }) as Record<
+  string,
+  { default?: Record<string, { title?: string }> }
+>;
+
+const linkGraph = Object.values(linkgraphModules)[0]?.default ?? {};
+const slugMap = Object.values(slugmapModules)[0]?.default ?? {};
+
+const broken = buildBrokenLinks({ linkGraph, slugMap });
+const maxCitingArticles = 5;
+---
+
+<WikiLayout
+  title="Broken links"
+  description="Missing internal link targets across the Taopedia Bittensor knowledge base, ranked by how many articles link to each wanted page."
+>
+  <div class="mw-body-content">
+    <h1 class="firstHeading">Broken links</h1>
+
+    <div class="mw-parser-output">
+      <p>
+        Internal links that point to articles which do not exist yet. Each row is a
+        <strong>wanted page</strong> ranked by how many published articles link to it.
+        Red links on article pages use the same missing-target detection.
+      </p>
+
+      {broken.length === 0 ? (
+        <p>Every internal link on the wiki currently resolves to a published article.</p>
+      ) : (
+        <table class="mw-brokenlinks">
+          <thead>
+            <tr>
+              <th scope="col">Missing target</th>
+              <th scope="col" class="mw-bl-count">Articles</th>
+              <th scope="col">Linking articles</th>
+            </tr>
+          </thead>
+          <tbody>
+            {broken.map((entry) => (
+              <tr>
+                <td class="mw-bl-target">
+                  <span class="mw-bl-slug">{entry.slug}</span>
+                  {entry.texts.length > 0 && (
+                    <span class="mw-bl-texts">
+                      {entry.texts.map((text, index) => (
+                        <Fragment>
+                          {index > 0 ? ', ' : ''}
+                          <span class="mw-bl-text">{text}</span>
+                        </Fragment>
+                      ))}
+                    </span>
+                  )}
+                </td>
+                <td class="mw-bl-count">{entry.count}</td>
+                <td class="mw-bl-from">
+                  {entry.from.slice(0, maxCitingArticles).map((article, index) => (
+                    <Fragment>
+                      {index > 0 ? ', ' : ''}
+                      <a href={`/wiki/${article.slug}/`}>{article.title}</a>
+                    </Fragment>
+                  ))}
+                  {entry.from.length > maxCitingArticles && (
+                    <span class="mw-bl-more">
+                      {' '}
+                      and {entry.from.length - maxCitingArticles} more
+                    </span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  </div>
+</WikiLayout>
+
+<style>
+  .mw-brokenlinks {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 14px;
+  }
+  .mw-brokenlinks th,
+  .mw-brokenlinks td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border-color-subtle);
+    text-align: left;
+    vertical-align: top;
+  }
+  .mw-brokenlinks th {
+    color: var(--color-base-subtle);
+    font-weight: 600;
+  }
+  .mw-bl-count {
+    width: 6rem;
+    white-space: nowrap;
+  }
+  .mw-bl-slug {
+    display: block;
+    font-weight: 600;
+    color: var(--color-link-red, #ba0000);
+    word-break: break-word;
+  }
+  .mw-bl-texts {
+    display: block;
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--color-base-subtle);
+  }
+  .mw-bl-from a {
+    white-space: nowrap;
+  }
+  .mw-bl-more {
+    color: var(--color-base-subtle);
+    font-size: 13px;
+  }
+</style>
