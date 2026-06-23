@@ -35,5 +35,6 @@ export const buildArticleBacklinks = ({ slug, title, origin, backlinks = [] }) =
     referencesUrl: `${origin}/wiki/${link.slug}/references.json`,
     relatedUrl: `${origin}/wiki/${link.slug}/related.json`,
     tocJsonUrl: `${origin}/wiki/${link.slug}/toc.json`,
+    imageUrl: `${origin}/og/${link.slug}.png`,
   })),
 });
