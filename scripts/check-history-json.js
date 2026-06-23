@@ -31,6 +31,8 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.url, `${ORIGIN}/wiki/recycling/`, 'builder: url');
   assert.equal(result.historyUrl, `${ORIGIN}/wiki/recycling/history/`, 'builder: historyUrl');
   assert.equal(result.historyJsonUrl, `${ORIGIN}/wiki/recycling/history.json`, 'builder: historyJsonUrl');
+  assert.equal(result.backlinksUrl, `${ORIGIN}/wiki/recycling/backlinks/`, 'builder: backlinksUrl');
+  assert.equal(result.backlinksJsonUrl, `${ORIGIN}/wiki/recycling/backlinks.json`, 'builder: backlinksJsonUrl');
   assert.equal(result.revisionCount, 2, 'builder: revisionCount');
   assert.equal(result.lastEdited, '2026-06-01T12:00:00.000Z', 'builder: lastEdited is revisions[0].date');
   assert.equal(result.firstEdited, '2025-01-10T08:00:00.000Z', 'builder: firstEdited is revisions[last].date');
@@ -99,6 +101,11 @@ for (const slug of articleSlugs) {
   assert.equal(doc.url, `${ORIGIN}/wiki/${slug}/`, `${slug}: history.json url must be the canonical article URL`);
   assert.equal(doc.historyUrl, `${ORIGIN}/wiki/${slug}/history/`, `${slug}: history.json historyUrl must point to the HTML page`);
   assert.equal(doc.historyJsonUrl, `${ORIGIN}/wiki/${slug}/history.json`, `${slug}: history.json must expose its own canonical historyJsonUrl`);
+  // backlinksUrl / backlinksJsonUrl cross-link to the sibling What-links-here
+  // endpoint, symmetric with how backlinks.json already cross-links to history
+  // (historyUrl + historyJsonUrl). So a consumer on either page reaches the other.
+  assert.equal(doc.backlinksUrl, `${ORIGIN}/wiki/${slug}/backlinks/`, `${slug}: history.json backlinksUrl must point to the sibling HTML backlinks page`);
+  assert.equal(doc.backlinksJsonUrl, `${ORIGIN}/wiki/${slug}/backlinks.json`, `${slug}: history.json backlinksJsonUrl must point to the sibling machine-readable backlinks endpoint`);
   assert.equal(typeof doc.revisionCount, 'number', `${slug}: history.json revisionCount must be a number`);
   assert.ok(Array.isArray(doc.revisions), `${slug}: history.json revisions must be an array`);
   assert.equal(doc.revisionCount, doc.revisions.length, `${slug}: history.json revisionCount must equal revisions.length`);

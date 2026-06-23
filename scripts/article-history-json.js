@@ -7,6 +7,8 @@ export const buildArticleHistory = ({ slug, title, origin, revisions = [] }) => 
   url: `${origin}/wiki/${slug}/`,
   historyUrl: `${origin}/wiki/${slug}/history/`,
   historyJsonUrl: `${origin}/wiki/${slug}/history.json`,
+  backlinksUrl: `${origin}/wiki/${slug}/backlinks/`,
+  backlinksJsonUrl: `${origin}/wiki/${slug}/backlinks.json`,
   revisionCount: revisions.length,
   firstEdited: revisions.length > 0 ? revisions[revisions.length - 1].date : null,
   lastEdited: revisions.length > 0 ? revisions[0].date : null,
