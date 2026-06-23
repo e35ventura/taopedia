@@ -43,6 +43,8 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.backlinks[0].slug, 'neuron', 'builder: backlinks[0].slug');
   assert.equal(result.backlinks[0].title, 'Neuron', 'builder: backlinks[0].title');
   assert.equal(result.backlinks[0].url, `${ORIGIN}/wiki/neuron/`, 'builder: backlinks[0].url');
+  assert.equal(result.backlinks[0].infoUrl, `${ORIGIN}/wiki/neuron/info/`, 'builder: backlinks[0].infoUrl');
+  assert.equal(result.backlinks[0].backlinksUrl, `${ORIGIN}/wiki/neuron/backlinks/`, 'builder: backlinks[0].backlinksUrl');
   assert.equal(result.backlinks[0].historyUrl, `${ORIGIN}/wiki/neuron/history/`, 'builder: backlinks[0].historyUrl');
   assert.equal(result.backlinks[0].historyJsonUrl, `${ORIGIN}/wiki/neuron/history.json`, 'builder: backlinks[0].historyJsonUrl');
   assert.equal(result.backlinks[0].citeUrl, `${ORIGIN}/wiki/neuron/cite/`, 'builder: backlinks[0].citeUrl');
@@ -132,6 +134,19 @@ for (const slug of articleSlugs) {
     assert.equal(typeof entry.slug, 'string', `${slug}: every backlink entry must have a slug`);
     assert.equal(typeof entry.title, 'string', `${slug}: every backlink entry must have a title`);
     assert.equal(entry.url, `${ORIGIN}/wiki/${entry.slug}/`, `${slug}: every backlink entry url must be the canonical article URL`);
+    // infoUrl / backlinksUrl point at the linking article's Page-information and
+    // What-links-here pages, so a consumer can reach a backlinking page's
+    // metadata and its own inbound links without reconstructing the route.
+    assert.equal(
+      entry.infoUrl,
+      `${ORIGIN}/wiki/${entry.slug}/info/`,
+      `${slug}: every backlink entry infoUrl must be the canonical article info URL`,
+    );
+    assert.equal(
+      entry.backlinksUrl,
+      `${ORIGIN}/wiki/${entry.slug}/backlinks/`,
+      `${slug}: every backlink entry backlinksUrl must be the canonical article backlinks URL`,
+    );
     // historyUrl points at the linking article's revision-history page — the
     // same companion references.json / related.json expose per entry — so a
     // consumer can reach a backlinking page's history without rebuilding the route.
