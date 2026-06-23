@@ -131,6 +131,23 @@ data.pages.forEach((row, i) => {
     `row ${i} summary must be the slug-map summary (null when blank) for ${row.slug}`,
   );
   assert.ok(Number.isInteger(row.backlinks) && row.backlinks > 0, `row ${i} backlinks must be a positive integer`);
+  // lastEdited is the article's last-revision date — the same figure info.json /
+  // history.json expose per article and allpages.json exposes per directory
+  // entry. Cross-check it against the sibling built info.json (independent
+  // source) so the ranking and per-article surfaces can't disagree on recency.
+  assert.ok(
+    row.lastEdited === null || typeof row.lastEdited === 'string',
+    `row ${i} lastEdited must be a string date or null (got ${JSON.stringify(row.lastEdited)})`,
+  );
+  const mlInfoJsonFile = path.join(projectRoot, 'dist', 'wiki', row.slug, 'info.json');
+  if (fs.existsSync(mlInfoJsonFile)) {
+    const infoDoc = JSON.parse(fs.readFileSync(mlInfoJsonFile, 'utf8'));
+    assert.equal(
+      row.lastEdited,
+      infoDoc.lastEdited,
+      `row ${i} lastEdited must agree with the sibling info.json envelope for ${row.slug}`,
+    );
+  }
   // infoUrl points at the article's Page-information page, the same companion
   // exposed elsewhere, so a consumer of the ranking can reach each top page's
   // metadata overview without rebuilding the route.
