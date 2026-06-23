@@ -38,6 +38,7 @@ const projectRoot = path.resolve(__dirname, '..');
   assert.equal(stats.totalWords, 6, 'totalWords must sum body word counts (4 + 2)');
   assert.equal(stats.averageWords, 3, 'averageWords must be totalWords / totalArticles');
   assert.equal(stats.totalRevisions, 3, 'totalRevisions must sum history lengths (2 + 1)');
+  assert.equal(stats.averageRevisions, 2, 'averageRevisions must be round(totalRevisions / totalArticles) = round(3/2) = 2');
   assert.equal(stats.newestDate, '2024-01-02T00:00:00.000Z', 'newestDate must be the latest history date');
   assert.equal(stats.oldestDate, '2024-01-01T00:00:00.000Z', 'oldestDate must be the earliest history date');
   assert.equal(stats.largestTopic.name, 'Consensus', 'largestTopic must be the highest-count category');
@@ -84,6 +85,7 @@ const projectRoot = path.resolve(__dirname, '..');
   assert.equal(empty.totalWords, 0);
   assert.equal(empty.averageWords, 0);
   assert.equal(empty.totalRevisions, 0);
+  assert.equal(empty.averageRevisions, 0);
   assert.equal(empty.newestDate, '');
   assert.equal(empty.oldestDate, '');
   assert.equal(empty.largestTopic, null);
@@ -117,6 +119,8 @@ assert.ok(typeof data.totalTopics === 'number' && data.totalTopics > 0, 'totalTo
 assert.ok(typeof data.totalRevisions === 'number' && data.totalRevisions >= 0, 'totalRevisions must be a non-negative number');
 assert.ok(typeof data.totalWords === 'number' && data.totalWords >= 0, 'totalWords must be a non-negative number');
 assert.ok(typeof data.averageWords === 'number' && data.averageWords >= 0, 'averageWords must be a non-negative number');
+assert.ok(typeof data.averageRevisions === 'number' && data.averageRevisions >= 0, 'averageRevisions must be a non-negative number');
+assert.equal(data.averageRevisions, data.totalArticles ? Math.round(data.totalRevisions / data.totalArticles) : 0, 'averageRevisions must equal round(totalRevisions / totalArticles)');
 
 // newestDate — valid ISO-8601 date string when articles exist.
 assert.ok(

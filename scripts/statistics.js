@@ -41,6 +41,7 @@ export function buildStatistics({ pages, historyForSlug, getPageSlug }) {
   const totalArticles = pages.length;
   const totalTopics = topicCounts.size;
   const averageWords = totalArticles ? Math.round(totalWords / totalArticles) : 0;
+  const averageRevisions = totalArticles ? Math.round(totalRevisions / totalArticles) : 0;
 
   // Deterministic ordering: by count descending, then by name ascending using
   // compareTitles (pins 'en' locale with numeric: true) — the SAME comparator
@@ -57,6 +58,7 @@ export function buildStatistics({ pages, historyForSlug, getPageSlug }) {
     totalRevisions,
     totalWords,
     averageWords,
+    averageRevisions,
     newestDate,
     oldestDate,
     largestTopic: sortedTopics[0]
