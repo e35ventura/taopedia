@@ -142,6 +142,17 @@ assert.ok(fs.existsSync(htmlFile), 'dist/wiki/special/allpages/index.html not fo
 const data = JSON.parse(fs.readFileSync(distFile, 'utf8'));
 const html = fs.readFileSync(htmlFile, 'utf8');
 
+// The inbound-link graph (the same public/data/backlinks.json the endpoint and
+// mostlinkedpages.json read) is independent ground truth for each row's
+// `backlinks` count. Re-derive the published-only inbound count here so a
+// regression in the endpoint's counting cannot pass by agreeing with itself.
+const backlinksFile = path.join(projectRoot, 'public', 'data', 'backlinks.json');
+assert.ok(fs.existsSync(backlinksFile), 'public/data/backlinks.json not found; run the build first');
+const backlinksData = JSON.parse(fs.readFileSync(backlinksFile, 'utf8'));
+const publishedSlugs = new Set(data.articles.map((a) => a.slug));
+const expectedInbound = (slug) =>
+  (backlinksData[slug] ?? []).filter((link) => publishedSlugs.has(link?.from)).length;
+
 // site + envelope.
 assert.ok(
   typeof data.site === 'string' && /^https?:\/\//.test(data.site),
@@ -280,6 +291,19 @@ data.articles.forEach((row, i) => {
     `${data.site}/og/${row.slug}.png`,
     `row ${i} imageUrl must equal ${data.site}/og/${row.slug}.png`,
   );
+  // backlinks is the article's inbound-link count from OTHER published articles
+  // — the same published-only, orphan-skipping metric mostlinkedpages.json
+  // exposes per entry and info.json exposes as incomingLinks. Assert it against
+  // the raw backlink graph (independent source) so the count cannot drift.
+  assert.ok(
+    Number.isInteger(row.backlinks) && row.backlinks >= 0,
+    `row ${i} backlinks must be a non-negative integer (got ${JSON.stringify(row.backlinks)})`,
+  );
+  assert.equal(
+    row.backlinks,
+    expectedInbound(row.slug),
+    `row ${i} backlinks must equal the published inbound-link count for ${row.slug}`,
+  );
   jsonSlugs.add(row.slug);
   // The article must point to a real, built article file.
   assert.ok(
@@ -297,6 +321,14 @@ data.articles.forEach((row, i) => {
 for (const slug of slugsFromHtml) {
   assert.ok(jsonSlugs.has(slug), `slug ${slug} rendered in the HTML page must also appear in allpages.json`);
 }
+
+// At least one article must carry a non-zero inbound count — a fully linked
+// wiki cannot be all-orphans — so this proves the metric is actually computed
+// end-to-end and not stuck at zero for every row.
+assert.ok(
+  data.articles.some((row) => row.backlinks > 0),
+  'at least one article must have a non-zero backlinks count (the metric must be populated, not all-zero)',
+);
 
 // sortPagesByTitle order: alphabetical with numeric suffix, title-tie break
 // on raw id. The list order in the JSON must therefore match the helper.

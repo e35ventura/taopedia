@@ -11,11 +11,29 @@ import { buildAllPages } from '../../../../scripts/allpages.js';
 // so the JSON and HTML surfaces never disagree on which articles are
 // listed, what their order is, or what the per-row fields are.
 
+// The inbound-link graph is the same public/data/backlinks.json the HTML
+// "What links here" page and mostlinkedpages.json read, so the per-row inbound
+// count below matches those surfaces exactly.
+const backlinksModules = import.meta.glob('../../../../public/data/backlinks.json', { eager: true }) as Record<
+  string,
+  { default?: Record<string, Array<{ from: string }>> }
+>;
+const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
+
 export const GET: APIRoute = async ({ site }) => {
   const origin = (site ?? new URL('https://taopedia.org')).origin;
   const pages = await getCollection('pages');
 
   const articles = buildAllPages({ pages, getPageSlug, origin });
+
+  // Count only inbound links from OTHER published articles, the same
+  // orphan-skipping, published-only inbound count mostlinkedpages.json exposes
+  // per entry and info.json exposes as incomingLinks. allpages lists every
+  // article (including zero-inbound ones), so this is the only directory surface
+  // carrying the metric for the full set.
+  const publishedSlugs = new Set(articles.map((article) => article.slug));
+  const inboundCount = (slug: string) =>
+    (backlinksData[slug] ?? []).filter((link) => publishedSlugs.has(link?.from)).length;
 
   const body = JSON.stringify(
     {
@@ -41,6 +59,7 @@ export const GET: APIRoute = async ({ site }) => {
         tocJsonUrl: `${origin}/wiki/${article.slug}/toc.json`,
         imageUrl: `${origin}/og/${article.slug}.png`,
         categories: article.categories,
+        backlinks: inboundCount(article.slug),
       })),
     },
     null,
