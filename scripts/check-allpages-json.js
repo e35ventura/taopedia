@@ -215,6 +215,25 @@ data.articles.forEach((row, i) => {
     `${data.site}/wiki/${row.slug}/history.json`,
     `row ${i} historyJsonUrl must equal ${data.site}/wiki/${row.slug}/history.json`,
   );
+  // citeUrl / referencesUrl / relatedUrl complete the per-article API surface:
+  // the citation page (/cite/), the outbound-reference index (references.json),
+  // and the related-pages set (related.json) all exist per article, so a
+  // consumer of the directory can reach them without reconstructing the routes.
+  assert.equal(
+    row.citeUrl,
+    `${data.site}/wiki/${row.slug}/cite/`,
+    `row ${i} citeUrl must equal ${data.site}/wiki/${row.slug}/cite/`,
+  );
+  assert.equal(
+    row.referencesUrl,
+    `${data.site}/wiki/${row.slug}/references.json`,
+    `row ${i} referencesUrl must equal ${data.site}/wiki/${row.slug}/references.json`,
+  );
+  assert.equal(
+    row.relatedUrl,
+    `${data.site}/wiki/${row.slug}/related.json`,
+    `row ${i} relatedUrl must equal ${data.site}/wiki/${row.slug}/related.json`,
+  );
   // imageUrl is the article's OG share-card image (/og/<slug>.png) — each
   // article binds its own card, so the directory can expose it for a consumer
   // that wants a per-article thumbnail without hitting the rendered HTML head.
