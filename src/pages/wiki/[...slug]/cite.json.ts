@@ -2,17 +2,37 @@ import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
 import { buildCitations, CITATION_META } from '../../../../scripts/citations.js';
+import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
+
+const backlinksModules = import.meta.glob('../../../../public/data/backlinks.json', { eager: true }) as Record<
+  string,
+  { default?: Record<string, Array<{ from: string }>> }
+>;
+const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
+  const titleBySlug = Object.fromEntries(pages.map((page) => [getPageSlug(page), page.data.title]));
+
   return pages.map((page) => {
     const slug = getPageSlug(page);
-    return { params: { slug }, props: { page, slug } };
+    return {
+      params: { slug },
+      props: {
+        page,
+        slug,
+        incomingLinks: publishedInboundLinkCount(backlinksData, slug, titleBySlug),
+      },
+    };
   });
 }
 
 export const GET: APIRoute = async ({ site, props }) => {
-  const { page, slug } = props as { page: { data: { title: string; summary?: string; categories?: string[] } }; slug: string };
+  const { page, slug, incomingLinks } = props as {
+    page: { data: { title: string; summary?: string; categories?: string[] } };
+    slug: string;
+    incomingLinks: number;
+  };
   const url = new URL(`/wiki/${slug}/`, site ?? new URL('https://taopedia.org')).toString();
   const date = historyForSlug(slug)[0]?.date ?? '';
   const citations = buildCitations({ title: page.data.title, url, slug, date });
@@ -37,6 +57,7 @@ export const GET: APIRoute = async ({ site, props }) => {
       relatedUrl: new URL(`/wiki/${slug}/related.json`, site ?? new URL('https://taopedia.org')).toString(),
       imageUrl: new URL(`/og/${slug}.png`, site ?? new URL('https://taopedia.org')).toString(),
       categories: page.data.categories ?? [],
+      incomingLinks: Number.isFinite(incomingLinks) ? incomingLinks : 0,
       ...(date ? { date } : {}),
       ...CITATION_META,
       citations,

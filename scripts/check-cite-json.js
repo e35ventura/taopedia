@@ -3,12 +3,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildCitations, CITATION_FORMATS, CITATION_META } from './citations.js';
+import { publishedInboundLinkCount } from './most-linked.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
 const wikiDir = path.join(projectRoot, 'dist', 'wiki');
 const historyDir = path.join(projectRoot, 'public', 'history');
 const slugmapFile = path.join(projectRoot, 'public', 'data', 'slugmap.json');
+const backlinksFile = path.join(projectRoot, 'public', 'data', 'backlinks.json');
 const ORIGIN = 'https://taopedia.org';
 const CITE_KEYS = CITATION_FORMATS.map((format) => format.key);
 
@@ -46,7 +48,12 @@ const CITE_KEYS = CITATION_FORMATS.map((format) => format.key);
 
 assert.ok(fs.existsSync(wikiDir), 'dist/wiki not found; run the build first');
 assert.ok(fs.existsSync(slugmapFile), 'public/data/slugmap.json not found; run the build first');
+assert.ok(fs.existsSync(backlinksFile), 'public/data/backlinks.json not found; run the build first');
 const slugmap = JSON.parse(fs.readFileSync(slugmapFile, 'utf8'));
+const backlinksData = JSON.parse(fs.readFileSync(backlinksFile, 'utf8'));
+const titleBySlug = Object.fromEntries(
+  Object.entries(slugmap).map(([slug, meta]) => [slug, typeof meta?.title === 'string' ? meta.title : slug]),
+);
 
 const articleSlugs = [];
 const walk = (dir) => {
@@ -207,6 +214,23 @@ for (const slug of articleSlugs) {
     expectedSummary,
     `cite.json summary must match the article's slug-map summary (or null) for ${slug}`,
   );
+  // incomingLinks is the article's published inbound-link count — the same figure
+  // info.json and history.json expose, computed via the shared helper.
+  assert.equal(
+    doc.incomingLinks,
+    publishedInboundLinkCount(backlinksData, slug, titleBySlug),
+    `cite.json incomingLinks must match the published inbound-link count for ${slug}`,
+  );
+  assert.ok(Number.isInteger(doc.incomingLinks) && doc.incomingLinks >= 0, `cite.json incomingLinks must be a non-negative integer for ${slug}`);
+  const infoJsonFile = path.join(wikiDir, slug, 'info.json');
+  if (fs.existsSync(infoJsonFile)) {
+    const infoDoc = JSON.parse(fs.readFileSync(infoJsonFile, 'utf8'));
+    assert.equal(
+      doc.incomingLinks,
+      infoDoc.incomingLinks,
+      `cite.json incomingLinks must agree with the sibling info.json envelope for ${slug}`,
+    );
+  }
   if (date) {
     assert.equal(doc.date, date, `cite.json date must equal the article's last-revision date for ${slug}`);
   } else {
