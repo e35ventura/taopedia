@@ -165,6 +165,20 @@ data.pages.forEach((row, i) => {
     `${data.site}/wiki/${row.slug}/cite/`,
     `row ${i} citeUrl must equal ${data.site}/wiki/${row.slug}/cite/`,
   );
+  // citeJsonUrl / bibtexUrl are the machine-readable citation companions of
+  // citeUrl: the structured citation metadata (cite.json) and a ready-to-use
+  // BibTeX record (cite.bib), both of which exist per article — the same trio
+  // info.json already exposes — so a consumer can fetch a citation directly.
+  assert.equal(
+    row.citeJsonUrl,
+    `${data.site}/wiki/${row.slug}/cite.json`,
+    `row ${i} citeJsonUrl must equal ${data.site}/wiki/${row.slug}/cite.json`,
+  );
+  assert.equal(
+    row.bibtexUrl,
+    `${data.site}/wiki/${row.slug}/cite.bib`,
+    `row ${i} bibtexUrl must equal ${data.site}/wiki/${row.slug}/cite.bib`,
+  );
   assert.equal(
     row.referencesUrl,
     `${data.site}/wiki/${row.slug}/references.json`,
