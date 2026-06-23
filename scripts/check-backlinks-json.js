@@ -26,6 +26,7 @@ const ORIGIN = 'https://taopedia.org';
     slug: 'recycling',
     title: 'Recycling',
     origin: ORIGIN,
+    summary: 'Reclaiming emitted TAO.',
     categories: ['Consensus'],
     backlinks: [
       { slug: 'neuron', title: 'Neuron', summary: 'A node in the network.' },
@@ -34,6 +35,7 @@ const ORIGIN = 'https://taopedia.org';
   });
   assert.equal(result.slug, 'recycling', 'builder: slug field');
   assert.equal(result.title, 'Recycling', 'builder: title field');
+  assert.equal(result.summary, 'Reclaiming emitted TAO.', 'builder: summary field');
   assert.equal(result.url, `${ORIGIN}/wiki/recycling/`, 'builder: url field');
   assert.equal(result.backlinksUrl, `${ORIGIN}/wiki/recycling/backlinks/`, 'builder: backlinksUrl field');
   assert.equal(result.backlinksJsonUrl, `${ORIGIN}/wiki/recycling/backlinks.json`, 'builder: backlinksJsonUrl field');
@@ -86,6 +88,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(empty.count, 0, 'builder: empty count is 0');
   assert.deepEqual(empty.backlinks, [], 'builder: empty backlinks is []');
   assert.deepEqual(empty.categories, [], 'builder: default categories is []');
+  assert.equal(empty.summary, null, 'builder: default summary is null');
 }
 
 // ---- 2–6) Built-output checks ----------------------------------------------
@@ -166,6 +169,10 @@ for (const slug of articleSlugs) {
   // symmetric with info.json and history.json which already expose the same field.
   const expectedCategories = slugmap[slug]?.categories ?? [];
   assert.deepEqual(doc.categories, expectedCategories, `${slug}: backlinks.json categories must match the article's topic categories from the slug map`);
+  // summary is the article's own slug-map summary (null when blank), the same
+  // per-article field the listing endpoints expose for each entry.
+  const expectedSummary = slugmap[slug]?.summary || null;
+  assert.deepEqual(doc.summary, expectedSummary, `${slug}: backlinks.json summary must match the article's slug-map summary (or null)`);
   assert.equal(typeof doc.count, 'number', `${slug}: backlinks.json count must be a number`);
   assert.ok(Array.isArray(doc.backlinks), `${slug}: backlinks.json backlinks must be an array`);
   assert.equal(doc.count, doc.backlinks.length, `${slug}: backlinks.json count must equal backlinks.length`);

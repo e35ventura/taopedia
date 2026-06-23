@@ -1,9 +1,10 @@
 // Pure builder: no file I/O, no side effects. Converts the pre-joined and
 // pre-sorted backlinks list into the canonical JSON shape for
 // /wiki/<slug>/backlinks.json, mirroring what backlinks.astro renders.
-export const buildArticleBacklinks = ({ slug, title, origin, categories = [], backlinks = [] }) => ({
+export const buildArticleBacklinks = ({ slug, title, origin, summary = '', categories = [], backlinks = [] }) => ({
   slug,
   title,
+  summary: summary || null,
   url: `${origin}/wiki/${slug}/`,
   backlinksUrl: `${origin}/wiki/${slug}/backlinks/`,
   backlinksJsonUrl: `${origin}/wiki/${slug}/backlinks.json`,
