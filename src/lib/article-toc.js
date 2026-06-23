@@ -34,6 +34,7 @@ export const buildArticleToc = ({ slug, title, origin, sections = [] }) => ({
   bibtexUrl: `${origin}/wiki/${slug}/cite.bib`,
   referencesUrl: `${origin}/wiki/${slug}/references.json`,
   relatedUrl: `${origin}/wiki/${slug}/related.json`,
+  imageUrl: `${origin}/og/${slug}.png`,
   count: sections.length,
   sections: sections.map((section) => ({
     number: section.number,
