@@ -169,6 +169,20 @@ for (const slug of articleSlugs) {
     `${ORIGIN}/wiki/${slug}/toc.json`,
     `cite.json tocJsonUrl must point at the article's machine-readable table-of-contents endpoint for ${slug}`,
   );
+  // referencesUrl / relatedUrl complete the envelope's cross-links to the
+  // article's other machine-readable endpoints (the outbound-reference index and
+  // the related-pages set), the same siblings info.json aggregates, so a consumer
+  // of cite.json can reach them without reconstructing the routes.
+  assert.equal(
+    doc.referencesUrl,
+    `${ORIGIN}/wiki/${slug}/references.json`,
+    `cite.json referencesUrl must point at the sibling references.json endpoint for ${slug}`,
+  );
+  assert.equal(
+    doc.relatedUrl,
+    `${ORIGIN}/wiki/${slug}/related.json`,
+    `cite.json relatedUrl must point at the sibling related.json endpoint for ${slug}`,
+  );
   if (date) {
     assert.equal(doc.date, date, `cite.json date must equal the article's last-revision date for ${slug}`);
   } else {
