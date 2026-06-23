@@ -113,6 +113,15 @@ data.pages.forEach((row, i) => {
   assert.equal(row.slug, expected[i].slug, `row ${i} slug must match the link-graph ranking`);
   assert.equal(row.title, expected[i].title, `row ${i} title must match the article title for ${expected[i].slug}`);
   assert.equal(row.backlinks, expected[i].count, `row ${i} backlinks count must match the link graph`);
+  // categories mirrors the article's topics (the same set allpages.json exposes
+  // per entry), so a consumer can filter the ranking by topic. Source of truth
+  // is the slug map.
+  assert.ok(Array.isArray(row.categories), `row ${i} categories must be an array`);
+  assert.deepEqual(
+    row.categories,
+    slugmap[row.slug]?.categories ?? [],
+    `row ${i} categories must match the article's topics in the slug map for ${row.slug}`,
+  );
   assert.ok(Number.isInteger(row.backlinks) && row.backlinks > 0, `row ${i} backlinks must be a positive integer`);
   // infoUrl points at the article's Page-information page, the same companion
   // exposed elsewhere, so a consumer of the ranking can reach each top page's
