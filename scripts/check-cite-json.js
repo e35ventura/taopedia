@@ -126,6 +126,14 @@ for (const slug of articleSlugs) {
     `${ORIGIN}/wiki/${slug}/history/`,
     `cite.json historyUrl must point at the sibling HTML history page for ${slug}`,
   );
+  // historyJsonUrl is the JSON companion of historyUrl — cite.json already
+  // pairs citeUrl with citeJsonUrl, and /wiki/<slug>/history.json exists and is
+  // exposed by recentchanges.json / subnets.json, so expose it here too.
+  assert.equal(
+    doc.historyJsonUrl,
+    `${ORIGIN}/wiki/${slug}/history.json`,
+    `cite.json historyJsonUrl must point at the sibling machine-readable history endpoint for ${slug}`,
+  );
   assert.equal(
     doc.backlinksUrl,
     `${ORIGIN}/wiki/${slug}/backlinks/`,
