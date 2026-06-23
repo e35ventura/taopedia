@@ -56,6 +56,7 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
         url: `${ORIGIN}/wiki/subnet_2/`,
         infoUrl: `${ORIGIN}/wiki/subnet_2/info/`,
         backlinksUrl: `${ORIGIN}/wiki/subnet_2/backlinks/`,
+        backlinksJsonUrl: `${ORIGIN}/wiki/subnet_2/backlinks.json`,
       },
       {
         slug: 'subnet_9',
@@ -64,6 +65,7 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
         url: `${ORIGIN}/wiki/subnet_9/`,
         infoUrl: `${ORIGIN}/wiki/subnet_9/info/`,
         backlinksUrl: `${ORIGIN}/wiki/subnet_9/backlinks/`,
+        backlinksJsonUrl: `${ORIGIN}/wiki/subnet_9/backlinks.json`,
       },
       {
         slug: 'subnet_10',
@@ -72,6 +74,7 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
         url: `${ORIGIN}/wiki/subnet_10/`,
         infoUrl: `${ORIGIN}/wiki/subnet_10/info/`,
         backlinksUrl: `${ORIGIN}/wiki/subnet_10/backlinks/`,
+        backlinksJsonUrl: `${ORIGIN}/wiki/subnet_10/backlinks.json`,
       },
     ],
     'builder: article row shape',
@@ -154,7 +157,8 @@ for (const category of categories) {
   // Each article row links its Page-information and What-links-here pages, the
   // same per-entry companions the other special JSON endpoints expose, so a
   // consumer of a category's article list can reach each article's metadata and
-  // inbound links without reconstructing the route.
+  // inbound links without reconstructing the route, including the machine-readable
+  // backlinks JSON companion.
   for (const article of doc.articles) {
     assert.equal(
       article.infoUrl,
@@ -165,6 +169,11 @@ for (const category of categories) {
       article.backlinksUrl,
       `${ORIGIN}/wiki/${article.slug}/backlinks/`,
       `${category}: article ${article.slug} backlinksUrl must be the canonical What-links-here URL`,
+    );
+    assert.equal(
+      article.backlinksJsonUrl,
+      `${ORIGIN}/wiki/${article.slug}/backlinks.json`,
+      `${category}: article ${article.slug} backlinksJsonUrl must be the canonical backlinks.json URL`,
     );
   }
 
