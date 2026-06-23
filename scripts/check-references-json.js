@@ -68,6 +68,10 @@ const ORIGIN = 'https://taopedia.org';
         slug: 'delta',
         title: 'Delta',
         url: `${ORIGIN}/wiki/delta/`,
+        infoUrl: `${ORIGIN}/wiki/delta/info/`,
+        infoJsonUrl: `${ORIGIN}/wiki/delta/info.json`,
+        backlinksUrl: `${ORIGIN}/wiki/delta/backlinks/`,
+        backlinksJsonUrl: `${ORIGIN}/wiki/delta/backlinks.json`,
         historyUrl: `${ORIGIN}/wiki/delta/history/`,
         historyJsonUrl: `${ORIGIN}/wiki/delta/history.json`,
       },
@@ -75,6 +79,10 @@ const ORIGIN = 'https://taopedia.org';
         slug: 'alpha',
         title: 'Subnet 2',
         url: `${ORIGIN}/wiki/alpha/`,
+        infoUrl: `${ORIGIN}/wiki/alpha/info/`,
+        infoJsonUrl: `${ORIGIN}/wiki/alpha/info.json`,
+        backlinksUrl: `${ORIGIN}/wiki/alpha/backlinks/`,
+        backlinksJsonUrl: `${ORIGIN}/wiki/alpha/backlinks.json`,
         historyUrl: `${ORIGIN}/wiki/alpha/history/`,
         historyJsonUrl: `${ORIGIN}/wiki/alpha/history.json`,
       },
@@ -82,6 +90,10 @@ const ORIGIN = 'https://taopedia.org';
         slug: 'gamma',
         title: 'Subnet 9',
         url: `${ORIGIN}/wiki/gamma/`,
+        infoUrl: `${ORIGIN}/wiki/gamma/info/`,
+        infoJsonUrl: `${ORIGIN}/wiki/gamma/info.json`,
+        backlinksUrl: `${ORIGIN}/wiki/gamma/backlinks/`,
+        backlinksJsonUrl: `${ORIGIN}/wiki/gamma/backlinks.json`,
         historyUrl: `${ORIGIN}/wiki/gamma/history/`,
         historyJsonUrl: `${ORIGIN}/wiki/gamma/history.json`,
       },
@@ -89,6 +101,10 @@ const ORIGIN = 'https://taopedia.org';
         slug: 'beta',
         title: 'Subnet 10',
         url: `${ORIGIN}/wiki/beta/`,
+        infoUrl: `${ORIGIN}/wiki/beta/info/`,
+        infoJsonUrl: `${ORIGIN}/wiki/beta/info.json`,
+        backlinksUrl: `${ORIGIN}/wiki/beta/backlinks/`,
+        backlinksJsonUrl: `${ORIGIN}/wiki/beta/backlinks.json`,
         historyUrl: `${ORIGIN}/wiki/beta/history/`,
         historyJsonUrl: `${ORIGIN}/wiki/beta/history.json`,
       },
@@ -211,6 +227,26 @@ for (const slug of articleSlugs) {
     assert.equal(typeof entry.slug, 'string', `${slug}: every reference entry must have a slug`);
     assert.equal(typeof entry.title, 'string', `${slug}: every reference entry must have a title`);
     assert.equal(entry.url, `${ORIGIN}/wiki/${entry.slug}/`, `${slug}: every reference entry url must be the canonical article URL`);
+    assert.equal(
+      entry.infoUrl,
+      `${ORIGIN}/wiki/${entry.slug}/info/`,
+      `${slug}: every reference entry infoUrl must be the canonical article info URL`,
+    );
+    assert.equal(
+      entry.infoJsonUrl,
+      `${ORIGIN}/wiki/${entry.slug}/info.json`,
+      `${slug}: every reference entry infoJsonUrl must be the canonical article info.json URL`,
+    );
+    assert.equal(
+      entry.backlinksUrl,
+      `${ORIGIN}/wiki/${entry.slug}/backlinks/`,
+      `${slug}: every reference entry backlinksUrl must be the canonical article backlinks URL`,
+    );
+    assert.equal(
+      entry.backlinksJsonUrl,
+      `${ORIGIN}/wiki/${entry.slug}/backlinks.json`,
+      `${slug}: every reference entry backlinksJsonUrl must be the canonical article backlinks.json URL`,
+    );
     assert.equal(
       entry.historyUrl,
       `${ORIGIN}/wiki/${entry.slug}/history/`,
