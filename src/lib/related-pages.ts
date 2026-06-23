@@ -62,6 +62,7 @@ export interface ArticleRelatedPagesDocument {
     tags: string[];
     url: string;
     infoUrl: string;
+    infoJsonUrl: string;
     backlinksUrl: string;
     historyUrl: string;
     historyJsonUrl: string;
@@ -70,6 +71,7 @@ export interface ArticleRelatedPagesDocument {
     bibtexUrl: string;
     referencesUrl: string;
     relatedUrl: string;
+    tocJsonUrl: string;
   }>;
 }
 
@@ -171,6 +173,7 @@ export function buildArticleRelatedPages({
       tags: entry.tags,
       url: `${origin}/wiki/${entry.slug}/`,
       infoUrl: `${origin}/wiki/${entry.slug}/info/`,
+      infoJsonUrl: `${origin}/wiki/${entry.slug}/info.json`,
       backlinksUrl: `${origin}/wiki/${entry.slug}/backlinks/`,
       historyUrl: `${origin}/wiki/${entry.slug}/history/`,
       historyJsonUrl: `${origin}/wiki/${entry.slug}/history.json`,
@@ -179,6 +182,7 @@ export function buildArticleRelatedPages({
       bibtexUrl: `${origin}/wiki/${entry.slug}/cite.bib`,
       referencesUrl: `${origin}/wiki/${entry.slug}/references.json`,
       relatedUrl: `${origin}/wiki/${entry.slug}/related.json`,
+      tocJsonUrl: `${origin}/wiki/${entry.slug}/toc.json`,
     })),
   };
 }

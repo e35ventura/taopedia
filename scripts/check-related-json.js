@@ -94,6 +94,8 @@ const ORIGIN = 'https://taopedia.org';
         bibtexUrl: `${ORIGIN}/wiki/alpha/cite.bib`,
         referencesUrl: `${ORIGIN}/wiki/alpha/references.json`,
         relatedUrl: `${ORIGIN}/wiki/alpha/related.json`,
+        infoJsonUrl: `${ORIGIN}/wiki/alpha/info.json`,
+        tocJsonUrl: `${ORIGIN}/wiki/alpha/toc.json`,
       },
       {
         slug: 'gamma',
@@ -110,6 +112,8 @@ const ORIGIN = 'https://taopedia.org';
         bibtexUrl: `${ORIGIN}/wiki/gamma/cite.bib`,
         referencesUrl: `${ORIGIN}/wiki/gamma/references.json`,
         relatedUrl: `${ORIGIN}/wiki/gamma/related.json`,
+        infoJsonUrl: `${ORIGIN}/wiki/gamma/info.json`,
+        tocJsonUrl: `${ORIGIN}/wiki/gamma/toc.json`,
       },
       {
         slug: 'delta',
@@ -126,6 +130,8 @@ const ORIGIN = 'https://taopedia.org';
         bibtexUrl: `${ORIGIN}/wiki/delta/cite.bib`,
         referencesUrl: `${ORIGIN}/wiki/delta/references.json`,
         relatedUrl: `${ORIGIN}/wiki/delta/related.json`,
+        infoJsonUrl: `${ORIGIN}/wiki/delta/info.json`,
+        tocJsonUrl: `${ORIGIN}/wiki/delta/toc.json`,
       },
     ],
     'builder: related entry shape',
@@ -285,6 +291,8 @@ for (const slug of articleSlugs) {
     assert.equal(entry.bibtexUrl, `${ORIGIN}/wiki/${entry.slug}/cite.bib`, `${slug}: every related entry bibtexUrl must be canonical`);
     assert.equal(entry.referencesUrl, `${ORIGIN}/wiki/${entry.slug}/references.json`, `${slug}: every related entry referencesUrl must be canonical`);
     assert.equal(entry.relatedUrl, `${ORIGIN}/wiki/${entry.slug}/related.json`, `${slug}: every related entry relatedUrl must be canonical`);
+    assert.equal(entry.infoJsonUrl, `${ORIGIN}/wiki/${entry.slug}/info.json`, `${slug}: every related entry infoJsonUrl must be canonical`);
+    assert.equal(entry.tocJsonUrl, `${ORIGIN}/wiki/${entry.slug}/toc.json`, `${slug}: every related entry tocJsonUrl must be canonical`);
     assert.ok(Array.isArray(entry.tags), `${slug}: every related entry must expose tags as an array`);
     assert.ok(entry.tags.length <= 2, `${slug}: related entry ${entry.slug} must expose at most two tags`);
   }
