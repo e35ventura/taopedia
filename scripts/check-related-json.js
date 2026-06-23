@@ -75,6 +75,7 @@ const ORIGIN = 'https://taopedia.org';
         tags: ['Security'],
         url: `${ORIGIN}/wiki/alpha/`,
         historyUrl: `${ORIGIN}/wiki/alpha/history/`,
+        historyJsonUrl: `${ORIGIN}/wiki/alpha/history.json`,
       },
       {
         slug: 'gamma',
@@ -83,6 +84,7 @@ const ORIGIN = 'https://taopedia.org';
         tags: ['Security'],
         url: `${ORIGIN}/wiki/gamma/`,
         historyUrl: `${ORIGIN}/wiki/gamma/history/`,
+        historyJsonUrl: `${ORIGIN}/wiki/gamma/history.json`,
       },
       {
         slug: 'delta',
@@ -91,6 +93,7 @@ const ORIGIN = 'https://taopedia.org';
         tags: ['Consensus'],
         url: `${ORIGIN}/wiki/delta/`,
         historyUrl: `${ORIGIN}/wiki/delta/history/`,
+        historyJsonUrl: `${ORIGIN}/wiki/delta/history.json`,
       },
     ],
     'builder: related entry shape',
@@ -195,6 +198,13 @@ for (const slug of articleSlugs) {
       entry.historyUrl,
       `${ORIGIN}/wiki/${entry.slug}/history/`,
       `${slug}: every related entry historyUrl must be the canonical article history URL`,
+    );
+    // historyJsonUrl is the JSON companion of historyUrl — references.json
+    // already pairs both per entry, so related.json entries match.
+    assert.equal(
+      entry.historyJsonUrl,
+      `${ORIGIN}/wiki/${entry.slug}/history.json`,
+      `${slug}: every related entry historyJsonUrl must be the canonical article history.json URL`,
     );
     assert.ok(Array.isArray(entry.tags), `${slug}: every related entry must expose tags as an array`);
     assert.ok(entry.tags.length <= 2, `${slug}: related entry ${entry.slug} must expose at most two tags`);
