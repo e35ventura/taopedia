@@ -46,6 +46,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.referencesUrl, `${ORIGIN}/wiki/recycling/references.json`, 'builder: referencesUrl field');
   assert.equal(result.relatedUrl, `${ORIGIN}/wiki/recycling/related.json`, 'builder: relatedUrl field');
   assert.equal(result.tocJsonUrl, `${ORIGIN}/wiki/recycling/toc.json`, 'builder: tocJsonUrl field');
+  assert.equal(result.imageUrl, `${ORIGIN}/og/recycling.png`, 'builder: imageUrl field');
   assert.equal(result.count, 2, 'builder: count equals backlinks length');
   assert.equal(result.backlinks.length, 2, 'builder: backlinks array length');
   assert.equal(result.backlinks[0].slug, 'neuron', 'builder: backlinks[0].slug');
@@ -147,6 +148,9 @@ for (const slug of articleSlugs) {
   // companion the history.json / related.json envelopes and the directory
   // entries expose, so a consumer of backlinks.json can reach the article's TOC.
   assert.equal(doc.tocJsonUrl, `${ORIGIN}/wiki/${slug}/toc.json`, `${slug}: backlinks.json tocJsonUrl must point to the article's toc.json endpoint`);
+  // imageUrl is the article's own OG share-card (/og/<slug>.png), the same
+  // companion the info/history/toc/references envelopes already expose.
+  assert.equal(doc.imageUrl, `${ORIGIN}/og/${slug}.png`, `${slug}: backlinks.json imageUrl must be the article's OG share-card URL`);
   assert.equal(typeof doc.count, 'number', `${slug}: backlinks.json count must be a number`);
   assert.ok(Array.isArray(doc.backlinks), `${slug}: backlinks.json backlinks must be an array`);
   assert.equal(doc.count, doc.backlinks.length, `${slug}: backlinks.json count must equal backlinks.length`);
