@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { getPageSlug } from '../../../lib/article-history';
 import { buildSubnets } from '../../../../scripts/subnets.js';
+import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
 
 // Machine-readable subnet registry at /wiki/special/subnets.json. Mirrors the
 // HTML Special:Subnets page as structured JSON for programmatic consumers
@@ -12,9 +13,19 @@ import { buildSubnets } from '../../../../scripts/subnets.js';
 // derive from one source of truth, and the netuid-numeric sort and "Subnet
 // <n>: <name>" parsing are identical to the page renders.
 
+const backlinksModules = import.meta.glob('../../../../public/data/backlinks.json', { eager: true }) as Record<
+  string,
+  { default?: Record<string, Array<{ from: string }>> }
+>;
+const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
+
 export const GET: APIRoute = async ({ site }) => {
   const origin = (site ?? new URL('https://taopedia.org')).origin;
   const pages = await getCollection('pages');
+  const titleBySlug: Record<string, string> = {};
+  for (const page of pages) {
+    titleBySlug[getPageSlug(page)] = page.data.title;
+  }
 
   const subnets = buildSubnets({ pages, getPageSlug });
 
@@ -51,6 +62,7 @@ export const GET: APIRoute = async ({ site }) => {
         tocJsonUrl: `${origin}/wiki/${subnet.slug}/toc.json`,
         imageUrl: `${origin}/og/${subnet.slug}.png`,
         categories: subnet.categories,
+        backlinks: publishedInboundLinkCount(backlinksData, subnet.slug, titleBySlug),
       })),
     },
     null,
