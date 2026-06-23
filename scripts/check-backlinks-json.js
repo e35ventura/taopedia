@@ -52,7 +52,9 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.backlinks[0].title, 'Neuron', 'builder: backlinks[0].title');
   assert.equal(result.backlinks[0].url, `${ORIGIN}/wiki/neuron/`, 'builder: backlinks[0].url');
   assert.equal(result.backlinks[0].infoUrl, `${ORIGIN}/wiki/neuron/info/`, 'builder: backlinks[0].infoUrl');
+  assert.equal(result.backlinks[0].infoJsonUrl, `${ORIGIN}/wiki/neuron/info.json`, 'builder: backlinks[0].infoJsonUrl');
   assert.equal(result.backlinks[0].backlinksUrl, `${ORIGIN}/wiki/neuron/backlinks/`, 'builder: backlinks[0].backlinksUrl');
+  assert.equal(result.backlinks[0].backlinksJsonUrl, `${ORIGIN}/wiki/neuron/backlinks.json`, 'builder: backlinks[0].backlinksJsonUrl');
   assert.equal(result.backlinks[0].historyUrl, `${ORIGIN}/wiki/neuron/history/`, 'builder: backlinks[0].historyUrl');
   assert.equal(result.backlinks[0].historyJsonUrl, `${ORIGIN}/wiki/neuron/history.json`, 'builder: backlinks[0].historyJsonUrl');
   assert.equal(result.backlinks[0].citeUrl, `${ORIGIN}/wiki/neuron/cite/`, 'builder: backlinks[0].citeUrl');
@@ -60,6 +62,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.backlinks[0].bibtexUrl, `${ORIGIN}/wiki/neuron/cite.bib`, 'builder: backlinks[0].bibtexUrl');
   assert.equal(result.backlinks[0].referencesUrl, `${ORIGIN}/wiki/neuron/references.json`, 'builder: backlinks[0].referencesUrl');
   assert.equal(result.backlinks[0].relatedUrl, `${ORIGIN}/wiki/neuron/related.json`, 'builder: backlinks[0].relatedUrl');
+  assert.equal(result.backlinks[0].tocJsonUrl, `${ORIGIN}/wiki/neuron/toc.json`, 'builder: backlinks[0].tocJsonUrl');
   assert.equal(result.backlinks[1].slug, 'subnet_1', 'builder: backlinks[1].slug');
   assert.equal(result.backlinks[1].title, 'Subnet 1', 'builder: backlinks[1].title');
   assert.equal(result.backlinks[1].url, `${ORIGIN}/wiki/subnet_1/`, 'builder: backlinks[1].url');
@@ -70,6 +73,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.backlinks[1].bibtexUrl, `${ORIGIN}/wiki/subnet_1/cite.bib`, 'builder: backlinks[1].bibtexUrl');
   assert.equal(result.backlinks[1].referencesUrl, `${ORIGIN}/wiki/subnet_1/references.json`, 'builder: backlinks[1].referencesUrl');
   assert.equal(result.backlinks[1].relatedUrl, `${ORIGIN}/wiki/subnet_1/related.json`, 'builder: backlinks[1].relatedUrl');
+  assert.equal(result.backlinks[1].tocJsonUrl, `${ORIGIN}/wiki/subnet_1/toc.json`, 'builder: backlinks[1].tocJsonUrl');
 
   const empty = buildArticleBacklinks({ slug: 'orphan', title: 'Orphan', origin: ORIGIN });
   assert.equal(empty.count, 0, 'builder: empty count is 0');
@@ -159,18 +163,31 @@ for (const slug of articleSlugs) {
     assert.equal(typeof entry.slug, 'string', `${slug}: every backlink entry must have a slug`);
     assert.equal(typeof entry.title, 'string', `${slug}: every backlink entry must have a title`);
     assert.equal(entry.url, `${ORIGIN}/wiki/${entry.slug}/`, `${slug}: every backlink entry url must be the canonical article URL`);
-    // infoUrl / backlinksUrl point at the linking article's Page-information and
-    // What-links-here pages, so a consumer can reach a backlinking page's
-    // metadata and its own inbound links without reconstructing the route.
+    // infoUrl / infoJsonUrl point at the linking article's Page-information hub
+    // and its machine-readable companion, so a consumer can reach a backlinking
+    // page's metadata without reconstructing the route.
     assert.equal(
       entry.infoUrl,
       `${ORIGIN}/wiki/${entry.slug}/info/`,
       `${slug}: every backlink entry infoUrl must be the canonical article info URL`,
     );
     assert.equal(
+      entry.infoJsonUrl,
+      `${ORIGIN}/wiki/${entry.slug}/info.json`,
+      `${slug}: every backlink entry infoJsonUrl must be the canonical article info.json URL`,
+    );
+    // backlinksUrl / backlinksJsonUrl point at the linking article's own
+    // What-links-here page and its JSON companion, so a consumer can traverse
+    // the inbound-link graph without rebuilding the route.
+    assert.equal(
       entry.backlinksUrl,
       `${ORIGIN}/wiki/${entry.slug}/backlinks/`,
       `${slug}: every backlink entry backlinksUrl must be the canonical article backlinks URL`,
+    );
+    assert.equal(
+      entry.backlinksJsonUrl,
+      `${ORIGIN}/wiki/${entry.slug}/backlinks.json`,
+      `${slug}: every backlink entry backlinksJsonUrl must be the canonical article backlinks.json URL`,
     );
     // historyUrl points at the linking article's revision-history page — the
     // same companion references.json / related.json expose per entry — so a
@@ -211,6 +228,14 @@ for (const slug of articleSlugs) {
       entry.relatedUrl,
       `${ORIGIN}/wiki/${entry.slug}/related.json`,
       `${slug}: every backlink entry relatedUrl must be the canonical article related.json URL`,
+    );
+    // tocJsonUrl cross-links to the linking article's table-of-contents JSON,
+    // the same companion the directory entries (allpages, mostlinkedpages)
+    // already expose per article.
+    assert.equal(
+      entry.tocJsonUrl,
+      `${ORIGIN}/wiki/${entry.slug}/toc.json`,
+      `${slug}: every backlink entry tocJsonUrl must be the canonical article toc.json URL`,
     );
     assert.ok(articleBuilt(entry.slug), `${slug}: backlink entry ${entry.slug} references an unbuilt article`);
   }

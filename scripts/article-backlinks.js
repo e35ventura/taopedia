@@ -23,7 +23,9 @@ export const buildArticleBacklinks = ({ slug, title, origin, backlinks = [] }) =
     title: link.title,
     url: `${origin}/wiki/${link.slug}/`,
     infoUrl: `${origin}/wiki/${link.slug}/info/`,
+    infoJsonUrl: `${origin}/wiki/${link.slug}/info.json`,
     backlinksUrl: `${origin}/wiki/${link.slug}/backlinks/`,
+    backlinksJsonUrl: `${origin}/wiki/${link.slug}/backlinks.json`,
     historyUrl: `${origin}/wiki/${link.slug}/history/`,
     historyJsonUrl: `${origin}/wiki/${link.slug}/history.json`,
     citeUrl: `${origin}/wiki/${link.slug}/cite/`,
@@ -31,5 +33,6 @@ export const buildArticleBacklinks = ({ slug, title, origin, backlinks = [] }) =
     bibtexUrl: `${origin}/wiki/${link.slug}/cite.bib`,
     referencesUrl: `${origin}/wiki/${link.slug}/references.json`,
     relatedUrl: `${origin}/wiki/${link.slug}/related.json`,
+    tocJsonUrl: `${origin}/wiki/${link.slug}/toc.json`,
   })),
 });
