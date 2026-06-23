@@ -33,6 +33,10 @@ export async function getStaticPaths() {
 
   return pages.map((page) => {
     const slug = getPageSlug(page);
+    // History is newest-first, so [0] is the latest revision and the last entry
+    // is the original publication — the same firstEdited/lastEdited pair info.json
+    // and history.json expose.
+    const history = historyForSlug(slug);
     return {
       params: { slug },
       props: {
@@ -41,7 +45,9 @@ export async function getStaticPaths() {
         summary: page.data.summary ?? '',
         categories: page.data.categories ?? [],
         incomingLinks: publishedInboundLinkCount(backlinksData, slug, titleBySlug),
-        revisionCount: historyForSlug(slug).length,
+        revisionCount: history.length,
+        firstEdited: history[history.length - 1]?.date ?? null,
+        lastEdited: history[0]?.date ?? null,
         relatedPages: getRelatedPages({
           slug,
           slugMap,
@@ -65,18 +71,20 @@ export async function getStaticPaths() {
 // ordering, summaries, and topic tags stay aligned without introducing an HTML
 // subpage or any visual diff.
 export const GET: APIRoute = async ({ props, site }) => {
-  const { slug, title, summary, categories, incomingLinks, revisionCount, relatedPages } = props as {
+  const { slug, title, summary, categories, incomingLinks, revisionCount, firstEdited, lastEdited, relatedPages } = props as {
     slug: string;
     title: string;
     summary: string;
     categories: string[];
     incomingLinks: number;
     revisionCount: number;
+    firstEdited: string | null;
+    lastEdited: string | null;
     relatedPages: Array<{ slug: string; title: string; summary: string; tags: string[]; categories: string[]; backlinks: number }>;
   };
   const origin = (site ?? new URL('https://taopedia.org')).origin;
 
-  const body = JSON.stringify(buildArticleRelatedPages({ slug, title, origin, summary, categories, incomingLinks, revisionCount, relatedPages }), null, 2);
+  const body = JSON.stringify(buildArticleRelatedPages({ slug, title, origin, summary, categories, incomingLinks, revisionCount, firstEdited, lastEdited, relatedPages }), null, 2);
 
   return new Response(body, {
     headers: { 'Content-Type': 'application/json; charset=utf-8' },
