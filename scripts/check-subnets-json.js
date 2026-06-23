@@ -169,6 +169,14 @@ data.subnets.forEach((row, i) => {
     `${data.site}/wiki/${expected[i].slug}/history/`,
     `row ${i} historyUrl must equal ${data.site}/wiki/${expected[i].slug}/history/`,
   );
+  // historyJsonUrl is the machine-readable companion of historyUrl
+  // (/wiki/<slug>/history.json), the same pairing recentchanges.json exposes, so
+  // a registry consumer can fetch a subnet's structured revision list directly.
+  assert.equal(
+    row.historyJsonUrl,
+    `${data.site}/wiki/${expected[i].slug}/history.json`,
+    `row ${i} historyJsonUrl must equal ${data.site}/wiki/${expected[i].slug}/history.json`,
+  );
   // backlinksUrl / backlinksJsonUrl point at the subnet article's
   // What-links-here page and its machine-readable companion, the same per-entry
   // companions mostlinkedpages.json exposes, so a consumer of the registry can
