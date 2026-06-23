@@ -49,9 +49,30 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
   assert.deepEqual(
     doc.articles,
     [
-      { slug: 'subnet_2', title: 'Subnet 2', summary: 'two', url: `${ORIGIN}/wiki/subnet_2/` },
-      { slug: 'subnet_9', title: 'Subnet 9', summary: null, url: `${ORIGIN}/wiki/subnet_9/` },
-      { slug: 'subnet_10', title: 'Subnet 10', summary: null, url: `${ORIGIN}/wiki/subnet_10/` },
+      {
+        slug: 'subnet_2',
+        title: 'Subnet 2',
+        summary: 'two',
+        url: `${ORIGIN}/wiki/subnet_2/`,
+        infoUrl: `${ORIGIN}/wiki/subnet_2/info/`,
+        backlinksUrl: `${ORIGIN}/wiki/subnet_2/backlinks/`,
+      },
+      {
+        slug: 'subnet_9',
+        title: 'Subnet 9',
+        summary: null,
+        url: `${ORIGIN}/wiki/subnet_9/`,
+        infoUrl: `${ORIGIN}/wiki/subnet_9/info/`,
+        backlinksUrl: `${ORIGIN}/wiki/subnet_9/backlinks/`,
+      },
+      {
+        slug: 'subnet_10',
+        title: 'Subnet 10',
+        summary: null,
+        url: `${ORIGIN}/wiki/subnet_10/`,
+        infoUrl: `${ORIGIN}/wiki/subnet_10/info/`,
+        backlinksUrl: `${ORIGIN}/wiki/subnet_10/backlinks/`,
+      },
     ],
     'builder: article row shape',
   );
@@ -129,6 +150,23 @@ for (const category of categories) {
     expectedDoc.articles,
     `${category}: articles.json rows must match the expected title-sorted category membership`,
   );
+
+  // Each article row links its Page-information and What-links-here pages, the
+  // same per-entry companions the other special JSON endpoints expose, so a
+  // consumer of a category's article list can reach each article's metadata and
+  // inbound links without reconstructing the route.
+  for (const article of doc.articles) {
+    assert.equal(
+      article.infoUrl,
+      `${ORIGIN}/wiki/${article.slug}/info/`,
+      `${category}: article ${article.slug} infoUrl must be the canonical Page-information URL`,
+    );
+    assert.equal(
+      article.backlinksUrl,
+      `${ORIGIN}/wiki/${article.slug}/backlinks/`,
+      `${category}: article ${article.slug} backlinksUrl must be the canonical What-links-here URL`,
+    );
+  }
 
   const html = fs.readFileSync(htmlPath, 'utf8');
   const orderedHtmlSlugs = [...html.matchAll(/<a href="\/wiki\/([^/]+)\/" class="card-link"[^>]*>/g)].map(
