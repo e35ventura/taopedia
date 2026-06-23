@@ -25,9 +25,10 @@ const ORIGIN = 'https://taopedia.org';
     { sha: 'abc1234def5678', date: '2026-06-01T12:00:00.000Z', authorName: 'alice', message: 'initial commit' },
     { sha: '000aaabbbccc11', date: '2025-01-10T08:00:00.000Z', authorName: 'bob', message: 'update' },
   ];
-  const result = buildArticleHistory({ slug: 'recycling', title: 'Recycling', origin: ORIGIN, categories: ['Consensus'], revisions: revs });
+  const result = buildArticleHistory({ slug: 'recycling', title: 'Recycling', origin: ORIGIN, summary: 'Reclaiming emitted TAO.', categories: ['Consensus'], revisions: revs });
   assert.equal(result.slug, 'recycling', 'builder: slug');
   assert.equal(result.title, 'Recycling', 'builder: title');
+  assert.equal(result.summary, 'Reclaiming emitted TAO.', 'builder: summary');
   assert.equal(result.url, `${ORIGIN}/wiki/recycling/`, 'builder: url');
   assert.equal(result.infoUrl, `${ORIGIN}/wiki/recycling/info/`, 'builder: infoUrl');
   assert.equal(result.infoJsonUrl, `${ORIGIN}/wiki/recycling/info.json`, 'builder: infoJsonUrl');
@@ -62,6 +63,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(empty.lastEdited, null, 'builder: empty lastEdited is null');
   assert.deepEqual(empty.revisions, [], 'builder: empty revisions is []');
   assert.deepEqual(empty.categories, [], 'builder: default categories is []');
+  assert.equal(empty.summary, null, 'builder: default summary is null');
 
   // message defaults to '' when absent in raw data
   const noMsg = buildArticleHistory({
@@ -147,6 +149,10 @@ for (const slug of articleSlugs) {
   // symmetric with info.json which already exposes the same field.
   const expectedCategories = slugmap[slug]?.categories ?? [];
   assert.deepEqual(doc.categories, expectedCategories, `${slug}: history.json categories must match the article's topic categories from the slug map`);
+  // summary is the article's own slug-map summary (null when blank), the same
+  // per-article field the sibling envelopes (backlinks/toc/references/cite/related) expose.
+  const expectedSummary = slugmap[slug]?.summary || null;
+  assert.deepEqual(doc.summary, expectedSummary, `${slug}: history.json summary must match the article's slug-map summary (or null)`);
   assert.equal(typeof doc.revisionCount, 'number', `${slug}: history.json revisionCount must be a number`);
   assert.ok(Array.isArray(doc.revisions), `${slug}: history.json revisions must be an array`);
   assert.equal(doc.revisionCount, doc.revisions.length, `${slug}: history.json revisionCount must equal revisions.length`);
