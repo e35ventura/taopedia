@@ -8,6 +8,7 @@ import { publishedInboundLinkCount } from './most-linked.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
 const wikiDir = path.join(projectRoot, 'dist', 'wiki');
+const historyDir = path.join(projectRoot, 'public', 'history');
 const ORIGIN = 'https://taopedia.org';
 
 // ---- 1) Unit: helper + builder behavior -----------------------------------
@@ -66,6 +67,7 @@ const ORIGIN = 'https://taopedia.org';
     summary: 'The source article.',
     categories: ['Consensus', 'Security'],
     incomingLinks: 5,
+    revisionCount: 12,
     sections,
   });
   assert.equal(doc.slug, 'source', 'builder: slug field');
@@ -87,6 +89,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(doc.imageUrl, `${ORIGIN}/og/source.png`, 'builder: imageUrl');
   assert.deepEqual(doc.categories, ['Consensus', 'Security'], 'builder: categories field');
   assert.equal(doc.incomingLinks, 5, 'builder: incomingLinks field');
+  assert.equal(doc.revisionCount, 12, 'builder: revisionCount field');
   assert.equal(doc.count, 3, 'builder: count field');
   assert.deepEqual(
     doc.sections,
@@ -132,6 +135,13 @@ const walk = (dir) => {
 };
 walk(wikiDir);
 assert.ok(articleSlugs.length > 0, 'no built article pages found to verify');
+
+const revisionCountOf = (slug) => {
+  const file = path.join(historyDir, `${slug}.json`);
+  if (!fs.existsSync(file)) return 0;
+  const history = JSON.parse(fs.readFileSync(file, 'utf8')).history || [];
+  return Array.isArray(history) ? history.length : 0;
+};
 
 const decodeHtml = (text) =>
   text.replace(/&(#x?[0-9a-fA-F]+|[a-zA-Z]+);/g, (_, entity) => {
@@ -223,6 +233,25 @@ for (const slug of articleSlugs) {
       doc.incomingLinks,
       infoDoc.incomingLinks,
       `${slug}: toc.json incomingLinks must agree with the sibling info.json envelope`,
+    );
+  }
+  // revisionCount is the article's revision count — the same figure info.json
+  // and history.json expose (the length of the article's commit history).
+  assert.ok(
+    Number.isInteger(doc.revisionCount) && doc.revisionCount >= 0,
+    `${slug}: toc.json revisionCount must be a non-negative integer`,
+  );
+  assert.equal(
+    doc.revisionCount,
+    revisionCountOf(slug),
+    `${slug}: toc.json revisionCount must equal the article's commit-history length`,
+  );
+  if (fs.existsSync(infoJsonFile)) {
+    const infoDoc = JSON.parse(fs.readFileSync(infoJsonFile, 'utf8'));
+    assert.equal(
+      doc.revisionCount,
+      infoDoc.revisionCount,
+      `${slug}: toc.json revisionCount must agree with the sibling info.json envelope`,
     );
   }
   assert.equal(typeof doc.count, 'number', `${slug}: toc.json count must be a number`);
