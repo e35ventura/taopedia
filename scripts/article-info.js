@@ -24,6 +24,7 @@ export const buildArticleInfo = ({
   referencesUrl: `${origin}/wiki/${slug}/references.json`,
   relatedUrl: `${origin}/wiki/${slug}/related.json`,
   tocJsonUrl: `${origin}/wiki/${slug}/toc.json`,
+  imageUrl: `${origin}/og/${slug}.png`,
   revisionCount,
   historyUrl: `${origin}/wiki/${slug}/history/`,
   firstEdited: firstEdited ?? null,

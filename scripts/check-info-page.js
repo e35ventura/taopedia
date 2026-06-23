@@ -45,6 +45,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.referencesUrl, `${ORIGIN}/wiki/recycling/references.json`, 'builder: referencesUrl');
   assert.equal(result.relatedUrl, `${ORIGIN}/wiki/recycling/related.json`, 'builder: relatedUrl');
   assert.equal(result.tocJsonUrl, `${ORIGIN}/wiki/recycling/toc.json`, 'builder: tocJsonUrl');
+  assert.equal(result.imageUrl, `${ORIGIN}/og/recycling.png`, 'builder: imageUrl');
   assert.deepEqual(result.categories, ['Consensus'], 'builder: categories');
   assert.equal(result.incomingLinks, 5, 'builder: incomingLinks');
   assert.equal(result.revisionCount, 3, 'builder: revisionCount');
@@ -65,6 +66,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(empty.referencesUrl, `${ORIGIN}/wiki/x/references.json`, 'builder: referencesUrl with defaults');
   assert.equal(empty.relatedUrl, `${ORIGIN}/wiki/x/related.json`, 'builder: relatedUrl with defaults');
   assert.equal(empty.tocJsonUrl, `${ORIGIN}/wiki/x/toc.json`, 'builder: tocJsonUrl with defaults');
+  assert.equal(empty.imageUrl, `${ORIGIN}/og/x.png`, 'builder: imageUrl with defaults');
 }
 const historyDir = path.join(projectRoot, 'public', 'history');
 const slugmapFile = path.join(projectRoot, 'public', 'data', 'slugmap.json');
@@ -215,6 +217,10 @@ for (const slug of articleSlugs) {
   assert.equal(infoJson.referencesUrl, `${jsonOrigin}/wiki/${slug}/references.json`, `/wiki/${slug}/info.json referencesUrl`);
   assert.equal(infoJson.relatedUrl, `${jsonOrigin}/wiki/${slug}/related.json`, `/wiki/${slug}/info.json relatedUrl`);
   assert.equal(infoJson.tocJsonUrl, `${jsonOrigin}/wiki/${slug}/toc.json`, `/wiki/${slug}/info.json tocJsonUrl`);
+  // imageUrl is the article's own OG share-card (/og/<slug>.png) — the same
+  // per-article image the allpages/mostlinkedpages/recentchanges directory
+  // entries and the feeds expose, so a consumer of info.json gets a thumbnail.
+  assert.equal(infoJson.imageUrl, `${jsonOrigin}/og/${slug}.png`, `/wiki/${slug}/info.json imageUrl`);
 
   if (inboundCountFor(slug) > 0) verifiedWithLinks++;
   if (history.length > 1) verifiedMultiRevision++;
