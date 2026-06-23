@@ -26,12 +26,14 @@ const ORIGIN = 'https://taopedia.org';
     title: 'Recycling',
     slug: 'recycling',
     origin: ORIGIN,
+    summary: 'Recycling is a consensus mechanism.',
     categories: ['Consensus'],
     incomingLinks: 5,
     revisionCount: 3,
     firstEdited: '2024-01-01T00:00:00.000Z',
     lastEdited: '2024-06-01T00:00:00.000Z',
   });
+  assert.equal(result.summary, 'Recycling is a consensus mechanism.', 'builder: summary');
   assert.equal(result.url, `${ORIGIN}/wiki/recycling/`, 'builder: url');
   assert.equal(result.backlinksUrl, `${ORIGIN}/wiki/recycling/backlinks/`, 'builder: backlinksUrl');
   assert.equal(result.backlinksJsonUrl, `${ORIGIN}/wiki/recycling/backlinks.json`, 'builder: backlinksJsonUrl');
@@ -55,6 +57,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(empty.revisionCount, 0, 'builder: default revisionCount is 0');
   assert.equal(empty.firstEdited, null, 'builder: default firstEdited is null');
   assert.equal(empty.lastEdited, null, 'builder: default lastEdited is null');
+  assert.equal(empty.summary, null, 'builder: default summary is null');
   assert.deepEqual(empty.categories, [], 'builder: default categories is []');
   assert.equal(empty.backlinksJsonUrl, `${ORIGIN}/wiki/x/backlinks.json`, 'builder: backlinksJsonUrl with defaults');
   assert.equal(empty.citeUrl, `${ORIGIN}/wiki/x/cite/`, 'builder: citeUrl with defaults');
@@ -187,6 +190,10 @@ for (const slug of articleSlugs) {
   assert.ok(fs.existsSync(infoJsonFile), `/wiki/${slug}/info.json must be built alongside the HTML info page`);
   const infoJson = JSON.parse(fs.readFileSync(infoJsonFile, 'utf8'));
   assert.equal(infoJson.slug, slug, `/wiki/${slug}/info.json slug must match`);
+  // summary is the article's frontmatter summary (or null when absent), matching
+  // the same field backlinks.json and toc.json already expose on their envelopes.
+  const expectedSummary = slugmap[slug]?.summary || null;
+  assert.equal(infoJson.summary, expectedSummary, `/wiki/${slug}/info.json summary must match the article's frontmatter summary`);
   assert.ok(
     typeof infoJson.url === 'string' && /^https?:\/\//.test(infoJson.url),
     `/wiki/${slug}/info.json url must be an absolute URL`,

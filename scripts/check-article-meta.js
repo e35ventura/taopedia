@@ -105,6 +105,7 @@ for (const { file, slug } of articlePages) {
     title,
     slug,
     origin: ORIGIN,
+    summary: slugmap[slug]?.summary ?? '',
     categories: slugmap[slug]?.categories ?? [],
     incomingLinks: inboundCountFor(slug),
     revisionCount: history.length,
