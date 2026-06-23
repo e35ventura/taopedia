@@ -16,5 +16,10 @@ export const buildArticleBacklinks = ({ slug, title, origin, backlinks = [] }) =
     url: `${origin}/wiki/${link.slug}/`,
     historyUrl: `${origin}/wiki/${link.slug}/history/`,
     historyJsonUrl: `${origin}/wiki/${link.slug}/history.json`,
+    citeUrl: `${origin}/wiki/${link.slug}/cite/`,
+    citeJsonUrl: `${origin}/wiki/${link.slug}/cite.json`,
+    bibtexUrl: `${origin}/wiki/${link.slug}/cite.bib`,
+    referencesUrl: `${origin}/wiki/${link.slug}/references.json`,
+    relatedUrl: `${origin}/wiki/${link.slug}/related.json`,
   })),
 });
