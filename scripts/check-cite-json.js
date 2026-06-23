@@ -161,6 +161,14 @@ for (const slug of articleSlugs) {
     `${ORIGIN}/wiki/${slug}/info.json`,
     `cite.json infoJsonUrl must point at the sibling machine-readable info endpoint for ${slug}`,
   );
+  // tocJsonUrl links to the article's table-of-contents endpoint — every sibling
+  // JSON endpoint already exposes this companion, and /wiki/<slug>/toc.json is
+  // a shipped route, so cite.json should surface it too.
+  assert.equal(
+    doc.tocJsonUrl,
+    `${ORIGIN}/wiki/${slug}/toc.json`,
+    `cite.json tocJsonUrl must point at the article's machine-readable table-of-contents endpoint for ${slug}`,
+  );
   if (date) {
     assert.equal(doc.date, date, `cite.json date must equal the article's last-revision date for ${slug}`);
   } else {
