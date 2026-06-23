@@ -46,7 +46,7 @@ const ORIGIN = 'https://taopedia.org';
     'helper must exclude self/missing targets, dedupe repeated targets, and sort numerically by title',
   );
 
-  const doc = buildArticleReferences({ slug: 'source', title: 'Source', origin: ORIGIN, summary: 'The source article.', categories: ['Consensus', 'Security'], references });
+  const doc = buildArticleReferences({ slug: 'source', title: 'Source', origin: ORIGIN, summary: 'The source article.', categories: ['Consensus', 'Security'], incomingLinks: 5, references });
   assert.equal(doc.slug, 'source', 'builder: slug field');
   assert.equal(doc.title, 'Source', 'builder: title field');
   assert.equal(doc.summary, 'The source article.', 'builder: summary field');
@@ -65,6 +65,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(doc.tocJsonUrl, `${ORIGIN}/wiki/source/toc.json`, 'builder: tocJsonUrl cross-link');
   assert.equal(doc.imageUrl, `${ORIGIN}/og/source.png`, 'builder: imageUrl');
   assert.deepEqual(doc.categories, ['Consensus', 'Security'], 'builder: categories field');
+  assert.equal(doc.incomingLinks, 5, 'builder: incomingLinks field');
   assert.equal(doc.count, 4, 'builder: count field');
   assert.deepEqual(
     doc.references,
@@ -160,6 +161,7 @@ const ORIGIN = 'https://taopedia.org';
   const empty = buildArticleReferences({ slug: 'orphan', title: 'Orphan', origin: ORIGIN });
   assert.deepEqual(empty.categories, [], 'builder: default categories is []');
   assert.equal(empty.summary, null, 'builder: default summary is null');
+  assert.equal(empty.incomingLinks, 0, 'builder: default incomingLinks is 0');
   assert.equal(empty.count, 0, 'builder: empty count is 0');
   assert.deepEqual(empty.references, [], 'builder: empty references is []');
 }
@@ -268,6 +270,23 @@ for (const slug of articleSlugs) {
   // per-article field the sibling envelopes (backlinks/toc) and listing endpoints expose.
   const expectedSummary = slugmap[slug]?.summary || null;
   assert.deepEqual(doc.summary, expectedSummary, `${slug}: references.json summary must match the article's slug-map summary (or null)`);
+  // incomingLinks is the article's published inbound-link count — the same figure
+  // info.json / history.json / cite.json / toc.json expose on their envelopes.
+  assert.equal(
+    doc.incomingLinks,
+    publishedInboundLinkCount(backlinksData, slug, titleBySlug),
+    `${slug}: references.json incomingLinks must match the published inbound-link count`,
+  );
+  assert.ok(Number.isInteger(doc.incomingLinks) && doc.incomingLinks >= 0, `${slug}: references.json incomingLinks must be a non-negative integer`);
+  const infoJsonFile = path.join(wikiDir, slug, 'info.json');
+  if (fs.existsSync(infoJsonFile)) {
+    const infoDoc = JSON.parse(fs.readFileSync(infoJsonFile, 'utf8'));
+    assert.equal(
+      doc.incomingLinks,
+      infoDoc.incomingLinks,
+      `${slug}: references.json incomingLinks must agree with the sibling info.json envelope`,
+    );
+  }
   assert.equal(typeof doc.count, 'number', `${slug}: references.json count must be a number`);
   assert.ok(Array.isArray(doc.references), `${slug}: references.json references must be an array`);
   assert.equal(doc.count, doc.references.length, `${slug}: references.json count must equal references.length`);

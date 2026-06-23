@@ -16,7 +16,7 @@ export const getArticleReferences = ({ slug, linkGraph = {}, titleBySlug = {} })
   return references.sort((a, b) => compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug));
 };
 
-export const buildArticleReferences = ({ slug, title, origin, summary = '', categories = [], references = [] }) => ({
+export const buildArticleReferences = ({ slug, title, origin, summary = '', categories = [], incomingLinks = 0, references = [] }) => ({
   slug,
   title,
   summary: summary || null,
@@ -35,6 +35,7 @@ export const buildArticleReferences = ({ slug, title, origin, summary = '', cate
   tocJsonUrl: `${origin}/wiki/${slug}/toc.json`,
   imageUrl: `${origin}/og/${slug}.png`,
   categories,
+  incomingLinks: Number.isFinite(incomingLinks) ? incomingLinks : 0,
   count: references.length,
   references: references.map((link) => ({
     slug: link.slug,
