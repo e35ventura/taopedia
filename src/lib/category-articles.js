@@ -15,6 +15,7 @@ export const getCategoryArticles = ({ categoryName, categoriesIndex = {}, slugMa
       slug,
       title: meta.title,
       summary: typeof meta.summary === 'string' ? meta.summary : '',
+      categories: Array.isArray(meta.categories) ? meta.categories : [],
     });
   }
 
@@ -34,6 +35,7 @@ export const buildCategoryArticlesDocument = ({ origin, categoryName, categoryPa
     slug: article.slug,
     title: article.title,
     summary: article.summary || null,
+    categories: article.categories ?? [],
     url: `${origin}/wiki/${article.slug}/`,
     infoUrl: `${origin}/wiki/${article.slug}/info/`,
     infoJsonUrl: `${origin}/wiki/${article.slug}/info.json`,
