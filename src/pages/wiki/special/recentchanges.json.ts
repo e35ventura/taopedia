@@ -25,6 +25,9 @@ export const GET: APIRoute = async ({ site }) => {
     {
       site: origin,
       recentchangesJsonUrl: `${origin}/wiki/special/recentchanges.json`,
+      feedUrl: `${origin}/wiki/special/recentchanges/feed.json`,
+      atomUrl: `${origin}/wiki/special/recentchanges/atom.xml`,
+      rssUrl: `${origin}/wiki/special/recentchanges/rss.xml`,
       limit: RECENT_LIMIT,
       count: changes.length,
       changes: changes.map((change) => ({

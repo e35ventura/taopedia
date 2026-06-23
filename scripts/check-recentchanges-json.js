@@ -92,6 +92,13 @@ assert.equal(
   `${data.site}/wiki/special/recentchanges.json`,
   `recentchangesJsonUrl must be the canonical absolute URL of the endpoint itself`,
 );
+// feedUrl / atomUrl / rssUrl advertise the recent-changes syndication feeds (the
+// same trio categories.json exposes per category), so a feed reader can
+// subscribe straight from the structured endpoint. The routes exist under
+// /wiki/special/recentchanges/ and are already listed in feeds.opml.
+assert.equal(data.feedUrl, `${data.site}/wiki/special/recentchanges/feed.json`, 'feedUrl must be the recent-changes JSON Feed URL');
+assert.equal(data.atomUrl, `${data.site}/wiki/special/recentchanges/atom.xml`, 'atomUrl must be the recent-changes Atom feed URL');
+assert.equal(data.rssUrl, `${data.site}/wiki/special/recentchanges/rss.xml`, 'rssUrl must be the recent-changes RSS feed URL');
 assert.equal(data.limit, RECENT_LIMIT, `limit must be the shared RECENT_LIMIT (${RECENT_LIMIT})`);
 assert.ok(Array.isArray(data.changes), 'changes must be an array');
 assert.equal(data.count, data.changes.length, 'count must equal changes.length');
