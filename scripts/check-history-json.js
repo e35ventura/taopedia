@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildArticleHistory } from './article-history-json.js';
+import { publishedInboundLinkCount } from './most-linked.js';
 
 // Load-bearing check for /wiki/<slug>/history.json: the machine-readable
 // companion to the revision-history HTML page. It (1) unit-tests the builder,
@@ -25,7 +26,7 @@ const ORIGIN = 'https://taopedia.org';
     { sha: 'abc1234def5678', date: '2026-06-01T12:00:00.000Z', authorName: 'alice', message: 'initial commit' },
     { sha: '000aaabbbccc11', date: '2025-01-10T08:00:00.000Z', authorName: 'bob', message: 'update' },
   ];
-  const result = buildArticleHistory({ slug: 'recycling', title: 'Recycling', origin: ORIGIN, summary: 'Reclaiming emitted TAO.', categories: ['Consensus'], revisions: revs });
+  const result = buildArticleHistory({ slug: 'recycling', title: 'Recycling', origin: ORIGIN, summary: 'Reclaiming emitted TAO.', categories: ['Consensus'], incomingLinks: 5, revisions: revs });
   assert.equal(result.slug, 'recycling', 'builder: slug');
   assert.equal(result.title, 'Recycling', 'builder: title');
   assert.equal(result.summary, 'Reclaiming emitted TAO.', 'builder: summary');
@@ -44,6 +45,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.tocJsonUrl, `${ORIGIN}/wiki/recycling/toc.json`, 'builder: tocJsonUrl');
   assert.equal(result.imageUrl, `${ORIGIN}/og/recycling.png`, 'builder: imageUrl');
   assert.deepEqual(result.categories, ['Consensus'], 'builder: categories');
+  assert.equal(result.incomingLinks, 5, 'builder: incomingLinks');
   assert.equal(result.revisionCount, 2, 'builder: revisionCount');
   assert.equal(result.lastEdited, '2026-06-01T12:00:00.000Z', 'builder: lastEdited is revisions[0].date');
   assert.equal(result.firstEdited, '2025-01-10T08:00:00.000Z', 'builder: firstEdited is revisions[last].date');
@@ -64,6 +66,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.deepEqual(empty.revisions, [], 'builder: empty revisions is []');
   assert.deepEqual(empty.categories, [], 'builder: default categories is []');
   assert.equal(empty.summary, null, 'builder: default summary is null');
+  assert.equal(empty.incomingLinks, 0, 'builder: default incomingLinks is 0');
 
   // message defaults to '' when absent in raw data
   const noMsg = buildArticleHistory({
@@ -80,6 +83,13 @@ assert.ok(fs.existsSync(historyDir), 'public/history not found; run the build fi
 const slugmapFile = path.join(projectRoot, 'public', 'data', 'slugmap.json');
 assert.ok(fs.existsSync(slugmapFile), 'public/data/slugmap.json not found; run the build first');
 const slugmap = JSON.parse(fs.readFileSync(slugmapFile, 'utf8'));
+
+const backlinksFile = path.join(projectRoot, 'public', 'data', 'backlinks.json');
+assert.ok(fs.existsSync(backlinksFile), 'public/data/backlinks.json not found; run the build first');
+const backlinksData = JSON.parse(fs.readFileSync(backlinksFile, 'utf8'));
+const titleBySlug = Object.fromEntries(
+  Object.entries(slugmap).map(([slug, meta]) => [slug, typeof meta?.title === 'string' ? meta.title : slug]),
+);
 
 const articleSlugs = [];
 const walk = (dir) => {
@@ -153,6 +163,23 @@ for (const slug of articleSlugs) {
   // per-article field the sibling envelopes (backlinks/toc/references/cite/related) expose.
   const expectedSummary = slugmap[slug]?.summary || null;
   assert.deepEqual(doc.summary, expectedSummary, `${slug}: history.json summary must match the article's slug-map summary (or null)`);
+  // incomingLinks is the article's published inbound-link count — the same figure
+  // info.json exposes, computed via the shared publishedInboundLinkCount helper.
+  assert.equal(
+    doc.incomingLinks,
+    publishedInboundLinkCount(backlinksData, slug, titleBySlug),
+    `${slug}: history.json incomingLinks must match the published inbound-link count`,
+  );
+  assert.ok(Number.isInteger(doc.incomingLinks) && doc.incomingLinks >= 0, `${slug}: history.json incomingLinks must be a non-negative integer`);
+  const infoJsonFile = path.join(wikiDir, slug, 'info.json');
+  if (fs.existsSync(infoJsonFile)) {
+    const infoDoc = JSON.parse(fs.readFileSync(infoJsonFile, 'utf8'));
+    assert.equal(
+      doc.incomingLinks,
+      infoDoc.incomingLinks,
+      `${slug}: history.json incomingLinks must agree with the sibling info.json envelope`,
+    );
+  }
   assert.equal(typeof doc.revisionCount, 'number', `${slug}: history.json revisionCount must be a number`);
   assert.ok(Array.isArray(doc.revisions), `${slug}: history.json revisions must be an array`);
   assert.equal(doc.revisionCount, doc.revisions.length, `${slug}: history.json revisionCount must equal revisions.length`);
