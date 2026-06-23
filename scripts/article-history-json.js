@@ -14,6 +14,8 @@ export const buildArticleHistory = ({ slug, title, origin, revisions = [] }) => 
   citeUrl: `${origin}/wiki/${slug}/cite/`,
   citeJsonUrl: `${origin}/wiki/${slug}/cite.json`,
   bibtexUrl: `${origin}/wiki/${slug}/cite.bib`,
+  referencesUrl: `${origin}/wiki/${slug}/references.json`,
+  relatedUrl: `${origin}/wiki/${slug}/related.json`,
   tocJsonUrl: `${origin}/wiki/${slug}/toc.json`,
   revisionCount: revisions.length,
   firstEdited: revisions.length > 0 ? revisions[revisions.length - 1].date : null,
