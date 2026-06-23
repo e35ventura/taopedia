@@ -23,14 +23,14 @@ export async function getStaticPaths() {
 // renders, plus computed summary fields (revisionCount, firstEdited, lastEdited)
 // that info.json summarises but does not break out per-revision.
 export const GET: APIRoute = async ({ props, site }) => {
-  const { page, slug } = props as { page: { data: { title: string } }; slug: string };
+  const { page, slug } = props as { page: { data: { title: string; categories?: string[] } }; slug: string };
   const origin = (site ?? new URL('https://taopedia.org')).origin;
 
   const mod = historyModules[`../../../../public/history/${slug}.json`];
   const revisions: RawRevision[] = mod?.default?.history ?? [];
 
   const body = JSON.stringify(
-    buildArticleHistory({ slug, title: page.data.title, origin, revisions }),
+    buildArticleHistory({ slug, title: page.data.title, origin, categories: page.data.categories ?? [], revisions }),
     null,
     2,
   );

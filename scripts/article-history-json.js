@@ -1,7 +1,7 @@
 // Pure builder: no file I/O, no side effects. Converts the pre-loaded revision
 // list into the canonical JSON shape for /wiki/<slug>/history.json, mirroring
 // what history.astro renders.
-export const buildArticleHistory = ({ slug, title, origin, revisions = [] }) => ({
+export const buildArticleHistory = ({ slug, title, origin, categories = [], revisions = [] }) => ({
   slug,
   title,
   url: `${origin}/wiki/${slug}/`,
@@ -18,6 +18,7 @@ export const buildArticleHistory = ({ slug, title, origin, revisions = [] }) => 
   relatedUrl: `${origin}/wiki/${slug}/related.json`,
   tocJsonUrl: `${origin}/wiki/${slug}/toc.json`,
   imageUrl: `${origin}/og/${slug}.png`,
+  categories,
   revisionCount: revisions.length,
   firstEdited: revisions.length > 0 ? revisions[revisions.length - 1].date : null,
   lastEdited: revisions.length > 0 ? revisions[0].date : null,
