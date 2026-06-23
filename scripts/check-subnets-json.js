@@ -183,6 +183,14 @@ data.subnets.forEach((row, i) => {
     `${data.site}/wiki/${expected[i].slug}/backlinks.json`,
     `row ${i} backlinksJsonUrl must equal ${data.site}/wiki/${expected[i].slug}/backlinks.json`,
   );
+  // imageUrl is the subnet article's OG share-card (/og/<slug>.png) — each
+  // article binds its own card, so a registry dashboard can render a per-subnet
+  // thumbnail without parsing the rendered HTML head.
+  assert.equal(
+    row.imageUrl,
+    `${data.site}/og/${expected[i].slug}.png`,
+    `row ${i} imageUrl must equal ${data.site}/og/${expected[i].slug}.png`,
+  );
   assert.equal(
     row.summary,
     expected[i].summary || null,
