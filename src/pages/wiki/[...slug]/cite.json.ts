@@ -32,6 +32,8 @@ export const GET: APIRoute = async ({ site, props }) => {
       infoUrl: new URL(`/wiki/${slug}/info/`, site ?? new URL('https://taopedia.org')).toString(),
       infoJsonUrl: new URL(`/wiki/${slug}/info.json`, site ?? new URL('https://taopedia.org')).toString(),
       tocJsonUrl: new URL(`/wiki/${slug}/toc.json`, site ?? new URL('https://taopedia.org')).toString(),
+      referencesUrl: new URL(`/wiki/${slug}/references.json`, site ?? new URL('https://taopedia.org')).toString(),
+      relatedUrl: new URL(`/wiki/${slug}/related.json`, site ?? new URL('https://taopedia.org')).toString(),
       ...(date ? { date } : {}),
       ...CITATION_META,
       citations,
