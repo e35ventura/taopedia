@@ -41,6 +41,7 @@ export interface RelatedPage {
 export interface ArticleRelatedPagesDocument {
   slug: string;
   title: string;
+  summary: string | null;
   categories: string[];
   url: string;
   relatedUrl: string;
@@ -145,18 +146,25 @@ export function buildArticleRelatedPages({
   slug,
   title,
   origin,
+  summary = '',
   categories = [],
   relatedPages = [],
 }: {
   slug: string;
   title: string;
   origin: string;
+  summary?: string;
   categories?: string[];
   relatedPages?: RelatedPage[];
 }): ArticleRelatedPagesDocument {
   return {
     slug,
     title,
+    // The article's own one-line summary (null when blank), the same field the
+    // sibling per-article envelopes (backlinks/toc/references/cite) expose, so a
+    // consumer of related.json can show the article's description without a
+    // second fetch.
+    summary: summary || null,
     // The article's own topics, the same field the history.json and info.json
     // envelopes expose, so a consumer of related.json can see what the article
     // is tagged with (and why a related page shares its tags) without a second
