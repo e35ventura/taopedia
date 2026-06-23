@@ -82,6 +82,14 @@ data.categories.forEach((row, i) => {
   assert.ok(typeof row.name === 'string' && row.name.length > 0, `row ${i} name must be a non-empty string`);
   assert.ok(knownNames.has(row.name), `row ${i} topic "${row.name}" is not a known category`);
   assert.ok(Number.isInteger(row.articles) && row.articles > 0, `row ${i} articles must be a positive integer`);
+  // articles count must match the ground-truth member-slug array in
+  // public/data/categories.json — a mismatch would mean the JSON endpoint
+  // disagrees with the rest of the build on how many articles belong to the topic.
+  assert.equal(
+    row.articles,
+    known[row.name].length,
+    `row ${i} topic "${row.name}" articles count (${row.articles}) must equal the ground-truth member count (${known[row.name].length})`,
+  );
   assert.ok(
     row.url.startsWith(`${data.site}/wiki/category/`),
     `row ${i} url must be absolute and start with the envelope site (got ${row.url})`,
@@ -132,5 +140,20 @@ data.categories.forEach((row, i) => {
     `row ${i} rssUrl must equal ${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/rss.xml`,
   );
 });
+
+// compareTitles order: categories must be sorted alphabetically with
+// numeric-collation (the SAME ordering the builder and the HTML page use), so
+// numeric-suffixed topics like "Subnet 9" and "Subnet 10" order numerically.
+// A raw string sort would put "Subnet 10" before "Subnet 9"; compareTitles
+// puts "9" first. Verifying the full sequence prevents silent ordering drift
+// between the JSON endpoint and the HTML page.
+for (let i = 1; i < data.categories.length; i++) {
+  const prev = data.categories[i - 1];
+  const curr = data.categories[i];
+  assert.ok(
+    prev.name.localeCompare(curr.name, 'en', { numeric: true }) <= 0,
+    `categories must be sorted by compareTitles (numeric collation): row ${i - 1} "${prev.name}" must come before row ${i} "${curr.name}"`,
+  );
+}
 
 console.log(`Categories JSON check passed (${data.count} topics)`);
