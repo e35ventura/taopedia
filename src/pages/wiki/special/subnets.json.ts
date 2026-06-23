@@ -29,6 +29,7 @@ export const GET: APIRoute = async ({ site }) => {
         slug: subnet.slug,
         summary: subnet.summary || null,
         url: `${origin}/wiki/${subnet.slug}/`,
+        infoUrl: `${origin}/wiki/${subnet.slug}/info/`,
         historyUrl: `${origin}/wiki/${subnet.slug}/history/`,
         backlinksUrl: `${origin}/wiki/${subnet.slug}/backlinks/`,
         backlinksJsonUrl: `${origin}/wiki/${subnet.slug}/backlinks.json`,
