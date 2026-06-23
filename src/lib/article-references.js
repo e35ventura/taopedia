@@ -16,7 +16,7 @@ export const getArticleReferences = ({ slug, linkGraph = {}, titleBySlug = {} })
   return references.sort((a, b) => compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug));
 };
 
-export const buildArticleReferences = ({ slug, title, origin, summary = '', categories = [], incomingLinks = 0, references = [] }) => ({
+export const buildArticleReferences = ({ slug, title, origin, summary = '', categories = [], incomingLinks = 0, revisionCount = 0, references = [] }) => ({
   slug,
   title,
   summary: summary || null,
@@ -38,6 +38,9 @@ export const buildArticleReferences = ({ slug, title, origin, summary = '', cate
   // The article's own published inbound-link count — the same figure info.json /
   // history.json / cite.json expose on their envelopes (via the shared helper).
   incomingLinks,
+  // The article's revision count (its commit-history length) — the same figure
+  // info.json / history.json / cite.json expose on their envelopes.
+  revisionCount: Number.isFinite(revisionCount) ? revisionCount : 0,
   count: references.length,
   references: references.map((link) => ({
     slug: link.slug,
