@@ -33,6 +33,11 @@ export const GET: APIRoute = async ({ site }) => {
       rssUrl: `${origin}/wiki/special/recentchanges/rss.xml`,
       limit: RECENT_LIMIT,
       count: changes.length,
+      // The listed changes are newest-first, so changes[0] is the most recent
+      // edit and the last entry is the oldest in this window. Surface the range
+      // so a consumer can see the feed's temporal extent without scanning.
+      newestChangeDate: changes[0]?.date ?? null,
+      oldestChangeDate: changes.length > 0 ? changes[changes.length - 1].date : null,
       changes: changes.map((change) => ({
         id: `urn:taopedia:recentchanges:${change.slug}:${change.sha}`,
         slug: change.slug,

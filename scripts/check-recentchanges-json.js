@@ -104,6 +104,22 @@ assert.ok(Array.isArray(data.changes), 'changes must be an array');
 assert.equal(data.count, data.changes.length, 'count must equal changes.length');
 assert.ok(data.changes.length > 0, 'recentchanges.json must list at least one change');
 assert.ok(data.changes.length <= RECENT_LIMIT, `must list at most ${RECENT_LIMIT} changes (got ${data.changes.length})`);
+// newestChangeDate / oldestChangeDate summarize the feed's temporal extent. The
+// changes are newest-first, so they must equal the first and last change dates.
+assert.equal(
+  data.newestChangeDate,
+  data.changes[0].date,
+  'newestChangeDate must equal the most recent change date (changes[0].date)',
+);
+assert.equal(
+  data.oldestChangeDate,
+  data.changes[data.changes.length - 1].date,
+  'oldestChangeDate must equal the oldest listed change date (changes[last].date)',
+);
+assert.ok(
+  data.newestChangeDate >= data.oldestChangeDate,
+  `newestChangeDate (${data.newestChangeDate}) must not be earlier than oldestChangeDate (${data.oldestChangeDate})`,
+);
 
 for (let i = 0; i < data.changes.length; i++) {
   const change = data.changes[i];
