@@ -28,8 +28,8 @@ const ORIGIN = 'https://taopedia.org';
     origin: ORIGIN,
     categories: ['Consensus'],
     backlinks: [
-      { slug: 'neuron', title: 'Neuron' },
-      { slug: 'subnet_1', title: 'Subnet 1' },
+      { slug: 'neuron', title: 'Neuron', summary: 'A node in the network.' },
+      { slug: 'subnet_1', title: 'Subnet 1', summary: '' },
     ],
   });
   assert.equal(result.slug, 'recycling', 'builder: slug field');
@@ -53,6 +53,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.backlinks.length, 2, 'builder: backlinks array length');
   assert.equal(result.backlinks[0].slug, 'neuron', 'builder: backlinks[0].slug');
   assert.equal(result.backlinks[0].title, 'Neuron', 'builder: backlinks[0].title');
+  assert.equal(result.backlinks[0].summary, 'A node in the network.', 'builder: backlinks[0].summary');
   assert.equal(result.backlinks[0].url, `${ORIGIN}/wiki/neuron/`, 'builder: backlinks[0].url');
   assert.equal(result.backlinks[0].infoUrl, `${ORIGIN}/wiki/neuron/info/`, 'builder: backlinks[0].infoUrl');
   assert.equal(result.backlinks[0].infoJsonUrl, `${ORIGIN}/wiki/neuron/info.json`, 'builder: backlinks[0].infoJsonUrl');
@@ -69,6 +70,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.backlinks[0].imageUrl, `${ORIGIN}/og/neuron.png`, 'builder: backlinks[0].imageUrl');
   assert.equal(result.backlinks[1].slug, 'subnet_1', 'builder: backlinks[1].slug');
   assert.equal(result.backlinks[1].title, 'Subnet 1', 'builder: backlinks[1].title');
+  assert.equal(result.backlinks[1].summary, null, 'builder: backlinks[1].summary is null when empty');
   assert.equal(result.backlinks[1].url, `${ORIGIN}/wiki/subnet_1/`, 'builder: backlinks[1].url');
   assert.equal(result.backlinks[1].historyUrl, `${ORIGIN}/wiki/subnet_1/history/`, 'builder: backlinks[1].historyUrl');
   assert.equal(result.backlinks[1].historyJsonUrl, `${ORIGIN}/wiki/subnet_1/history.json`, 'builder: backlinks[1].historyJsonUrl');
@@ -180,6 +182,10 @@ for (const slug of articleSlugs) {
     assert.equal(typeof entry.slug, 'string', `${slug}: every backlink entry must have a slug`);
     assert.equal(typeof entry.title, 'string', `${slug}: every backlink entry must have a title`);
     assert.equal(entry.url, `${ORIGIN}/wiki/${entry.slug}/`, `${slug}: every backlink entry url must be the canonical article URL`);
+    // summary mirrors the linking article's own summary from the slug map (null
+    // when blank), the same per-entry field the listing endpoints expose.
+    const expectedSummary = slugmap[entry.slug]?.summary || null;
+    assert.deepEqual(entry.summary, expectedSummary, `${slug}: every backlink entry summary must match the linking article's slug-map summary (or null)`);
     // infoUrl / infoJsonUrl point at the linking article's Page-information hub
     // and its machine-readable companion, so a consumer can reach a backlinking
     // page's metadata without reconstructing the route.

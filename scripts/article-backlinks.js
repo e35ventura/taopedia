@@ -23,6 +23,7 @@ export const buildArticleBacklinks = ({ slug, title, origin, categories = [], ba
   backlinks: backlinks.map((link) => ({
     slug: link.slug,
     title: link.title,
+    summary: link.summary || null,
     url: `${origin}/wiki/${link.slug}/`,
     infoUrl: `${origin}/wiki/${link.slug}/info/`,
     infoJsonUrl: `${origin}/wiki/${link.slug}/info.json`,
