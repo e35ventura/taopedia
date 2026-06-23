@@ -29,6 +29,11 @@ export const buildArticleToc = ({ slug, title, origin, sections = [] }) => ({
   historyJsonUrl: `${origin}/wiki/${slug}/history.json`,
   backlinksUrl: `${origin}/wiki/${slug}/backlinks/`,
   backlinksJsonUrl: `${origin}/wiki/${slug}/backlinks.json`,
+  citeUrl: `${origin}/wiki/${slug}/cite/`,
+  citeJsonUrl: `${origin}/wiki/${slug}/cite.json`,
+  bibtexUrl: `${origin}/wiki/${slug}/cite.bib`,
+  referencesUrl: `${origin}/wiki/${slug}/references.json`,
+  relatedUrl: `${origin}/wiki/${slug}/related.json`,
   count: sections.length,
   sections: sections.map((section) => ({
     number: section.number,

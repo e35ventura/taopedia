@@ -74,6 +74,11 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(doc.historyJsonUrl, `${ORIGIN}/wiki/source/history.json`, 'builder: historyJsonUrl cross-link');
   assert.equal(doc.backlinksUrl, `${ORIGIN}/wiki/source/backlinks/`, 'builder: backlinksUrl cross-link');
   assert.equal(doc.backlinksJsonUrl, `${ORIGIN}/wiki/source/backlinks.json`, 'builder: backlinksJsonUrl cross-link');
+  assert.equal(doc.citeUrl, `${ORIGIN}/wiki/source/cite/`, 'builder: citeUrl cross-link');
+  assert.equal(doc.citeJsonUrl, `${ORIGIN}/wiki/source/cite.json`, 'builder: citeJsonUrl cross-link');
+  assert.equal(doc.bibtexUrl, `${ORIGIN}/wiki/source/cite.bib`, 'builder: bibtexUrl cross-link');
+  assert.equal(doc.referencesUrl, `${ORIGIN}/wiki/source/references.json`, 'builder: referencesUrl cross-link');
+  assert.equal(doc.relatedUrl, `${ORIGIN}/wiki/source/related.json`, 'builder: relatedUrl cross-link');
   assert.equal(doc.count, 3, 'builder: count field');
   assert.deepEqual(
     doc.sections,
@@ -167,6 +172,13 @@ for (const slug of articleSlugs) {
   // endpoint, the same companion the sibling per-article JSON envelopes expose.
   assert.equal(doc.backlinksUrl, `${ORIGIN}/wiki/${slug}/backlinks/`, `${slug}: toc.json backlinksUrl must point to the HTML backlinks page`);
   assert.equal(doc.backlinksJsonUrl, `${ORIGIN}/wiki/${slug}/backlinks.json`, `${slug}: toc.json backlinksJsonUrl must point to the machine-readable backlinks endpoint`);
+  // cite / references / related cross-links complete the envelope's links to the
+  // article's sibling endpoints — the full set info.json aggregates.
+  assert.equal(doc.citeUrl, `${ORIGIN}/wiki/${slug}/cite/`, `${slug}: toc.json citeUrl must be canonical`);
+  assert.equal(doc.citeJsonUrl, `${ORIGIN}/wiki/${slug}/cite.json`, `${slug}: toc.json citeJsonUrl must be canonical`);
+  assert.equal(doc.bibtexUrl, `${ORIGIN}/wiki/${slug}/cite.bib`, `${slug}: toc.json bibtexUrl must be canonical`);
+  assert.equal(doc.referencesUrl, `${ORIGIN}/wiki/${slug}/references.json`, `${slug}: toc.json referencesUrl must be canonical`);
+  assert.equal(doc.relatedUrl, `${ORIGIN}/wiki/${slug}/related.json`, `${slug}: toc.json relatedUrl must be canonical`);
   assert.equal(typeof doc.count, 'number', `${slug}: toc.json count must be a number`);
   assert.ok(Array.isArray(doc.sections), `${slug}: toc.json sections must be an array`);
   assert.equal(doc.count, doc.sections.length, `${slug}: toc.json count must equal sections.length`);
