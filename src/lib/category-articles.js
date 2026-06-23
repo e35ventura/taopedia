@@ -36,6 +36,7 @@ export const buildCategoryArticlesDocument = ({ origin, categoryName, categoryPa
     summary: article.summary || null,
     url: `${origin}/wiki/${article.slug}/`,
     infoUrl: `${origin}/wiki/${article.slug}/info/`,
+    infoJsonUrl: `${origin}/wiki/${article.slug}/info.json`,
     historyUrl: `${origin}/wiki/${article.slug}/history/`,
     historyJsonUrl: `${origin}/wiki/${article.slug}/history.json`,
     backlinksUrl: `${origin}/wiki/${article.slug}/backlinks/`,
