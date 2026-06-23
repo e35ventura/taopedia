@@ -18,8 +18,11 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
     Subnets: ['subnet_10', 'subnet_2', 'subnet_9', 'subnet_2', 'missing'],
   };
   const slugMap = {
-    subnet_10: { title: 'Subnet 10', summary: '' },
-    subnet_2: { title: 'Subnet 2', summary: 'two' },
+    // subnet_2 carries non-empty categories (must be threaded through verbatim);
+    // subnet_10 carries an explicit empty array; subnet_9 omits the field
+    // entirely (must fall back to [] via the helper's Array.isArray guard).
+    subnet_10: { title: 'Subnet 10', summary: '', categories: [] },
+    subnet_2: { title: 'Subnet 2', summary: 'two', categories: ['Subnets', 'Economics'] },
     subnet_9: { title: 'Subnet 9' },
   };
 
@@ -27,11 +30,11 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
   assert.deepEqual(
     articles,
     [
-      { slug: 'subnet_2', title: 'Subnet 2', summary: 'two' },
-      { slug: 'subnet_9', title: 'Subnet 9', summary: '' },
-      { slug: 'subnet_10', title: 'Subnet 10', summary: '' },
+      { slug: 'subnet_2', title: 'Subnet 2', summary: 'two', categories: ['Subnets', 'Economics'] },
+      { slug: 'subnet_9', title: 'Subnet 9', summary: '', categories: [] },
+      { slug: 'subnet_10', title: 'Subnet 10', summary: '', categories: [] },
     ],
-    'helper must dedupe category members, skip missing slugs, and sort numerically by title',
+    'helper must dedupe category members, skip missing slugs, sort numerically by title, and thread categories (non-empty verbatim, missing -> [])',
   );
 
   const doc = buildCategoryArticlesDocument({
@@ -55,6 +58,7 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
         slug: 'subnet_2',
         title: 'Subnet 2',
         summary: 'two',
+        categories: ['Subnets', 'Economics'],
         url: `${ORIGIN}/wiki/subnet_2/`,
         infoUrl: `${ORIGIN}/wiki/subnet_2/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/subnet_2/info.json`,
@@ -75,6 +79,7 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
         slug: 'subnet_9',
         title: 'Subnet 9',
         summary: null,
+        categories: [],
         url: `${ORIGIN}/wiki/subnet_9/`,
         infoUrl: `${ORIGIN}/wiki/subnet_9/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/subnet_9/info.json`,
@@ -95,6 +100,7 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
         slug: 'subnet_10',
         title: 'Subnet 10',
         summary: null,
+        categories: [],
         url: `${ORIGIN}/wiki/subnet_10/`,
         infoUrl: `${ORIGIN}/wiki/subnet_10/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/subnet_10/info.json`,
@@ -199,6 +205,16 @@ for (const category of categories) {
   // consumer of a category's article list can reach each article's metadata and
   // inbound links without reconstructing the route.
   for (const article of doc.articles) {
+    // categories must mirror the article's topics from the slug map verbatim
+    // (the same set allpages.json / mostlinkedpages.json expose per entry).
+    // Asserting against the raw slug map — not the builder's own output — proves
+    // real, non-empty categories are threaded end-to-end into the built JSON, so
+    // a regression in the threading cannot pass by agreeing with itself.
+    assert.deepEqual(
+      article.categories,
+      slugMap[article.slug]?.categories ?? [],
+      `${category}: article ${article.slug} categories must match the slug map's topics`,
+    );
     assert.equal(
       article.infoUrl,
       `${ORIGIN}/wiki/${article.slug}/info/`,
