@@ -39,6 +39,7 @@ const projectRoot = path.resolve(__dirname, '..');
   assert.equal(stats.averageWords, 3, 'averageWords must be totalWords / totalArticles');
   assert.equal(stats.totalRevisions, 3, 'totalRevisions must sum history lengths (2 + 1)');
   assert.equal(stats.newestDate, '2024-01-02T00:00:00.000Z', 'newestDate must be the latest history date');
+  assert.equal(stats.oldestDate, '2024-01-01T00:00:00.000Z', 'oldestDate must be the earliest history date');
   assert.equal(stats.largestTopic.name, 'Consensus', 'largestTopic must be the highest-count category');
   assert.equal(stats.largestTopic.count, 2, 'largestTopic.count must reflect member count');
   assert.deepEqual(
@@ -84,6 +85,7 @@ const projectRoot = path.resolve(__dirname, '..');
   assert.equal(empty.averageWords, 0);
   assert.equal(empty.totalRevisions, 0);
   assert.equal(empty.newestDate, '');
+  assert.equal(empty.oldestDate, '');
   assert.equal(empty.largestTopic, null);
   assert.deepEqual(empty.topics, []);
 }
@@ -124,6 +126,38 @@ assert.ok(
 assert.ok(
   !Number.isNaN(new Date(data.newestDate).getTime()),
   `newestDate must be a valid date (got ${JSON.stringify(data.newestDate)})`,
+);
+
+// oldestDate — valid ISO-8601 date string when articles exist, and not after newestDate.
+assert.ok(
+  typeof data.oldestDate === 'string' && data.oldestDate.length > 0,
+  `oldestDate must be a non-empty date string when articles exist (got ${JSON.stringify(data.oldestDate)})`,
+);
+assert.ok(
+  !Number.isNaN(new Date(data.oldestDate).getTime()),
+  `oldestDate must be a valid date (got ${JSON.stringify(data.oldestDate)})`,
+);
+assert.ok(
+  data.oldestDate <= data.newestDate,
+  `oldestDate must not be after newestDate (${data.oldestDate} > ${data.newestDate})`,
+);
+
+const historyDir = path.join(projectRoot, 'public', 'history');
+assert.ok(fs.existsSync(historyDir), 'public/history not found; run the build first');
+let expectedOldest = '';
+for (const file of fs.readdirSync(historyDir)) {
+  if (!file.endsWith('.json')) continue;
+  const history = JSON.parse(fs.readFileSync(path.join(historyDir, file), 'utf8')).history ?? [];
+  for (const entry of history) {
+    const date = entry?.date ?? '';
+    if (!date) continue;
+    if (!expectedOldest || date < expectedOldest) expectedOldest = date;
+  }
+}
+assert.equal(
+  data.oldestDate,
+  expectedOldest,
+  'oldestDate must equal the earliest revision date across public/history/*.json',
 );
 
 // largestTopic — object with non-empty name + positive count, consistent with topics[0].
