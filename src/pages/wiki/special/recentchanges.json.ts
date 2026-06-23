@@ -16,10 +16,12 @@ export const GET: APIRoute = async ({ site }) => {
 
   const titleBySlug: Record<string, string> = {};
   const categoriesBySlug: Record<string, string[]> = {};
+  const summaryBySlug: Record<string, string> = {};
   for (const page of pages) {
     const slug = getPageSlug(page);
     titleBySlug[slug] = page.data.title;
     categoriesBySlug[slug] = page.data.categories ?? [];
+    summaryBySlug[slug] = page.data.summary ?? '';
   }
 
   const changes = allRecentChanges(titleBySlug, RECENT_LIMIT);
@@ -37,6 +39,7 @@ export const GET: APIRoute = async ({ site }) => {
         id: `urn:taopedia:recentchanges:${change.slug}:${change.sha}`,
         slug: change.slug,
         title: change.title,
+        summary: summaryBySlug[change.slug] || null,
         url: `${origin}/wiki/${change.slug}/`,
         infoUrl: `${origin}/wiki/${change.slug}/info/`,
         infoJsonUrl: `${origin}/wiki/${change.slug}/info.json`,
