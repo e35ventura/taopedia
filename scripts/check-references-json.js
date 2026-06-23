@@ -61,6 +61,8 @@ const ORIGIN = 'https://taopedia.org';
         slug: 'delta',
         title: 'Delta',
         url: `${ORIGIN}/wiki/delta/`,
+        infoUrl: `${ORIGIN}/wiki/delta/info/`,
+        backlinksUrl: `${ORIGIN}/wiki/delta/backlinks/`,
         historyUrl: `${ORIGIN}/wiki/delta/history/`,
         historyJsonUrl: `${ORIGIN}/wiki/delta/history.json`,
       },
@@ -68,6 +70,8 @@ const ORIGIN = 'https://taopedia.org';
         slug: 'alpha',
         title: 'Subnet 2',
         url: `${ORIGIN}/wiki/alpha/`,
+        infoUrl: `${ORIGIN}/wiki/alpha/info/`,
+        backlinksUrl: `${ORIGIN}/wiki/alpha/backlinks/`,
         historyUrl: `${ORIGIN}/wiki/alpha/history/`,
         historyJsonUrl: `${ORIGIN}/wiki/alpha/history.json`,
       },
@@ -75,6 +79,8 @@ const ORIGIN = 'https://taopedia.org';
         slug: 'gamma',
         title: 'Subnet 9',
         url: `${ORIGIN}/wiki/gamma/`,
+        infoUrl: `${ORIGIN}/wiki/gamma/info/`,
+        backlinksUrl: `${ORIGIN}/wiki/gamma/backlinks/`,
         historyUrl: `${ORIGIN}/wiki/gamma/history/`,
         historyJsonUrl: `${ORIGIN}/wiki/gamma/history.json`,
       },
@@ -82,6 +88,8 @@ const ORIGIN = 'https://taopedia.org';
         slug: 'beta',
         title: 'Subnet 10',
         url: `${ORIGIN}/wiki/beta/`,
+        infoUrl: `${ORIGIN}/wiki/beta/info/`,
+        backlinksUrl: `${ORIGIN}/wiki/beta/backlinks/`,
         historyUrl: `${ORIGIN}/wiki/beta/history/`,
         historyJsonUrl: `${ORIGIN}/wiki/beta/history.json`,
       },
@@ -188,6 +196,19 @@ for (const slug of articleSlugs) {
     assert.equal(typeof entry.slug, 'string', `${slug}: every reference entry must have a slug`);
     assert.equal(typeof entry.title, 'string', `${slug}: every reference entry must have a title`);
     assert.equal(entry.url, `${ORIGIN}/wiki/${entry.slug}/`, `${slug}: every reference entry url must be the canonical article URL`);
+    // infoUrl / backlinksUrl point at the referenced article's Page-information
+    // and What-links-here pages, so a consumer can reach a referenced page's
+    // metadata and inbound links without reconstructing the route.
+    assert.equal(
+      entry.infoUrl,
+      `${ORIGIN}/wiki/${entry.slug}/info/`,
+      `${slug}: every reference entry infoUrl must be the canonical article info URL`,
+    );
+    assert.equal(
+      entry.backlinksUrl,
+      `${ORIGIN}/wiki/${entry.slug}/backlinks/`,
+      `${slug}: every reference entry backlinksUrl must be the canonical article backlinks URL`,
+    );
     assert.equal(
       entry.historyUrl,
       `${ORIGIN}/wiki/${entry.slug}/history/`,
