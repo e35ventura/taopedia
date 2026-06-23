@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { buildCategoryArticlesDocument, getCategoryArticles } from '../../../../lib/category-articles.js';
 import { publishedInboundLinkCount } from '../../../../../scripts/most-linked.js';
+import { historyForSlug } from '../../../../lib/article-history';
 
 const categoriesModules = import.meta.glob('../../../../../public/data/categories.json', { eager: true }) as Record<
   string,
@@ -35,6 +36,7 @@ export async function getStaticPaths() {
         articles: getCategoryArticles({ categoryName, categoriesIndex, slugMap }).map((article) => ({
           ...article,
           backlinks: publishedInboundLinkCount(backlinksData, article.slug, titleBySlug),
+          lastEdited: historyForSlug(article.slug)[0]?.date ?? null,
         })),
       },
     }));
@@ -48,7 +50,7 @@ export const GET: APIRoute = async ({ props, site }) => {
   const { categoryName, categoryPath, articles } = props as {
     categoryName: string;
     categoryPath: string;
-    articles: Array<{ slug: string; title: string; summary: string; backlinks: number }>;
+    articles: Array<{ slug: string; title: string; summary: string; backlinks: number; lastEdited: string | null }>;
   };
   const origin = (site ?? new URL('https://taopedia.org')).origin;
 

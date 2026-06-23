@@ -82,6 +82,7 @@ const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.js
         summary: 'two',
         categories: ['Subnets', 'Economics'],
         backlinks: 0,
+        lastEdited: null,
         url: `${ORIGIN}/wiki/subnet_2/`,
         infoUrl: `${ORIGIN}/wiki/subnet_2/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/subnet_2/info.json`,
@@ -104,6 +105,7 @@ const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.js
         summary: null,
         categories: [],
         backlinks: 0,
+        lastEdited: null,
         url: `${ORIGIN}/wiki/subnet_9/`,
         infoUrl: `${ORIGIN}/wiki/subnet_9/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/subnet_9/info.json`,
@@ -126,6 +128,7 @@ const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.js
         summary: null,
         categories: [],
         backlinks: 0,
+        lastEdited: null,
         url: `${ORIGIN}/wiki/subnet_10/`,
         infoUrl: `${ORIGIN}/wiki/subnet_10/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/subnet_10/info.json`,
@@ -158,8 +161,22 @@ assert.ok(fs.existsSync(backlinksJsonPath), 'public/data/backlinks.json not foun
 const backlinksData = JSON.parse(fs.readFileSync(backlinksJsonPath, 'utf8'));
 const titleBySlug = Object.fromEntries(Object.entries(slugMap).map(([slug, entry]) => [slug, entry?.title ?? slug]));
 // Mirror the endpoint's enrichment: each article carries its published-only
-// inbound-link count, so the expected doc matches the built doc field-for-field.
-const withBacklinks = (list) => list.map((a) => ({ ...a, backlinks: publishedInboundLinkCount(backlinksData, a.slug, titleBySlug) }));
+// inbound-link count and its last-revision date, so the expected doc matches the
+// built doc field-for-field. lastEdited is re-derived from the raw history file
+// (the same source historyForSlug reads), so it is independent ground truth.
+const historyDir = path.join(projectRoot, 'public', 'history');
+const lastEditedOf = (slug) => {
+  const file = path.join(historyDir, `${slug}.json`);
+  if (!fs.existsSync(file)) return null;
+  const history = JSON.parse(fs.readFileSync(file, 'utf8')).history || [];
+  return typeof history[0]?.date === 'string' ? history[0].date : null;
+};
+const withBacklinks = (list) =>
+  list.map((a) => ({
+    ...a,
+    backlinks: publishedInboundLinkCount(backlinksData, a.slug, titleBySlug),
+    lastEdited: lastEditedOf(a.slug),
+  }));
 
 const dirToOriginal = new Map();
 for (const name of Object.keys(categoriesIndex)) {
