@@ -117,6 +117,13 @@ data.pages.forEach((row, i) => {
     `${data.site}/wiki/${row.slug}/info/`,
     `row ${i} infoUrl must equal ${data.site}/wiki/${row.slug}/info/`,
   );
+  // infoJsonUrl is the JSON companion of infoUrl — /wiki/<slug>/info.json exists,
+  // so each ranked entry pairs its HTML info link with the machine-readable one.
+  assert.equal(
+    row.infoJsonUrl,
+    `${data.site}/wiki/${row.slug}/info.json`,
+    `row ${i} infoJsonUrl must equal ${data.site}/wiki/${row.slug}/info.json`,
+  );
   // historyUrl points at the article's revision-history page — the same
   // companion subnets.json / recentchanges.json expose — so a consumer of the
   // ranking can reach each top page's edit history without rebuilding the route.
