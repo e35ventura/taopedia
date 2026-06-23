@@ -19,8 +19,11 @@ export const GET: APIRoute = async ({ site }) => {
   const origin = (site ?? new URL('https://taopedia.org')).origin;
   const pages = await getCollection('pages');
   const titleBySlug: Record<string, string> = {};
+  const categoriesBySlug: Record<string, string[]> = {};
   for (const page of pages) {
-    titleBySlug[getPageSlug(page)] = page.data.title;
+    const slug = getPageSlug(page);
+    titleBySlug[slug] = page.data.title;
+    categoriesBySlug[slug] = page.data.categories ?? [];
   }
 
   const ranked = buildMostLinkedPages({ backlinks: backlinksData, titleBySlug });
@@ -47,6 +50,7 @@ export const GET: APIRoute = async ({ site }) => {
         relatedUrl: `${origin}/wiki/${entry.slug}/related.json`,
         tocJsonUrl: `${origin}/wiki/${entry.slug}/toc.json`,
         imageUrl: `${origin}/og/${entry.slug}.png`,
+        categories: categoriesBySlug[entry.slug] ?? [],
         backlinks: entry.count,
       })),
     },
