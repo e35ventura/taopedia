@@ -66,6 +66,7 @@ const ORIGIN = 'https://taopedia.org';
     summary: 'The source article.',
     categories: ['Consensus', 'Security'],
     incomingLinks: 5,
+    revisionCount: 6,
     sections,
   });
   assert.equal(doc.slug, 'source', 'builder: slug field');
@@ -87,6 +88,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(doc.imageUrl, `${ORIGIN}/og/source.png`, 'builder: imageUrl');
   assert.deepEqual(doc.categories, ['Consensus', 'Security'], 'builder: categories field');
   assert.equal(doc.incomingLinks, 5, 'builder: incomingLinks field');
+  assert.equal(doc.revisionCount, 6, 'builder: revisionCount field');
   assert.equal(doc.count, 3, 'builder: count field');
   assert.deepEqual(
     doc.sections,
@@ -216,6 +218,9 @@ for (const slug of articleSlugs) {
     `${slug}: toc.json incomingLinks must match the published inbound-link count`,
   );
   assert.ok(Number.isInteger(doc.incomingLinks) && doc.incomingLinks >= 0, `${slug}: toc.json incomingLinks must be a non-negative integer`);
+  // revisionCount is the article's commit-history length — the same figure
+  // info.json / history.json / cite.json / references.json / related.json expose.
+  assert.ok(Number.isInteger(doc.revisionCount) && doc.revisionCount >= 0, `${slug}: toc.json revisionCount must be a non-negative integer`);
   const infoJsonFile = path.join(wikiDir, slug, 'info.json');
   if (fs.existsSync(infoJsonFile)) {
     const infoDoc = JSON.parse(fs.readFileSync(infoJsonFile, 'utf8'));
@@ -223,6 +228,11 @@ for (const slug of articleSlugs) {
       doc.incomingLinks,
       infoDoc.incomingLinks,
       `${slug}: toc.json incomingLinks must agree with the sibling info.json envelope`,
+    );
+    assert.equal(
+      doc.revisionCount,
+      infoDoc.revisionCount,
+      `${slug}: toc.json revisionCount must agree with the sibling info.json envelope`,
     );
   }
   assert.equal(typeof doc.count, 'number', `${slug}: toc.json count must be a number`);

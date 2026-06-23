@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getCollection, render } from 'astro:content';
-import { getPageSlug } from '../../../lib/article-history';
+import { getPageSlug, historyForSlug } from '../../../lib/article-history';
 import { buildArticleToc, getArticleToc } from '../../../lib/article-toc.js';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
 
@@ -27,6 +27,7 @@ export async function getStaticPaths() {
           summary: page.data.summary ?? '',
           categories: page.data.categories ?? [],
           incomingLinks: publishedInboundLinkCount(backlinksData, slug, titleBySlug),
+          revisionCount: historyForSlug(slug).length,
           sections: getArticleToc(headings),
         },
       };
@@ -38,18 +39,19 @@ export async function getStaticPaths() {
 // the same shared TOC helper the article page consumes, so the visibility,
 // numbering, and deep-link contract live in one runtime source of truth.
 export const GET: APIRoute = async ({ props, site }) => {
-  const { slug, title, summary, categories, incomingLinks, sections } = props as {
+  const { slug, title, summary, categories, incomingLinks, revisionCount, sections } = props as {
     slug: string;
     title: string;
     summary: string;
     categories: string[];
     incomingLinks: number;
+    revisionCount: number;
     sections: Array<{ number: number; depth: number; slug: string; title: string }>;
   };
   const origin = (site ?? new URL('https://taopedia.org')).origin;
 
   const body = JSON.stringify(
-    buildArticleToc({ slug, title, origin, summary, categories, incomingLinks, sections }),
+    buildArticleToc({ slug, title, origin, summary, categories, incomingLinks, revisionCount, sections }),
     null,
     2,
   );
