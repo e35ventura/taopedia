@@ -156,6 +156,25 @@ data.pages.forEach((row, i) => {
     `${data.site}/wiki/${row.slug}/backlinks.json`,
     `row ${i} backlinksJsonUrl must equal ${data.site}/wiki/${row.slug}/backlinks.json`,
   );
+  // citeUrl / referencesUrl / relatedUrl complete the per-article API surface:
+  // the citation page (/cite/), the outbound-reference index (references.json),
+  // and the related-pages set (related.json) all exist per article, so a
+  // consumer of the ranking can reach them without reconstructing the routes.
+  assert.equal(
+    row.citeUrl,
+    `${data.site}/wiki/${row.slug}/cite/`,
+    `row ${i} citeUrl must equal ${data.site}/wiki/${row.slug}/cite/`,
+  );
+  assert.equal(
+    row.referencesUrl,
+    `${data.site}/wiki/${row.slug}/references.json`,
+    `row ${i} referencesUrl must equal ${data.site}/wiki/${row.slug}/references.json`,
+  );
+  assert.equal(
+    row.relatedUrl,
+    `${data.site}/wiki/${row.slug}/related.json`,
+    `row ${i} relatedUrl must equal ${data.site}/wiki/${row.slug}/related.json`,
+  );
   // imageUrl is the article's OG share-card (/og/<slug>.png) — each article
   // binds its own card, so a dashboard of the top-ranked pages can render a
   // per-article thumbnail without parsing the rendered HTML head.
