@@ -67,6 +67,8 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
         bibtexUrl: `${ORIGIN}/wiki/subnet_2/cite.bib`,
         referencesUrl: `${ORIGIN}/wiki/subnet_2/references.json`,
         relatedUrl: `${ORIGIN}/wiki/subnet_2/related.json`,
+        infoJsonUrl: `${ORIGIN}/wiki/subnet_2/info.json`,
+        tocJsonUrl: `${ORIGIN}/wiki/subnet_2/toc.json`,
       },
       {
         slug: 'subnet_9',
@@ -84,6 +86,8 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
         bibtexUrl: `${ORIGIN}/wiki/subnet_9/cite.bib`,
         referencesUrl: `${ORIGIN}/wiki/subnet_9/references.json`,
         relatedUrl: `${ORIGIN}/wiki/subnet_9/related.json`,
+        infoJsonUrl: `${ORIGIN}/wiki/subnet_9/info.json`,
+        tocJsonUrl: `${ORIGIN}/wiki/subnet_9/toc.json`,
       },
       {
         slug: 'subnet_10',
@@ -101,6 +105,8 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
         bibtexUrl: `${ORIGIN}/wiki/subnet_10/cite.bib`,
         referencesUrl: `${ORIGIN}/wiki/subnet_10/references.json`,
         relatedUrl: `${ORIGIN}/wiki/subnet_10/related.json`,
+        infoJsonUrl: `${ORIGIN}/wiki/subnet_10/info.json`,
+        tocJsonUrl: `${ORIGIN}/wiki/subnet_10/toc.json`,
       },
     ],
     'builder: article row shape',
@@ -229,6 +235,19 @@ for (const category of categories) {
       article.relatedUrl,
       `${ORIGIN}/wiki/${article.slug}/related.json`,
       `${category}: article ${article.slug} relatedUrl must be the canonical related.json URL`,
+    );
+    // infoJsonUrl pairs the HTML info page with its machine-readable form, and
+    // tocJsonUrl links the article's table-of-contents endpoint — the same
+    // companions every other per-article surface now exposes.
+    assert.equal(
+      article.infoJsonUrl,
+      `${ORIGIN}/wiki/${article.slug}/info.json`,
+      `${category}: article ${article.slug} infoJsonUrl must be the canonical info.json URL`,
+    );
+    assert.equal(
+      article.tocJsonUrl,
+      `${ORIGIN}/wiki/${article.slug}/toc.json`,
+      `${category}: article ${article.slug} tocJsonUrl must be the canonical toc.json URL`,
     );
   }
 

@@ -46,5 +46,6 @@ export const buildCategoryArticlesDocument = ({ origin, categoryName, categoryPa
     bibtexUrl: `${origin}/wiki/${article.slug}/cite.bib`,
     referencesUrl: `${origin}/wiki/${article.slug}/references.json`,
     relatedUrl: `${origin}/wiki/${article.slug}/related.json`,
+    tocJsonUrl: `${origin}/wiki/${article.slug}/toc.json`,
   })),
 });
