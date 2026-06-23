@@ -13,9 +13,18 @@ const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
+  const titleBySlug = Object.fromEntries(pages.map((page) => [getPageSlug(page), page.data.title]));
+
   return pages.map((page) => {
     const slug = getPageSlug(page);
-    return { params: { slug }, props: { page, slug } };
+    return {
+      params: { slug },
+      props: {
+        page,
+        slug,
+        incomingLinks: publishedInboundLinkCount(backlinksData, slug, titleBySlug),
+      },
+    };
   });
 }
 
@@ -23,7 +32,11 @@ export async function getStaticPaths() {
 // published-only join and compareTitles sort as backlinks.astro so the two
 // surfaces never drift.
 export const GET: APIRoute = async ({ props, site }) => {
-  const { page, slug } = props as { page: { data: { title: string; summary?: string; categories?: string[] } }; slug: string };
+  const { page, slug, incomingLinks } = props as {
+    page: { data: { title: string; summary?: string; categories?: string[] } };
+    slug: string;
+    incomingLinks: number;
+  };
   const origin = (site ?? new URL('https://taopedia.org')).origin;
 
   const pages = await getCollection('pages');
@@ -49,7 +62,15 @@ export const GET: APIRoute = async ({ props, site }) => {
     .sort((a, b) => compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug));
 
   const body = JSON.stringify(
-    buildArticleBacklinks({ slug, title: page.data.title, origin, summary: page.data.summary ?? '', categories: page.data.categories ?? [], backlinks }),
+    buildArticleBacklinks({
+      slug,
+      title: page.data.title,
+      origin,
+      summary: page.data.summary ?? '',
+      categories: page.data.categories ?? [],
+      incomingLinks,
+      backlinks,
+    }),
     null,
     2,
   );

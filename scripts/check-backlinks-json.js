@@ -29,6 +29,7 @@ const ORIGIN = 'https://taopedia.org';
     origin: ORIGIN,
     summary: 'Reclaiming emitted TAO.',
     categories: ['Consensus'],
+    incomingLinks: 2,
     backlinks: [
       { slug: 'neuron', title: 'Neuron', summary: 'A node in the network.', categories: ['Mechanism'] },
       { slug: 'subnet_1', title: 'Subnet 1', summary: '' },
@@ -52,6 +53,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.tocJsonUrl, `${ORIGIN}/wiki/recycling/toc.json`, 'builder: tocJsonUrl field');
   assert.equal(result.imageUrl, `${ORIGIN}/og/recycling.png`, 'builder: imageUrl field');
   assert.deepEqual(result.categories, ['Consensus'], 'builder: categories field');
+  assert.equal(result.incomingLinks, 2, 'builder: incomingLinks field');
   assert.equal(result.count, 2, 'builder: count equals backlinks length');
   assert.equal(result.backlinks.length, 2, 'builder: backlinks array length');
   assert.equal(result.backlinks[0].slug, 'neuron', 'builder: backlinks[0].slug');
@@ -94,6 +96,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.deepEqual(empty.backlinks, [], 'builder: empty backlinks is []');
   assert.deepEqual(empty.categories, [], 'builder: default categories is []');
   assert.equal(empty.summary, null, 'builder: default summary is null');
+  assert.equal(empty.incomingLinks, 0, 'builder: default incomingLinks is 0');
 }
 
 // ---- 2–6) Built-output checks ----------------------------------------------
@@ -181,6 +184,14 @@ for (const slug of articleSlugs) {
   // per-article field the listing endpoints expose for each entry.
   const expectedSummary = slugmap[slug]?.summary || null;
   assert.deepEqual(doc.summary, expectedSummary, `${slug}: backlinks.json summary must match the article's slug-map summary (or null)`);
+  // incomingLinks is the article's own published inbound-link count — the same
+  // figure info.json exposes (and equals count, the listed linking-page total).
+  assert.equal(
+    doc.incomingLinks,
+    publishedInboundLinkCount(backlinksData, slug, titleBySlug),
+    `${slug}: backlinks.json incomingLinks must equal the published inbound-link count`,
+  );
+  assert.equal(doc.incomingLinks, doc.count, `${slug}: backlinks.json incomingLinks must equal count`);
   assert.equal(typeof doc.count, 'number', `${slug}: backlinks.json count must be a number`);
   assert.ok(Array.isArray(doc.backlinks), `${slug}: backlinks.json backlinks must be an array`);
   assert.equal(doc.count, doc.backlinks.length, `${slug}: backlinks.json count must equal backlinks.length`);
