@@ -50,6 +50,10 @@ export interface ArticleRelatedPagesDocument {
   infoUrl: string;
   infoJsonUrl: string;
   tocJsonUrl: string;
+  citeUrl: string;
+  citeJsonUrl: string;
+  bibtexUrl: string;
+  referencesUrl: string;
   count: number;
   related: Array<{
     slug: string;
@@ -150,6 +154,10 @@ export function buildArticleRelatedPages({
     infoUrl: `${origin}/wiki/${slug}/info/`,
     infoJsonUrl: `${origin}/wiki/${slug}/info.json`,
     tocJsonUrl: `${origin}/wiki/${slug}/toc.json`,
+    citeUrl: `${origin}/wiki/${slug}/cite/`,
+    citeJsonUrl: `${origin}/wiki/${slug}/cite.json`,
+    bibtexUrl: `${origin}/wiki/${slug}/cite.bib`,
+    referencesUrl: `${origin}/wiki/${slug}/references.json`,
     count: relatedPages.length,
     related: relatedPages.map((entry) => ({
       slug: entry.slug,
