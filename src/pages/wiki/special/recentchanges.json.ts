@@ -16,10 +16,12 @@ export const GET: APIRoute = async ({ site }) => {
 
   const titleBySlug: Record<string, string> = {};
   const categoriesBySlug: Record<string, string[]> = {};
+  const summaryBySlug: Record<string, string> = {};
   for (const page of pages) {
     const slug = getPageSlug(page);
     titleBySlug[slug] = page.data.title;
     categoriesBySlug[slug] = page.data.categories ?? [];
+    summaryBySlug[slug] = page.data.summary ?? '';
   }
 
   const changes = allRecentChanges(titleBySlug, RECENT_LIMIT);
@@ -52,6 +54,7 @@ export const GET: APIRoute = async ({ site }) => {
         tocJsonUrl: `${origin}/wiki/${change.slug}/toc.json`,
         imageUrl: `${origin}/og/${change.slug}.png`,
         categories: categoriesBySlug[change.slug] ?? [],
+        summary: summaryBySlug[change.slug] || null,
         date: change.date,
         authorName: change.authorName,
         sha: change.sha,

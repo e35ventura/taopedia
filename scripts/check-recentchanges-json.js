@@ -237,6 +237,13 @@ for (let i = 0; i < data.changes.length; i++) {
     slugmap[change.slug]?.categories ?? [],
     `change ${i} categories must match the article's topics in the slug map for ${change.slug}`,
   );
+  // summary mirrors the changed article's own slug-map summary (null when blank),
+  // the same per-item field the subnets/allpages/mostlinkedpages listings expose.
+  assert.deepEqual(
+    change.summary,
+    slugmap[change.slug]?.summary || null,
+    `change ${i} summary must match the article's slug-map summary (or null) for ${change.slug}`,
+  );
   assert.equal(change.authorName, expected.authorName, `change ${i} authorName must match the revision history`);
   assert.equal(change.sha, expected.sha, `change ${i} sha must match the revision history`);
   assert.ok(typeof change.sha === 'string' && change.sha.length > 0, `change ${i} sha must be a non-empty string`);
