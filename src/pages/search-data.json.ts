@@ -10,12 +10,16 @@ export const GET: APIRoute = async ({ site }) => {
   const pages = await getCollection('pages');
 
   const searchEntries = sortSearchEntries(
-    pages.map((page) => ({
-      title: page.data.title,
-      summary: page.data.summary ?? '',
-      url: `${origin}/wiki/${getPageSlug(page)}/`,
-      categories: page.data.categories ?? [],
-    })),
+    pages.map((page) => {
+      const slug = getPageSlug(page);
+      return {
+        slug,
+        title: page.data.title,
+        summary: page.data.summary ?? '',
+        url: `${origin}/wiki/${slug}/`,
+        categories: page.data.categories ?? [],
+      };
+    }),
   );
 
   return new Response(JSON.stringify(searchEntries), {
