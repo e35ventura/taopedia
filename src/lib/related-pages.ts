@@ -54,6 +54,7 @@ export interface ArticleRelatedPagesDocument {
   citeJsonUrl: string;
   bibtexUrl: string;
   referencesUrl: string;
+  imageUrl: string;
   count: number;
   related: Array<{
     slug: string;
@@ -165,6 +166,7 @@ export function buildArticleRelatedPages({
     citeJsonUrl: `${origin}/wiki/${slug}/cite.json`,
     bibtexUrl: `${origin}/wiki/${slug}/cite.bib`,
     referencesUrl: `${origin}/wiki/${slug}/references.json`,
+    imageUrl: `${origin}/og/${slug}.png`,
     count: relatedPages.length,
     related: relatedPages.map((entry) => ({
       slug: entry.slug,
