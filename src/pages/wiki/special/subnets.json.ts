@@ -22,6 +22,14 @@ export const GET: APIRoute = async ({ site }) => {
     {
       site: origin,
       url: `${origin}/wiki/special/subnets.json`,
+      // subnetsJsonUrl is the registry's canonical self-link named like every
+      // sibling special-listing endpoint exposes it (categoriesJsonUrl,
+      // allpagesJsonUrl, mostlinkedpagesJsonUrl, recentchangesJsonUrl,
+      // statisticsJsonUrl). subnets.json was the lone outlier exposing the
+      // self-link only under the generic `url` key — which is also overloaded,
+      // since every subnet ROW uses `url` for the article URL. `url` is kept for
+      // backwards compatibility; subnetsJsonUrl is the consistent name.
+      subnetsJsonUrl: `${origin}/wiki/special/subnets.json`,
       count: subnets.length,
       subnets: subnets.map((subnet) => ({
         netuid: subnet.netuid,
