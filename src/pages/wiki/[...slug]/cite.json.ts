@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
+import { getArticleReferences } from '../../../lib/article-references.js';
 import { buildCitations, CITATION_META } from '../../../../scripts/citations.js';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
 
@@ -9,6 +10,12 @@ const backlinksModules = import.meta.glob('../../../../public/data/backlinks.jso
   { default?: Record<string, Array<{ from: string }>> }
 >;
 const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
+
+const linkgraphModules = import.meta.glob('../../../../public/data/linkgraph.json', { eager: true }) as Record<
+  string,
+  { default?: Record<string, Array<{ target?: string }>> }
+>;
+const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
@@ -22,16 +29,18 @@ export async function getStaticPaths() {
         page,
         slug,
         incomingLinks: publishedInboundLinkCount(backlinksData, slug, titleBySlug),
+        referencesCount: getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length,
       },
     };
   });
 }
 
 export const GET: APIRoute = async ({ site, props }) => {
-  const { page, slug, incomingLinks } = props as {
+  const { page, slug, incomingLinks, referencesCount } = props as {
     page: { data: { title: string; summary?: string; categories?: string[] } };
     slug: string;
     incomingLinks: number;
+    referencesCount: number;
   };
   const url = new URL(`/wiki/${slug}/`, site ?? new URL('https://taopedia.org')).toString();
   const history = historyForSlug(slug);
@@ -70,6 +79,11 @@ export const GET: APIRoute = async ({ site, props }) => {
       // already exposes revisionCount for. null when the article has no history.
       firstEdited: history.length > 0 ? history[history.length - 1].date : null,
       lastEdited: history.length > 0 ? history[0].date : null,
+      // referencesCount is the article's published outbound-reference count —
+      // the same figure history.json and references.json expose (as `count`),
+      // so a consumer citing the article can record how many wiki pages it links
+      // to without a second fetch.
+      referencesCount: Number.isFinite(referencesCount) ? referencesCount : 0,
       ...(date ? { date } : {}),
       ...CITATION_META,
       citations,

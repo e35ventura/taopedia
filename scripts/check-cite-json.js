@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { getArticleReferences } from '../src/lib/article-references.js';
 import { buildCitations, CITATION_FORMATS, CITATION_META } from './citations.js';
 import { publishedInboundLinkCount } from './most-linked.js';
 
@@ -11,6 +12,7 @@ const wikiDir = path.join(projectRoot, 'dist', 'wiki');
 const historyDir = path.join(projectRoot, 'public', 'history');
 const slugmapFile = path.join(projectRoot, 'public', 'data', 'slugmap.json');
 const backlinksFile = path.join(projectRoot, 'public', 'data', 'backlinks.json');
+const linkgraphFile = path.join(projectRoot, 'public', 'data', 'linkgraph.json');
 const ORIGIN = 'https://taopedia.org';
 const CITE_KEYS = CITATION_FORMATS.map((format) => format.key);
 
@@ -49,8 +51,10 @@ const CITE_KEYS = CITATION_FORMATS.map((format) => format.key);
 assert.ok(fs.existsSync(wikiDir), 'dist/wiki not found; run the build first');
 assert.ok(fs.existsSync(slugmapFile), 'public/data/slugmap.json not found; run the build first');
 assert.ok(fs.existsSync(backlinksFile), 'public/data/backlinks.json not found; run the build first');
+assert.ok(fs.existsSync(linkgraphFile), 'public/data/linkgraph.json not found; run the build first');
 const slugmap = JSON.parse(fs.readFileSync(slugmapFile, 'utf8'));
 const backlinksData = JSON.parse(fs.readFileSync(backlinksFile, 'utf8'));
+const linkgraphData = JSON.parse(fs.readFileSync(linkgraphFile, 'utf8'));
 const titleBySlug = Object.fromEntries(
   Object.entries(slugmap).map(([slug, meta]) => [slug, typeof meta?.title === 'string' ? meta.title : slug]),
 );
@@ -241,6 +245,32 @@ for (const slug of articleSlugs) {
     revisionCountOf(slug),
     `cite.json revisionCount must equal the article's commit-history length for ${slug}`,
   );
+  // referencesCount is the article's published outbound-reference count — the
+  // same figure history.json and references.json expose, computed via the shared helper.
+  assert.equal(
+    doc.referencesCount,
+    getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length,
+    `cite.json referencesCount must match the published outbound-reference count for ${slug}`,
+  );
+  assert.ok(Number.isInteger(doc.referencesCount) && doc.referencesCount >= 0, `cite.json referencesCount must be a non-negative integer for ${slug}`);
+  const historyJsonFile = path.join(wikiDir, slug, 'history.json');
+  if (fs.existsSync(historyJsonFile)) {
+    const historyDoc = JSON.parse(fs.readFileSync(historyJsonFile, 'utf8'));
+    assert.equal(
+      doc.referencesCount,
+      historyDoc.referencesCount,
+      `cite.json referencesCount must agree with the sibling history.json envelope for ${slug}`,
+    );
+  }
+  const referencesJsonFile = path.join(wikiDir, slug, 'references.json');
+  if (fs.existsSync(referencesJsonFile)) {
+    const referencesDoc = JSON.parse(fs.readFileSync(referencesJsonFile, 'utf8'));
+    assert.equal(
+      doc.referencesCount,
+      referencesDoc.count,
+      `cite.json referencesCount must agree with the sibling references.json envelope for ${slug}`,
+    );
+  }
   const infoJsonFile = path.join(wikiDir, slug, 'info.json');
   if (fs.existsSync(infoJsonFile)) {
     const infoDoc = JSON.parse(fs.readFileSync(infoJsonFile, 'utf8'));
