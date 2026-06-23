@@ -44,7 +44,14 @@ const ORIGIN = 'https://taopedia.org';
     'helper must exclude self/missing targets, dedupe repeated targets, and sort numerically by title',
   );
 
-  const doc = buildArticleReferences({ slug: 'source', title: 'Source', origin: ORIGIN, summary: 'The source article.', categories: ['Consensus', 'Security'], references });
+  // Enrich the referenced entries the way the endpoint does (summary +
+  // categories from the slug map) so the builder's per-entry threading of
+  // non-empty categories is exercised, not just the [] default.
+  const enrichedReferences = references.map((ref) => ({
+    ...ref,
+    categories: ref.slug === 'delta' ? ['Consensus', 'Economics'] : [],
+  }));
+  const doc = buildArticleReferences({ slug: 'source', title: 'Source', origin: ORIGIN, summary: 'The source article.', categories: ['Consensus', 'Security'], references: enrichedReferences });
   assert.equal(doc.slug, 'source', 'builder: slug field');
   assert.equal(doc.title, 'Source', 'builder: title field');
   assert.equal(doc.summary, 'The source article.', 'builder: summary field');
@@ -71,6 +78,7 @@ const ORIGIN = 'https://taopedia.org';
         slug: 'delta',
         title: 'Delta',
         summary: null,
+        categories: ['Consensus', 'Economics'],
         url: `${ORIGIN}/wiki/delta/`,
         infoUrl: `${ORIGIN}/wiki/delta/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/delta/info.json`,
@@ -90,6 +98,7 @@ const ORIGIN = 'https://taopedia.org';
         slug: 'alpha',
         title: 'Subnet 2',
         summary: null,
+        categories: [],
         url: `${ORIGIN}/wiki/alpha/`,
         infoUrl: `${ORIGIN}/wiki/alpha/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/alpha/info.json`,
@@ -109,6 +118,7 @@ const ORIGIN = 'https://taopedia.org';
         slug: 'gamma',
         title: 'Subnet 9',
         summary: null,
+        categories: [],
         url: `${ORIGIN}/wiki/gamma/`,
         infoUrl: `${ORIGIN}/wiki/gamma/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/gamma/info.json`,
@@ -128,6 +138,7 @@ const ORIGIN = 'https://taopedia.org';
         slug: 'beta',
         title: 'Subnet 10',
         summary: null,
+        categories: [],
         url: `${ORIGIN}/wiki/beta/`,
         infoUrl: `${ORIGIN}/wiki/beta/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/beta/info.json`,
@@ -278,6 +289,12 @@ for (const slug of articleSlugs) {
     // when blank), the same per-entry field the listing endpoints / related.json expose.
     const expectedSummary = slugmap[entry.slug]?.summary || null;
     assert.deepEqual(entry.summary, expectedSummary, `${slug}: every reference entry summary must match the referenced article's slug-map summary (or null)`);
+    // categories mirrors the referenced article's own topics from the slug map —
+    // the same per-entry topic field the allpages/mostlinkedpages/subnets/
+    // recentchanges/category-articles entries and the backlinks.json entries
+    // expose. references[] was the lone entry list omitting it.
+    const expectedCategories = Array.isArray(slugmap[entry.slug]?.categories) ? slugmap[entry.slug].categories : [];
+    assert.deepEqual(entry.categories, expectedCategories, `${slug}: every reference entry categories must match the referenced article's slug-map topics`);
     assert.equal(
       entry.infoUrl,
       `${ORIGIN}/wiki/${entry.slug}/info/`,

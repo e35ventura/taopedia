@@ -40,6 +40,7 @@ export const buildArticleReferences = ({ slug, title, origin, summary = '', cate
     slug: link.slug,
     title: link.title,
     summary: link.summary || null,
+    categories: Array.isArray(link.categories) ? link.categories : [],
     url: `${origin}/wiki/${link.slug}/`,
     infoUrl: `${origin}/wiki/${link.slug}/info/`,
     infoJsonUrl: `${origin}/wiki/${link.slug}/info.json`,
