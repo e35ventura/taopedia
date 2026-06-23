@@ -27,9 +27,9 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
   assert.deepEqual(
     articles,
     [
-      { slug: 'subnet_2', title: 'Subnet 2', summary: 'two' },
-      { slug: 'subnet_9', title: 'Subnet 9', summary: '' },
-      { slug: 'subnet_10', title: 'Subnet 10', summary: '' },
+      { slug: 'subnet_2', title: 'Subnet 2', summary: 'two', categories: [] },
+      { slug: 'subnet_9', title: 'Subnet 9', summary: '', categories: [] },
+      { slug: 'subnet_10', title: 'Subnet 10', summary: '', categories: [] },
     ],
     'helper must dedupe category members, skip missing slugs, and sort numerically by title',
   );
@@ -55,6 +55,7 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
         slug: 'subnet_2',
         title: 'Subnet 2',
         summary: 'two',
+        categories: [],
         url: `${ORIGIN}/wiki/subnet_2/`,
         infoUrl: `${ORIGIN}/wiki/subnet_2/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/subnet_2/info.json`,
@@ -75,6 +76,7 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
         slug: 'subnet_9',
         title: 'Subnet 9',
         summary: null,
+        categories: [],
         url: `${ORIGIN}/wiki/subnet_9/`,
         infoUrl: `${ORIGIN}/wiki/subnet_9/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/subnet_9/info.json`,
@@ -95,6 +97,7 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
         slug: 'subnet_10',
         title: 'Subnet 10',
         summary: null,
+        categories: [],
         url: `${ORIGIN}/wiki/subnet_10/`,
         infoUrl: `${ORIGIN}/wiki/subnet_10/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/subnet_10/info.json`,
