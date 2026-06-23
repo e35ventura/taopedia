@@ -77,6 +77,7 @@ const hasAlternateLink = (linkTags, type, href) =>
         url: `${ORIGIN}/wiki/subnet_9/`,
         image: `${ORIGIN}/og/subnet_9.png`,
         description: 'Edited by Alice: Fix title & improve <summary>',
+        categories: [],
         datePublished: '2026-06-21T10:53:45.000Z',
         dateModified: '2026-06-21T10:53:45.000Z',
       },
@@ -86,11 +87,26 @@ const hasAlternateLink = (linkTags, type, href) =>
         url: `${ORIGIN}/wiki/subnet_10/`,
         image: `${ORIGIN}/og/subnet_10.png`,
         description: 'Edited by Bob',
+        categories: [],
         datePublished: '2026-06-21T09:28:57.000Z',
         dateModified: '2026-06-21T09:28:57.000Z',
       },
     ],
     'helper must build stable Atom items with per-event ids, canonical URLs, OG images, and summaries even when multiple articles share one revision sha',
+  );
+
+  // categories come from categoriesBySlug (the article's topics), matching the
+  // RSS and JSON Feed recentchanges items so all three feed formats expose the
+  // same per-change topic categories.
+  const withCategories = buildRecentChangesAtomItems({
+    origin: ORIGIN,
+    changes: [{ slug: 'subnet_9', title: 'Subnet 9', sha: 'abc123', date: '2026-06-21T10:53:45.000Z', authorName: 'Alice', message: 'x' }],
+    categoriesBySlug: { subnet_9: ['Subnets', 'Consensus'] },
+  });
+  assert.deepEqual(
+    withCategories[0].categories,
+    ['Subnets', 'Consensus'],
+    'Atom recentchanges items must carry the article topic categories from categoriesBySlug (parity with RSS/JSON Feed)',
   );
 }
 
@@ -213,6 +229,17 @@ for (let i = 0; i < limitedChanges.length; i++) {
 
   const expectedSummary = recentChangeSummary(expected);
   assert.equal(entrySummary, expectedSummary, `entry ${i}: summary must match the author/message summary`);
+
+  // Per-change topic categories must appear as <category term="..."> — parity
+  // with the recentchanges RSS (<category>) and JSON Feed (tags) siblings, which
+  // already expose the article's topics for the same change event.
+  const expectedCategories = Array.isArray(slugmap[expected.slug]?.categories) ? slugmap[expected.slug].categories : [];
+  const entryCategoryTerms = [...entry.matchAll(/<category term="([^"]*)" \/>/g)].map(([, term]) => decodeXml(term));
+  assert.deepEqual(
+    entryCategoryTerms,
+    expectedCategories,
+    `entry ${i}: <category term> list must equal the article's topics for ${expected.slug} (parity with the RSS/JSON-Feed recentchanges siblings)`,
+  );
 }
 
 const htmlRows = [...html.matchAll(/<li[^>]*class="mw-rc-row"[^>]*>([\s\S]*?)<\/li>/g)].map(([, block]) => ({
