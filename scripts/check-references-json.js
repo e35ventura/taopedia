@@ -74,6 +74,9 @@ const ORIGIN = 'https://taopedia.org';
         backlinksJsonUrl: `${ORIGIN}/wiki/delta/backlinks.json`,
         historyUrl: `${ORIGIN}/wiki/delta/history/`,
         historyJsonUrl: `${ORIGIN}/wiki/delta/history.json`,
+        citeUrl: `${ORIGIN}/wiki/delta/cite/`,
+        citeJsonUrl: `${ORIGIN}/wiki/delta/cite.json`,
+        bibtexUrl: `${ORIGIN}/wiki/delta/cite.bib`,
       },
       {
         slug: 'alpha',
@@ -85,6 +88,9 @@ const ORIGIN = 'https://taopedia.org';
         backlinksJsonUrl: `${ORIGIN}/wiki/alpha/backlinks.json`,
         historyUrl: `${ORIGIN}/wiki/alpha/history/`,
         historyJsonUrl: `${ORIGIN}/wiki/alpha/history.json`,
+        citeUrl: `${ORIGIN}/wiki/alpha/cite/`,
+        citeJsonUrl: `${ORIGIN}/wiki/alpha/cite.json`,
+        bibtexUrl: `${ORIGIN}/wiki/alpha/cite.bib`,
       },
       {
         slug: 'gamma',
@@ -96,6 +102,9 @@ const ORIGIN = 'https://taopedia.org';
         backlinksJsonUrl: `${ORIGIN}/wiki/gamma/backlinks.json`,
         historyUrl: `${ORIGIN}/wiki/gamma/history/`,
         historyJsonUrl: `${ORIGIN}/wiki/gamma/history.json`,
+        citeUrl: `${ORIGIN}/wiki/gamma/cite/`,
+        citeJsonUrl: `${ORIGIN}/wiki/gamma/cite.json`,
+        bibtexUrl: `${ORIGIN}/wiki/gamma/cite.bib`,
       },
       {
         slug: 'beta',
@@ -107,6 +116,9 @@ const ORIGIN = 'https://taopedia.org';
         backlinksJsonUrl: `${ORIGIN}/wiki/beta/backlinks.json`,
         historyUrl: `${ORIGIN}/wiki/beta/history/`,
         historyJsonUrl: `${ORIGIN}/wiki/beta/history.json`,
+        citeUrl: `${ORIGIN}/wiki/beta/cite/`,
+        citeJsonUrl: `${ORIGIN}/wiki/beta/cite.json`,
+        bibtexUrl: `${ORIGIN}/wiki/beta/cite.bib`,
       },
     ],
     'builder: reference entry shape',
@@ -259,6 +271,21 @@ for (const slug of articleSlugs) {
       entry.historyJsonUrl,
       `${ORIGIN}/wiki/${entry.slug}/history.json`,
       `${slug}: every reference entry historyJsonUrl must be the canonical article history.json URL`,
+    );
+    assert.equal(
+      entry.citeUrl,
+      `${ORIGIN}/wiki/${entry.slug}/cite/`,
+      `${slug}: every reference entry citeUrl must be the canonical article cite page`,
+    );
+    assert.equal(
+      entry.citeJsonUrl,
+      `${ORIGIN}/wiki/${entry.slug}/cite.json`,
+      `${slug}: every reference entry citeJsonUrl must be the canonical article cite.json URL`,
+    );
+    assert.equal(
+      entry.bibtexUrl,
+      `${ORIGIN}/wiki/${entry.slug}/cite.bib`,
+      `${slug}: every reference entry bibtexUrl must be the canonical article cite.bib URL`,
     );
   }
 
