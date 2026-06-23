@@ -41,6 +41,7 @@ export interface RelatedPage {
 export interface ArticleRelatedPagesDocument {
   slug: string;
   title: string;
+  categories: string[];
   url: string;
   relatedUrl: string;
   historyUrl: string;
@@ -144,16 +145,23 @@ export function buildArticleRelatedPages({
   slug,
   title,
   origin,
+  categories = [],
   relatedPages = [],
 }: {
   slug: string;
   title: string;
   origin: string;
+  categories?: string[];
   relatedPages?: RelatedPage[];
 }): ArticleRelatedPagesDocument {
   return {
     slug,
     title,
+    // The article's own topics, the same field the history.json and info.json
+    // envelopes expose, so a consumer of related.json can see what the article
+    // is tagged with (and why a related page shares its tags) without a second
+    // fetch. The per-related-entry `tags` already expose each candidate's topics.
+    categories,
     url: `${origin}/wiki/${slug}/`,
     relatedUrl: `${origin}/wiki/${slug}/related.json`,
     historyUrl: `${origin}/wiki/${slug}/history/`,

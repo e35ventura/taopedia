@@ -37,6 +37,7 @@ export async function getStaticPaths() {
       props: {
         slug,
         title: page.data.title,
+        categories: page.data.categories ?? [],
         relatedPages: getRelatedPages({
           slug,
           slugMap,
@@ -56,14 +57,15 @@ export async function getStaticPaths() {
 // ordering, summaries, and topic tags stay aligned without introducing an HTML
 // subpage or any visual diff.
 export const GET: APIRoute = async ({ props, site }) => {
-  const { slug, title, relatedPages } = props as {
+  const { slug, title, categories, relatedPages } = props as {
     slug: string;
     title: string;
+    categories: string[];
     relatedPages: Array<{ slug: string; title: string; summary: string; tags: string[] }>;
   };
   const origin = (site ?? new URL('https://taopedia.org')).origin;
 
-  const body = JSON.stringify(buildArticleRelatedPages({ slug, title, origin, relatedPages }), null, 2);
+  const body = JSON.stringify(buildArticleRelatedPages({ slug, title, origin, categories, relatedPages }), null, 2);
 
   return new Response(body, {
     headers: { 'Content-Type': 'application/json; charset=utf-8' },
