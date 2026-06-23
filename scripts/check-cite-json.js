@@ -183,6 +183,11 @@ for (const slug of articleSlugs) {
     `${ORIGIN}/wiki/${slug}/related.json`,
     `cite.json relatedUrl must point at the sibling related.json endpoint for ${slug}`,
   );
+  assert.equal(
+    doc.imageUrl,
+    `${ORIGIN}/og/${slug}.png`,
+    `cite.json imageUrl must point at the article's OG share-card image for ${slug}`,
+  );
   if (date) {
     assert.equal(doc.date, date, `cite.json date must equal the article's last-revision date for ${slug}`);
   } else {
