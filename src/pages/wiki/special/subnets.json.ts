@@ -12,11 +12,28 @@ import { buildSubnets } from '../../../../scripts/subnets.js';
 // derive from one source of truth, and the netuid-numeric sort and "Subnet
 // <n>: <name>" parsing are identical to the page renders.
 
+// The inbound-link graph is the same public/data/backlinks.json the HTML
+// "What links here" page and mostlinkedpages.json / allpages.json read, so the
+// per-subnet inbound count below matches those surfaces exactly.
+const backlinksModules = import.meta.glob('../../../../public/data/backlinks.json', { eager: true }) as Record<
+  string,
+  { default?: Record<string, Array<{ from: string }>> }
+>;
+const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
+
 export const GET: APIRoute = async ({ site }) => {
   const origin = (site ?? new URL('https://taopedia.org')).origin;
   const pages = await getCollection('pages');
 
   const subnets = buildSubnets({ pages, getPageSlug });
+
+  // Count only inbound links from OTHER published articles — the same
+  // orphan-skipping, published-only inbound count mostlinkedpages.json /
+  // allpages.json expose per entry and info.json exposes as incomingLinks — so a
+  // subnet dashboard can rank subnets by how often the wiki references them.
+  const publishedSlugs = new Set(pages.map((page) => getPageSlug(page)));
+  const inboundCount = (slug: string) =>
+    (backlinksData[slug] ?? []).filter((link) => publishedSlugs.has(link?.from)).length;
 
   const body = JSON.stringify(
     {
@@ -43,6 +60,7 @@ export const GET: APIRoute = async ({ site }) => {
         tocJsonUrl: `${origin}/wiki/${subnet.slug}/toc.json`,
         imageUrl: `${origin}/og/${subnet.slug}.png`,
         categories: subnet.categories,
+        backlinks: inboundCount(subnet.slug),
       })),
     },
     null,

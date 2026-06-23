@@ -119,6 +119,18 @@ assert.ok(fs.existsSync(slugmapFile), 'public/data/slugmap.json not found; run t
 const data = JSON.parse(fs.readFileSync(distFile, 'utf8'));
 const slugmap = JSON.parse(fs.readFileSync(slugmapFile, 'utf8'));
 
+// The inbound-link graph (the same public/data/backlinks.json the endpoint,
+// mostlinkedpages.json and allpages.json read) is independent ground truth for
+// each subnet's `backlinks` count. Re-derive the published-only inbound count
+// here — the published set is every slug in the slug map — so a regression in
+// the endpoint's counting cannot pass by agreeing with itself.
+const backlinksFile = path.join(projectRoot, 'public', 'data', 'backlinks.json');
+assert.ok(fs.existsSync(backlinksFile), 'public/data/backlinks.json not found; run the build first');
+const backlinksData = JSON.parse(fs.readFileSync(backlinksFile, 'utf8'));
+const publishedSlugs = new Set(Object.keys(slugmap));
+const expectedInbound = (slug) =>
+  (backlinksData[slug] ?? []).filter((link) => publishedSlugs.has(link?.from)).length;
+
 // site — non-empty URL/origin string.
 assert.ok(
   typeof data.site === 'string' && /^https?:\/\//.test(data.site),
@@ -275,6 +287,20 @@ data.subnets.forEach((row, i) => {
     expectedCategories,
     `row ${i} categories must match the slug-map categories`,
   );
+  // backlinks is the subnet article's inbound-link count from OTHER published
+  // articles — the same published-only, orphan-skipping metric
+  // mostlinkedpages.json / allpages.json expose per entry and info.json exposes
+  // as incomingLinks. Assert it against the raw backlink graph (independent
+  // source) so the count cannot drift.
+  assert.ok(
+    Number.isInteger(row.backlinks) && row.backlinks >= 0,
+    `row ${i} backlinks must be a non-negative integer (got ${JSON.stringify(row.backlinks)})`,
+  );
+  assert.equal(
+    row.backlinks,
+    expectedInbound(row.slug),
+    `row ${i} backlinks must equal the published inbound-link count for ${row.slug}`,
+  );
   // Every slug must point to a built article. The article's TITLE in the slug
   // map is the full "Subnet <n>: <name>" string — row.name is just the split
   // name (e.g. "Apex"), not the full title, so check that the slug map title
@@ -289,6 +315,14 @@ data.subnets.forEach((row, i) => {
     `row ${i} links to an unbuilt article /wiki/${row.slug}/`,
   );
 });
+
+// At least one subnet must carry a non-zero inbound count — subnets are among
+// the most-referenced articles on the wiki — so this proves the metric is
+// actually computed end-to-end and not stuck at zero for every row.
+assert.ok(
+  data.subnets.some((row) => row.backlinks > 0),
+  'at least one subnet must have a non-zero backlinks count (the metric must be populated, not all-zero)',
+);
 
 // Numeric ascending order (the bug if anyone reintroduces lexicographic sort).
 for (let i = 1; i < data.subnets.length; i++) {
