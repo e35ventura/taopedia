@@ -16,9 +16,10 @@ export const getArticleReferences = ({ slug, linkGraph = {}, titleBySlug = {} })
   return references.sort((a, b) => compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug));
 };
 
-export const buildArticleReferences = ({ slug, title, origin, categories = [], references = [] }) => ({
+export const buildArticleReferences = ({ slug, title, origin, summary = '', categories = [], references = [] }) => ({
   slug,
   title,
+  summary: summary || null,
   url: `${origin}/wiki/${slug}/`,
   referencesUrl: `${origin}/wiki/${slug}/references.json`,
   historyUrl: `${origin}/wiki/${slug}/history/`,
