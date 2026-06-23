@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
-import { getPageSlug } from '../../../lib/article-history';
+import { getPageSlug, historyForSlug } from '../../../lib/article-history';
 import { buildArticleRelatedPages, getRelatedPages } from '../../../lib/related-pages';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
 
@@ -41,6 +41,7 @@ export async function getStaticPaths() {
         summary: page.data.summary ?? '',
         categories: page.data.categories ?? [],
         incomingLinks: publishedInboundLinkCount(backlinksData, slug, titleBySlug),
+        revisionCount: historyForSlug(slug).length,
         relatedPages: getRelatedPages({
           slug,
           slugMap,
@@ -64,17 +65,18 @@ export async function getStaticPaths() {
 // ordering, summaries, and topic tags stay aligned without introducing an HTML
 // subpage or any visual diff.
 export const GET: APIRoute = async ({ props, site }) => {
-  const { slug, title, summary, categories, incomingLinks, relatedPages } = props as {
+  const { slug, title, summary, categories, incomingLinks, revisionCount, relatedPages } = props as {
     slug: string;
     title: string;
     summary: string;
     categories: string[];
     incomingLinks: number;
+    revisionCount: number;
     relatedPages: Array<{ slug: string; title: string; summary: string; tags: string[]; categories: string[]; backlinks: number }>;
   };
   const origin = (site ?? new URL('https://taopedia.org')).origin;
 
-  const body = JSON.stringify(buildArticleRelatedPages({ slug, title, origin, summary, categories, incomingLinks, relatedPages }), null, 2);
+  const body = JSON.stringify(buildArticleRelatedPages({ slug, title, origin, summary, categories, incomingLinks, revisionCount, relatedPages }), null, 2);
 
   return new Response(body, {
     headers: { 'Content-Type': 'application/json; charset=utf-8' },

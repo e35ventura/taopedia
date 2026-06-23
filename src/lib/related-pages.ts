@@ -50,6 +50,7 @@ export interface ArticleRelatedPagesDocument {
   summary: string | null;
   categories: string[];
   incomingLinks: number;
+  revisionCount: number;
   url: string;
   relatedUrl: string;
   historyUrl: string;
@@ -159,6 +160,7 @@ export function buildArticleRelatedPages({
   summary = '',
   categories = [],
   incomingLinks = 0,
+  revisionCount = 0,
   relatedPages = [],
 }: {
   slug: string;
@@ -167,6 +169,7 @@ export function buildArticleRelatedPages({
   summary?: string;
   categories?: string[];
   incomingLinks?: number;
+  revisionCount?: number;
   relatedPages?: RelatedPage[];
 }): ArticleRelatedPagesDocument {
   return {
@@ -186,6 +189,9 @@ export function buildArticleRelatedPages({
     // info.json / history.json / cite.json expose on their envelopes (via the
     // shared helper), so related.json can show link popularity without a refetch.
     incomingLinks,
+    // The article's revision count (its commit-history length) — the same figure
+    // info.json / history.json / cite.json expose on their envelopes.
+    revisionCount: Number.isFinite(revisionCount) ? revisionCount : 0,
     url: `${origin}/wiki/${slug}/`,
     relatedUrl: `${origin}/wiki/${slug}/related.json`,
     historyUrl: `${origin}/wiki/${slug}/history/`,
