@@ -139,6 +139,15 @@ for (const slug of articleSlugs) {
     `${ORIGIN}/wiki/${slug}/backlinks/`,
     `cite.json backlinksUrl must point at the sibling HTML backlinks page for ${slug}`,
   );
+  // backlinksJsonUrl is the JSON companion of backlinksUrl — cite.json already
+  // pairs citeUrl/citeJsonUrl and historyUrl/historyJsonUrl, and
+  // /wiki/<slug>/backlinks.json exists and is exposed by recentchanges.json /
+  // subnets.json, so pair backlinksUrl with its machine-readable companion too.
+  assert.equal(
+    doc.backlinksJsonUrl,
+    `${ORIGIN}/wiki/${slug}/backlinks.json`,
+    `cite.json backlinksJsonUrl must point at the sibling machine-readable backlinks endpoint for ${slug}`,
+  );
   if (date) {
     assert.equal(doc.date, date, `cite.json date must equal the article's last-revision date for ${slug}`);
   } else {
