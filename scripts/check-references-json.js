@@ -71,6 +71,7 @@ const ORIGIN = 'https://taopedia.org';
         slug: 'delta',
         title: 'Delta',
         summary: null,
+        categories: [],
         url: `${ORIGIN}/wiki/delta/`,
         infoUrl: `${ORIGIN}/wiki/delta/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/delta/info.json`,
@@ -90,6 +91,7 @@ const ORIGIN = 'https://taopedia.org';
         slug: 'alpha',
         title: 'Subnet 2',
         summary: null,
+        categories: [],
         url: `${ORIGIN}/wiki/alpha/`,
         infoUrl: `${ORIGIN}/wiki/alpha/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/alpha/info.json`,
@@ -109,6 +111,7 @@ const ORIGIN = 'https://taopedia.org';
         slug: 'gamma',
         title: 'Subnet 9',
         summary: null,
+        categories: [],
         url: `${ORIGIN}/wiki/gamma/`,
         infoUrl: `${ORIGIN}/wiki/gamma/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/gamma/info.json`,
@@ -128,6 +131,7 @@ const ORIGIN = 'https://taopedia.org';
         slug: 'beta',
         title: 'Subnet 10',
         summary: null,
+        categories: [],
         url: `${ORIGIN}/wiki/beta/`,
         infoUrl: `${ORIGIN}/wiki/beta/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/beta/info.json`,
@@ -278,6 +282,10 @@ for (const slug of articleSlugs) {
     // when blank), the same per-entry field the listing endpoints / related.json expose.
     const expectedSummary = slugmap[entry.slug]?.summary || null;
     assert.deepEqual(entry.summary, expectedSummary, `${slug}: every reference entry summary must match the referenced article's slug-map summary (or null)`);
+    // categories mirror the referenced article's own topic categories from the
+    // slug map, the same per-entry field the listing endpoints / backlinks entries expose.
+    const expectedEntryCategories = Array.isArray(slugmap[entry.slug]?.categories) ? slugmap[entry.slug].categories : [];
+    assert.deepEqual(entry.categories, expectedEntryCategories, `${slug}: every reference entry categories must match the referenced article's slug-map categories`);
     assert.equal(
       entry.infoUrl,
       `${ORIGIN}/wiki/${entry.slug}/info/`,

@@ -13,12 +13,14 @@ export async function getStaticPaths() {
   const pages = await getCollection('pages');
   const titleBySlug = Object.fromEntries(pages.map((page) => [getPageSlug(page), page.data.title]));
   const summaryBySlug = Object.fromEntries(pages.map((page) => [getPageSlug(page), page.data.summary ?? '']));
+  const categoriesBySlug = Object.fromEntries(pages.map((page) => [getPageSlug(page), page.data.categories ?? []]));
 
   return pages.map((page) => {
     const slug = getPageSlug(page);
     const references = getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).map((ref) => ({
       ...ref,
       summary: summaryBySlug[ref.slug] ?? '',
+      categories: categoriesBySlug[ref.slug] ?? [],
     }));
     return {
       params: { slug },
@@ -43,7 +45,7 @@ export const GET: APIRoute = async ({ props, site }) => {
     title: string;
     summary: string;
     categories: string[];
-    references: Array<{ slug: string; title: string; summary: string }>;
+    references: Array<{ slug: string; title: string; summary: string; categories: string[] }>;
   };
   const origin = (site ?? new URL('https://taopedia.org')).origin;
 
