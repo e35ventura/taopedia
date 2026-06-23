@@ -34,7 +34,8 @@ export const GET: APIRoute = async ({ site, props }) => {
     incomingLinks: number;
   };
   const url = new URL(`/wiki/${slug}/`, site ?? new URL('https://taopedia.org')).toString();
-  const date = historyForSlug(slug)[0]?.date ?? '';
+  const history = historyForSlug(slug);
+  const date = history[0]?.date ?? '';
   const citations = buildCitations({ title: page.data.title, url, slug, date });
 
   const body = JSON.stringify(
@@ -58,6 +59,11 @@ export const GET: APIRoute = async ({ site, props }) => {
       imageUrl: new URL(`/og/${slug}.png`, site ?? new URL('https://taopedia.org')).toString(),
       categories: page.data.categories ?? [],
       incomingLinks: Number.isFinite(incomingLinks) ? incomingLinks : 0,
+      // The article's revision count — the same figure info.json and history.json
+      // expose on their envelopes (the length of the article's commit history) —
+      // so a consumer citing the article can record how many times it was revised
+      // without a second fetch.
+      revisionCount: history.length,
       ...(date ? { date } : {}),
       ...CITATION_META,
       citations,

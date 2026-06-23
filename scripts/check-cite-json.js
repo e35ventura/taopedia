@@ -95,6 +95,13 @@ const lastRevisionOf = (slug) => {
   return typeof history[0]?.date === 'string' ? history[0].date : '';
 };
 
+const revisionCountOf = (slug) => {
+  const file = path.join(historyDir, `${slug}.json`);
+  if (!fs.existsSync(file)) return 0;
+  const history = JSON.parse(fs.readFileSync(file, 'utf8')).history || [];
+  return Array.isArray(history) ? history.length : 0;
+};
+
 let datedVerified = 0;
 let undatedVerified = 0;
 for (const slug of articleSlugs) {
@@ -222,6 +229,18 @@ for (const slug of articleSlugs) {
     `cite.json incomingLinks must match the published inbound-link count for ${slug}`,
   );
   assert.ok(Number.isInteger(doc.incomingLinks) && doc.incomingLinks >= 0, `cite.json incomingLinks must be a non-negative integer for ${slug}`);
+  // revisionCount is the article's revision count — the same figure info.json
+  // and history.json expose (the length of the article's commit history).
+  // Re-derive it from the raw history file (independent source) so it can't drift.
+  assert.ok(
+    Number.isInteger(doc.revisionCount) && doc.revisionCount >= 0,
+    `cite.json revisionCount must be a non-negative integer for ${slug}`,
+  );
+  assert.equal(
+    doc.revisionCount,
+    revisionCountOf(slug),
+    `cite.json revisionCount must equal the article's commit-history length for ${slug}`,
+  );
   const infoJsonFile = path.join(wikiDir, slug, 'info.json');
   if (fs.existsSync(infoJsonFile)) {
     const infoDoc = JSON.parse(fs.readFileSync(infoJsonFile, 'utf8'));
@@ -229,6 +248,11 @@ for (const slug of articleSlugs) {
       doc.incomingLinks,
       infoDoc.incomingLinks,
       `cite.json incomingLinks must agree with the sibling info.json envelope for ${slug}`,
+    );
+    assert.equal(
+      doc.revisionCount,
+      infoDoc.revisionCount,
+      `cite.json revisionCount must agree with the sibling info.json envelope for ${slug}`,
     );
   }
   if (date) {
