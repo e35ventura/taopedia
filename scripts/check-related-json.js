@@ -62,6 +62,7 @@ const ORIGIN = 'https://taopedia.org';
     summary: 'The source article.',
     categories: ['Security', 'Consensus'],
     incomingLinks: 9,
+    revisionCount: 14,
     relatedPages,
   });
   assert.equal(doc.slug, 'source', 'builder: slug field');
@@ -71,6 +72,7 @@ const ORIGIN = 'https://taopedia.org';
   // the same field history.json / info.json envelopes expose.
   assert.deepEqual(doc.categories, ['Security', 'Consensus'], 'builder: categories field threaded verbatim');
   assert.equal(doc.incomingLinks, 9, 'builder: incomingLinks field');
+  assert.equal(doc.revisionCount, 14, 'builder: revisionCount field threaded verbatim');
   assert.equal(doc.url, `${ORIGIN}/wiki/source/`, 'builder: url field');
   assert.equal(doc.relatedUrl, `${ORIGIN}/wiki/source/related.json`, 'builder: relatedUrl self field');
   assert.equal(doc.historyUrl, `${ORIGIN}/wiki/source/history/`, 'builder: historyUrl cross-link');
@@ -165,6 +167,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.deepEqual(empty.categories, [], 'builder: categories defaults to [] when omitted');
   assert.equal(empty.summary, null, 'builder: summary defaults to null when omitted');
   assert.equal(empty.incomingLinks, 0, 'builder: incomingLinks defaults to 0 when omitted');
+  assert.equal(empty.revisionCount, 0, 'builder: revisionCount defaults to 0 when omitted');
 }
 
 // ---- 2) Built-output checks -----------------------------------------------
@@ -264,6 +267,23 @@ for (const slug of articleSlugs) {
     publishedInboundLinkCount(backlinksData, slug, titleBySlug),
     `${slug}: related.json incomingLinks must equal the published inbound-link count`,
   );
+  // revisionCount is the article's revision count (its commit-history length) —
+  // the same figure info.json / history.json / cite.json expose on their
+  // envelopes. Cross-check it against the sibling built info.json (independent
+  // source) so the two envelopes can never disagree.
+  assert.ok(
+    Number.isInteger(doc.revisionCount) && doc.revisionCount >= 0,
+    `${slug}: related.json revisionCount must be a non-negative integer (got ${JSON.stringify(doc.revisionCount)})`,
+  );
+  const relInfoJsonFile = path.join(wikiDir, slug, 'info.json');
+  if (fs.existsSync(relInfoJsonFile)) {
+    const infoDoc = JSON.parse(fs.readFileSync(relInfoJsonFile, 'utf8'));
+    assert.equal(
+      doc.revisionCount,
+      infoDoc.revisionCount,
+      `${slug}: related.json revisionCount must agree with the sibling info.json envelope`,
+    );
+  }
   assert.equal(doc.url, `${ORIGIN}/wiki/${slug}/`, `${slug}: related.json url must be the canonical article URL`);
   assert.equal(
     doc.relatedUrl,
