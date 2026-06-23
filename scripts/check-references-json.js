@@ -44,7 +44,7 @@ const ORIGIN = 'https://taopedia.org';
     'helper must exclude self/missing targets, dedupe repeated targets, and sort numerically by title',
   );
 
-  const doc = buildArticleReferences({ slug: 'source', title: 'Source', origin: ORIGIN, references });
+  const doc = buildArticleReferences({ slug: 'source', title: 'Source', origin: ORIGIN, categories: ['Consensus'], references });
   assert.equal(doc.slug, 'source', 'builder: slug field');
   assert.equal(doc.title, 'Source', 'builder: title field');
   assert.equal(doc.url, `${ORIGIN}/wiki/source/`, 'builder: url field');
@@ -61,6 +61,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(doc.relatedUrl, `${ORIGIN}/wiki/source/related.json`, 'builder: relatedUrl cross-link');
   assert.equal(doc.tocJsonUrl, `${ORIGIN}/wiki/source/toc.json`, 'builder: tocJsonUrl cross-link');
   assert.equal(doc.imageUrl, `${ORIGIN}/og/source.png`, 'builder: imageUrl');
+  assert.deepEqual(doc.categories, ['Consensus'], 'builder: categories field');
   assert.equal(doc.count, 4, 'builder: count field');
   assert.deepEqual(
     doc.references,
@@ -144,6 +145,7 @@ const ORIGIN = 'https://taopedia.org';
   const empty = buildArticleReferences({ slug: 'orphan', title: 'Orphan', origin: ORIGIN });
   assert.equal(empty.count, 0, 'builder: empty count is 0');
   assert.deepEqual(empty.references, [], 'builder: empty references is []');
+  assert.deepEqual(empty.categories, [], 'builder: default categories is []');
 }
 
 // ---- 2) Built-output checks -----------------------------------------------
@@ -240,6 +242,10 @@ for (const slug of articleSlugs) {
   assert.equal(doc.tocJsonUrl, `${ORIGIN}/wiki/${slug}/toc.json`, `${slug}: references.json tocJsonUrl must be the canonical article toc.json URL`);
   // imageUrl is the article's own OG share-card (/og/<slug>.png).
   assert.equal(doc.imageUrl, `${ORIGIN}/og/${slug}.png`, `${slug}: references.json imageUrl must be the article's OG share-card URL`);
+  // categories must match the article's topic categories from the slug map,
+  // the same source backlinks.json and history.json use.
+  const expectedCategories = slugmap[slug]?.categories ?? [];
+  assert.deepEqual(doc.categories, expectedCategories, `${slug}: references.json categories must match the article's topic categories from the slug map`);
   assert.equal(typeof doc.count, 'number', `${slug}: references.json count must be a number`);
   assert.ok(Array.isArray(doc.references), `${slug}: references.json references must be an array`);
   assert.equal(doc.count, doc.references.length, `${slug}: references.json count must equal references.length`);
