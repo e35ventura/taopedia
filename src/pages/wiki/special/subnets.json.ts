@@ -39,6 +39,7 @@ export const GET: APIRoute = async ({ site }) => {
         bibtexUrl: `${origin}/wiki/${subnet.slug}/cite.bib`,
         referencesUrl: `${origin}/wiki/${subnet.slug}/references.json`,
         relatedUrl: `${origin}/wiki/${subnet.slug}/related.json`,
+        tocJsonUrl: `${origin}/wiki/${subnet.slug}/toc.json`,
         imageUrl: `${origin}/og/${subnet.slug}.png`,
       })),
     },
