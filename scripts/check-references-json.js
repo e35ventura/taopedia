@@ -81,6 +81,7 @@ const ORIGIN = 'https://taopedia.org';
         referencesUrl: `${ORIGIN}/wiki/delta/references.json`,
         relatedUrl: `${ORIGIN}/wiki/delta/related.json`,
         tocJsonUrl: `${ORIGIN}/wiki/delta/toc.json`,
+        imageUrl: `${ORIGIN}/og/delta.png`,
       },
       {
         slug: 'alpha',
@@ -98,6 +99,7 @@ const ORIGIN = 'https://taopedia.org';
         referencesUrl: `${ORIGIN}/wiki/alpha/references.json`,
         relatedUrl: `${ORIGIN}/wiki/alpha/related.json`,
         tocJsonUrl: `${ORIGIN}/wiki/alpha/toc.json`,
+        imageUrl: `${ORIGIN}/og/alpha.png`,
       },
       {
         slug: 'gamma',
@@ -115,6 +117,7 @@ const ORIGIN = 'https://taopedia.org';
         referencesUrl: `${ORIGIN}/wiki/gamma/references.json`,
         relatedUrl: `${ORIGIN}/wiki/gamma/related.json`,
         tocJsonUrl: `${ORIGIN}/wiki/gamma/toc.json`,
+        imageUrl: `${ORIGIN}/og/gamma.png`,
       },
       {
         slug: 'beta',
@@ -132,6 +135,7 @@ const ORIGIN = 'https://taopedia.org';
         referencesUrl: `${ORIGIN}/wiki/beta/references.json`,
         relatedUrl: `${ORIGIN}/wiki/beta/related.json`,
         tocJsonUrl: `${ORIGIN}/wiki/beta/toc.json`,
+        imageUrl: `${ORIGIN}/og/beta.png`,
       },
     ],
     'builder: reference entry shape',
@@ -297,6 +301,7 @@ for (const slug of articleSlugs) {
     assert.equal(entry.referencesUrl, `${ORIGIN}/wiki/${entry.slug}/references.json`, `${slug}: every reference entry referencesUrl must be canonical`);
     assert.equal(entry.relatedUrl, `${ORIGIN}/wiki/${entry.slug}/related.json`, `${slug}: every reference entry relatedUrl must be canonical`);
     assert.equal(entry.tocJsonUrl, `${ORIGIN}/wiki/${entry.slug}/toc.json`, `${slug}: every reference entry tocJsonUrl must be the canonical article toc.json URL`);
+    assert.equal(entry.imageUrl, `${ORIGIN}/og/${entry.slug}.png`, `${slug}: every reference entry imageUrl must be the referenced article's OG share-card URL`);
   }
 
   if (doc.count > 0) withReferences++;
