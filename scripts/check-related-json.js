@@ -89,6 +89,11 @@ const ORIGIN = 'https://taopedia.org';
         backlinksUrl: `${ORIGIN}/wiki/alpha/backlinks/`,
         historyUrl: `${ORIGIN}/wiki/alpha/history/`,
         historyJsonUrl: `${ORIGIN}/wiki/alpha/history.json`,
+        citeUrl: `${ORIGIN}/wiki/alpha/cite/`,
+        citeJsonUrl: `${ORIGIN}/wiki/alpha/cite.json`,
+        bibtexUrl: `${ORIGIN}/wiki/alpha/cite.bib`,
+        referencesUrl: `${ORIGIN}/wiki/alpha/references.json`,
+        relatedUrl: `${ORIGIN}/wiki/alpha/related.json`,
       },
       {
         slug: 'gamma',
@@ -100,6 +105,11 @@ const ORIGIN = 'https://taopedia.org';
         backlinksUrl: `${ORIGIN}/wiki/gamma/backlinks/`,
         historyUrl: `${ORIGIN}/wiki/gamma/history/`,
         historyJsonUrl: `${ORIGIN}/wiki/gamma/history.json`,
+        citeUrl: `${ORIGIN}/wiki/gamma/cite/`,
+        citeJsonUrl: `${ORIGIN}/wiki/gamma/cite.json`,
+        bibtexUrl: `${ORIGIN}/wiki/gamma/cite.bib`,
+        referencesUrl: `${ORIGIN}/wiki/gamma/references.json`,
+        relatedUrl: `${ORIGIN}/wiki/gamma/related.json`,
       },
       {
         slug: 'delta',
@@ -111,6 +121,11 @@ const ORIGIN = 'https://taopedia.org';
         backlinksUrl: `${ORIGIN}/wiki/delta/backlinks/`,
         historyUrl: `${ORIGIN}/wiki/delta/history/`,
         historyJsonUrl: `${ORIGIN}/wiki/delta/history.json`,
+        citeUrl: `${ORIGIN}/wiki/delta/cite/`,
+        citeJsonUrl: `${ORIGIN}/wiki/delta/cite.json`,
+        bibtexUrl: `${ORIGIN}/wiki/delta/cite.bib`,
+        referencesUrl: `${ORIGIN}/wiki/delta/references.json`,
+        relatedUrl: `${ORIGIN}/wiki/delta/related.json`,
       },
     ],
     'builder: related entry shape',
@@ -261,6 +276,15 @@ for (const slug of articleSlugs) {
       `${ORIGIN}/wiki/${entry.slug}/history.json`,
       `${slug}: every related entry historyJsonUrl must be the canonical article history.json URL`,
     );
+    // citeUrl / citeJsonUrl / bibtexUrl / referencesUrl / relatedUrl complete the
+    // per-entry companions to match the backlinks.json / references.json entry
+    // shape, so a consumer can reach a related article's citation, references, and
+    // related endpoints without reconstructing the routes.
+    assert.equal(entry.citeUrl, `${ORIGIN}/wiki/${entry.slug}/cite/`, `${slug}: every related entry citeUrl must be canonical`);
+    assert.equal(entry.citeJsonUrl, `${ORIGIN}/wiki/${entry.slug}/cite.json`, `${slug}: every related entry citeJsonUrl must be canonical`);
+    assert.equal(entry.bibtexUrl, `${ORIGIN}/wiki/${entry.slug}/cite.bib`, `${slug}: every related entry bibtexUrl must be canonical`);
+    assert.equal(entry.referencesUrl, `${ORIGIN}/wiki/${entry.slug}/references.json`, `${slug}: every related entry referencesUrl must be canonical`);
+    assert.equal(entry.relatedUrl, `${ORIGIN}/wiki/${entry.slug}/related.json`, `${slug}: every related entry relatedUrl must be canonical`);
     assert.ok(Array.isArray(entry.tags), `${slug}: every related entry must expose tags as an array`);
     assert.ok(entry.tags.length <= 2, `${slug}: related entry ${entry.slug} must expose at most two tags`);
   }
