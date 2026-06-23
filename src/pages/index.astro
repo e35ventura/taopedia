@@ -48,6 +48,45 @@ const featuredSubnets = buildSubnets({ pages, getPageSlug })
   .filter((subnet) => !/deprecated/i.test(subnet.name))
   .slice(0, 6);
 
+const browsePaths = [
+  {
+    label: 'Understand staking',
+    href: '/wiki/category/Staking/',
+    summary: 'Start with delegation, stake weight, validator permits, and unstaking concepts.',
+    links: [
+      { title: 'Staking', href: '/wiki/staking/' },
+      { title: 'Delegation', href: '/wiki/delegation/' },
+    ],
+  },
+  {
+    label: 'Operate a wallet',
+    href: '/wiki/category/Wallets/',
+    summary: 'Find key management, coldkey and hotkey, proxy, and recovery reference pages.',
+    links: [
+      { title: 'Wallets', href: '/wiki/wallets/' },
+      { title: 'Coldkey and hotkey', href: '/wiki/wallets_coldkey_hotkey/' },
+    ],
+  },
+  {
+    label: 'Explore subnet mechanics',
+    href: '/wiki/special/subnets/',
+    summary: 'Browse subnet pages alongside registration, markets, weights, and hyperparameters.',
+    links: [
+      { title: 'Subnet directory', href: '/wiki/special/subnets/' },
+      { title: 'Subnet protocol', href: '/wiki/subnet_protocol/' },
+    ],
+  },
+  {
+    label: 'Trace consensus signals',
+    href: '/wiki/category/Consensus/',
+    summary: 'Follow validator weights, trust, incentive mechanisms, and Yuma consensus terms.',
+    links: [
+      { title: 'Yuma Consensus', href: '/wiki/yuma_consensus/' },
+      { title: 'Validator weights', href: '/wiki/validator_weights/' },
+    ],
+  },
+];
+
 // Most recently updated articles, newest first — the one piece of information
 // the landing page otherwise never shows (it carries no dates at all). Reuses
 // the same allRecentChanges() source as Special:RecentChanges; that flattens to
@@ -327,6 +366,68 @@ const initialLetter = alphabet[0] ?? '#';
         line-height: 1.45;
       }
 
+      .path-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .path-card {
+        display: grid;
+        gap: 12px;
+        min-height: 100%;
+        padding: 16px;
+        border: 1px solid var(--border-color-subtle);
+        background: var(--background-color-base);
+      }
+
+      .path-card:hover {
+        border-color: var(--color-link);
+      }
+
+      .path-main {
+        color: var(--color-base);
+        text-decoration: none;
+      }
+
+      .path-main strong {
+        display: block;
+        color: var(--color-link);
+        font-size: 16px;
+      }
+
+      .path-main span {
+        display: block;
+        margin-top: 6px;
+        color: var(--color-base-subtle);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .path-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .path-links a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 28px;
+        padding: 0 9px;
+        border: 1px solid var(--border-color-subtle);
+        background: var(--background-color-interactive);
+        color: var(--color-link);
+        font-size: 12px;
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      .path-links a:hover {
+        border-color: var(--color-link);
+        text-decoration: none;
+      }
+
       .recent-list {
         margin: 0;
         padding: 0;
@@ -466,7 +567,8 @@ const initialLetter = alphabet[0] ?? '#';
         }
 
         .topic-grid,
-        .article-grid {
+        .article-grid,
+        .path-grid {
           grid-template-columns: 1fr;
         }
 
@@ -546,6 +648,28 @@ const initialLetter = alphabet[0] ?? '#';
               <strong>{category}</strong>
               <span>{categoryPages.length} article{categoryPages.length !== 1 ? 's' : ''}</span>
             </a>
+          ))}
+        </div>
+      </section>
+
+      <section class="home-section" aria-labelledby="browse-by-need-heading">
+        <div class="section-heading">
+          <h2 id="browse-by-need-heading">Browse By Need</h2>
+          <a href="/wiki/special/allpages">Open directory</a>
+        </div>
+        <div class="path-grid">
+          {browsePaths.map((path) => (
+            <article class="path-card">
+              <a class="path-main" href={path.href}>
+                <strong>{path.label}</strong>
+                <span>{path.summary}</span>
+              </a>
+              <div class="path-links" aria-label={`${path.label} shortcuts`}>
+                {path.links.map((link) => (
+                  <a href={link.href}>{link.title}</a>
+                ))}
+              </div>
+            </article>
           ))}
         </div>
       </section>

@@ -49,4 +49,59 @@ assert.ok(
   'home page must link articles with canonical trailing-slash URLs',
 );
 
-console.log(`Home links check passed (${canonicalArticleLinks.length} canonical article links)`);
+// The homepage's Browse By Need panel gives readers task-oriented starting
+// points before they commit to the full directory. Keep this as a visible
+// navigation contract, not just a style flourish: each card must render its
+// task label, primary destination, and canonical article shortcuts.
+const browseSectionMatch = html.match(
+  /<section[^>]*class="home-section"[^>]*aria-labelledby="browse-by-need-heading"[^>]*>[\s\S]*?<\/section>/,
+);
+assert.ok(browseSectionMatch, 'home page must render the Browse By Need section');
+
+const browseSection = browseSectionMatch[0];
+const expectedBrowsePaths = [
+  {
+    label: 'Understand staking',
+    href: '/wiki/category/Staking/',
+    articleHrefs: ['/wiki/staking/', '/wiki/delegation/'],
+  },
+  {
+    label: 'Operate a wallet',
+    href: '/wiki/category/Wallets/',
+    articleHrefs: ['/wiki/wallets/', '/wiki/wallets_coldkey_hotkey/'],
+  },
+  {
+    label: 'Explore subnet mechanics',
+    href: '/wiki/special/subnets/',
+    articleHrefs: ['/wiki/subnet_protocol/'],
+  },
+  {
+    label: 'Trace consensus signals',
+    href: '/wiki/category/Consensus/',
+    articleHrefs: ['/wiki/yuma_consensus/', '/wiki/validator_weights/'],
+  },
+];
+
+for (const path of expectedBrowsePaths) {
+  assert.ok(
+    browseSection.includes(path.label),
+    `Browse By Need section must include "${path.label}"`,
+  );
+  assert.ok(
+    browseSection.includes(`href="${path.href}"`),
+    `Browse By Need section must link "${path.label}" to ${path.href}`,
+  );
+
+  for (const href of path.articleHrefs) {
+    const slug = href.match(/^\/wiki\/([^/]+)\/$/)?.[1];
+    assert.ok(slug && articleSlugs.has(slug), `expected article shortcut ${href} to exist`);
+    assert.ok(
+      browseSection.includes(`href="${href}"`),
+      `Browse By Need section must include canonical shortcut ${href}`,
+    );
+  }
+}
+
+console.log(
+  `Home links check passed (${canonicalArticleLinks.length} canonical article links, ${expectedBrowsePaths.length} browse paths)`,
+);
