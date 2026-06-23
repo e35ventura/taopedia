@@ -51,6 +51,8 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(doc.referencesUrl, `${ORIGIN}/wiki/source/references.json`, 'builder: referencesUrl self field');
   assert.equal(doc.historyUrl, `${ORIGIN}/wiki/source/history/`, 'builder: historyUrl cross-link');
   assert.equal(doc.historyJsonUrl, `${ORIGIN}/wiki/source/history.json`, 'builder: historyJsonUrl cross-link');
+  assert.equal(doc.backlinksUrl, `${ORIGIN}/wiki/source/backlinks/`, 'builder: backlinksUrl cross-link');
+  assert.equal(doc.backlinksJsonUrl, `${ORIGIN}/wiki/source/backlinks.json`, 'builder: backlinksJsonUrl cross-link');
   assert.equal(doc.count, 4, 'builder: count field');
   assert.deepEqual(
     doc.references,
@@ -163,6 +165,11 @@ for (const slug of articleSlugs) {
   // expose, so a consumer of references.json can reach the article's history too.
   assert.equal(doc.historyUrl, `${ORIGIN}/wiki/${slug}/history/`, `${slug}: references.json historyUrl must be the canonical article history URL`);
   assert.equal(doc.historyJsonUrl, `${ORIGIN}/wiki/${slug}/history.json`, `${slug}: references.json historyJsonUrl must be the canonical article history.json URL`);
+  // backlinksUrl / backlinksJsonUrl cross-link to the article's What-links-here
+  // endpoint, completing the same history+backlinks self cross-link cite.json
+  // exposes, so a consumer of references.json can reach the article's backlinks too.
+  assert.equal(doc.backlinksUrl, `${ORIGIN}/wiki/${slug}/backlinks/`, `${slug}: references.json backlinksUrl must be the canonical article backlinks URL`);
+  assert.equal(doc.backlinksJsonUrl, `${ORIGIN}/wiki/${slug}/backlinks.json`, `${slug}: references.json backlinksJsonUrl must be the canonical article backlinks.json URL`);
   assert.equal(typeof doc.count, 'number', `${slug}: references.json count must be a number`);
   assert.ok(Array.isArray(doc.references), `${slug}: references.json references must be an array`);
   assert.equal(doc.count, doc.references.length, `${slug}: references.json count must equal references.length`);
