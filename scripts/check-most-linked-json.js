@@ -147,6 +147,14 @@ data.pages.forEach((row, i) => {
     `${data.site}/wiki/${row.slug}/backlinks.json`,
     `row ${i} backlinksJsonUrl must equal ${data.site}/wiki/${row.slug}/backlinks.json`,
   );
+  // imageUrl is the article's OG share-card (/og/<slug>.png) — each article
+  // binds its own card, so a dashboard of the top-ranked pages can render a
+  // per-article thumbnail without parsing the rendered HTML head.
+  assert.equal(
+    row.imageUrl,
+    `${data.site}/og/${row.slug}.png`,
+    `row ${i} imageUrl must equal ${data.site}/og/${row.slug}.png`,
+  );
 });
 for (let i = 1; i < data.pages.length; i++) {
   assert.ok(data.pages[i - 1].backlinks >= data.pages[i].backlinks, `rows must be sorted by backlinks descending (row ${i - 1} >= row ${i})`);
