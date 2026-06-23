@@ -43,6 +43,8 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.citeUrl, `${ORIGIN}/wiki/recycling/cite/`, 'builder: citeUrl field');
   assert.equal(result.citeJsonUrl, `${ORIGIN}/wiki/recycling/cite.json`, 'builder: citeJsonUrl field');
   assert.equal(result.bibtexUrl, `${ORIGIN}/wiki/recycling/cite.bib`, 'builder: bibtexUrl field');
+  assert.equal(result.referencesUrl, `${ORIGIN}/wiki/recycling/references.json`, 'builder: referencesUrl field');
+  assert.equal(result.relatedUrl, `${ORIGIN}/wiki/recycling/related.json`, 'builder: relatedUrl field');
   assert.equal(result.tocJsonUrl, `${ORIGIN}/wiki/recycling/toc.json`, 'builder: tocJsonUrl field');
   assert.equal(result.count, 2, 'builder: count equals backlinks length');
   assert.equal(result.backlinks.length, 2, 'builder: backlinks array length');
@@ -133,6 +135,10 @@ for (const slug of articleSlugs) {
   assert.equal(doc.citeUrl, `${ORIGIN}/wiki/${slug}/cite/`, `${slug}: backlinks.json citeUrl must point to the Cite-this-page hub`);
   assert.equal(doc.citeJsonUrl, `${ORIGIN}/wiki/${slug}/cite.json`, `${slug}: backlinks.json citeJsonUrl must point to the cite.json hub`);
   assert.equal(doc.bibtexUrl, `${ORIGIN}/wiki/${slug}/cite.bib`, `${slug}: backlinks.json bibtexUrl must point to the BibTeX export`);
+  // referencesUrl / relatedUrl cross-link to the article's outbound-link and
+  // related-pages JSON endpoints on the envelope (entries already expose both).
+  assert.equal(doc.referencesUrl, `${ORIGIN}/wiki/${slug}/references.json`, `${slug}: backlinks.json referencesUrl must point to the references.json hub`);
+  assert.equal(doc.relatedUrl, `${ORIGIN}/wiki/${slug}/related.json`, `${slug}: backlinks.json relatedUrl must point to the related.json hub`);
   // tocJsonUrl cross-links to the article's table-of-contents JSON, the same
   // companion the history.json / related.json envelopes and the directory
   // entries expose, so a consumer of backlinks.json can reach the article's TOC.
