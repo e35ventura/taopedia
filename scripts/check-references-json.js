@@ -58,24 +58,28 @@ const ORIGIN = 'https://taopedia.org';
         title: 'Delta',
         url: `${ORIGIN}/wiki/delta/`,
         historyUrl: `${ORIGIN}/wiki/delta/history/`,
+        historyJsonUrl: `${ORIGIN}/wiki/delta/history.json`,
       },
       {
         slug: 'alpha',
         title: 'Subnet 2',
         url: `${ORIGIN}/wiki/alpha/`,
         historyUrl: `${ORIGIN}/wiki/alpha/history/`,
+        historyJsonUrl: `${ORIGIN}/wiki/alpha/history.json`,
       },
       {
         slug: 'gamma',
         title: 'Subnet 9',
         url: `${ORIGIN}/wiki/gamma/`,
         historyUrl: `${ORIGIN}/wiki/gamma/history/`,
+        historyJsonUrl: `${ORIGIN}/wiki/gamma/history.json`,
       },
       {
         slug: 'beta',
         title: 'Subnet 10',
         url: `${ORIGIN}/wiki/beta/`,
         historyUrl: `${ORIGIN}/wiki/beta/history/`,
+        historyJsonUrl: `${ORIGIN}/wiki/beta/history.json`,
       },
     ],
     'builder: reference entry shape',
@@ -174,6 +178,14 @@ for (const slug of articleSlugs) {
       entry.historyUrl,
       `${ORIGIN}/wiki/${entry.slug}/history/`,
       `${slug}: every reference entry historyUrl must be the canonical article history URL`,
+    );
+    // historyJsonUrl is the JSON companion of historyUrl — /wiki/<slug>/history.json
+    // exists and is exposed by backlinks.json / recentchanges.json, so each
+    // reference entry pairs its HTML history link with the machine-readable one.
+    assert.equal(
+      entry.historyJsonUrl,
+      `${ORIGIN}/wiki/${entry.slug}/history.json`,
+      `${slug}: every reference entry historyJsonUrl must be the canonical article history.json URL`,
     );
   }
 
