@@ -46,6 +46,7 @@ export const buildCategoryArticlesDocument = ({ origin, categoryName, categoryPa
     title: article.title,
     summary: article.summary || null,
     categories: article.categories ?? [],
+    backlinks: Number.isFinite(article.backlinks) ? article.backlinks : 0,
     url: `${origin}/wiki/${article.slug}/`,
     infoUrl: `${origin}/wiki/${article.slug}/info/`,
     infoJsonUrl: `${origin}/wiki/${article.slug}/info.json`,
