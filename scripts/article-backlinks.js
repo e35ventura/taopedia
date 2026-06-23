@@ -5,6 +5,8 @@ export const buildArticleBacklinks = ({ slug, title, origin, backlinks = [] }) =
   slug,
   title,
   url: `${origin}/wiki/${slug}/`,
+  infoUrl: `${origin}/wiki/${slug}/info/`,
+  infoJsonUrl: `${origin}/wiki/${slug}/info.json`,
   backlinksUrl: `${origin}/wiki/${slug}/backlinks/`,
   backlinksJsonUrl: `${origin}/wiki/${slug}/backlinks.json`,
   historyUrl: `${origin}/wiki/${slug}/history/`,

@@ -34,6 +34,8 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.slug, 'recycling', 'builder: slug field');
   assert.equal(result.title, 'Recycling', 'builder: title field');
   assert.equal(result.url, `${ORIGIN}/wiki/recycling/`, 'builder: url field');
+  assert.equal(result.infoUrl, `${ORIGIN}/wiki/recycling/info/`, 'builder: infoUrl field');
+  assert.equal(result.infoJsonUrl, `${ORIGIN}/wiki/recycling/info.json`, 'builder: infoJsonUrl field');
   assert.equal(result.backlinksUrl, `${ORIGIN}/wiki/recycling/backlinks/`, 'builder: backlinksUrl field');
   assert.equal(result.backlinksJsonUrl, `${ORIGIN}/wiki/recycling/backlinks.json`, 'builder: backlinksJsonUrl field');
   assert.equal(result.historyUrl, `${ORIGIN}/wiki/recycling/history/`, 'builder: historyUrl field');
@@ -114,6 +116,11 @@ for (const slug of articleSlugs) {
   assert.equal(typeof doc.title, 'string', `${slug}: backlinks.json title must be a string`);
   assert.equal(doc.slug, slug, `${slug}: backlinks.json slug must equal the article slug`);
   assert.equal(doc.url, `${ORIGIN}/wiki/${slug}/`, `${slug}: backlinks.json url must be the canonical article URL`);
+  // infoUrl / infoJsonUrl link the envelope back to the article's Page-information
+  // hub (the same cross-link references.json / history.json expose), so a consumer
+  // of backlinks.json can reach the article's metadata overview and its JSON form.
+  assert.equal(doc.infoUrl, `${ORIGIN}/wiki/${slug}/info/`, `${slug}: backlinks.json infoUrl must point to the Page-information hub`);
+  assert.equal(doc.infoJsonUrl, `${ORIGIN}/wiki/${slug}/info.json`, `${slug}: backlinks.json infoJsonUrl must point to the info.json hub`);
   assert.equal(doc.backlinksUrl, `${ORIGIN}/wiki/${slug}/backlinks/`, `${slug}: backlinks.json backlinksUrl must point to the HTML page`);
   assert.equal(doc.backlinksJsonUrl, `${ORIGIN}/wiki/${slug}/backlinks.json`, `${slug}: backlinks.json must expose its own canonical backlinksJsonUrl`);
   assert.equal(doc.historyUrl, `${ORIGIN}/wiki/${slug}/history/`, `${slug}: backlinks.json historyUrl must point to the HTML history page`);
