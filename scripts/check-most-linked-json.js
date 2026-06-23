@@ -109,6 +109,14 @@ data.pages.forEach((row, i) => {
   assert.equal(row.title, expected[i].title, `row ${i} title must match the article title for ${expected[i].slug}`);
   assert.equal(row.backlinks, expected[i].count, `row ${i} backlinks count must match the link graph`);
   assert.ok(Number.isInteger(row.backlinks) && row.backlinks > 0, `row ${i} backlinks must be a positive integer`);
+  // infoUrl points at the article's Page-information page, the same companion
+  // exposed elsewhere, so a consumer of the ranking can reach each top page's
+  // metadata overview without rebuilding the route.
+  assert.equal(
+    row.infoUrl,
+    `${data.site}/wiki/${row.slug}/info/`,
+    `row ${i} infoUrl must equal ${data.site}/wiki/${row.slug}/info/`,
+  );
   // historyUrl points at the article's revision-history page — the same
   // companion subnets.json / recentchanges.json expose — so a consumer of the
   // ranking can reach each top page's edit history without rebuilding the route.
