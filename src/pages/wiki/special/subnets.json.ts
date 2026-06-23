@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
-import { getPageSlug } from '../../../lib/article-history';
+import { getPageSlug, historyForSlug } from '../../../lib/article-history';
 import { buildSubnets } from '../../../../scripts/subnets.js';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
 
@@ -63,6 +63,11 @@ export const GET: APIRoute = async ({ site }) => {
         imageUrl: `${origin}/og/${subnet.slug}.png`,
         categories: subnet.categories,
         backlinks: publishedInboundLinkCount(backlinksData, subnet.slug, titleBySlug),
+        // The subnet article's last-revision date (history is newest-first) — the
+        // same lastEdited figure info.json / history.json expose per article and
+        // allpages.json / mostlinkedpages.json expose per directory entry — so a
+        // subnet dashboard can show each subnet's recency without a second fetch.
+        lastEdited: historyForSlug(subnet.slug)[0]?.date ?? null,
       })),
     },
     null,
