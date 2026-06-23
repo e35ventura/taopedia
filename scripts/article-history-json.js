@@ -5,6 +5,8 @@ export const buildArticleHistory = ({ slug, title, origin, revisions = [] }) => 
   slug,
   title,
   url: `${origin}/wiki/${slug}/`,
+  infoUrl: `${origin}/wiki/${slug}/info/`,
+  infoJsonUrl: `${origin}/wiki/${slug}/info.json`,
   historyUrl: `${origin}/wiki/${slug}/history/`,
   historyJsonUrl: `${origin}/wiki/${slug}/history.json`,
   backlinksUrl: `${origin}/wiki/${slug}/backlinks/`,
