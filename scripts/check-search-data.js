@@ -20,19 +20,20 @@ const sitemapUrls = new Set(
 const firstSitemapUrl = sitemapUrls.values().next().value;
 const ORIGIN = firstSitemapUrl ? new URL(firstSitemapUrl).origin : 'https://taopedia.org';
 
-// Duplicate titles are valid article metadata, so the search-data endpoint's
-// tiebreak must still use numeric collation on the canonical URL. A raw string
-// compare puts subnet_10 before subnet_9, which is deterministic but wrong.
+// Duplicate titles are valid article metadata, so the search-data endpoint
+// breaks same-title ties on the slug — the same tiebreak every other article
+// listing on the site uses. Comparing the full canonical URL instead diverges
+// when one slug is a prefix of another: for "alpha" and "alpha_beta" the slug
+// order is [alpha, alpha_beta] but the URL order is [alpha_beta, alpha] (the "/"
+// after the shared prefix sorts before the "_"). Use that prefix pair so the
+// assertion fails under a URL tiebreak and pins the slug order.
 assert.deepEqual(
   sortSearchEntries([
-    { title: 'Subnet Directory', summary: '', url: `${ORIGIN}/wiki/subnet_10/`, categories: [] },
-    { title: 'Subnet Directory', summary: '', url: `${ORIGIN}/wiki/subnet_9/`, categories: [] },
-  ]).map((entry) => entry.url),
-  [
-    `${ORIGIN}/wiki/subnet_9/`,
-    `${ORIGIN}/wiki/subnet_10/`,
-  ],
-  'same-title numeric-suffixed search entries must use compareTitles on the canonical URL tiebreak',
+    { title: 'Shared Title', slug: 'alpha_beta', summary: '', url: `${ORIGIN}/wiki/alpha_beta/`, categories: [] },
+    { title: 'Shared Title', slug: 'alpha', summary: '', url: `${ORIGIN}/wiki/alpha/`, categories: [] },
+  ]).map((entry) => entry.slug),
+  ['alpha', 'alpha_beta'],
+  'same-title search entries must tiebreak on the slug (alpha before alpha_beta), matching the rest of the site, NOT the full canonical URL',
 );
 
 assert.ok(Array.isArray(searchEntries), 'search data must serialize an array');
@@ -77,7 +78,7 @@ assert.equal(
 );
 
 // The entries must be in a deterministic order: by title (numeric collation),
-// then by canonical URL with the SAME numeric collation as a tiebreak. Re-derive the expected order
+// then by slug with the SAME numeric collation as a tiebreak. Re-derive the expected order
 // independently from the article sources using the SAME comparator the endpoint
 // uses, and assert the built file matches exactly — so the ordering is pinned
 // and cannot silently regress or vary with the unspecified getCollection() order.
@@ -92,9 +93,9 @@ for (const dirent of fs.readdirSync(contentDir, { withFileTypes: true })) {
   if (!source) continue;
   const { data } = matter(fs.readFileSync(source, 'utf8'));
   if (!data || typeof data.title !== 'string') continue;
-  expected.push({ title: data.title, url: `${ORIGIN}/wiki/${slug}/` });
+  expected.push({ title: data.title, slug, url: `${ORIGIN}/wiki/${slug}/` });
 }
-expected.sort((a, b) => compareTitles(a.title, b.title) || compareTitles(a.url, b.url));
+expected.sort((a, b) => compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug));
 
 assert.equal(
   searchEntries.length,
