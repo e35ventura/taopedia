@@ -74,6 +74,11 @@ const ORIGIN = 'https://taopedia.org';
         backlinksJsonUrl: `${ORIGIN}/wiki/delta/backlinks.json`,
         historyUrl: `${ORIGIN}/wiki/delta/history/`,
         historyJsonUrl: `${ORIGIN}/wiki/delta/history.json`,
+        citeUrl: `${ORIGIN}/wiki/delta/cite/`,
+        citeJsonUrl: `${ORIGIN}/wiki/delta/cite.json`,
+        bibtexUrl: `${ORIGIN}/wiki/delta/cite.bib`,
+        referencesUrl: `${ORIGIN}/wiki/delta/references.json`,
+        relatedUrl: `${ORIGIN}/wiki/delta/related.json`,
       },
       {
         slug: 'alpha',
@@ -85,6 +90,11 @@ const ORIGIN = 'https://taopedia.org';
         backlinksJsonUrl: `${ORIGIN}/wiki/alpha/backlinks.json`,
         historyUrl: `${ORIGIN}/wiki/alpha/history/`,
         historyJsonUrl: `${ORIGIN}/wiki/alpha/history.json`,
+        citeUrl: `${ORIGIN}/wiki/alpha/cite/`,
+        citeJsonUrl: `${ORIGIN}/wiki/alpha/cite.json`,
+        bibtexUrl: `${ORIGIN}/wiki/alpha/cite.bib`,
+        referencesUrl: `${ORIGIN}/wiki/alpha/references.json`,
+        relatedUrl: `${ORIGIN}/wiki/alpha/related.json`,
       },
       {
         slug: 'gamma',
@@ -96,6 +106,11 @@ const ORIGIN = 'https://taopedia.org';
         backlinksJsonUrl: `${ORIGIN}/wiki/gamma/backlinks.json`,
         historyUrl: `${ORIGIN}/wiki/gamma/history/`,
         historyJsonUrl: `${ORIGIN}/wiki/gamma/history.json`,
+        citeUrl: `${ORIGIN}/wiki/gamma/cite/`,
+        citeJsonUrl: `${ORIGIN}/wiki/gamma/cite.json`,
+        bibtexUrl: `${ORIGIN}/wiki/gamma/cite.bib`,
+        referencesUrl: `${ORIGIN}/wiki/gamma/references.json`,
+        relatedUrl: `${ORIGIN}/wiki/gamma/related.json`,
       },
       {
         slug: 'beta',
@@ -107,6 +122,11 @@ const ORIGIN = 'https://taopedia.org';
         backlinksJsonUrl: `${ORIGIN}/wiki/beta/backlinks.json`,
         historyUrl: `${ORIGIN}/wiki/beta/history/`,
         historyJsonUrl: `${ORIGIN}/wiki/beta/history.json`,
+        citeUrl: `${ORIGIN}/wiki/beta/cite/`,
+        citeJsonUrl: `${ORIGIN}/wiki/beta/cite.json`,
+        bibtexUrl: `${ORIGIN}/wiki/beta/cite.bib`,
+        referencesUrl: `${ORIGIN}/wiki/beta/references.json`,
+        relatedUrl: `${ORIGIN}/wiki/beta/related.json`,
       },
     ],
     'builder: reference entry shape',
@@ -260,6 +280,15 @@ for (const slug of articleSlugs) {
       `${ORIGIN}/wiki/${entry.slug}/history.json`,
       `${slug}: every reference entry historyJsonUrl must be the canonical article history.json URL`,
     );
+    // citeUrl / citeJsonUrl / bibtexUrl / referencesUrl / relatedUrl complete the
+    // per-entry companions to match what backlinks.json entries expose, so a
+    // consumer can reach a referenced article's citation, references, and related
+    // endpoints without reconstructing the routes.
+    assert.equal(entry.citeUrl, `${ORIGIN}/wiki/${entry.slug}/cite/`, `${slug}: every reference entry citeUrl must be canonical`);
+    assert.equal(entry.citeJsonUrl, `${ORIGIN}/wiki/${entry.slug}/cite.json`, `${slug}: every reference entry citeJsonUrl must be canonical`);
+    assert.equal(entry.bibtexUrl, `${ORIGIN}/wiki/${entry.slug}/cite.bib`, `${slug}: every reference entry bibtexUrl must be canonical`);
+    assert.equal(entry.referencesUrl, `${ORIGIN}/wiki/${entry.slug}/references.json`, `${slug}: every reference entry referencesUrl must be canonical`);
+    assert.equal(entry.relatedUrl, `${ORIGIN}/wiki/${entry.slug}/related.json`, `${slug}: every reference entry relatedUrl must be canonical`);
   }
 
   if (doc.count > 0) withReferences++;
