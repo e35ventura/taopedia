@@ -228,6 +228,15 @@ for (let i = 0; i < data.changes.length; i++) {
     `change imageUrl must equal ${data.site}/og/${change.slug}.png for ${change.slug}`,
   );
   assert.equal(change.title, slugmap[change.slug]?.title, `change title must match the article title for ${change.slug}`);
+  // categories mirrors the changed article's topics — the same per-item category
+  // set the recentchanges RSS/Atom/JSON feeds attach (recent-changes-feed.js), so
+  // the structured endpoint and the feeds agree. Source of truth is the slug map.
+  assert.ok(Array.isArray(change.categories), `change ${i} categories must be an array`);
+  assert.deepEqual(
+    change.categories,
+    slugmap[change.slug]?.categories ?? [],
+    `change ${i} categories must match the article's topics in the slug map for ${change.slug}`,
+  );
   assert.equal(change.authorName, expected.authorName, `change ${i} authorName must match the revision history`);
   assert.equal(change.sha, expected.sha, `change ${i} sha must match the revision history`);
   assert.ok(typeof change.sha === 'string' && change.sha.length > 0, `change ${i} sha must be a non-empty string`);
