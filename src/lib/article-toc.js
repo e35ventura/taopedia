@@ -18,9 +18,10 @@ export const getArticleToc = (headings = []) => {
   });
 };
 
-export const buildArticleToc = ({ slug, title, origin, categories = [], sections = [] }) => ({
+export const buildArticleToc = ({ slug, title, origin, summary = '', categories = [], sections = [] }) => ({
   slug,
   title,
+  summary: summary || null,
   url: `${origin}/wiki/${slug}/`,
   tocJsonUrl: `${origin}/wiki/${slug}/toc.json`,
   infoUrl: `${origin}/wiki/${slug}/info/`,
