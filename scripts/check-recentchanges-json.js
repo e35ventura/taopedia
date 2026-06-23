@@ -198,6 +198,14 @@ for (let i = 0; i < data.changes.length; i++) {
     `${data.site}/wiki/${change.slug}/related.json`,
     `change relatedUrl must equal ${data.site}/wiki/${change.slug}/related.json for ${change.slug}`,
   );
+  // tocJsonUrl links the changed article's table-of-contents endpoint — the
+  // same per-article companion allpages.json and mostlinkedpages.json expose,
+  // so a consumer watching changes can fetch the section outline directly.
+  assert.equal(
+    change.tocJsonUrl,
+    `${data.site}/wiki/${change.slug}/toc.json`,
+    `change tocJsonUrl must equal ${data.site}/wiki/${change.slug}/toc.json for ${change.slug}`,
+  );
   // imageUrl is the article's OG share-card image — the same /og/<slug>.png the
   // recentchanges RSS/Atom/JSON feeds already embed per item. The structured
   // endpoint must expose it too so a consumer renders the same per-change
