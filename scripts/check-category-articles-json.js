@@ -37,6 +37,26 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
     'helper must dedupe category members, skip missing slugs, sort numerically by title, and thread categories (non-empty verbatim, missing -> [])',
   );
 
+  // Same-title tiebreak must match the rendered category HTML page, which uses
+  // sortPagesByTitle: compareTitles(title) then a PLAIN code-unit comparison of
+  // the stable id (NOT compareTitles). For two members that share a title and
+  // have numeric-suffixed slugs, raw order puts "subnet_10" before "subnet_9"
+  // ('1' < '9'), whereas compareTitles(slug) would put "subnet_9" first (9 < 10)
+  // — disagreeing with the page articles.json mirrors. Assert the raw order.
+  const tied = getCategoryArticles({
+    categoryName: 'Dup',
+    categoriesIndex: { Dup: ['subnet_9', 'subnet_10'] },
+    slugMap: {
+      subnet_9: { title: 'Shared Title', summary: '' },
+      subnet_10: { title: 'Shared Title', summary: '' },
+    },
+  });
+  assert.deepEqual(
+    tied.map((a) => a.slug),
+    ['subnet_10', 'subnet_9'],
+    'same-title tiebreak must use raw code-unit slug order (subnet_10 before subnet_9), matching the HTML page sortPagesByTitle, NOT compareTitles numeric order',
+  );
+
   const doc = buildCategoryArticlesDocument({
     origin: ORIGIN,
     categoryName: 'Subnets',
