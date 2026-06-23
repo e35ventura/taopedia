@@ -79,6 +79,11 @@ const backlinks = JSON.parse(fs.readFileSync(backlinksFile, 'utf8'));
 const slugmap = JSON.parse(fs.readFileSync(slugmapFile, 'utf8'));
 
 assert.ok(typeof data.site === 'string' && /^https?:\/\//.test(data.site), `site must be a URL string (got ${JSON.stringify(data.site)})`);
+assert.equal(
+  data.mostlinkedpagesJsonUrl,
+  `${data.site}/wiki/special/mostlinkedpages.json`,
+  'mostlinkedpagesJsonUrl must be the canonical self-URL of the endpoint',
+);
 // Every per-page url must be absolute and match the envelope site field, the
 // same self-contained contract the merged allpages.json fix (#580) established
 // for the per-article directory: a programmatic consumer should never need to
