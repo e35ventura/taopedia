@@ -22,6 +22,7 @@ export const GET: APIRoute = async ({ site }) => {
     getPageSlug,
   });
 
+  const topicSlug = (name: string) => name.replace(/ /g, '_');
   const topicUrl = (name: string) =>
     `${origin}/wiki/category/${name.replace(/ /g, '_')}/`;
   const topicArticlesUrl = (name: string) =>
@@ -41,6 +42,7 @@ export const GET: APIRoute = async ({ site }) => {
       largestTopic: stats.largestTopic
         ? {
             ...stats.largestTopic,
+            slug: topicSlug(stats.largestTopic.name),
             url: topicUrl(stats.largestTopic.name),
             articlesUrl: topicArticlesUrl(stats.largestTopic.name),
             feedUrl: topicFeedUrl(stats.largestTopic.name),
@@ -50,6 +52,7 @@ export const GET: APIRoute = async ({ site }) => {
         : null,
       topics: stats.topics.map((t: { name: string; count: number }) => ({
         ...t,
+        slug: topicSlug(t.name),
         url: topicUrl(t.name),
         articlesUrl: topicArticlesUrl(t.name),
         feedUrl: topicFeedUrl(t.name),

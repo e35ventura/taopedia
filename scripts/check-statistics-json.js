@@ -179,6 +179,13 @@ assert.ok(
 );
 assert.equal(data.largestTopic.name, data.topics[0].name, 'largestTopic.name must match topics[0].name');
 assert.equal(data.largestTopic.count, data.topics[0].count, 'largestTopic.count must match topics[0].count');
+// slug is the url-safe category identifier (spaces → underscores), the same
+// field categories.json now exposes per category, so the two surfaces agree.
+assert.equal(
+  data.largestTopic.slug,
+  data.largestTopic.name.replace(/ /g, '_'),
+  'largestTopic.slug must be the url-safe category slug',
+);
 assert.equal(
   data.largestTopic.url,
   `${data.site}/wiki/category/${data.largestTopic.name.replace(/ /g, '_')}/`,
@@ -212,6 +219,13 @@ assert.ok(Array.isArray(data.topics) && data.topics.length === data.totalTopics,
 // same URL shape the categories.json endpoint uses, so consumers of either
 // endpoint reach the same category hub.
 for (const topic of data.topics) {
+  // slug is the url-safe category identifier (spaces → underscores), the same
+  // per-entry field categories.json exposes, so the two topic surfaces agree.
+  assert.equal(
+    topic.slug,
+    topic.name.replace(/ /g, '_'),
+    `topic "${topic.name}" slug must be the url-safe category slug`,
+  );
   assert.equal(
     topic.url,
     `${data.site}/wiki/category/${topic.name.replace(/ /g, '_')}/`,
