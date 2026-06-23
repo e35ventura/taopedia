@@ -45,6 +45,8 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
   assert.equal(doc.url, `${ORIGIN}/wiki/category/Subnets/`, 'builder: category url');
   assert.equal(doc.articlesJsonUrl, `${ORIGIN}/wiki/category/Subnets/articles.json`, 'builder: category articlesJsonUrl');
   assert.equal(doc.feedUrl, `${ORIGIN}/wiki/category/Subnets/feed.json`, 'builder: category feedUrl');
+  assert.equal(doc.atomUrl, `${ORIGIN}/wiki/category/Subnets/atom.xml`, 'builder: category atomUrl');
+  assert.equal(doc.rssUrl, `${ORIGIN}/wiki/category/Subnets/rss.xml`, 'builder: category rssUrl');
   assert.equal(doc.count, 3, 'builder: count field');
   assert.deepEqual(
     doc.articles,
@@ -151,6 +153,11 @@ for (const category of categories) {
     `${ORIGIN}/wiki/category/${category}/feed.json`,
     `${category}: feedUrl must be the canonical category feed.json URL`,
   );
+  // atomUrl / rssUrl advertise the category's other syndication feeds, the same
+  // feedUrl/atomUrl/rssUrl set categories.json exposes per category, so a
+  // feed-reader can subscribe in any format from the article list.
+  assert.equal(doc.atomUrl, `${ORIGIN}/wiki/category/${category}/atom.xml`, `${category}: atomUrl must be the canonical category atom.xml URL`);
+  assert.equal(doc.rssUrl, `${ORIGIN}/wiki/category/${category}/rss.xml`, `${category}: rssUrl must be the canonical category rss.xml URL`);
   assert.ok(Array.isArray(doc.articles), `${category}: articles must be an array`);
   assert.ok(Array.isArray(feed.items) && feed.items.length > 0, `${category}: feed.json must contain at least one item`);
   assert.equal(doc.count, doc.articles.length, `${category}: count must equal articles.length`);
