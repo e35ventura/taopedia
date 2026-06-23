@@ -192,6 +192,14 @@ data.articles.forEach((row, i) => {
     `${data.site}/wiki/${row.slug}/history/`,
     `row ${i} historyUrl must equal ${data.site}/wiki/${row.slug}/history/`,
   );
+  // imageUrl is the article's OG share-card image (/og/<slug>.png) — each
+  // article binds its own card, so the directory can expose it for a consumer
+  // that wants a per-article thumbnail without hitting the rendered HTML head.
+  assert.equal(
+    row.imageUrl,
+    `${data.site}/og/${row.slug}.png`,
+    `row ${i} imageUrl must equal ${data.site}/og/${row.slug}.png`,
+  );
   jsonSlugs.add(row.slug);
   // The article must point to a real, built article file.
   assert.ok(
