@@ -125,12 +125,23 @@ assert.ok(
   `site must be a non-empty URL string (got ${JSON.stringify(data.site)})`,
 );
 
-// url — the registry's own canonical endpoint URL.
+// url — the registry's own canonical endpoint URL (kept for back-compat).
 assert.equal(
   data.url,
   `${data.site}/wiki/special/subnets.json`,
   `url must be the canonical subnets.json endpoint URL (got ${JSON.stringify(data.url)})`,
 );
+
+// subnetsJsonUrl — the same canonical self-link under the consistent
+// <name>JsonUrl key every sibling special-listing endpoint uses
+// (categoriesJsonUrl, allpagesJsonUrl, mostlinkedpagesJsonUrl,
+// recentchangesJsonUrl, statisticsJsonUrl). It must equal `url`.
+assert.equal(
+  data.subnetsJsonUrl,
+  `${data.site}/wiki/special/subnets.json`,
+  `subnetsJsonUrl must be the canonical subnets.json endpoint URL (got ${JSON.stringify(data.subnetsJsonUrl)})`,
+);
+assert.equal(data.subnetsJsonUrl, data.url, 'subnetsJsonUrl must match the back-compat url field');
 
 // count field.
 assert.ok(typeof data.count === 'number' && data.count > 0, `count must be a positive number (got ${data.count})`);
