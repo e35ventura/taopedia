@@ -48,5 +48,6 @@ export const buildArticleReferences = ({ slug, title, origin, references = [] })
     bibtexUrl: `${origin}/wiki/${link.slug}/cite.bib`,
     referencesUrl: `${origin}/wiki/${link.slug}/references.json`,
     relatedUrl: `${origin}/wiki/${link.slug}/related.json`,
+    tocJsonUrl: `${origin}/wiki/${link.slug}/toc.json`,
   })),
 });
