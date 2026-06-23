@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { compareTitles } from '../src/lib/title-sort.js';
 import { buildArticleReferences, getArticleReferences } from '../src/lib/article-references.js';
+import { publishedInboundLinkCount } from './most-linked.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
@@ -72,6 +73,7 @@ const ORIGIN = 'https://taopedia.org';
         title: 'Delta',
         summary: null,
         categories: [],
+        backlinks: 0,
         url: `${ORIGIN}/wiki/delta/`,
         infoUrl: `${ORIGIN}/wiki/delta/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/delta/info.json`,
@@ -92,6 +94,7 @@ const ORIGIN = 'https://taopedia.org';
         title: 'Subnet 2',
         summary: null,
         categories: [],
+        backlinks: 0,
         url: `${ORIGIN}/wiki/alpha/`,
         infoUrl: `${ORIGIN}/wiki/alpha/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/alpha/info.json`,
@@ -112,6 +115,7 @@ const ORIGIN = 'https://taopedia.org';
         title: 'Subnet 9',
         summary: null,
         categories: [],
+        backlinks: 0,
         url: `${ORIGIN}/wiki/gamma/`,
         infoUrl: `${ORIGIN}/wiki/gamma/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/gamma/info.json`,
@@ -132,6 +136,7 @@ const ORIGIN = 'https://taopedia.org';
         title: 'Subnet 10',
         summary: null,
         categories: [],
+        backlinks: 0,
         url: `${ORIGIN}/wiki/beta/`,
         infoUrl: `${ORIGIN}/wiki/beta/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/beta/info.json`,
@@ -165,6 +170,9 @@ assert.ok(fs.existsSync(slugmapFile), 'public/data/slugmap.json not found; run t
 
 const linkgraphData = JSON.parse(fs.readFileSync(linkgraphFile, 'utf8'));
 const slugmap = JSON.parse(fs.readFileSync(slugmapFile, 'utf8'));
+const backlinksFile = path.join(projectRoot, 'public', 'data', 'backlinks.json');
+assert.ok(fs.existsSync(backlinksFile), 'public/data/backlinks.json not found; run the build first');
+const backlinksGraph = JSON.parse(fs.readFileSync(backlinksFile, 'utf8'));
 const titleBySlug = Object.fromEntries(
   Object.entries(slugmap).map(([slug, meta]) => [slug, typeof meta?.title === 'string' ? meta.title : slug]),
 );
@@ -286,6 +294,20 @@ for (const slug of articleSlugs) {
     // slug map, the same per-entry field the listing endpoints / backlinks entries expose.
     const expectedEntryCategories = Array.isArray(slugmap[entry.slug]?.categories) ? slugmap[entry.slug].categories : [];
     assert.deepEqual(entry.categories, expectedEntryCategories, `${slug}: every reference entry categories must match the referenced article's slug-map categories`);
+    // backlinks is the referenced article's inbound-link count from OTHER
+    // published articles — the same published-only, orphan-skipping metric
+    // allpages.json / mostlinkedpages.json / related.json expose per entry,
+    // computed with the shared publishedInboundLinkCount helper. Re-derive it
+    // from the raw backlink graph (independent source) so it cannot drift.
+    assert.ok(
+      Number.isInteger(entry.backlinks) && entry.backlinks >= 0,
+      `${slug}: every reference entry backlinks must be a non-negative integer (got ${JSON.stringify(entry.backlinks)})`,
+    );
+    assert.equal(
+      entry.backlinks,
+      publishedInboundLinkCount(backlinksGraph, entry.slug, titleBySlug),
+      `${slug}: every reference entry backlinks must equal the published inbound-link count for ${entry.slug}`,
+    );
     assert.equal(
       entry.infoUrl,
       `${ORIGIN}/wiki/${entry.slug}/info/`,

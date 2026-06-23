@@ -2,12 +2,19 @@ import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { getPageSlug } from '../../../lib/article-history';
 import { buildArticleReferences, getArticleReferences } from '../../../lib/article-references.js';
+import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
 
 const linkgraphModules = import.meta.glob('../../../../public/data/linkgraph.json', { eager: true }) as Record<
   string,
   { default?: Record<string, Array<{ target?: string }>> }
 >;
 const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
+
+const backlinksModules = import.meta.glob('../../../../public/data/backlinks.json', { eager: true }) as Record<
+  string,
+  { default?: Record<string, Array<{ from: string }>> }
+>;
+const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
@@ -21,6 +28,7 @@ export async function getStaticPaths() {
       ...ref,
       summary: summaryBySlug[ref.slug] ?? '',
       categories: categoriesBySlug[ref.slug] ?? [],
+      backlinks: publishedInboundLinkCount(backlinksData, ref.slug, titleBySlug),
     }));
     return {
       params: { slug },
@@ -45,7 +53,7 @@ export const GET: APIRoute = async ({ props, site }) => {
     title: string;
     summary: string;
     categories: string[];
-    references: Array<{ slug: string; title: string; summary: string; categories: string[] }>;
+    references: Array<{ slug: string; title: string; summary: string; categories: string[]; backlinks: number }>;
   };
   const origin = (site ?? new URL('https://taopedia.org')).origin;
 
