@@ -39,6 +39,9 @@ export interface RelatedPage {
   // The candidate article's full topic categories (optional; the endpoint
   // enriches each entry from the slug map so consumers can group/filter).
   categories?: string[];
+  // The candidate article's published inbound-link count (optional; the
+  // endpoint enriches each entry so consumers can gauge link popularity).
+  backlinks?: number;
 }
 
 export interface ArticleRelatedPagesDocument {
@@ -67,6 +70,7 @@ export interface ArticleRelatedPagesDocument {
     summary: string | null;
     tags: string[];
     categories: string[];
+    backlinks: number;
     url: string;
     infoUrl: string;
     infoJsonUrl: string;
@@ -196,6 +200,7 @@ export function buildArticleRelatedPages({
       summary: entry.summary || null,
       tags: entry.tags,
       categories: Array.isArray(entry.categories) ? entry.categories : [],
+      backlinks: Number.isFinite(entry.backlinks) ? entry.backlinks : 0,
       url: `${origin}/wiki/${entry.slug}/`,
       infoUrl: `${origin}/wiki/${entry.slug}/info/`,
       infoJsonUrl: `${origin}/wiki/${entry.slug}/info.json`,

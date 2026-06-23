@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildArticleRelatedPages, getRelatedPages } from '../src/lib/related-pages.ts';
+import { publishedInboundLinkCount } from '../scripts/most-linked.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
@@ -92,6 +93,7 @@ const ORIGIN = 'https://taopedia.org';
         summary: 'alpha summary',
         tags: ['Security'],
         categories: [],
+        backlinks: 0,
         url: `${ORIGIN}/wiki/alpha/`,
         infoUrl: `${ORIGIN}/wiki/alpha/info/`,
         backlinksUrl: `${ORIGIN}/wiki/alpha/backlinks/`,
@@ -113,6 +115,7 @@ const ORIGIN = 'https://taopedia.org';
         summary: null,
         tags: ['Security'],
         categories: [],
+        backlinks: 0,
         url: `${ORIGIN}/wiki/gamma/`,
         infoUrl: `${ORIGIN}/wiki/gamma/info/`,
         backlinksUrl: `${ORIGIN}/wiki/gamma/backlinks/`,
@@ -134,6 +137,7 @@ const ORIGIN = 'https://taopedia.org';
         summary: 'delta summary',
         tags: ['Consensus'],
         categories: [],
+        backlinks: 0,
         url: `${ORIGIN}/wiki/delta/`,
         infoUrl: `${ORIGIN}/wiki/delta/info/`,
         backlinksUrl: `${ORIGIN}/wiki/delta/backlinks/`,
@@ -215,7 +219,11 @@ for (const slug of articleSlugs) {
     outgoing: linkgraphData,
     publishedSlugs,
     titleBySlug,
-  }).map((entry) => ({ ...entry, categories: slugMap[entry.slug]?.categories ?? [] }));
+  }).map((entry) => ({
+    ...entry,
+    categories: slugMap[entry.slug]?.categories ?? [],
+    backlinks: publishedInboundLinkCount(backlinksData, entry.slug, titleBySlug),
+  }));
   const expectedDoc = buildArticleRelatedPages({
     slug,
     title: titleBySlug[slug],
