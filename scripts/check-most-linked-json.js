@@ -129,6 +129,15 @@ data.pages.forEach((row, i) => {
     `${data.site}/wiki/${row.slug}/history/`,
     `row ${i} historyUrl must equal ${data.site}/wiki/${row.slug}/history/`,
   );
+  // historyJsonUrl is the JSON companion of historyUrl — the same HTML+JSON
+  // pairing the entry exposes for backlinks (backlinksUrl + backlinksJsonUrl)
+  // and that recentchanges.json exposes for history. /wiki/<slug>/history.json
+  // exists, so a consumer can fetch a top page's machine-readable history.
+  assert.equal(
+    row.historyJsonUrl,
+    `${data.site}/wiki/${row.slug}/history.json`,
+    `row ${i} historyJsonUrl must equal ${data.site}/wiki/${row.slug}/history.json`,
+  );
   assert.ok(
     row.backlinksUrl.startsWith(`${data.site}/wiki/`),
     `row ${i} backlinksUrl must be absolute and start with the envelope site (got ${row.backlinksUrl})`,
