@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
-import { getPageSlug } from '../../../lib/article-history';
+import { getPageSlug, historyForSlug } from '../../../lib/article-history';
 import { compareTitles } from '../../../lib/title-sort.js';
 import { buildArticleBacklinks } from '../../../../scripts/article-backlinks.js';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
@@ -23,6 +23,7 @@ export async function getStaticPaths() {
         page,
         slug,
         incomingLinks: publishedInboundLinkCount(backlinksData, slug, titleBySlug),
+        revisionCount: historyForSlug(slug).length,
       },
     };
   });
@@ -32,10 +33,11 @@ export async function getStaticPaths() {
 // published-only join and compareTitles sort as backlinks.astro so the two
 // surfaces never drift.
 export const GET: APIRoute = async ({ props, site }) => {
-  const { page, slug, incomingLinks } = props as {
+  const { page, slug, incomingLinks, revisionCount } = props as {
     page: { data: { title: string; summary?: string; categories?: string[] } };
     slug: string;
     incomingLinks: number;
+    revisionCount: number;
   };
   const origin = (site ?? new URL('https://taopedia.org')).origin;
 
@@ -69,6 +71,7 @@ export const GET: APIRoute = async ({ props, site }) => {
       summary: page.data.summary ?? '',
       categories: page.data.categories ?? [],
       incomingLinks,
+      revisionCount,
       backlinks,
     }),
     null,
