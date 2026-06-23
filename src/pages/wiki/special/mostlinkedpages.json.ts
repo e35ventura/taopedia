@@ -55,10 +55,13 @@ export const GET: APIRoute = async ({ site }) => {
         imageUrl: `${origin}/og/${entry.slug}.png`,
         categories: categoriesBySlug[entry.slug] ?? [],
         backlinks: entry.count,
-        // The article's last-revision date (history is newest-first) — the same
-        // lastEdited figure info.json / history.json expose per article and
-        // allpages.json exposes per directory entry — so a consumer of the
-        // ranking can see each top page's recency without a second fetch.
+        // The article's revision stats (history is newest-first) — the same
+        // revisionCount / firstEdited / lastEdited trio info.json / history.json
+        // expose per article and allpages.json exposes per directory entry — so a
+        // consumer of the ranking can see each top page's age and recency without
+        // a second fetch.
+        revisionCount: historyForSlug(entry.slug).length,
+        firstEdited: historyForSlug(entry.slug).at(-1)?.date ?? null,
         lastEdited: historyForSlug(entry.slug)[0]?.date ?? null,
       })),
     },
