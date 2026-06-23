@@ -11,6 +11,9 @@ export const buildArticleBacklinks = ({ slug, title, origin, backlinks = [] }) =
   historyJsonUrl: `${origin}/wiki/${slug}/history.json`,
   infoUrl: `${origin}/wiki/${slug}/info/`,
   infoJsonUrl: `${origin}/wiki/${slug}/info.json`,
+  citeUrl: `${origin}/wiki/${slug}/cite/`,
+  citeJsonUrl: `${origin}/wiki/${slug}/cite.json`,
+  bibtexUrl: `${origin}/wiki/${slug}/cite.bib`,
   tocJsonUrl: `${origin}/wiki/${slug}/toc.json`,
   count: backlinks.length,
   backlinks: backlinks.map((link) => ({

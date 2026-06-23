@@ -40,6 +40,9 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.historyJsonUrl, `${ORIGIN}/wiki/recycling/history.json`, 'builder: historyJsonUrl field');
   assert.equal(result.infoUrl, `${ORIGIN}/wiki/recycling/info/`, 'builder: infoUrl field');
   assert.equal(result.infoJsonUrl, `${ORIGIN}/wiki/recycling/info.json`, 'builder: infoJsonUrl field');
+  assert.equal(result.citeUrl, `${ORIGIN}/wiki/recycling/cite/`, 'builder: citeUrl field');
+  assert.equal(result.citeJsonUrl, `${ORIGIN}/wiki/recycling/cite.json`, 'builder: citeJsonUrl field');
+  assert.equal(result.bibtexUrl, `${ORIGIN}/wiki/recycling/cite.bib`, 'builder: bibtexUrl field');
   assert.equal(result.tocJsonUrl, `${ORIGIN}/wiki/recycling/toc.json`, 'builder: tocJsonUrl field');
   assert.equal(result.count, 2, 'builder: count equals backlinks length');
   assert.equal(result.backlinks.length, 2, 'builder: backlinks array length');
@@ -125,6 +128,11 @@ for (const slug of articleSlugs) {
   // links out to every sibling), so a consumer of backlinks.json can reach it.
   assert.equal(doc.infoUrl, `${ORIGIN}/wiki/${slug}/info/`, `${slug}: backlinks.json infoUrl must point to the article info page`);
   assert.equal(doc.infoJsonUrl, `${ORIGIN}/wiki/${slug}/info.json`, `${slug}: backlinks.json infoJsonUrl must point to the machine-readable info endpoint`);
+  // citeUrl / citeJsonUrl / bibtexUrl cross-link to the article's Cite-this-page
+  // hub on the envelope (entries already expose cite siblings per linking article).
+  assert.equal(doc.citeUrl, `${ORIGIN}/wiki/${slug}/cite/`, `${slug}: backlinks.json citeUrl must point to the Cite-this-page hub`);
+  assert.equal(doc.citeJsonUrl, `${ORIGIN}/wiki/${slug}/cite.json`, `${slug}: backlinks.json citeJsonUrl must point to the cite.json hub`);
+  assert.equal(doc.bibtexUrl, `${ORIGIN}/wiki/${slug}/cite.bib`, `${slug}: backlinks.json bibtexUrl must point to the BibTeX export`);
   // tocJsonUrl cross-links to the article's table-of-contents JSON, the same
   // companion the history.json / related.json envelopes and the directory
   // entries expose, so a consumer of backlinks.json can reach the article's TOC.
