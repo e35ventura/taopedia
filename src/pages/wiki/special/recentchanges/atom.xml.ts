@@ -11,12 +11,15 @@ export const GET: APIRoute = async ({ site }) => {
   const pages = await getCollection('pages');
 
   const titleBySlug: Record<string, string> = {};
+  const categoriesBySlug: Record<string, string[]> = {};
   for (const page of pages) {
-    titleBySlug[getPageSlug(page)] = page.data.title;
+    const slug = getPageSlug(page);
+    titleBySlug[slug] = page.data.title;
+    categoriesBySlug[slug] = page.data.categories ?? [];
   }
 
   const changes = allRecentChanges(titleBySlug, RECENT_LIMIT);
-  const items = buildRecentChangesAtomItems({ changes, origin });
+  const items = buildRecentChangesAtomItems({ changes, origin, categoriesBySlug });
 
   const body = buildAtomFeed({
     siteUrl: `${origin}/`,
