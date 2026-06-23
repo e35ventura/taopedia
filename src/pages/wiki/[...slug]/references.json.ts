@@ -37,6 +37,7 @@ export async function getStaticPaths() {
         title: page.data.title,
         summary: page.data.summary ?? '',
         categories: page.data.categories ?? [],
+        incomingLinks: publishedInboundLinkCount(backlinksData, slug, titleBySlug),
         references,
       },
     };
@@ -48,16 +49,17 @@ export async function getStaticPaths() {
 // graph that powers backlinks.json, without advertising an HTML subpage that
 // does not exist.
 export const GET: APIRoute = async ({ props, site }) => {
-  const { slug, title, summary, categories, references } = props as {
+  const { slug, title, summary, categories, incomingLinks, references } = props as {
     slug: string;
     title: string;
     summary: string;
     categories: string[];
+    incomingLinks: number;
     references: Array<{ slug: string; title: string; summary: string; categories: string[]; backlinks: number }>;
   };
   const origin = (site ?? new URL('https://taopedia.org')).origin;
 
-  const body = JSON.stringify(buildArticleReferences({ slug, title, origin, summary, categories, references }), null, 2);
+  const body = JSON.stringify(buildArticleReferences({ slug, title, origin, summary, categories, incomingLinks, references }), null, 2);
 
   return new Response(body, {
     headers: { 'Content-Type': 'application/json; charset=utf-8' },
