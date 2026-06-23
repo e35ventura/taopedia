@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
-import { getPageSlug } from '../../../lib/article-history';
+import { getPageSlug, historyForSlug } from '../../../lib/article-history';
 import { buildArticleReferences, getArticleReferences } from '../../../lib/article-references.js';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
 
@@ -38,6 +38,7 @@ export async function getStaticPaths() {
         summary: page.data.summary ?? '',
         categories: page.data.categories ?? [],
         incomingLinks: publishedInboundLinkCount(backlinksData, slug, titleBySlug),
+        revisionCount: historyForSlug(slug).length,
         references,
       },
     };
@@ -49,17 +50,18 @@ export async function getStaticPaths() {
 // graph that powers backlinks.json, without advertising an HTML subpage that
 // does not exist.
 export const GET: APIRoute = async ({ props, site }) => {
-  const { slug, title, summary, categories, incomingLinks, references } = props as {
+  const { slug, title, summary, categories, incomingLinks, revisionCount, references } = props as {
     slug: string;
     title: string;
     summary: string;
     categories: string[];
     incomingLinks: number;
+    revisionCount: number;
     references: Array<{ slug: string; title: string; summary: string; categories: string[]; backlinks: number }>;
   };
   const origin = (site ?? new URL('https://taopedia.org')).origin;
 
-  const body = JSON.stringify(buildArticleReferences({ slug, title, origin, summary, categories, incomingLinks, references }), null, 2);
+  const body = JSON.stringify(buildArticleReferences({ slug, title, origin, summary, categories, incomingLinks, revisionCount, references }), null, 2);
 
   return new Response(body, {
     headers: { 'Content-Type': 'application/json; charset=utf-8' },

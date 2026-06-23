@@ -46,7 +46,7 @@ const ORIGIN = 'https://taopedia.org';
     'helper must exclude self/missing targets, dedupe repeated targets, and sort numerically by title',
   );
 
-  const doc = buildArticleReferences({ slug: 'source', title: 'Source', origin: ORIGIN, summary: 'The source article.', categories: ['Consensus', 'Security'], incomingLinks: 5, references });
+  const doc = buildArticleReferences({ slug: 'source', title: 'Source', origin: ORIGIN, summary: 'The source article.', categories: ['Consensus', 'Security'], incomingLinks: 5, revisionCount: 12, references });
   assert.equal(doc.slug, 'source', 'builder: slug field');
   assert.equal(doc.title, 'Source', 'builder: title field');
   assert.equal(doc.summary, 'The source article.', 'builder: summary field');
@@ -66,6 +66,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(doc.imageUrl, `${ORIGIN}/og/source.png`, 'builder: imageUrl');
   assert.deepEqual(doc.categories, ['Consensus', 'Security'], 'builder: categories field');
   assert.equal(doc.incomingLinks, 5, 'builder: incomingLinks field');
+  assert.equal(doc.revisionCount, 12, 'builder: revisionCount field threaded verbatim');
   assert.equal(doc.count, 4, 'builder: count field');
   assert.deepEqual(
     doc.references,
@@ -162,6 +163,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.deepEqual(empty.categories, [], 'builder: default categories is []');
   assert.equal(empty.summary, null, 'builder: default summary is null');
   assert.equal(empty.incomingLinks, 0, 'builder: default incomingLinks is 0');
+  assert.equal(empty.revisionCount, 0, 'builder: default revisionCount is 0');
   assert.equal(empty.count, 0, 'builder: empty count is 0');
   assert.deepEqual(empty.references, [], 'builder: empty references is []');
 }
@@ -273,6 +275,23 @@ for (const slug of articleSlugs) {
   // incomingLinks is the article's own published inbound-link count — the same
   // figure info.json / history.json / cite.json expose on their envelopes.
   assert.equal(doc.incomingLinks, publishedInboundLinkCount(backlinksData, slug, titleBySlug), `${slug}: references.json incomingLinks must equal the published inbound-link count`);
+  // revisionCount is the article's revision count (its commit-history length) —
+  // the same figure info.json / history.json / cite.json expose on their
+  // envelopes. Cross-check it against the sibling built info.json (independent
+  // source) so the two envelopes can never disagree.
+  assert.ok(
+    Number.isInteger(doc.revisionCount) && doc.revisionCount >= 0,
+    `${slug}: references.json revisionCount must be a non-negative integer (got ${JSON.stringify(doc.revisionCount)})`,
+  );
+  const refInfoJsonFile = path.join(wikiDir, slug, 'info.json');
+  if (fs.existsSync(refInfoJsonFile)) {
+    const infoDoc = JSON.parse(fs.readFileSync(refInfoJsonFile, 'utf8'));
+    assert.equal(
+      doc.revisionCount,
+      infoDoc.revisionCount,
+      `${slug}: references.json revisionCount must agree with the sibling info.json envelope`,
+    );
+  }
   assert.equal(typeof doc.count, 'number', `${slug}: references.json count must be a number`);
   assert.ok(Array.isArray(doc.references), `${slug}: references.json references must be an array`);
   assert.equal(doc.count, doc.references.length, `${slug}: references.json count must equal references.length`);
