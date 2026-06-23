@@ -199,6 +199,14 @@ for (const slug of articleSlugs) {
     expectedCategories,
     `cite.json categories must match the article's topic categories from the slug map for ${slug}`,
   );
+  // summary is the article's own slug-map summary (null when blank), the same
+  // per-article field the sibling envelopes (backlinks/toc/references) expose.
+  const expectedSummary = slugmap[slug]?.summary || null;
+  assert.deepEqual(
+    doc.summary,
+    expectedSummary,
+    `cite.json summary must match the article's slug-map summary (or null) for ${slug}`,
+  );
   if (date) {
     assert.equal(doc.date, date, `cite.json date must equal the article's last-revision date for ${slug}`);
   } else {
