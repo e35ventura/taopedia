@@ -39,6 +39,7 @@ const projectRoot = path.resolve(__dirname, '..');
   assert.equal(stats.averageWords, 3, 'averageWords must be totalWords / totalArticles');
   assert.equal(stats.totalRevisions, 3, 'totalRevisions must sum history lengths (2 + 1)');
   assert.equal(stats.newestDate, '2024-01-02T00:00:00.000Z', 'newestDate must be the latest history date');
+  assert.equal(stats.oldestDate, '2024-01-01T00:00:00.000Z', 'oldestDate must be the earliest history date across articles');
   assert.equal(stats.largestTopic.name, 'Consensus', 'largestTopic must be the highest-count category');
   assert.equal(stats.largestTopic.count, 2, 'largestTopic.count must reflect member count');
   assert.deepEqual(
@@ -84,6 +85,7 @@ const projectRoot = path.resolve(__dirname, '..');
   assert.equal(empty.averageWords, 0);
   assert.equal(empty.totalRevisions, 0);
   assert.equal(empty.newestDate, '');
+  assert.equal(empty.oldestDate, '');
   assert.equal(empty.largestTopic, null);
   assert.deepEqual(empty.topics, []);
 }
@@ -124,6 +126,21 @@ assert.ok(
 assert.ok(
   !Number.isNaN(new Date(data.newestDate).getTime()),
   `newestDate must be a valid date (got ${JSON.stringify(data.newestDate)})`,
+);
+
+// oldestDate — the earliest revision date across all articles (content age
+// floor), a valid date no later than newestDate.
+assert.ok(
+  typeof data.oldestDate === 'string' && data.oldestDate.length > 0,
+  `oldestDate must be a non-empty date string when articles exist (got ${JSON.stringify(data.oldestDate)})`,
+);
+assert.ok(
+  !Number.isNaN(new Date(data.oldestDate).getTime()),
+  `oldestDate must be a valid date (got ${JSON.stringify(data.oldestDate)})`,
+);
+assert.ok(
+  data.oldestDate <= data.newestDate,
+  `oldestDate (${data.oldestDate}) must not be later than newestDate (${data.newestDate})`,
 );
 
 // largestTopic — object with non-empty name + positive count, consistent with topics[0].

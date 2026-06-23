@@ -16,6 +16,7 @@ export function buildStatistics({ pages, historyForSlug, getPageSlug }) {
   let totalWords = 0;
   let totalRevisions = 0;
   let newestDate = '';
+  let oldestDate = '';
   const topicCounts = new Map();
 
   for (const page of pages) {
@@ -28,6 +29,10 @@ export function buildStatistics({ pages, historyForSlug, getPageSlug }) {
     totalRevisions += Array.isArray(history) ? history.length : 0;
     const latest = history?.[0]?.date ?? '';
     if (latest && latest > newestDate) newestDate = latest;
+    // The oldest revision is the last entry (histories are newest-first); track
+    // the minimum across all articles so the JSON exposes the content age range.
+    const earliest = Array.isArray(history) && history.length > 0 ? history[history.length - 1]?.date ?? '' : '';
+    if (earliest && (oldestDate === '' || earliest < oldestDate)) oldestDate = earliest;
     for (const topic of page?.data?.categories ?? []) {
       topicCounts.set(topic, (topicCounts.get(topic) ?? 0) + 1);
     }
@@ -53,6 +58,7 @@ export function buildStatistics({ pages, historyForSlug, getPageSlug }) {
     totalWords,
     averageWords,
     newestDate,
+    oldestDate,
     largestTopic: sortedTopics[0]
       ? { name: sortedTopics[0][0], count: sortedTopics[0][1] }
       : null,
