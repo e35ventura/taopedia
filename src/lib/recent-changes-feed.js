@@ -13,6 +13,12 @@ export const buildRecentChangesAtomItems = ({ changes = [], origin, categoriesBy
     id: recentChangeEventId(change),
     title: change.title,
     url: `${origin}/wiki/${change.slug}/`,
+    // sortKey pins the same-timestamp tiebreak to the article slug so the feeds
+    // order identically to Special:RecentChanges (collectRecentChanges tiebreaks
+    // on slug). Without it the feed builders fall back to comparing the full
+    // canonical URL, which diverges for prefix-pair slugs (e.g. alpha vs
+    // alpha_beta) sharing a commit timestamp.
+    sortKey: change.slug,
     image: `${origin}/og/${change.slug}.png`,
     description: changeSummary(change),
     categories: Array.isArray(categoriesBySlug[change.slug]) ? categoriesBySlug[change.slug] : [],
@@ -25,6 +31,12 @@ export const buildRecentChangesRssItems = ({ changes = [], origin, categoriesByS
     guid: recentChangeEventId(change),
     title: change.title,
     url: `${origin}/wiki/${change.slug}/`,
+    // sortKey pins the same-timestamp tiebreak to the article slug so the feeds
+    // order identically to Special:RecentChanges (collectRecentChanges tiebreaks
+    // on slug). Without it the feed builders fall back to comparing the full
+    // canonical URL, which diverges for prefix-pair slugs (e.g. alpha vs
+    // alpha_beta) sharing a commit timestamp.
+    sortKey: change.slug,
     image: `${origin}/og/${change.slug}.png`,
     description: changeSummary(change),
     categories: Array.isArray(categoriesBySlug[change.slug]) ? categoriesBySlug[change.slug] : [],
@@ -36,6 +48,12 @@ export const buildRecentChangesJsonFeedItems = ({ changes = [], origin, categori
     id: recentChangeEventId(change),
     title: change.title,
     url: `${origin}/wiki/${change.slug}/`,
+    // sortKey pins the same-timestamp tiebreak to the article slug so the feeds
+    // order identically to Special:RecentChanges (collectRecentChanges tiebreaks
+    // on slug). Without it the feed builders fall back to comparing the full
+    // canonical URL, which diverges for prefix-pair slugs (e.g. alpha vs
+    // alpha_beta) sharing a commit timestamp.
+    sortKey: change.slug,
     image: `${origin}/og/${change.slug}.png`,
     description: changeSummary(change),
     categories: Array.isArray(categoriesBySlug[change.slug]) ? categoriesBySlug[change.slug] : [],

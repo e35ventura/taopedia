@@ -4,9 +4,35 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { compareTitles } from '../src/lib/title-sort.js';
 import { buildRecentChangesAtomItems } from '../src/lib/recent-changes-feed.js';
+import { buildAtomFeed } from './atom-feed.js';
 import { RECENT_LIMIT } from '../src/lib/recent-changes.js';
 
 const ORIGIN = 'https://taopedia.org';
+
+// ---- Regression: same-timestamp tiebreak must match Special:RecentChanges ----
+//
+// collectRecentChanges (the HTML page + recentchanges.json source of truth)
+// breaks equal-date ties with compareTitles(slug). The Atom feed must agree.
+// Comparing the full canonical URL instead diverges when one slug is a prefix of
+// another: for "alpha" and "alpha_beta" sharing a commit timestamp, slug order
+// is [alpha, alpha_beta] but URL order is [alpha_beta, alpha]. Feed two such
+// same-date changes through the item builder + feed and assert the slug order.
+{
+  const sameDate = '2026-06-01T00:00:00.000Z';
+  const changes = [
+    { slug: 'alpha_beta', title: 'Alpha Beta', date: sameDate, sha: 'b', authorName: 'x', message: 'm' },
+    { slug: 'alpha', title: 'Alpha', date: sameDate, sha: 'a', authorName: 'x', message: 'm' },
+  ];
+  const items = buildRecentChangesAtomItems({ changes, origin: ORIGIN, categoriesBySlug: {} });
+  const xml = buildAtomFeed({ siteUrl: `${ORIGIN}/`, feedPath: '/wiki/special/recentchanges/atom.xml', items });
+  const posAlpha = xml.indexOf(`href="${ORIGIN}/wiki/alpha/"`);
+  const posAlphaBeta = xml.indexOf(`href="${ORIGIN}/wiki/alpha_beta/"`);
+  assert.ok(posAlpha > -1 && posAlphaBeta > -1, 'both same-date items must appear in the Atom feed');
+  assert.ok(
+    posAlpha < posAlphaBeta,
+    'same-timestamp tiebreak must order by slug (alpha before alpha_beta), matching Special:RecentChanges, NOT by full URL',
+  );
+}
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
@@ -75,6 +101,7 @@ const hasAlternateLink = (linkTags, type, href) =>
         id: 'urn:taopedia:recentchanges:subnet_9:abc123',
         title: 'Subnet 9',
         url: `${ORIGIN}/wiki/subnet_9/`,
+        sortKey: 'subnet_9',
         image: `${ORIGIN}/og/subnet_9.png`,
         description: 'Edited by Alice: Fix title & improve <summary>',
         categories: [],
@@ -85,6 +112,7 @@ const hasAlternateLink = (linkTags, type, href) =>
         id: 'urn:taopedia:recentchanges:subnet_10:abc123',
         title: 'Subnet 10',
         url: `${ORIGIN}/wiki/subnet_10/`,
+        sortKey: 'subnet_10',
         image: `${ORIGIN}/og/subnet_10.png`,
         description: 'Edited by Bob',
         categories: [],

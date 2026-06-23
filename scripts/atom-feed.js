@@ -66,14 +66,18 @@ export function buildAtomFeed({
   const pageUrl = homePageUrl ? String(homePageUrl) : root;
 
   // Same ordering contract as the RSS and JSON feeds: newest modified first,
-  // with compareTitles on canonical URLs so numeric slugs order consistently.
+  // then a tiebreak on the caller-supplied sortKey (the recent-changes feeds set
+  // it to the article slug so equal-timestamp items match Special:RecentChanges,
+  // which tiebreaks on slug), falling back to the canonical URL. Comparing the
+  // full URL diverges when one slug is a prefix of another (e.g. "alpha" vs
+  // "alpha_beta"): the "/" after the shared prefix flips the collation.
   const sortedItems = [...items].sort((a, b) => {
     const aDate = itemDate(a);
     const bDate = itemDate(b);
     if (aDate !== bDate) return aDate < bDate ? 1 : -1;
-    const aUrl = String(a.url ?? '');
-    const bUrl = String(b.url ?? '');
-    return compareTitles(aUrl, bUrl);
+    const aKey = String(a.sortKey ?? a.url ?? '');
+    const bKey = String(b.sortKey ?? b.url ?? '');
+    return compareTitles(aKey, bKey);
   });
 
   const newestItemDate = itemDate(sortedItems.find((item) => itemDate(item)));

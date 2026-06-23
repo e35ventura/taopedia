@@ -68,17 +68,21 @@ export function buildRssFeed({
   const selfHref = `${root.replace(/\/$/, '')}${feedPath}`;
   const channelHref = channelLink ? String(channelLink) : root;
 
-  // Newest-updated first, then a deterministic tiebreak by canonical URL for items
-  // that share an identical revision timestamp. URLs can embed numeric slugs
-  // (subnet_9 vs subnet_10), so compareTitles keeps ordering aligned with the
-  // rest of the site rather than raw lexicographic string order.
+  // Newest-updated first, then a deterministic tiebreak for items that share an
+  // identical revision timestamp. The caller may supply an explicit sortKey; the
+  // recent-changes feeds set it to the article slug so equal-timestamp items
+  // order identically to Special:RecentChanges (collectRecentChanges tiebreaks
+  // on slug). Comparing the full canonical URL instead would diverge when one
+  // slug is a prefix of another (e.g. "alpha" vs "alpha_beta"), because the
+  // "/" boundary char after the shared prefix flips the collation versus the
+  // "_" in the longer slug. Fall back to the URL when no sortKey is given.
   const sortedItems = [...items].sort((a, b) => {
     const aDate = itemDate(a);
     const bDate = itemDate(b);
     if (aDate !== bDate) return aDate < bDate ? 1 : -1;
-    const aUrl = String(a.url ?? '');
-    const bUrl = String(b.url ?? '');
-    return compareTitles(aUrl, bUrl);
+    const aKey = String(a.sortKey ?? a.url ?? '');
+    const bKey = String(b.sortKey ?? b.url ?? '');
+    return compareTitles(aKey, bKey);
   });
 
   const itemXml = sortedItems
