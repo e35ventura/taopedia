@@ -25,6 +25,10 @@ export const GET: APIRoute = async ({ site }) => {
   }
 
   const changes = allRecentChanges(titleBySlug, RECENT_LIMIT);
+  const dateRange =
+    changes.length > 0
+      ? { newest: changes[0].date, oldest: changes[changes.length - 1].date }
+      : { newest: '', oldest: '' };
 
   const body = JSON.stringify(
     {
@@ -35,6 +39,7 @@ export const GET: APIRoute = async ({ site }) => {
       rssUrl: `${origin}/wiki/special/recentchanges/rss.xml`,
       limit: RECENT_LIMIT,
       count: changes.length,
+      dateRange,
       changes: changes.map((change) => ({
         id: `urn:taopedia:recentchanges:${change.slug}:${change.sha}`,
         slug: change.slug,
