@@ -34,6 +34,7 @@ export const GET: APIRoute = async ({ site }) => {
         url: `${origin}/wiki/${change.slug}/`,
         historyUrl: `${origin}/wiki/${change.slug}/history/`,
         historyJsonUrl: `${origin}/wiki/${change.slug}/history.json`,
+        imageUrl: `${origin}/og/${change.slug}.png`,
         date: change.date,
         authorName: change.authorName,
         sha: change.sha,
