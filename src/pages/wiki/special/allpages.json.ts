@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
-import { getPageSlug } from '../../../lib/article-history';
+import { getPageSlug, historyForSlug } from '../../../lib/article-history';
 import { buildAllPages } from '../../../../scripts/allpages.js';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
 
@@ -53,6 +53,12 @@ export const GET: APIRoute = async ({ site }) => {
         imageUrl: `${origin}/og/${article.slug}.png`,
         categories: article.categories,
         backlinks: publishedInboundLinkCount(backlinksData, article.slug, titleBySlug),
+        // The article's last-revision date (history is newest-first) — the same
+        // lastEdited figure info.json / history.json expose per article — so a
+        // directory consumer can sort or filter by recency without an N-fetch
+        // sweep of every article's history. recentchanges.json already exposes a
+        // per-change date; this gives the full directory the same recency signal.
+        lastEdited: historyForSlug(article.slug)[0]?.date ?? null,
       })),
     },
     null,

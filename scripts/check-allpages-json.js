@@ -257,6 +257,23 @@ data.articles.forEach((row, i) => {
     Number.isInteger(row.backlinks) && row.backlinks >= 0,
     `row ${i} backlinks must be a non-negative integer (got ${row.backlinks})`,
   );
+  // lastEdited is the article's last-revision date — the same figure info.json /
+  // history.json expose per article. Cross-check it against the sibling built
+  // info.json envelope (independent source) so the directory and the per-article
+  // surfaces can never disagree on recency.
+  assert.ok(
+    row.lastEdited === null || typeof row.lastEdited === 'string',
+    `row ${i} lastEdited must be a string date or null (got ${JSON.stringify(row.lastEdited)})`,
+  );
+  const apInfoJsonFile = path.join(projectRoot, 'dist', 'wiki', row.slug, 'info.json');
+  if (fs.existsSync(apInfoJsonFile)) {
+    const infoDoc = JSON.parse(fs.readFileSync(apInfoJsonFile, 'utf8'));
+    assert.equal(
+      row.lastEdited,
+      infoDoc.lastEdited,
+      `row ${i} lastEdited must agree with the sibling info.json envelope for ${row.slug}`,
+    );
+  }
   // historyUrl points at the article's revision-history page — the same
   // companion subnets.json / mostlinkedpages.json expose — so a consumer of the
   // directory can reach each article's edit history without rebuilding the route.
