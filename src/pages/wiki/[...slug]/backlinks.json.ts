@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import { getPageSlug } from '../../../lib/article-history';
 import { compareTitles } from '../../../lib/title-sort.js';
 import { buildArticleBacklinks } from '../../../../scripts/article-backlinks.js';
+import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
 
 const backlinksModules = import.meta.glob('../../../../public/data/backlinks.json', { eager: true }) as Record<
   string,
@@ -43,6 +44,7 @@ export const GET: APIRoute = async ({ props, site }) => {
       title: titleBySlug[entry.from],
       summary: summaryBySlug[entry.from] ?? '',
       categories: categoriesBySlug[entry.from] ?? [],
+      backlinks: publishedInboundLinkCount(backlinksData, entry.from, titleBySlug),
     }))
     .sort((a, b) => compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug));
 
