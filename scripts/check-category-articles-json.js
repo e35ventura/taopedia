@@ -69,6 +69,7 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
         relatedUrl: `${ORIGIN}/wiki/subnet_2/related.json`,
         infoJsonUrl: `${ORIGIN}/wiki/subnet_2/info.json`,
         tocJsonUrl: `${ORIGIN}/wiki/subnet_2/toc.json`,
+        imageUrl: `${ORIGIN}/og/subnet_2.png`,
       },
       {
         slug: 'subnet_9',
@@ -88,6 +89,7 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
         relatedUrl: `${ORIGIN}/wiki/subnet_9/related.json`,
         infoJsonUrl: `${ORIGIN}/wiki/subnet_9/info.json`,
         tocJsonUrl: `${ORIGIN}/wiki/subnet_9/toc.json`,
+        imageUrl: `${ORIGIN}/og/subnet_9.png`,
       },
       {
         slug: 'subnet_10',
@@ -107,6 +109,7 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
         relatedUrl: `${ORIGIN}/wiki/subnet_10/related.json`,
         infoJsonUrl: `${ORIGIN}/wiki/subnet_10/info.json`,
         tocJsonUrl: `${ORIGIN}/wiki/subnet_10/toc.json`,
+        imageUrl: `${ORIGIN}/og/subnet_10.png`,
       },
     ],
     'builder: article row shape',
@@ -248,6 +251,14 @@ for (const category of categories) {
       article.tocJsonUrl,
       `${ORIGIN}/wiki/${article.slug}/toc.json`,
       `${category}: article ${article.slug} tocJsonUrl must be the canonical toc.json URL`,
+    );
+    // imageUrl links the article's OG share-card image — the same companion
+    // every other article-listing JSON endpoint (allpages, mostlinkedpages,
+    // subnets, recentchanges) already exposes per entry.
+    assert.equal(
+      article.imageUrl,
+      `${ORIGIN}/og/${article.slug}.png`,
+      `${category}: article ${article.slug} imageUrl must be the canonical OG image URL`,
     );
   }
 
