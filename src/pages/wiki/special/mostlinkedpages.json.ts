@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
-import { getPageSlug } from '../../../lib/article-history';
+import { getPageSlug, historyForSlug } from '../../../lib/article-history';
 import { buildMostLinkedPages } from '../../../../scripts/most-linked.js';
 
 // Machine-readable inbound-link ranking at /wiki/special/mostlinkedpages.json.
@@ -55,6 +55,11 @@ export const GET: APIRoute = async ({ site }) => {
         imageUrl: `${origin}/og/${entry.slug}.png`,
         categories: categoriesBySlug[entry.slug] ?? [],
         backlinks: entry.count,
+        // The article's last-revision date (history is newest-first) — the same
+        // lastEdited figure info.json / history.json expose per article and
+        // allpages.json exposes per directory entry — so a consumer of the
+        // ranking can see each top page's recency without a second fetch.
+        lastEdited: historyForSlug(entry.slug)[0]?.date ?? null,
       })),
     },
     null,
