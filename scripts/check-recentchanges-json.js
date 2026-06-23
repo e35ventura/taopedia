@@ -260,7 +260,27 @@ assert.equal(
   'each recentchanges.json id must be unique',
 );
 
-// ---- 2) Ordering: newest-first, same-date ties by compareTitles(slug) -----
+// ---- 2) dateRange summarizes the feed window (newest-first changes[]) -------
+assert.ok(data.dateRange && typeof data.dateRange === 'object', 'dateRange must be an object');
+assert.ok(typeof data.dateRange.newest === 'string', 'dateRange.newest must be a string');
+assert.ok(typeof data.dateRange.oldest === 'string', 'dateRange.oldest must be a string');
+if (data.changes.length > 0) {
+  assert.equal(data.dateRange.newest, data.changes[0].date, 'dateRange.newest must equal the newest change in the feed');
+  assert.equal(
+    data.dateRange.oldest,
+    data.changes[data.changes.length - 1].date,
+    'dateRange.oldest must equal the oldest change in the feed window',
+  );
+  assert.ok(
+    data.dateRange.oldest <= data.dateRange.newest,
+    `dateRange.oldest must not be after dateRange.newest (${data.dateRange.oldest} > ${data.dateRange.newest})`,
+  );
+} else {
+  assert.equal(data.dateRange.newest, '', 'dateRange.newest must be empty when the feed has no changes');
+  assert.equal(data.dateRange.oldest, '', 'dateRange.oldest must be empty when the feed has no changes');
+}
+
+// ---- 3) Ordering: newest-first, same-date ties by compareTitles(slug) -----
 for (let i = 1; i < data.changes.length; i++) {
   const prev = data.changes[i - 1];
   const cur = data.changes[i];
@@ -273,7 +293,7 @@ for (let i = 1; i < data.changes.length; i++) {
   }
 }
 
-// ---- 3) Independent ground truth from the real history data ---------------
+// ---- 4) Independent ground truth from the real history data ---------------
 const dated = [];
 for (const file of fs.readdirSync(historyDir)) {
   if (!file.endsWith('.json')) continue;
@@ -292,7 +312,7 @@ assert.equal(
 );
 assert.equal(data.changes[0].date, dated[0], `newest change (${data.changes[0].date}) must equal the newest commit across published articles (${dated[0]})`);
 
-// ---- 4) JSON/HTML parity: independent render path, proves no drift --------
+// ---- 5) JSON/HTML parity: independent render path, proves no drift --------
 assert.ok(fs.existsSync(htmlFile), 'dist/wiki/special/recentchanges/index.html not found; run the build first');
 const html = fs.readFileSync(htmlFile, 'utf8');
 const htmlRows = [...html.matchAll(/<li[^>]*class="mw-rc-row"[^>]*>([\s\S]*?)<\/li>/g)].map(([, block]) => ({
