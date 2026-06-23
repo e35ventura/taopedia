@@ -161,6 +161,11 @@ data.subnets.forEach((row, i) => {
     `${data.site}/wiki/${expected[i].slug}/info/`,
     `row ${i} infoUrl must equal ${data.site}/wiki/${expected[i].slug}/info/`,
   );
+  assert.equal(
+    row.infoJsonUrl,
+    `${data.site}/wiki/${expected[i].slug}/info.json`,
+    `row ${i} infoJsonUrl must equal ${data.site}/wiki/${expected[i].slug}/info.json`,
+  );
   // historyUrl points at the subnet article's revision-history page, the same
   // companion recentchanges.json exposes per change, so a registry/monitoring
   // consumer can reach a subnet's edit history without rebuilding the route.
