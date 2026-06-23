@@ -43,9 +43,11 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.backlinks[0].slug, 'neuron', 'builder: backlinks[0].slug');
   assert.equal(result.backlinks[0].title, 'Neuron', 'builder: backlinks[0].title');
   assert.equal(result.backlinks[0].url, `${ORIGIN}/wiki/neuron/`, 'builder: backlinks[0].url');
+  assert.equal(result.backlinks[0].historyUrl, `${ORIGIN}/wiki/neuron/history/`, 'builder: backlinks[0].historyUrl');
   assert.equal(result.backlinks[1].slug, 'subnet_1', 'builder: backlinks[1].slug');
   assert.equal(result.backlinks[1].title, 'Subnet 1', 'builder: backlinks[1].title');
   assert.equal(result.backlinks[1].url, `${ORIGIN}/wiki/subnet_1/`, 'builder: backlinks[1].url');
+  assert.equal(result.backlinks[1].historyUrl, `${ORIGIN}/wiki/subnet_1/history/`, 'builder: backlinks[1].historyUrl');
 
   const empty = buildArticleBacklinks({ slug: 'orphan', title: 'Orphan', origin: ORIGIN });
   assert.equal(empty.count, 0, 'builder: empty count is 0');
@@ -118,6 +120,14 @@ for (const slug of articleSlugs) {
     assert.equal(typeof entry.slug, 'string', `${slug}: every backlink entry must have a slug`);
     assert.equal(typeof entry.title, 'string', `${slug}: every backlink entry must have a title`);
     assert.equal(entry.url, `${ORIGIN}/wiki/${entry.slug}/`, `${slug}: every backlink entry url must be the canonical article URL`);
+    // historyUrl points at the linking article's revision-history page — the
+    // same companion references.json / related.json expose per entry — so a
+    // consumer can reach a backlinking page's history without rebuilding the route.
+    assert.equal(
+      entry.historyUrl,
+      `${ORIGIN}/wiki/${entry.slug}/history/`,
+      `${slug}: every backlink entry historyUrl must be the canonical article history URL`,
+    );
     assert.ok(articleBuilt(entry.slug), `${slug}: backlink entry ${entry.slug} references an unbuilt article`);
   }
 
