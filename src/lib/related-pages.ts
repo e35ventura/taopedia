@@ -47,6 +47,8 @@ export interface ArticleRelatedPagesDocument {
   historyJsonUrl: string;
   backlinksUrl: string;
   backlinksJsonUrl: string;
+  infoUrl: string;
+  infoJsonUrl: string;
   count: number;
   related: Array<{
     slug: string;
@@ -142,6 +144,8 @@ export function buildArticleRelatedPages({
     historyJsonUrl: `${origin}/wiki/${slug}/history.json`,
     backlinksUrl: `${origin}/wiki/${slug}/backlinks/`,
     backlinksJsonUrl: `${origin}/wiki/${slug}/backlinks.json`,
+    infoUrl: `${origin}/wiki/${slug}/info/`,
+    infoJsonUrl: `${origin}/wiki/${slug}/info.json`,
     count: relatedPages.length,
     related: relatedPages.map((entry) => ({
       slug: entry.slug,
