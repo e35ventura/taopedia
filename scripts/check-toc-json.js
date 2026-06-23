@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildArticleToc, getArticleToc } from '../src/lib/article-toc.js';
+import { publishedInboundLinkCount } from './most-linked.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
@@ -64,6 +65,7 @@ const ORIGIN = 'https://taopedia.org';
     origin: ORIGIN,
     summary: 'The source article.',
     categories: ['Consensus', 'Security'],
+    incomingLinks: 5,
     sections,
   });
   assert.equal(doc.slug, 'source', 'builder: slug field');
@@ -84,6 +86,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(doc.relatedUrl, `${ORIGIN}/wiki/source/related.json`, 'builder: relatedUrl cross-link');
   assert.equal(doc.imageUrl, `${ORIGIN}/og/source.png`, 'builder: imageUrl');
   assert.deepEqual(doc.categories, ['Consensus', 'Security'], 'builder: categories field');
+  assert.equal(doc.incomingLinks, 5, 'builder: incomingLinks field');
   assert.equal(doc.count, 3, 'builder: count field');
   assert.deepEqual(
     doc.sections,
@@ -102,6 +105,13 @@ assert.ok(fs.existsSync(wikiDir), 'dist/wiki not found; run the build first');
 const slugmapFile = path.join(projectRoot, 'public', 'data', 'slugmap.json');
 assert.ok(fs.existsSync(slugmapFile), 'public/data/slugmap.json not found; run the build first');
 const slugmap = JSON.parse(fs.readFileSync(slugmapFile, 'utf8'));
+
+const backlinksFile = path.join(projectRoot, 'public', 'data', 'backlinks.json');
+assert.ok(fs.existsSync(backlinksFile), 'public/data/backlinks.json not found; run the build first');
+const backlinksData = JSON.parse(fs.readFileSync(backlinksFile, 'utf8'));
+const titleBySlug = Object.fromEntries(
+  Object.entries(slugmap).map(([slug, meta]) => [slug, typeof meta?.title === 'string' ? meta.title : slug]),
+);
 
 const SUBPAGES = new Set(['history', 'backlinks', 'cite', 'info']);
 const articleSlugs = [];
@@ -198,6 +208,23 @@ for (const slug of articleSlugs) {
   // per-article field the listing endpoints / sibling envelopes expose.
   const expectedSummary = slugmap[slug]?.summary || null;
   assert.deepEqual(doc.summary, expectedSummary, `${slug}: toc.json summary must match the article's slug-map summary (or null)`);
+  // incomingLinks is the article's published inbound-link count — the same figure
+  // info.json / history.json / cite.json expose, computed via the shared helper.
+  assert.equal(
+    doc.incomingLinks,
+    publishedInboundLinkCount(backlinksData, slug, titleBySlug),
+    `${slug}: toc.json incomingLinks must match the published inbound-link count`,
+  );
+  assert.ok(Number.isInteger(doc.incomingLinks) && doc.incomingLinks >= 0, `${slug}: toc.json incomingLinks must be a non-negative integer`);
+  const infoJsonFile = path.join(wikiDir, slug, 'info.json');
+  if (fs.existsSync(infoJsonFile)) {
+    const infoDoc = JSON.parse(fs.readFileSync(infoJsonFile, 'utf8'));
+    assert.equal(
+      doc.incomingLinks,
+      infoDoc.incomingLinks,
+      `${slug}: toc.json incomingLinks must agree with the sibling info.json envelope`,
+    );
+  }
   assert.equal(typeof doc.count, 'number', `${slug}: toc.json count must be a number`);
   assert.ok(Array.isArray(doc.sections), `${slug}: toc.json sections must be an array`);
   assert.equal(doc.count, doc.sections.length, `${slug}: toc.json count must equal sections.length`);
