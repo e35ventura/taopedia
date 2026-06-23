@@ -73,6 +73,7 @@ export interface ArticleRelatedPagesDocument {
     referencesUrl: string;
     relatedUrl: string;
     tocJsonUrl: string;
+    imageUrl: string;
   }>;
 }
 
@@ -185,6 +186,7 @@ export function buildArticleRelatedPages({
       referencesUrl: `${origin}/wiki/${entry.slug}/references.json`,
       relatedUrl: `${origin}/wiki/${entry.slug}/related.json`,
       tocJsonUrl: `${origin}/wiki/${entry.slug}/toc.json`,
+      imageUrl: `${origin}/og/${entry.slug}.png`,
     })),
   };
 }

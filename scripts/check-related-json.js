@@ -97,6 +97,7 @@ const ORIGIN = 'https://taopedia.org';
         relatedUrl: `${ORIGIN}/wiki/alpha/related.json`,
         infoJsonUrl: `${ORIGIN}/wiki/alpha/info.json`,
         tocJsonUrl: `${ORIGIN}/wiki/alpha/toc.json`,
+        imageUrl: `${ORIGIN}/og/alpha.png`,
       },
       {
         slug: 'gamma',
@@ -115,6 +116,7 @@ const ORIGIN = 'https://taopedia.org';
         relatedUrl: `${ORIGIN}/wiki/gamma/related.json`,
         infoJsonUrl: `${ORIGIN}/wiki/gamma/info.json`,
         tocJsonUrl: `${ORIGIN}/wiki/gamma/toc.json`,
+        imageUrl: `${ORIGIN}/og/gamma.png`,
       },
       {
         slug: 'delta',
@@ -133,6 +135,7 @@ const ORIGIN = 'https://taopedia.org';
         relatedUrl: `${ORIGIN}/wiki/delta/related.json`,
         infoJsonUrl: `${ORIGIN}/wiki/delta/info.json`,
         tocJsonUrl: `${ORIGIN}/wiki/delta/toc.json`,
+        imageUrl: `${ORIGIN}/og/delta.png`,
       },
     ],
     'builder: related entry shape',
@@ -297,6 +300,7 @@ for (const slug of articleSlugs) {
     assert.equal(entry.relatedUrl, `${ORIGIN}/wiki/${entry.slug}/related.json`, `${slug}: every related entry relatedUrl must be canonical`);
     assert.equal(entry.infoJsonUrl, `${ORIGIN}/wiki/${entry.slug}/info.json`, `${slug}: every related entry infoJsonUrl must be canonical`);
     assert.equal(entry.tocJsonUrl, `${ORIGIN}/wiki/${entry.slug}/toc.json`, `${slug}: every related entry tocJsonUrl must be canonical`);
+    assert.equal(entry.imageUrl, `${ORIGIN}/og/${entry.slug}.png`, `${slug}: every related entry imageUrl must be the related article's OG share-card URL`);
     assert.ok(Array.isArray(entry.tags), `${slug}: every related entry must expose tags as an array`);
     assert.ok(entry.tags.length <= 2, `${slug}: related entry ${entry.slug} must expose at most two tags`);
   }
