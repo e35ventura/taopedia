@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildSubnets } from './subnets.js';
+import { publishedInboundLinkCount } from './most-linked.js';
 
 // /wiki/special/subnets.json exposes the by-netuid subnet registry as
 // structured JSON for programmatic consumers. The contract is load-bearing: a
@@ -118,6 +119,10 @@ assert.ok(fs.existsSync(slugmapFile), 'public/data/slugmap.json not found; run t
 
 const data = JSON.parse(fs.readFileSync(distFile, 'utf8'));
 const slugmap = JSON.parse(fs.readFileSync(slugmapFile, 'utf8'));
+const backlinksFile = path.join(projectRoot, 'public', 'data', 'backlinks.json');
+assert.ok(fs.existsSync(backlinksFile), 'public/data/backlinks.json not found; run the build first');
+const backlinks = JSON.parse(fs.readFileSync(backlinksFile, 'utf8'));
+const titleBySlug = Object.fromEntries(Object.entries(slugmap).map(([slug, entry]) => [slug, entry.title]));
 
 // site — non-empty URL/origin string.
 assert.ok(
@@ -220,6 +225,18 @@ data.subnets.forEach((row, i) => {
     row.backlinksJsonUrl,
     `${data.site}/wiki/${expected[i].slug}/backlinks.json`,
     `row ${i} backlinksJsonUrl must equal ${data.site}/wiki/${expected[i].slug}/backlinks.json`,
+  );
+  // backlinks is the published-only inbound-link count — the same figure
+  // allpages.json / mostlinkedpages.json expose per row and info.json exposes
+  // as incomingLinks, so a registry consumer can see link popularity directly.
+  assert.equal(
+    row.backlinks,
+    publishedInboundLinkCount(backlinks, expected[i].slug, titleBySlug),
+    `row ${i} backlinks must match the published inbound-link count for ${expected[i].slug}`,
+  );
+  assert.ok(
+    Number.isInteger(row.backlinks) && row.backlinks >= 0,
+    `row ${i} backlinks must be a non-negative integer (got ${row.backlinks})`,
   );
   // citeUrl / referencesUrl / relatedUrl complete the per-article API surface:
   // the citation page (/cite/), the outbound-reference index (references.json),

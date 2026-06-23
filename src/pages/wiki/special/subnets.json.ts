@@ -2,6 +2,13 @@ import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { getPageSlug } from '../../../lib/article-history';
 import { buildSubnets } from '../../../../scripts/subnets.js';
+import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
+
+const backlinksModules = import.meta.glob('../../../../public/data/backlinks.json', { eager: true }) as Record<
+  string,
+  { default?: Record<string, Array<{ from: string }>> }
+>;
+const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
 
 // Machine-readable subnet registry at /wiki/special/subnets.json. Mirrors the
 // HTML Special:Subnets page as structured JSON for programmatic consumers
@@ -15,6 +22,14 @@ import { buildSubnets } from '../../../../scripts/subnets.js';
 export const GET: APIRoute = async ({ site }) => {
   const origin = (site ?? new URL('https://taopedia.org')).origin;
   const pages = await getCollection('pages');
+
+  // titleBySlug lets publishedInboundLinkCount count only inbound links from
+  // PUBLISHED articles (the same join allpages.json / mostlinkedpages.json and
+  // the HTML backlinks page use), so the figure can never include a draft.
+  const titleBySlug: Record<string, string> = {};
+  for (const page of pages) {
+    titleBySlug[getPageSlug(page)] = page.data.title;
+  }
 
   const subnets = buildSubnets({ pages, getPageSlug });
 
@@ -51,6 +66,7 @@ export const GET: APIRoute = async ({ site }) => {
         tocJsonUrl: `${origin}/wiki/${subnet.slug}/toc.json`,
         imageUrl: `${origin}/og/${subnet.slug}.png`,
         categories: subnet.categories,
+        backlinks: publishedInboundLinkCount(backlinksData, subnet.slug, titleBySlug),
       })),
     },
     null,
