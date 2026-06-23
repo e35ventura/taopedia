@@ -20,10 +20,12 @@ export const GET: APIRoute = async ({ site }) => {
   const pages = await getCollection('pages');
   const titleBySlug: Record<string, string> = {};
   const categoriesBySlug: Record<string, string[]> = {};
+  const summaryBySlug: Record<string, string> = {};
   for (const page of pages) {
     const slug = getPageSlug(page);
     titleBySlug[slug] = page.data.title;
     categoriesBySlug[slug] = page.data.categories ?? [];
+    summaryBySlug[slug] = page.data.summary ?? '';
   }
 
   const ranked = buildMostLinkedPages({ backlinks: backlinksData, titleBySlug });
@@ -36,6 +38,7 @@ export const GET: APIRoute = async ({ site }) => {
       pages: ranked.map((entry) => ({
         slug: entry.slug,
         title: entry.title,
+        summary: summaryBySlug[entry.slug] || null,
         url: `${origin}/wiki/${entry.slug}/`,
         infoUrl: `${origin}/wiki/${entry.slug}/info/`,
         infoJsonUrl: `${origin}/wiki/${entry.slug}/info.json`,
