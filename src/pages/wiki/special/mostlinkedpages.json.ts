@@ -28,6 +28,7 @@ export const GET: APIRoute = async ({ site }) => {
   const body = JSON.stringify(
     {
       site: origin,
+      mostlinkedpagesJsonUrl: `${origin}/wiki/special/mostlinkedpages.json`,
       count: ranked.length,
       pages: ranked.map((entry) => ({
         slug: entry.slug,
