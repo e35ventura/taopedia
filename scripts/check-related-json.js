@@ -58,10 +58,14 @@ const ORIGIN = 'https://taopedia.org';
     slug: 'source',
     title: 'Source',
     origin: ORIGIN,
+    categories: ['Security', 'Consensus'],
     relatedPages,
   });
   assert.equal(doc.slug, 'source', 'builder: slug field');
   assert.equal(doc.title, 'Source', 'builder: title field');
+  // The article's own topics must be threaded through verbatim (non-empty),
+  // the same field history.json / info.json envelopes expose.
+  assert.deepEqual(doc.categories, ['Security', 'Consensus'], 'builder: categories field threaded verbatim');
   assert.equal(doc.url, `${ORIGIN}/wiki/source/`, 'builder: url field');
   assert.equal(doc.relatedUrl, `${ORIGIN}/wiki/source/related.json`, 'builder: relatedUrl self field');
   assert.equal(doc.historyUrl, `${ORIGIN}/wiki/source/history/`, 'builder: historyUrl cross-link');
@@ -144,6 +148,7 @@ const ORIGIN = 'https://taopedia.org';
   const empty = buildArticleRelatedPages({ slug: 'orphan', title: 'Orphan', origin: ORIGIN });
   assert.equal(empty.count, 0, 'builder: empty count is 0');
   assert.deepEqual(empty.related, [], 'builder: empty related array is []');
+  assert.deepEqual(empty.categories, [], 'builder: categories defaults to [] when omitted');
 }
 
 // ---- 2) Built-output checks -----------------------------------------------
@@ -206,6 +211,7 @@ for (const slug of articleSlugs) {
     slug,
     title: titleBySlug[slug],
     origin: ORIGIN,
+    categories: slugMap[slug]?.categories ?? [],
     relatedPages: expectedRelatedPages,
   });
 
@@ -213,6 +219,15 @@ for (const slug of articleSlugs) {
   assert.equal(typeof doc.title, 'string', `${slug}: related.json title must be a string`);
   assert.equal(doc.slug, slug, `${slug}: related.json slug must equal the article slug`);
   assert.equal(doc.title, titleBySlug[slug], `${slug}: related.json title must equal the article title`);
+  // categories is the article's own topic set, the same field history.json /
+  // info.json envelopes expose. Assert it against the raw slug map (independent
+  // source, not the builder's own output) so the article's real, non-empty
+  // topics are proven to flow end-to-end into the built JSON.
+  assert.deepEqual(
+    doc.categories,
+    slugMap[slug]?.categories ?? [],
+    `${slug}: related.json categories must equal the article's topics in the slug map`,
+  );
   assert.equal(doc.url, `${ORIGIN}/wiki/${slug}/`, `${slug}: related.json url must be the canonical article URL`);
   assert.equal(
     doc.relatedUrl,
