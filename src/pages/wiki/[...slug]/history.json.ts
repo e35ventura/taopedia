@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { getPageSlug } from '../../../lib/article-history';
+import { getArticleReferences } from '../../../lib/article-references.js';
 import { buildArticleHistory } from '../../../../scripts/article-history-json.js';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
 
@@ -17,6 +18,12 @@ const backlinksModules = import.meta.glob('../../../../public/data/backlinks.jso
 >;
 const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
 
+const linkgraphModules = import.meta.glob('../../../../public/data/linkgraph.json', { eager: true }) as Record<
+  string,
+  { default?: Record<string, Array<{ target?: string }>> }
+>;
+const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
+
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
   const titleBySlug = Object.fromEntries(pages.map((page) => [getPageSlug(page), page.data.title]));
@@ -29,6 +36,7 @@ export async function getStaticPaths() {
         page,
         slug,
         incomingLinks: publishedInboundLinkCount(backlinksData, slug, titleBySlug),
+        referencesCount: getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length,
       },
     };
   });
@@ -36,13 +44,15 @@ export async function getStaticPaths() {
 
 // Machine-readable companion to /wiki/<slug>/history/. Exposes the full
 // per-commit revision list (sha, date, authorName, message) that history.astro
-// renders, plus computed summary fields (revisionCount, firstEdited, lastEdited)
-// that info.json summarises but does not break out per-revision.
+// renders, plus computed summary fields (revisionCount, firstEdited, lastEdited,
+// referencesCount) that info.json summarises or that references.json exposes as
+// `count`, but does not break out per-revision.
 export const GET: APIRoute = async ({ props, site }) => {
-  const { page, slug, incomingLinks } = props as {
+  const { page, slug, incomingLinks, referencesCount } = props as {
     page: { data: { title: string; summary?: string; categories?: string[] } };
     slug: string;
     incomingLinks: number;
+    referencesCount: number;
   };
   const origin = (site ?? new URL('https://taopedia.org')).origin;
 
@@ -57,6 +67,7 @@ export const GET: APIRoute = async ({ props, site }) => {
       summary: page.data.summary ?? '',
       categories: page.data.categories ?? [],
       incomingLinks,
+      referencesCount,
       revisions,
     }),
     null,
