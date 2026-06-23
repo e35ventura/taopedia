@@ -65,6 +65,11 @@ export interface ArticleRelatedPagesDocument {
     backlinksUrl: string;
     historyUrl: string;
     historyJsonUrl: string;
+    citeUrl: string;
+    citeJsonUrl: string;
+    bibtexUrl: string;
+    referencesUrl: string;
+    relatedUrl: string;
   }>;
 }
 
@@ -169,6 +174,11 @@ export function buildArticleRelatedPages({
       backlinksUrl: `${origin}/wiki/${entry.slug}/backlinks/`,
       historyUrl: `${origin}/wiki/${entry.slug}/history/`,
       historyJsonUrl: `${origin}/wiki/${entry.slug}/history.json`,
+      citeUrl: `${origin}/wiki/${entry.slug}/cite/`,
+      citeJsonUrl: `${origin}/wiki/${entry.slug}/cite.json`,
+      bibtexUrl: `${origin}/wiki/${entry.slug}/cite.bib`,
+      referencesUrl: `${origin}/wiki/${entry.slug}/references.json`,
+      relatedUrl: `${origin}/wiki/${entry.slug}/related.json`,
     })),
   };
 }
