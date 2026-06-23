@@ -91,6 +91,7 @@ const ORIGIN = 'https://taopedia.org';
         title: 'Subnet 2',
         summary: 'alpha summary',
         tags: ['Security'],
+        categories: [],
         url: `${ORIGIN}/wiki/alpha/`,
         infoUrl: `${ORIGIN}/wiki/alpha/info/`,
         backlinksUrl: `${ORIGIN}/wiki/alpha/backlinks/`,
@@ -111,6 +112,7 @@ const ORIGIN = 'https://taopedia.org';
         title: 'Subnet 9',
         summary: null,
         tags: ['Security'],
+        categories: [],
         url: `${ORIGIN}/wiki/gamma/`,
         infoUrl: `${ORIGIN}/wiki/gamma/info/`,
         backlinksUrl: `${ORIGIN}/wiki/gamma/backlinks/`,
@@ -131,6 +133,7 @@ const ORIGIN = 'https://taopedia.org';
         title: 'Delta',
         summary: 'delta summary',
         tags: ['Consensus'],
+        categories: [],
         url: `${ORIGIN}/wiki/delta/`,
         infoUrl: `${ORIGIN}/wiki/delta/info/`,
         backlinksUrl: `${ORIGIN}/wiki/delta/backlinks/`,
@@ -212,7 +215,7 @@ for (const slug of articleSlugs) {
     outgoing: linkgraphData,
     publishedSlugs,
     titleBySlug,
-  });
+  }).map((entry) => ({ ...entry, categories: slugMap[entry.slug]?.categories ?? [] }));
   const expectedDoc = buildArticleRelatedPages({
     slug,
     title: titleBySlug[slug],

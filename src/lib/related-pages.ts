@@ -36,6 +36,9 @@ export interface RelatedPage {
   summary: string;
   // Up to two short topic labels explaining the relation (shared topics first).
   tags: string[];
+  // The candidate article's full topic categories (optional; the endpoint
+  // enriches each entry from the slug map so consumers can group/filter).
+  categories?: string[];
 }
 
 export interface ArticleRelatedPagesDocument {
@@ -63,6 +66,7 @@ export interface ArticleRelatedPagesDocument {
     title: string;
     summary: string | null;
     tags: string[];
+    categories: string[];
     url: string;
     infoUrl: string;
     infoJsonUrl: string;
@@ -191,6 +195,7 @@ export function buildArticleRelatedPages({
       title: entry.title,
       summary: entry.summary || null,
       tags: entry.tags,
+      categories: Array.isArray(entry.categories) ? entry.categories : [],
       url: `${origin}/wiki/${entry.slug}/`,
       infoUrl: `${origin}/wiki/${entry.slug}/info/`,
       infoJsonUrl: `${origin}/wiki/${entry.slug}/info.json`,
