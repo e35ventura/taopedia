@@ -193,6 +193,13 @@ data.articles.forEach((row, i) => {
     `${data.site}/wiki/${row.slug}/info/`,
     `row ${i} infoUrl must equal ${data.site}/wiki/${row.slug}/info/`,
   );
+  // infoJsonUrl is the JSON companion of infoUrl — /wiki/<slug>/info.json exists,
+  // so each entry pairs its HTML info link with the machine-readable one.
+  assert.equal(
+    row.infoJsonUrl,
+    `${data.site}/wiki/${row.slug}/info.json`,
+    `row ${i} infoJsonUrl must equal ${data.site}/wiki/${row.slug}/info.json`,
+  );
   assert.equal(
     row.backlinksUrl,
     `${data.site}/wiki/${row.slug}/backlinks/`,
