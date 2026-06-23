@@ -41,6 +41,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.referencesUrl, `${ORIGIN}/wiki/recycling/references.json`, 'builder: referencesUrl');
   assert.equal(result.relatedUrl, `${ORIGIN}/wiki/recycling/related.json`, 'builder: relatedUrl');
   assert.equal(result.tocJsonUrl, `${ORIGIN}/wiki/recycling/toc.json`, 'builder: tocJsonUrl');
+  assert.equal(result.imageUrl, `${ORIGIN}/og/recycling.png`, 'builder: imageUrl');
   assert.equal(result.revisionCount, 2, 'builder: revisionCount');
   assert.equal(result.lastEdited, '2026-06-01T12:00:00.000Z', 'builder: lastEdited is revisions[0].date');
   assert.equal(result.firstEdited, '2025-01-10T08:00:00.000Z', 'builder: firstEdited is revisions[last].date');
@@ -133,6 +134,9 @@ for (const slug of articleSlugs) {
   // tocJsonUrl links the article's machine-readable table-of-contents endpoint,
   // letting consumers navigate from revision history to heading structure.
   assert.equal(doc.tocJsonUrl, `${ORIGIN}/wiki/${slug}/toc.json`, `${slug}: history.json tocJsonUrl must point to the article's table-of-contents endpoint`);
+  // imageUrl is the article's own OG share-card (/og/<slug>.png) — the same
+  // per-article image the directory entries and feeds expose.
+  assert.equal(doc.imageUrl, `${ORIGIN}/og/${slug}.png`, `${slug}: history.json imageUrl must be the article's OG share-card URL`);
   assert.equal(typeof doc.revisionCount, 'number', `${slug}: history.json revisionCount must be a number`);
   assert.ok(Array.isArray(doc.revisions), `${slug}: history.json revisions must be an array`);
   assert.equal(doc.revisionCount, doc.revisions.length, `${slug}: history.json revisionCount must equal revisions.length`);
