@@ -67,6 +67,7 @@ export interface ArticleRelatedPagesDocument {
     infoUrl: string;
     infoJsonUrl: string;
     backlinksUrl: string;
+    backlinksJsonUrl: string;
     historyUrl: string;
     historyJsonUrl: string;
     citeUrl: string;
@@ -194,6 +195,7 @@ export function buildArticleRelatedPages({
       infoUrl: `${origin}/wiki/${entry.slug}/info/`,
       infoJsonUrl: `${origin}/wiki/${entry.slug}/info.json`,
       backlinksUrl: `${origin}/wiki/${entry.slug}/backlinks/`,
+      backlinksJsonUrl: `${origin}/wiki/${entry.slug}/backlinks.json`,
       historyUrl: `${origin}/wiki/${entry.slug}/history/`,
       historyJsonUrl: `${origin}/wiki/${entry.slug}/history.json`,
       citeUrl: `${origin}/wiki/${entry.slug}/cite/`,
