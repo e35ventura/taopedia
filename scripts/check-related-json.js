@@ -74,6 +74,7 @@ const ORIGIN = 'https://taopedia.org';
         summary: 'alpha summary',
         tags: ['Security'],
         url: `${ORIGIN}/wiki/alpha/`,
+        historyUrl: `${ORIGIN}/wiki/alpha/history/`,
       },
       {
         slug: 'gamma',
@@ -81,6 +82,7 @@ const ORIGIN = 'https://taopedia.org';
         summary: null,
         tags: ['Security'],
         url: `${ORIGIN}/wiki/gamma/`,
+        historyUrl: `${ORIGIN}/wiki/gamma/history/`,
       },
       {
         slug: 'delta',
@@ -88,6 +90,7 @@ const ORIGIN = 'https://taopedia.org';
         summary: 'delta summary',
         tags: ['Consensus'],
         url: `${ORIGIN}/wiki/delta/`,
+        historyUrl: `${ORIGIN}/wiki/delta/history/`,
       },
     ],
     'builder: related entry shape',
@@ -185,6 +188,11 @@ for (const slug of articleSlugs) {
     assert.equal(typeof entry.slug, 'string', `${slug}: every related entry must have a slug`);
     assert.equal(typeof entry.title, 'string', `${slug}: every related entry must have a title`);
     assert.equal(entry.url, `${ORIGIN}/wiki/${entry.slug}/`, `${slug}: every related entry url must be canonical`);
+    assert.equal(
+      entry.historyUrl,
+      `${ORIGIN}/wiki/${entry.slug}/history/`,
+      `${slug}: every related entry historyUrl must be canonical`,
+    );
     assert.ok(Array.isArray(entry.tags), `${slug}: every related entry must expose tags as an array`);
     assert.ok(entry.tags.length <= 2, `${slug}: related entry ${entry.slug} must expose at most two tags`);
   }

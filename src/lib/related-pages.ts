@@ -139,6 +139,7 @@ export function buildArticleRelatedPages({
       summary: entry.summary || null,
       tags: entry.tags,
       url: `${origin}/wiki/${entry.slug}/`,
+      historyUrl: `${origin}/wiki/${entry.slug}/history/`,
     })),
   };
 }
