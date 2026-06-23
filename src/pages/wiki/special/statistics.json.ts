@@ -36,6 +36,7 @@ export const GET: APIRoute = async ({ site }) => {
   const body = JSON.stringify(
     {
       site: origin,
+      statisticsJsonUrl: `${origin}/wiki/special/statistics.json`,
       ...stats,
       largestTopic: stats.largestTopic
         ? {
