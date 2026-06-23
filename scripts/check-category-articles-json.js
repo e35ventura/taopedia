@@ -56,6 +56,7 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
         url: `${ORIGIN}/wiki/subnet_2/`,
         infoUrl: `${ORIGIN}/wiki/subnet_2/info/`,
         backlinksUrl: `${ORIGIN}/wiki/subnet_2/backlinks/`,
+        backlinksJsonUrl: `${ORIGIN}/wiki/subnet_2/backlinks.json`,
         citeUrl: `${ORIGIN}/wiki/subnet_2/cite/`,
         citeJsonUrl: `${ORIGIN}/wiki/subnet_2/cite.json`,
         bibtexUrl: `${ORIGIN}/wiki/subnet_2/cite.bib`,
@@ -69,6 +70,7 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
         url: `${ORIGIN}/wiki/subnet_9/`,
         infoUrl: `${ORIGIN}/wiki/subnet_9/info/`,
         backlinksUrl: `${ORIGIN}/wiki/subnet_9/backlinks/`,
+        backlinksJsonUrl: `${ORIGIN}/wiki/subnet_9/backlinks.json`,
         citeUrl: `${ORIGIN}/wiki/subnet_9/cite/`,
         citeJsonUrl: `${ORIGIN}/wiki/subnet_9/cite.json`,
         bibtexUrl: `${ORIGIN}/wiki/subnet_9/cite.bib`,
@@ -82,6 +84,7 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
         url: `${ORIGIN}/wiki/subnet_10/`,
         infoUrl: `${ORIGIN}/wiki/subnet_10/info/`,
         backlinksUrl: `${ORIGIN}/wiki/subnet_10/backlinks/`,
+        backlinksJsonUrl: `${ORIGIN}/wiki/subnet_10/backlinks.json`,
         citeUrl: `${ORIGIN}/wiki/subnet_10/cite/`,
         citeJsonUrl: `${ORIGIN}/wiki/subnet_10/cite.json`,
         bibtexUrl: `${ORIGIN}/wiki/subnet_10/cite.bib`,
@@ -180,6 +183,11 @@ for (const category of categories) {
       article.backlinksUrl,
       `${ORIGIN}/wiki/${article.slug}/backlinks/`,
       `${category}: article ${article.slug} backlinksUrl must be the canonical What-links-here URL`,
+    );
+    assert.equal(
+      article.backlinksJsonUrl,
+      `${ORIGIN}/wiki/${article.slug}/backlinks.json`,
+      `${category}: article ${article.slug} backlinksJsonUrl must be the canonical backlinks.json URL`,
     );
     assert.equal(
       article.citeUrl,
