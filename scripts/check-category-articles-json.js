@@ -56,6 +56,8 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
         url: `${ORIGIN}/wiki/subnet_2/`,
         infoUrl: `${ORIGIN}/wiki/subnet_2/info/`,
         backlinksUrl: `${ORIGIN}/wiki/subnet_2/backlinks/`,
+        historyUrl: `${ORIGIN}/wiki/subnet_2/history/`,
+        historyJsonUrl: `${ORIGIN}/wiki/subnet_2/history.json`,
       },
       {
         slug: 'subnet_9',
@@ -64,6 +66,8 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
         url: `${ORIGIN}/wiki/subnet_9/`,
         infoUrl: `${ORIGIN}/wiki/subnet_9/info/`,
         backlinksUrl: `${ORIGIN}/wiki/subnet_9/backlinks/`,
+        historyUrl: `${ORIGIN}/wiki/subnet_9/history/`,
+        historyJsonUrl: `${ORIGIN}/wiki/subnet_9/history.json`,
       },
       {
         slug: 'subnet_10',
@@ -72,6 +76,8 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
         url: `${ORIGIN}/wiki/subnet_10/`,
         infoUrl: `${ORIGIN}/wiki/subnet_10/info/`,
         backlinksUrl: `${ORIGIN}/wiki/subnet_10/backlinks/`,
+        historyUrl: `${ORIGIN}/wiki/subnet_10/history/`,
+        historyJsonUrl: `${ORIGIN}/wiki/subnet_10/history.json`,
       },
     ],
     'builder: article row shape',
@@ -153,8 +159,8 @@ for (const category of categories) {
 
   // Each article row links its Page-information and What-links-here pages, the
   // same per-entry companions the other special JSON endpoints expose, so a
-  // consumer of a category's article list can reach each article's metadata and
-  // inbound links without reconstructing the route.
+  // consumer of a category's article list can reach each article's metadata,
+  // inbound links, and structured revision history without reconstructing any route.
   for (const article of doc.articles) {
     assert.equal(
       article.infoUrl,
@@ -165,6 +171,16 @@ for (const category of categories) {
       article.backlinksUrl,
       `${ORIGIN}/wiki/${article.slug}/backlinks/`,
       `${category}: article ${article.slug} backlinksUrl must be the canonical What-links-here URL`,
+    );
+    assert.equal(
+      article.historyUrl,
+      `${ORIGIN}/wiki/${article.slug}/history/`,
+      `${category}: article ${article.slug} historyUrl must be the canonical History URL`,
+    );
+    assert.equal(
+      article.historyJsonUrl,
+      `${ORIGIN}/wiki/${article.slug}/history.json`,
+      `${category}: article ${article.slug} historyJsonUrl must be the canonical history.json URL`,
     );
   }
 
