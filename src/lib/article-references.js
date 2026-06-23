@@ -16,10 +16,14 @@ export const getArticleReferences = ({ slug, linkGraph = {}, titleBySlug = {} })
   return references.sort((a, b) => compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug));
 };
 
-export const buildArticleReferences = ({ slug, title, origin, summary = '', categories = [], references = [] }) => ({
+export const buildArticleReferences = ({ slug, title, origin, summary = '', categories = [], incomingLinks = 0, references = [] }) => ({
   slug,
   title,
   summary: summary || null,
+  // The article's own published inbound-link count — the same figure info.json /
+  // history.json / cite.json expose — so a consumer of references.json can see
+  // the article's link popularity without a second fetch.
+  incomingLinks: Number.isFinite(incomingLinks) ? incomingLinks : 0,
   url: `${origin}/wiki/${slug}/`,
   referencesUrl: `${origin}/wiki/${slug}/references.json`,
   historyUrl: `${origin}/wiki/${slug}/history/`,

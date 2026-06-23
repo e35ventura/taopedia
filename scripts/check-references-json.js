@@ -46,10 +46,11 @@ const ORIGIN = 'https://taopedia.org';
     'helper must exclude self/missing targets, dedupe repeated targets, and sort numerically by title',
   );
 
-  const doc = buildArticleReferences({ slug: 'source', title: 'Source', origin: ORIGIN, summary: 'The source article.', categories: ['Consensus', 'Security'], references });
+  const doc = buildArticleReferences({ slug: 'source', title: 'Source', origin: ORIGIN, summary: 'The source article.', categories: ['Consensus', 'Security'], incomingLinks: 7, references });
   assert.equal(doc.slug, 'source', 'builder: slug field');
   assert.equal(doc.title, 'Source', 'builder: title field');
   assert.equal(doc.summary, 'The source article.', 'builder: summary field');
+  assert.equal(doc.incomingLinks, 7, 'builder: incomingLinks field threaded verbatim');
   assert.equal(doc.url, `${ORIGIN}/wiki/source/`, 'builder: url field');
   assert.equal(doc.referencesUrl, `${ORIGIN}/wiki/source/references.json`, 'builder: referencesUrl self field');
   assert.equal(doc.historyUrl, `${ORIGIN}/wiki/source/history/`, 'builder: historyUrl cross-link');
@@ -160,6 +161,7 @@ const ORIGIN = 'https://taopedia.org';
   const empty = buildArticleReferences({ slug: 'orphan', title: 'Orphan', origin: ORIGIN });
   assert.deepEqual(empty.categories, [], 'builder: default categories is []');
   assert.equal(empty.summary, null, 'builder: default summary is null');
+  assert.equal(empty.incomingLinks, 0, 'builder: default incomingLinks is 0');
   assert.equal(empty.count, 0, 'builder: empty count is 0');
   assert.deepEqual(empty.references, [], 'builder: empty references is []');
 }
@@ -268,6 +270,19 @@ for (const slug of articleSlugs) {
   // per-article field the sibling envelopes (backlinks/toc) and listing endpoints expose.
   const expectedSummary = slugmap[slug]?.summary || null;
   assert.deepEqual(doc.summary, expectedSummary, `${slug}: references.json summary must match the article's slug-map summary (or null)`);
+  // incomingLinks is the article's OWN published inbound-link count — the same
+  // figure info.json / history.json / cite.json expose on their envelopes,
+  // computed with the shared publishedInboundLinkCount helper. Re-derive it from
+  // the raw backlink graph (independent source) so it cannot drift.
+  assert.ok(
+    Number.isInteger(doc.incomingLinks) && doc.incomingLinks >= 0,
+    `${slug}: references.json incomingLinks must be a non-negative integer (got ${JSON.stringify(doc.incomingLinks)})`,
+  );
+  assert.equal(
+    doc.incomingLinks,
+    publishedInboundLinkCount(backlinksData, slug, titleBySlug),
+    `${slug}: references.json incomingLinks must equal the published inbound-link count for ${slug}`,
+  );
   assert.equal(typeof doc.count, 'number', `${slug}: references.json count must be a number`);
   assert.ok(Array.isArray(doc.references), `${slug}: references.json references must be an array`);
   assert.equal(doc.count, doc.references.length, `${slug}: references.json count must equal references.length`);
