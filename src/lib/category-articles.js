@@ -19,7 +19,17 @@ export const getCategoryArticles = ({ categoryName, categoriesIndex = {}, slugMa
     });
   }
 
-  return articles.sort((a, b) => compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug));
+  // Same-title tiebreak must match the rendered category HTML page, which sorts
+  // its members with sortPagesByTitle (src/lib/title-sort.js): compareTitles on
+  // the title, then a PLAIN code-unit comparison of the stable unique entry id.
+  // The slug is that id's stable unique component, so compare it the same way —
+  // NOT with compareTitles, whose numeric collation would order two same-title
+  // members "subnet_9" before "subnet_10" while the HTML page (raw id order)
+  // puts "subnet_10" first, leaving articles.json and the page it mirrors in
+  // conflicting order.
+  return articles.sort(
+    (a, b) => compareTitles(a.title, b.title) || (a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0),
+  );
 };
 
 export const buildCategoryArticlesDocument = ({ origin, categoryName, categoryPath, articles = [] }) => ({
