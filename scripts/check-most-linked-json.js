@@ -122,6 +122,14 @@ data.pages.forEach((row, i) => {
     slugmap[row.slug]?.categories ?? [],
     `row ${i} categories must match the article's topics in the slug map for ${row.slug}`,
   );
+  // summary is the article's frontmatter summary (null when blank) — the same
+  // field allpages.json / subnets.json expose per entry, so a consumer can show
+  // a preview of each top-ranked page without a second fetch.
+  assert.equal(
+    row.summary,
+    slugmap[row.slug]?.summary || null,
+    `row ${i} summary must be the slug-map summary (null when blank) for ${row.slug}`,
+  );
   assert.ok(Number.isInteger(row.backlinks) && row.backlinks > 0, `row ${i} backlinks must be a positive integer`);
   // infoUrl points at the article's Page-information page, the same companion
   // exposed elsewhere, so a consumer of the ranking can reach each top page's
