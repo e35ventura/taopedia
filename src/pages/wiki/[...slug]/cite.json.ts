@@ -12,7 +12,7 @@ export async function getStaticPaths() {
 }
 
 export const GET: APIRoute = async ({ site, props }) => {
-  const { page, slug } = props as { page: { data: { title: string; categories?: string[] } }; slug: string };
+  const { page, slug } = props as { page: { data: { title: string; summary?: string; categories?: string[] } }; slug: string };
   const url = new URL(`/wiki/${slug}/`, site ?? new URL('https://taopedia.org')).toString();
   const date = historyForSlug(slug)[0]?.date ?? '';
   const citations = buildCitations({ title: page.data.title, url, slug, date });
@@ -21,6 +21,7 @@ export const GET: APIRoute = async ({ site, props }) => {
     {
       title: page.data.title,
       slug,
+      summary: page.data.summary || null,
       url,
       citeJsonUrl: new URL(`/wiki/${slug}/cite.json`, site ?? new URL('https://taopedia.org')).toString(),
       citeUrl: new URL(`/wiki/${slug}/cite/`, site ?? new URL('https://taopedia.org')).toString(),
