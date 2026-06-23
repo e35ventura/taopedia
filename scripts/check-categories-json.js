@@ -82,55 +82,26 @@ data.categories.forEach((row, i) => {
   assert.ok(typeof row.name === 'string' && row.name.length > 0, `row ${i} name must be a non-empty string`);
   assert.ok(knownNames.has(row.name), `row ${i} topic "${row.name}" is not a known category`);
   assert.ok(Number.isInteger(row.articles) && row.articles > 0, `row ${i} articles must be a positive integer`);
-  assert.ok(
-    row.url.startsWith(`${data.site}/wiki/category/`),
-    `row ${i} url must be absolute and start with the envelope site (got ${row.url})`,
-  );
+  // slug is the single URL-safe route token (spaces -> underscores) the endpoint
+  // builds every category route from, exposed so a consumer can build category
+  // routes without re-deriving the escaping — the same slug parity
+  // search-data.json exposes per article. Validate it once, then assert every
+  // route URL is derived from row.slug (NOT a re-derived name.replace(...)), so
+  // the field and the URLs can never silently diverge.
   assert.equal(
-    row.url,
-    `${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/`,
-    `row ${i} url must equal ${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/`,
+    row.slug,
+    row.name.replace(/ /g, '_'),
+    `row ${i} slug must be the URL-safe form of the name (got ${JSON.stringify(row.slug)})`,
   );
-  // articlesUrl points at the category's machine-readable article list
-  // (/wiki/category/<slug>/articles.json), the companion the HTML url omits, so
-  // a consumer of the category index can fetch each category's articles without
-  // reconstructing the route. Same absolute-URL contract as url.
-  assert.ok(
-    row.articlesUrl.startsWith(`${data.site}/wiki/category/`),
-    `row ${i} articlesUrl must be absolute and start with the envelope site (got ${row.articlesUrl})`,
-  );
-  assert.equal(
-    row.articlesUrl,
-    `${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/articles.json`,
-    `row ${i} articlesUrl must equal ${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/articles.json`,
-  );
-  // feedUrl points at the category's JSON Feed (/wiki/category/<slug>/feed.json),
-  // so a feed-reader or programmatic consumer can subscribe to a category
-  // straight from the index without reconstructing the route. Same absolute-URL
-  // contract as url/articlesUrl.
-  assert.ok(
-    row.feedUrl.startsWith(`${data.site}/wiki/category/`),
-    `row ${i} feedUrl must be absolute and start with the envelope site (got ${row.feedUrl})`,
-  );
-  assert.equal(
-    row.feedUrl,
-    `${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/feed.json`,
-    `row ${i} feedUrl must equal ${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/feed.json`,
-  );
-  // atomUrl / rssUrl point at the category's Atom and RSS feeds
-  // (/wiki/category/<slug>/atom.xml and /rss.xml), which exist alongside the
-  // JSON feed. A feed reader that speaks Atom/RSS rather than JSON Feed needs
-  // these to subscribe straight from the index. Same absolute-URL contract.
-  assert.equal(
-    row.atomUrl,
-    `${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/atom.xml`,
-    `row ${i} atomUrl must equal ${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/atom.xml`,
-  );
-  assert.equal(
-    row.rssUrl,
-    `${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/rss.xml`,
-    `row ${i} rssUrl must equal ${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/rss.xml`,
-  );
+  const base = `${data.site}/wiki/category/${row.slug}`;
+  // url is the category hub; articlesUrl its machine-readable article list;
+  // feedUrl/atomUrl/rssUrl its JSON/Atom/RSS syndication feeds. All must be the
+  // canonical absolute URL derived from row.slug.
+  assert.equal(row.url, `${base}/`, `row ${i} url must equal ${base}/`);
+  assert.equal(row.articlesUrl, `${base}/articles.json`, `row ${i} articlesUrl must equal ${base}/articles.json`);
+  assert.equal(row.feedUrl, `${base}/feed.json`, `row ${i} feedUrl must equal ${base}/feed.json`);
+  assert.equal(row.atomUrl, `${base}/atom.xml`, `row ${i} atomUrl must equal ${base}/atom.xml`);
+  assert.equal(row.rssUrl, `${base}/rss.xml`, `row ${i} rssUrl must equal ${base}/rss.xml`);
 });
 
 console.log(`Categories JSON check passed (${data.count} topics)`);

@@ -20,15 +20,24 @@ export const GET: APIRoute = async ({ site }) => {
       site: origin,
       categoriesJsonUrl: `${origin}/wiki/special/categories.json`,
       count: topics.length,
-      categories: topics.map((topic) => ({
-        name: topic.name,
-        articles: topic.count,
-        url: `${origin}/wiki/category/${topic.name.replace(/ /g, '_')}/`,
-        articlesUrl: `${origin}/wiki/category/${topic.name.replace(/ /g, '_')}/articles.json`,
-        feedUrl: `${origin}/wiki/category/${topic.name.replace(/ /g, '_')}/feed.json`,
-        atomUrl: `${origin}/wiki/category/${topic.name.replace(/ /g, '_')}/atom.xml`,
-        rssUrl: `${origin}/wiki/category/${topic.name.replace(/ /g, '_')}/rss.xml`,
-      })),
+      categories: topics.map((topic) => {
+        // slug is the single URL-safe route token for the category; every route
+        // URL below is built from it, and it is exposed so a consumer can build
+        // category routes without re-deriving the escaping (the same slug parity
+        // search-data.json exposes per article).
+        const slug = topic.name.replace(/ /g, '_');
+        const base = `${origin}/wiki/category/${slug}`;
+        return {
+          name: topic.name,
+          slug,
+          articles: topic.count,
+          url: `${base}/`,
+          articlesUrl: `${base}/articles.json`,
+          feedUrl: `${base}/feed.json`,
+          atomUrl: `${base}/atom.xml`,
+          rssUrl: `${base}/rss.xml`,
+        };
+      }),
     },
     null,
     2,
