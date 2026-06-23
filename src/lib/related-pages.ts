@@ -67,6 +67,7 @@ export interface ArticleRelatedPagesDocument {
     infoUrl: string;
     infoJsonUrl: string;
     backlinksUrl: string;
+    backlinksJsonUrl: string;
     historyUrl: string;
     historyJsonUrl: string;
     citeUrl: string;
@@ -194,6 +195,13 @@ export function buildArticleRelatedPages({
       infoUrl: `${origin}/wiki/${entry.slug}/info/`,
       infoJsonUrl: `${origin}/wiki/${entry.slug}/info.json`,
       backlinksUrl: `${origin}/wiki/${entry.slug}/backlinks/`,
+      // JSON companion of the entry's backlinksUrl. The top-level envelope and
+      // every sibling listing endpoint (allpages/mostlinkedpages/category
+      // articles/recentchanges/subnets) pair both per entry; these nested
+      // related entries exposed only the HTML backlinksUrl, so add the machine-
+      // readable backlinks.json link to match and let a consumer reach a related
+      // article's inbound-link data without reconstructing the route.
+      backlinksJsonUrl: `${origin}/wiki/${entry.slug}/backlinks.json`,
       historyUrl: `${origin}/wiki/${entry.slug}/history/`,
       historyJsonUrl: `${origin}/wiki/${entry.slug}/history.json`,
       citeUrl: `${origin}/wiki/${entry.slug}/cite/`,

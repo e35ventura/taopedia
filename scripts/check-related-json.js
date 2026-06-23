@@ -94,6 +94,7 @@ const ORIGIN = 'https://taopedia.org';
         url: `${ORIGIN}/wiki/alpha/`,
         infoUrl: `${ORIGIN}/wiki/alpha/info/`,
         backlinksUrl: `${ORIGIN}/wiki/alpha/backlinks/`,
+        backlinksJsonUrl: `${ORIGIN}/wiki/alpha/backlinks.json`,
         historyUrl: `${ORIGIN}/wiki/alpha/history/`,
         historyJsonUrl: `${ORIGIN}/wiki/alpha/history.json`,
         citeUrl: `${ORIGIN}/wiki/alpha/cite/`,
@@ -113,6 +114,7 @@ const ORIGIN = 'https://taopedia.org';
         url: `${ORIGIN}/wiki/gamma/`,
         infoUrl: `${ORIGIN}/wiki/gamma/info/`,
         backlinksUrl: `${ORIGIN}/wiki/gamma/backlinks/`,
+        backlinksJsonUrl: `${ORIGIN}/wiki/gamma/backlinks.json`,
         historyUrl: `${ORIGIN}/wiki/gamma/history/`,
         historyJsonUrl: `${ORIGIN}/wiki/gamma/history.json`,
         citeUrl: `${ORIGIN}/wiki/gamma/cite/`,
@@ -132,6 +134,7 @@ const ORIGIN = 'https://taopedia.org';
         url: `${ORIGIN}/wiki/delta/`,
         infoUrl: `${ORIGIN}/wiki/delta/info/`,
         backlinksUrl: `${ORIGIN}/wiki/delta/backlinks/`,
+        backlinksJsonUrl: `${ORIGIN}/wiki/delta/backlinks.json`,
         historyUrl: `${ORIGIN}/wiki/delta/history/`,
         historyJsonUrl: `${ORIGIN}/wiki/delta/history.json`,
         citeUrl: `${ORIGIN}/wiki/delta/cite/`,
@@ -299,6 +302,14 @@ for (const slug of articleSlugs) {
       entry.backlinksUrl,
       `${ORIGIN}/wiki/${entry.slug}/backlinks/`,
       `${slug}: every related entry backlinksUrl must be the canonical article backlinks URL`,
+    );
+    // backlinksJsonUrl is the JSON companion of backlinksUrl — the top-level
+    // envelope and the allpages/mostlinkedpages/category-articles/recentchanges/
+    // subnets entries already pair both, so related.json entries match.
+    assert.equal(
+      entry.backlinksJsonUrl,
+      `${ORIGIN}/wiki/${entry.slug}/backlinks.json`,
+      `${slug}: every related entry backlinksJsonUrl must be the canonical article backlinks.json URL`,
     );
     // historyUrl points at the related article's revision-history page — the
     // same companion references.json exposes per referenced article — so a
