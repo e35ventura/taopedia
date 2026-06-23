@@ -53,6 +53,11 @@ const imageAlt = title
 <link rel="shortcut icon" href="/favicon.ico" />
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 <link rel="manifest" href="/site.webmanifest" />
+<!-- Mirror the manifest's theme_color so the mobile browser chrome (address
+     bar) picks up the brand color during normal browsing, not only once the
+     site is installed as a PWA. Kept in sync with site.webmanifest by
+     check-webmanifest.js. -->
+<meta name="theme-color" content="#3366cc" />
 <link
   rel="search"
   type="application/opensearchdescription+xml"

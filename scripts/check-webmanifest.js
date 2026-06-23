@@ -112,6 +112,19 @@ assert.match(
   'Seo head must advertise the manifest with <link rel="manifest" href="/site.webmanifest" />',
 );
 
+// The head must emit <meta name="theme-color"> matching the manifest theme_color.
+// The manifest theme_color only tints the chrome once the site is installed as a
+// PWA; the <meta> is what colors the mobile browser address bar during normal
+// browsing. Keeping them equal means the brand chrome color never diverges
+// between the installed app and the browser.
+const headThemeColor = seo.match(/<meta\s+name="theme-color"\s+content="([^"]+)"\s*\/>/);
+assert.ok(headThemeColor, 'Seo head must declare <meta name="theme-color" content="...">');
+assert.equal(
+  headThemeColor[1].toLowerCase(),
+  manifest.theme_color.toLowerCase(),
+  `head <meta name="theme-color"> (${headThemeColor[1]}) must match the manifest theme_color (${manifest.theme_color})`,
+);
+
 // The scalable SVG icon in the manifest must be the same file the head declares
 // as its rel="icon" type="image/svg+xml", so the install icon and the browser
 // tab icon never diverge.
