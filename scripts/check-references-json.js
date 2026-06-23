@@ -20,6 +20,12 @@ const ORIGIN = 'https://taopedia.org';
     gamma: 'Subnet 9',
     delta: 'Delta',
   };
+  const categoriesBySlug = {
+    alpha: ['Subnets', 'Consensus'],
+    beta: ['Subnets'],
+    gamma: ['Subnets', 'Security'],
+    delta: ['Consensus'],
+  };
   const linkGraph = {
     source: [
       { target: 'source' },
@@ -32,14 +38,14 @@ const ORIGIN = 'https://taopedia.org';
     ],
   };
 
-  const references = getArticleReferences({ slug: 'source', linkGraph, titleBySlug });
+  const references = getArticleReferences({ slug: 'source', linkGraph, titleBySlug, categoriesBySlug });
   assert.deepEqual(
     references,
     [
-      { slug: 'delta', title: 'Delta' },
-      { slug: 'alpha', title: 'Subnet 2' },
-      { slug: 'gamma', title: 'Subnet 9' },
-      { slug: 'beta', title: 'Subnet 10' },
+      { slug: 'delta', title: 'Delta', categories: ['Consensus'] },
+      { slug: 'alpha', title: 'Subnet 2', categories: ['Subnets', 'Consensus'] },
+      { slug: 'gamma', title: 'Subnet 9', categories: ['Subnets', 'Security'] },
+      { slug: 'beta', title: 'Subnet 10', categories: ['Subnets'] },
     ],
     'helper must exclude self/missing targets, dedupe repeated targets, and sort numerically by title',
   );
@@ -73,6 +79,7 @@ const ORIGIN = 'https://taopedia.org';
         infoJsonUrl: `${ORIGIN}/wiki/delta/info.json`,
         backlinksUrl: `${ORIGIN}/wiki/delta/backlinks/`,
         backlinksJsonUrl: `${ORIGIN}/wiki/delta/backlinks.json`,
+        categories: ['Consensus'],
         historyUrl: `${ORIGIN}/wiki/delta/history/`,
         historyJsonUrl: `${ORIGIN}/wiki/delta/history.json`,
         citeUrl: `${ORIGIN}/wiki/delta/cite/`,
@@ -91,6 +98,7 @@ const ORIGIN = 'https://taopedia.org';
         infoJsonUrl: `${ORIGIN}/wiki/alpha/info.json`,
         backlinksUrl: `${ORIGIN}/wiki/alpha/backlinks/`,
         backlinksJsonUrl: `${ORIGIN}/wiki/alpha/backlinks.json`,
+        categories: ['Subnets', 'Consensus'],
         historyUrl: `${ORIGIN}/wiki/alpha/history/`,
         historyJsonUrl: `${ORIGIN}/wiki/alpha/history.json`,
         citeUrl: `${ORIGIN}/wiki/alpha/cite/`,
@@ -109,6 +117,7 @@ const ORIGIN = 'https://taopedia.org';
         infoJsonUrl: `${ORIGIN}/wiki/gamma/info.json`,
         backlinksUrl: `${ORIGIN}/wiki/gamma/backlinks/`,
         backlinksJsonUrl: `${ORIGIN}/wiki/gamma/backlinks.json`,
+        categories: ['Subnets', 'Security'],
         historyUrl: `${ORIGIN}/wiki/gamma/history/`,
         historyJsonUrl: `${ORIGIN}/wiki/gamma/history.json`,
         citeUrl: `${ORIGIN}/wiki/gamma/cite/`,
@@ -127,6 +136,7 @@ const ORIGIN = 'https://taopedia.org';
         infoJsonUrl: `${ORIGIN}/wiki/beta/info.json`,
         backlinksUrl: `${ORIGIN}/wiki/beta/backlinks/`,
         backlinksJsonUrl: `${ORIGIN}/wiki/beta/backlinks.json`,
+        categories: ['Subnets'],
         historyUrl: `${ORIGIN}/wiki/beta/history/`,
         historyJsonUrl: `${ORIGIN}/wiki/beta/history.json`,
         citeUrl: `${ORIGIN}/wiki/beta/cite/`,
@@ -258,6 +268,11 @@ for (const slug of articleSlugs) {
     assert.equal(typeof entry.slug, 'string', `${slug}: every reference entry must have a slug`);
     assert.equal(typeof entry.title, 'string', `${slug}: every reference entry must have a title`);
     assert.equal(entry.url, `${ORIGIN}/wiki/${entry.slug}/`, `${slug}: every reference entry url must be the canonical article URL`);
+    assert.deepEqual(
+      entry.categories,
+      Array.isArray(slugmap[entry.slug]?.categories) ? slugmap[entry.slug].categories : [],
+      `${slug}: every reference entry categories must match the published article categories`,
+    );
     assert.equal(
       entry.infoUrl,
       `${ORIGIN}/wiki/${entry.slug}/info/`,

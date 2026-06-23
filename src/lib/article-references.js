@@ -1,6 +1,6 @@
 import { compareTitles } from './title-sort.js';
 
-export const getArticleReferences = ({ slug, linkGraph = {}, titleBySlug = {} }) => {
+export const getArticleReferences = ({ slug, linkGraph = {}, titleBySlug = {}, categoriesBySlug = {} }) => {
   const links = Array.isArray(linkGraph[slug]) ? linkGraph[slug] : [];
   const seen = new Set();
   const references = [];
@@ -10,7 +10,11 @@ export const getArticleReferences = ({ slug, linkGraph = {}, titleBySlug = {} })
     if (!target || target === slug || !titleBySlug[target] || seen.has(target)) continue;
 
     seen.add(target);
-    references.push({ slug: target, title: titleBySlug[target] });
+    references.push({
+      slug: target,
+      title: titleBySlug[target],
+      categories: Array.isArray(categoriesBySlug[target]) ? categoriesBySlug[target] : [],
+    });
   }
 
   return references.sort((a, b) => compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug));
@@ -42,6 +46,7 @@ export const buildArticleReferences = ({ slug, title, origin, references = [] })
     infoJsonUrl: `${origin}/wiki/${link.slug}/info.json`,
     backlinksUrl: `${origin}/wiki/${link.slug}/backlinks/`,
     backlinksJsonUrl: `${origin}/wiki/${link.slug}/backlinks.json`,
+    categories: Array.isArray(link.categories) ? link.categories : [],
     historyUrl: `${origin}/wiki/${link.slug}/history/`,
     historyJsonUrl: `${origin}/wiki/${link.slug}/history.json`,
     citeUrl: `${origin}/wiki/${link.slug}/cite/`,

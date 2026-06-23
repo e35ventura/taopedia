@@ -12,6 +12,9 @@ const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
   const titleBySlug = Object.fromEntries(pages.map((page) => [getPageSlug(page), page.data.title]));
+  const categoriesBySlug = Object.fromEntries(
+    pages.map((page) => [getPageSlug(page), Array.isArray(page.data.categories) ? page.data.categories : []]),
+  );
 
   return pages.map((page) => {
     const slug = getPageSlug(page);
@@ -20,7 +23,7 @@ export async function getStaticPaths() {
       props: {
         slug,
         title: page.data.title,
-        references: getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }),
+        references: getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug, categoriesBySlug }),
       },
     };
   });
@@ -34,7 +37,7 @@ export const GET: APIRoute = async ({ props, site }) => {
   const { slug, title, references } = props as {
     slug: string;
     title: string;
-    references: Array<{ slug: string; title: string }>;
+    references: Array<{ slug: string; title: string; categories: string[] }>;
   };
   const origin = (site ?? new URL('https://taopedia.org')).origin;
 
