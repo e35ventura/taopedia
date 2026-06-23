@@ -47,9 +47,33 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
   assert.deepEqual(
     doc.articles,
     [
-      { slug: 'subnet_2', title: 'Subnet 2', summary: 'two', url: `${ORIGIN}/wiki/subnet_2/` },
-      { slug: 'subnet_9', title: 'Subnet 9', summary: null, url: `${ORIGIN}/wiki/subnet_9/` },
-      { slug: 'subnet_10', title: 'Subnet 10', summary: null, url: `${ORIGIN}/wiki/subnet_10/` },
+      {
+        slug: 'subnet_2',
+        title: 'Subnet 2',
+        summary: 'two',
+        url: `${ORIGIN}/wiki/subnet_2/`,
+        citeUrl: `${ORIGIN}/wiki/subnet_2/cite/`,
+        referencesUrl: `${ORIGIN}/wiki/subnet_2/references.json`,
+        relatedUrl: `${ORIGIN}/wiki/subnet_2/related.json`,
+      },
+      {
+        slug: 'subnet_9',
+        title: 'Subnet 9',
+        summary: null,
+        url: `${ORIGIN}/wiki/subnet_9/`,
+        citeUrl: `${ORIGIN}/wiki/subnet_9/cite/`,
+        referencesUrl: `${ORIGIN}/wiki/subnet_9/references.json`,
+        relatedUrl: `${ORIGIN}/wiki/subnet_9/related.json`,
+      },
+      {
+        slug: 'subnet_10',
+        title: 'Subnet 10',
+        summary: null,
+        url: `${ORIGIN}/wiki/subnet_10/`,
+        citeUrl: `${ORIGIN}/wiki/subnet_10/cite/`,
+        referencesUrl: `${ORIGIN}/wiki/subnet_10/references.json`,
+        relatedUrl: `${ORIGIN}/wiki/subnet_10/related.json`,
+      },
     ],
     'builder: article row shape',
   );
