@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildAllPages } from './allpages.js';
+import { publishedInboundLinkCount } from './most-linked.js';
 
 // /wiki/special/allpages.json exposes the article directory as structured
 // JSON for programmatic consumers. The contract is load-bearing: a
@@ -21,7 +22,31 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
 const ORIGIN = 'https://taopedia.org';
 
-// ---- 1) Unit: buildAllPages with constructed inputs ---------------------
+// ---- 1) Unit: publishedInboundLinkCount with constructed inputs -----------
+{
+  const backlinksFixture = {
+    hub: [{ from: 'a' }, { from: 'b' }, { from: 'ghost' }],
+    leaf: [],
+  };
+  const titleBySlugFixture = { hub: 'Hub', a: 'A', b: 'B' };
+  assert.equal(
+    publishedInboundLinkCount(backlinksFixture, 'hub', titleBySlugFixture),
+    2,
+    'must count only inbound links from published articles',
+  );
+  assert.equal(
+    publishedInboundLinkCount(backlinksFixture, 'leaf', titleBySlugFixture),
+    0,
+    'must return 0 when there are no inbound links',
+  );
+  assert.equal(
+    publishedInboundLinkCount(backlinksFixture, 'missing', titleBySlugFixture),
+    0,
+    'must return 0 for slugs absent from the backlink graph',
+  );
+}
+
+// ---- 2) Unit: buildAllPages with constructed inputs ---------------------
 {
   const pages = [
     { id: 'a/index.mdx', data: { title: 'Apex', summary: 'apex', categories: ['Subnets'] } },
@@ -127,7 +152,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.deepEqual(out[0].categories, [], 'missing categories normalizes to an empty array');
 }
 
-// ---- 2) Built output: validate against the synced content collection ----
+// ---- 3) Built output: validate against the synced content collection ----
 //
 // The synced collection is gitignored, but the dist build output is
 // committed-readable here. Re-derive the directory from the rendered HTML
@@ -136,11 +161,18 @@ const ORIGIN = 'https://taopedia.org';
 
 const distFile = path.join(projectRoot, 'dist', 'wiki', 'special', 'allpages.json');
 const htmlFile = path.join(projectRoot, 'dist', 'wiki', 'special', 'allpages', 'index.html');
+const backlinksFile = path.join(projectRoot, 'public', 'data', 'backlinks.json');
+const slugmapFile = path.join(projectRoot, 'public', 'data', 'slugmap.json');
 assert.ok(fs.existsSync(distFile), 'dist/wiki/special/allpages.json not found; run the build first');
 assert.ok(fs.existsSync(htmlFile), 'dist/wiki/special/allpages/index.html not found; run the build first');
+assert.ok(fs.existsSync(backlinksFile), 'public/data/backlinks.json not found; run the build first');
+assert.ok(fs.existsSync(slugmapFile), 'public/data/slugmap.json not found; run the build first');
 
 const data = JSON.parse(fs.readFileSync(distFile, 'utf8'));
 const html = fs.readFileSync(htmlFile, 'utf8');
+const backlinks = JSON.parse(fs.readFileSync(backlinksFile, 'utf8'));
+const slugmap = JSON.parse(fs.readFileSync(slugmapFile, 'utf8'));
+const titleBySlug = Object.fromEntries(Object.entries(slugmap).map(([slug, entry]) => [slug, entry.title]));
 
 // site + envelope.
 assert.ok(
@@ -212,6 +244,18 @@ data.articles.forEach((row, i) => {
     row.backlinksJsonUrl,
     `${data.site}/wiki/${row.slug}/backlinks.json`,
     `row ${i} backlinksJsonUrl must equal ${data.site}/wiki/${row.slug}/backlinks.json`,
+  );
+  // backlinks is the published-only inbound-link count — the same figure
+  // mostlinkedpages.json exposes per ranked row and info.json as incomingLinks,
+  // so a directory consumer can see link popularity without a second fetch.
+  assert.equal(
+    row.backlinks,
+    publishedInboundLinkCount(backlinks, row.slug, titleBySlug),
+    `row ${i} backlinks must match the published inbound-link count for ${row.slug}`,
+  );
+  assert.ok(
+    Number.isInteger(row.backlinks) && row.backlinks >= 0,
+    `row ${i} backlinks must be a non-negative integer (got ${row.backlinks})`,
   );
   // historyUrl points at the article's revision-history page — the same
   // companion subnets.json / mostlinkedpages.json expose — so a consumer of the
