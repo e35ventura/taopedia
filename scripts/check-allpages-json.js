@@ -256,6 +256,15 @@ data.articles.forEach((row, i) => {
     `${data.site}/wiki/${row.slug}/related.json`,
     `row ${i} relatedUrl must equal ${data.site}/wiki/${row.slug}/related.json`,
   );
+  // tocJsonUrl is the machine-readable table-of-contents companion: the
+  // /wiki/<slug>/toc.json endpoint exists per article (the same companion
+  // mostlinkedpages.json already exposes), so a directory consumer can fetch
+  // an article's section outline without rebuilding the route.
+  assert.equal(
+    row.tocJsonUrl,
+    `${data.site}/wiki/${row.slug}/toc.json`,
+    `row ${i} tocJsonUrl must equal ${data.site}/wiki/${row.slug}/toc.json`,
+  );
   // imageUrl is the article's OG share-card image (/og/<slug>.png) — each
   // article binds its own card, so the directory can expose it for a consumer
   // that wants a per-article thumbnail without hitting the rendered HTML head.
