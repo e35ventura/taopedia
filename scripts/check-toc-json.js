@@ -62,12 +62,14 @@ const ORIGIN = 'https://taopedia.org';
     slug: 'source',
     title: 'Source',
     origin: ORIGIN,
+    summary: 'The source article.',
     categories: ['Consensus', 'Security'],
     sections,
   });
   assert.equal(doc.slug, 'source', 'builder: slug field');
   assert.equal(doc.title, 'Source', 'builder: title field');
   assert.equal(doc.url, `${ORIGIN}/wiki/source/`, 'builder: url field');
+  assert.equal(doc.summary, 'The source article.', 'builder: summary field');
   assert.equal(doc.tocJsonUrl, `${ORIGIN}/wiki/source/toc.json`, 'builder: tocJsonUrl self field');
   assert.equal(doc.infoUrl, `${ORIGIN}/wiki/source/info/`, 'builder: infoUrl cross-link');
   assert.equal(doc.infoJsonUrl, `${ORIGIN}/wiki/source/info.json`, 'builder: infoJsonUrl cross-link');
@@ -192,6 +194,10 @@ for (const slug of articleSlugs) {
   // the same field history.json / backlinks.json expose on their envelopes.
   const expectedCategories = slugmap[slug]?.categories ?? [];
   assert.deepEqual(doc.categories, expectedCategories, `${slug}: toc.json categories must match the article's topic categories from the slug map`);
+  // summary is the article's own slug-map summary (null when blank), the same
+  // per-article field the listing endpoints / sibling envelopes expose.
+  const expectedSummary = slugmap[slug]?.summary || null;
+  assert.deepEqual(doc.summary, expectedSummary, `${slug}: toc.json summary must match the article's slug-map summary (or null)`);
   assert.equal(typeof doc.count, 'number', `${slug}: toc.json count must be a number`);
   assert.ok(Array.isArray(doc.sections), `${slug}: toc.json sections must be an array`);
   assert.equal(doc.count, doc.sections.length, `${slug}: toc.json count must equal sections.length`);
