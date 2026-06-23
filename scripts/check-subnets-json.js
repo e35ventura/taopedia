@@ -226,6 +226,15 @@ data.subnets.forEach((row, i) => {
     `${data.site}/wiki/${expected[i].slug}/related.json`,
     `row ${i} relatedUrl must equal ${data.site}/wiki/${expected[i].slug}/related.json`,
   );
+  // tocJsonUrl is the machine-readable table-of-contents companion:
+  // /wiki/<slug>/toc.json already exists per article, and other article-list
+  // JSON surfaces expose it, so the subnet registry should expose the same
+  // route-discovery link without requiring clients to reconstruct it.
+  assert.equal(
+    row.tocJsonUrl,
+    `${data.site}/wiki/${expected[i].slug}/toc.json`,
+    `row ${i} tocJsonUrl must equal ${data.site}/wiki/${expected[i].slug}/toc.json`,
+  );
   // imageUrl is the subnet article's OG share-card (/og/<slug>.png) — each
   // article binds its own card, the same per-entry field mostlinkedpages.json /
   // allpages.json / recentchanges.json expose — so a dashboard of subnets can
