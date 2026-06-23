@@ -1027,6 +1027,40 @@ body.appearance-overlay-active .mw-appearance {
   color: var(--color-base-subtle);
 }
 
+/* Section heading permalink anchors (added by scripts/rehype-heading-anchors.js).
+   The "¶" glyph is rendered here as a ::before so it is never part of the DOM
+   text (keeping it out of the TOC and the search index). Hidden until the
+   heading is hovered or the anchor is keyboard-focused, so it doesn't clutter
+   the page but is reachable by mouse and keyboard. */
+.mw-heading-anchor {
+  margin-left: 0.35em;
+  font-weight: normal;
+  text-decoration: none;
+  color: var(--color-link);
+  opacity: 0;
+  transition: opacity 0.1s ease-in-out;
+}
+
+.mw-heading-anchor::before {
+  content: "¶";
+}
+
+.mw-parser-output h2:hover .mw-heading-anchor,
+.mw-parser-output h3:hover .mw-heading-anchor,
+.mw-parser-output h4:hover .mw-heading-anchor,
+.mw-parser-output h5:hover .mw-heading-anchor,
+.mw-parser-output h6:hover .mw-heading-anchor,
+.mw-heading-anchor:focus-visible {
+  opacity: 1;
+}
+
+/* Touch devices have no hover, so keep the anchors faintly visible there. */
+@media (hover: none) {
+  .mw-heading-anchor {
+    opacity: 0.5;
+  }
+}
+
 /* Article Title */
 .firstHeading {
   font-family: var(--font-family-serif);
