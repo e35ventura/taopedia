@@ -56,6 +56,9 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
         url: `${ORIGIN}/wiki/subnet_2/`,
         infoUrl: `${ORIGIN}/wiki/subnet_2/info/`,
         backlinksUrl: `${ORIGIN}/wiki/subnet_2/backlinks/`,
+        citeUrl: `${ORIGIN}/wiki/subnet_2/cite/`,
+        referencesUrl: `${ORIGIN}/wiki/subnet_2/references.json`,
+        relatedUrl: `${ORIGIN}/wiki/subnet_2/related.json`,
       },
       {
         slug: 'subnet_9',
@@ -64,6 +67,9 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
         url: `${ORIGIN}/wiki/subnet_9/`,
         infoUrl: `${ORIGIN}/wiki/subnet_9/info/`,
         backlinksUrl: `${ORIGIN}/wiki/subnet_9/backlinks/`,
+        citeUrl: `${ORIGIN}/wiki/subnet_9/cite/`,
+        referencesUrl: `${ORIGIN}/wiki/subnet_9/references.json`,
+        relatedUrl: `${ORIGIN}/wiki/subnet_9/related.json`,
       },
       {
         slug: 'subnet_10',
@@ -72,6 +78,9 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
         url: `${ORIGIN}/wiki/subnet_10/`,
         infoUrl: `${ORIGIN}/wiki/subnet_10/info/`,
         backlinksUrl: `${ORIGIN}/wiki/subnet_10/backlinks/`,
+        citeUrl: `${ORIGIN}/wiki/subnet_10/cite/`,
+        referencesUrl: `${ORIGIN}/wiki/subnet_10/references.json`,
+        relatedUrl: `${ORIGIN}/wiki/subnet_10/related.json`,
       },
     ],
     'builder: article row shape',
@@ -165,6 +174,21 @@ for (const category of categories) {
       article.backlinksUrl,
       `${ORIGIN}/wiki/${article.slug}/backlinks/`,
       `${category}: article ${article.slug} backlinksUrl must be the canonical What-links-here URL`,
+    );
+    assert.equal(
+      article.citeUrl,
+      `${ORIGIN}/wiki/${article.slug}/cite/`,
+      `${category}: article ${article.slug} citeUrl must be the canonical citation-page URL`,
+    );
+    assert.equal(
+      article.referencesUrl,
+      `${ORIGIN}/wiki/${article.slug}/references.json`,
+      `${category}: article ${article.slug} referencesUrl must be the canonical references.json URL`,
+    );
+    assert.equal(
+      article.relatedUrl,
+      `${ORIGIN}/wiki/${article.slug}/related.json`,
+      `${category}: article ${article.slug} relatedUrl must be the canonical related.json URL`,
     );
   }
 
