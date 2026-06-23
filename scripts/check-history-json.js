@@ -35,6 +35,9 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.historyJsonUrl, `${ORIGIN}/wiki/recycling/history.json`, 'builder: historyJsonUrl');
   assert.equal(result.backlinksUrl, `${ORIGIN}/wiki/recycling/backlinks/`, 'builder: backlinksUrl');
   assert.equal(result.backlinksJsonUrl, `${ORIGIN}/wiki/recycling/backlinks.json`, 'builder: backlinksJsonUrl');
+  assert.equal(result.citeUrl, `${ORIGIN}/wiki/recycling/cite/`, 'builder: citeUrl');
+  assert.equal(result.citeJsonUrl, `${ORIGIN}/wiki/recycling/cite.json`, 'builder: citeJsonUrl');
+  assert.equal(result.bibtexUrl, `${ORIGIN}/wiki/recycling/cite.bib`, 'builder: bibtexUrl');
   assert.equal(result.tocJsonUrl, `${ORIGIN}/wiki/recycling/toc.json`, 'builder: tocJsonUrl');
   assert.equal(result.revisionCount, 2, 'builder: revisionCount');
   assert.equal(result.lastEdited, '2026-06-01T12:00:00.000Z', 'builder: lastEdited is revisions[0].date');
@@ -114,6 +117,12 @@ for (const slug of articleSlugs) {
   // (historyUrl + historyJsonUrl). So a consumer on either page reaches the other.
   assert.equal(doc.backlinksUrl, `${ORIGIN}/wiki/${slug}/backlinks/`, `${slug}: history.json backlinksUrl must point to the sibling HTML backlinks page`);
   assert.equal(doc.backlinksJsonUrl, `${ORIGIN}/wiki/${slug}/backlinks.json`, `${slug}: history.json backlinksJsonUrl must point to the sibling machine-readable backlinks endpoint`);
+  // citeUrl / citeJsonUrl / bibtexUrl cross-link to the article's Cite-this-page
+  // hub, symmetric with how references.json and cite.json already expose the
+  // history siblings so consumers can reach citation metadata from revision history.
+  assert.equal(doc.citeUrl, `${ORIGIN}/wiki/${slug}/cite/`, `${slug}: history.json citeUrl must point to the Cite-this-page hub`);
+  assert.equal(doc.citeJsonUrl, `${ORIGIN}/wiki/${slug}/cite.json`, `${slug}: history.json citeJsonUrl must point to the cite.json hub`);
+  assert.equal(doc.bibtexUrl, `${ORIGIN}/wiki/${slug}/cite.bib`, `${slug}: history.json bibtexUrl must point to the BibTeX export`);
   // tocJsonUrl links the article's machine-readable table-of-contents endpoint,
   // letting consumers navigate from revision history to heading structure.
   assert.equal(doc.tocJsonUrl, `${ORIGIN}/wiki/${slug}/toc.json`, `${slug}: history.json tocJsonUrl must point to the article's table-of-contents endpoint`);
