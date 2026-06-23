@@ -64,6 +64,12 @@ export const GET: APIRoute = async ({ site, props }) => {
       // so a consumer citing the article can record how many times it was revised
       // without a second fetch.
       revisionCount: history.length,
+      // firstEdited / lastEdited bracket the article's revision history (oldest
+      // and newest commit dates), the same pair info.json and history.json
+      // expose on their envelopes — completing the history-stats set cite.json
+      // already exposes revisionCount for. null when the article has no history.
+      firstEdited: history.length > 0 ? history[history.length - 1].date : null,
+      lastEdited: history.length > 0 ? history[0].date : null,
       ...(date ? { date } : {}),
       ...CITATION_META,
       citations,

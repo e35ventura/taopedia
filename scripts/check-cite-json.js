@@ -254,6 +254,18 @@ for (const slug of articleSlugs) {
       infoDoc.revisionCount,
       `cite.json revisionCount must agree with the sibling info.json envelope for ${slug}`,
     );
+    // firstEdited / lastEdited bracket the revision history — the same pair
+    // info.json exposes; they must agree with the sibling envelope.
+    assert.equal(
+      doc.firstEdited,
+      infoDoc.firstEdited,
+      `cite.json firstEdited must agree with the sibling info.json envelope for ${slug}`,
+    );
+    assert.equal(
+      doc.lastEdited,
+      infoDoc.lastEdited,
+      `cite.json lastEdited must agree with the sibling info.json envelope for ${slug}`,
+    );
   }
   if (date) {
     assert.equal(doc.date, date, `cite.json date must equal the article's last-revision date for ${slug}`);
