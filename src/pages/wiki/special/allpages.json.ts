@@ -29,6 +29,7 @@ export const GET: APIRoute = async ({ site }) => {
         url: article.url,
         infoUrl: `${origin}/wiki/${article.slug}/info/`,
         backlinksUrl: `${origin}/wiki/${article.slug}/backlinks/`,
+        backlinksJsonUrl: `${origin}/wiki/${article.slug}/backlinks.json`,
         historyUrl: `${origin}/wiki/${article.slug}/history/`,
         historyJsonUrl: `${origin}/wiki/${article.slug}/history.json`,
         citeUrl: `${origin}/wiki/${article.slug}/cite/`,
