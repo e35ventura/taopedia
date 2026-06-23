@@ -12,7 +12,16 @@ const slugmapFile = path.join(projectRoot, 'public', 'data', 'slugmap.json');
 const categoriesFile = path.join(projectRoot, 'public', 'data', 'categories.json');
 const backlinksFile = path.join(projectRoot, 'public', 'data', 'backlinks.json');
 const linkgraphFile = path.join(projectRoot, 'public', 'data', 'linkgraph.json');
+const historyDir = path.join(projectRoot, 'public', 'history');
 const ORIGIN = 'https://taopedia.org';
+// Each entry's lastEdited = the related article's latest revision date (history
+// is newest-first), re-derived from the raw history file.
+const lastEditedOf = (slug) => {
+  const file = path.join(historyDir, `${slug}.json`);
+  if (!fs.existsSync(file)) return null;
+  const history = JSON.parse(fs.readFileSync(file, 'utf8')).history || [];
+  return Array.isArray(history) && history.length > 0 ? history[0].date : null;
+};
 
 // ---- 1) Unit: helper + builder behavior -----------------------------------
 {
@@ -102,6 +111,7 @@ const ORIGIN = 'https://taopedia.org';
         tags: ['Security'],
         categories: [],
         backlinks: 0,
+        lastEdited: null,
         url: `${ORIGIN}/wiki/alpha/`,
         infoUrl: `${ORIGIN}/wiki/alpha/info/`,
         backlinksUrl: `${ORIGIN}/wiki/alpha/backlinks/`,
@@ -124,6 +134,7 @@ const ORIGIN = 'https://taopedia.org';
         tags: ['Security'],
         categories: [],
         backlinks: 0,
+        lastEdited: null,
         url: `${ORIGIN}/wiki/gamma/`,
         infoUrl: `${ORIGIN}/wiki/gamma/info/`,
         backlinksUrl: `${ORIGIN}/wiki/gamma/backlinks/`,
@@ -146,6 +157,7 @@ const ORIGIN = 'https://taopedia.org';
         tags: ['Consensus'],
         categories: [],
         backlinks: 0,
+        lastEdited: null,
         url: `${ORIGIN}/wiki/delta/`,
         infoUrl: `${ORIGIN}/wiki/delta/info/`,
         backlinksUrl: `${ORIGIN}/wiki/delta/backlinks/`,
@@ -235,6 +247,7 @@ for (const slug of articleSlugs) {
     ...entry,
     categories: slugMap[entry.slug]?.categories ?? [],
     backlinks: publishedInboundLinkCount(backlinksData, entry.slug, titleBySlug),
+    lastEdited: lastEditedOf(entry.slug),
   }));
   const expectedDoc = buildArticleRelatedPages({
     slug,

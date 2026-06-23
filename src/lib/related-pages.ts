@@ -42,6 +42,9 @@ export interface RelatedPage {
   // The candidate article's published inbound-link count (optional; the
   // endpoint enriches each entry so consumers can gauge link popularity).
   backlinks?: number;
+  // The candidate article's latest revision date (optional; the endpoint
+  // enriches each entry so consumers can gauge recency).
+  lastEdited?: string | null;
 }
 
 export interface ArticleRelatedPagesDocument {
@@ -75,6 +78,7 @@ export interface ArticleRelatedPagesDocument {
     tags: string[];
     categories: string[];
     backlinks: number;
+    lastEdited: string | null;
     url: string;
     infoUrl: string;
     infoJsonUrl: string;
@@ -224,6 +228,7 @@ export function buildArticleRelatedPages({
       tags: entry.tags,
       categories: Array.isArray(entry.categories) ? entry.categories : [],
       backlinks: Number.isFinite(entry.backlinks) ? entry.backlinks : 0,
+      lastEdited: entry.lastEdited ?? null,
       url: `${origin}/wiki/${entry.slug}/`,
       infoUrl: `${origin}/wiki/${entry.slug}/info/`,
       infoJsonUrl: `${origin}/wiki/${entry.slug}/info.json`,
