@@ -94,6 +94,7 @@ const ORIGIN = 'https://taopedia.org';
         url: `${ORIGIN}/wiki/alpha/`,
         infoUrl: `${ORIGIN}/wiki/alpha/info/`,
         backlinksUrl: `${ORIGIN}/wiki/alpha/backlinks/`,
+        backlinksJsonUrl: `${ORIGIN}/wiki/alpha/backlinks.json`,
         historyUrl: `${ORIGIN}/wiki/alpha/history/`,
         historyJsonUrl: `${ORIGIN}/wiki/alpha/history.json`,
         citeUrl: `${ORIGIN}/wiki/alpha/cite/`,
@@ -113,6 +114,7 @@ const ORIGIN = 'https://taopedia.org';
         url: `${ORIGIN}/wiki/gamma/`,
         infoUrl: `${ORIGIN}/wiki/gamma/info/`,
         backlinksUrl: `${ORIGIN}/wiki/gamma/backlinks/`,
+        backlinksJsonUrl: `${ORIGIN}/wiki/gamma/backlinks.json`,
         historyUrl: `${ORIGIN}/wiki/gamma/history/`,
         historyJsonUrl: `${ORIGIN}/wiki/gamma/history.json`,
         citeUrl: `${ORIGIN}/wiki/gamma/cite/`,
@@ -132,6 +134,7 @@ const ORIGIN = 'https://taopedia.org';
         url: `${ORIGIN}/wiki/delta/`,
         infoUrl: `${ORIGIN}/wiki/delta/info/`,
         backlinksUrl: `${ORIGIN}/wiki/delta/backlinks/`,
+        backlinksJsonUrl: `${ORIGIN}/wiki/delta/backlinks.json`,
         historyUrl: `${ORIGIN}/wiki/delta/history/`,
         historyJsonUrl: `${ORIGIN}/wiki/delta/history.json`,
         citeUrl: `${ORIGIN}/wiki/delta/cite/`,
@@ -299,6 +302,17 @@ for (const slug of articleSlugs) {
       entry.backlinksUrl,
       `${ORIGIN}/wiki/${entry.slug}/backlinks/`,
       `${slug}: every related entry backlinksUrl must be the canonical article backlinks URL`,
+    );
+    // backlinksJsonUrl is the machine-readable companion of backlinksUrl — the
+    // same HTML+JSON pairing each related entry already exposes for info
+    // (infoUrl + infoJsonUrl), history (historyUrl + historyJsonUrl), and cite
+    // (citeUrl + citeJsonUrl), and that the references.json / backlinks.json
+    // entries expose for backlinks. It was the lone HTML link in the entry
+    // without its .json companion.
+    assert.equal(
+      entry.backlinksJsonUrl,
+      `${ORIGIN}/wiki/${entry.slug}/backlinks.json`,
+      `${slug}: every related entry backlinksJsonUrl must be the canonical article backlinks.json URL`,
     );
     // historyUrl points at the related article's revision-history page — the
     // same companion references.json exposes per referenced article — so a
