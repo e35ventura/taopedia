@@ -190,6 +190,11 @@ for (const slug of articleSlugs) {
     `${ORIGIN}/og/${slug}.png`,
     `cite.json imageUrl must be the article's OG share-card URL for ${slug}`,
   );
+  assert.deepEqual(
+    doc.categories,
+    slugmap[slug]?.categories ?? [],
+    `cite.json categories must match the article's topic categories for ${slug}`,
+  );
   if (date) {
     assert.equal(doc.date, date, `cite.json date must equal the article's last-revision date for ${slug}`);
   } else {
