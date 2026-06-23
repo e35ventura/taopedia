@@ -18,6 +18,7 @@ export async function getStaticPaths() {
     pages.map(async (page) => {
       const slug = getPageSlug(page);
       const { headings } = await render(page);
+      const history = historyForSlug(slug);
 
       return {
         params: { slug },
@@ -27,7 +28,9 @@ export async function getStaticPaths() {
           summary: page.data.summary ?? '',
           categories: page.data.categories ?? [],
           incomingLinks: publishedInboundLinkCount(backlinksData, slug, titleBySlug),
-          revisionCount: historyForSlug(slug).length,
+          revisionCount: history.length,
+          firstEdited: history[history.length - 1]?.date ?? null,
+          lastEdited: history[0]?.date ?? null,
           sections: getArticleToc(headings),
         },
       };
@@ -39,19 +42,21 @@ export async function getStaticPaths() {
 // the same shared TOC helper the article page consumes, so the visibility,
 // numbering, and deep-link contract live in one runtime source of truth.
 export const GET: APIRoute = async ({ props, site }) => {
-  const { slug, title, summary, categories, incomingLinks, revisionCount, sections } = props as {
+  const { slug, title, summary, categories, incomingLinks, revisionCount, firstEdited, lastEdited, sections } = props as {
     slug: string;
     title: string;
     summary: string;
     categories: string[];
     incomingLinks: number;
     revisionCount: number;
+    firstEdited: string | null;
+    lastEdited: string | null;
     sections: Array<{ number: number; depth: number; slug: string; title: string }>;
   };
   const origin = (site ?? new URL('https://taopedia.org')).origin;
 
   const body = JSON.stringify(
-    buildArticleToc({ slug, title, origin, summary, categories, incomingLinks, revisionCount, sections }),
+    buildArticleToc({ slug, title, origin, summary, categories, incomingLinks, revisionCount, firstEdited, lastEdited, sections }),
     null,
     2,
   );

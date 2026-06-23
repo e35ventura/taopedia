@@ -18,7 +18,7 @@ export const getArticleToc = (headings = []) => {
   });
 };
 
-export const buildArticleToc = ({ slug, title, origin, summary = '', categories = [], incomingLinks = 0, revisionCount = 0, sections = [] }) => ({
+export const buildArticleToc = ({ slug, title, origin, summary = '', categories = [], incomingLinks = 0, revisionCount = 0, firstEdited = null, lastEdited = null, sections = [] }) => ({
   slug,
   title,
   summary: summary || null,
@@ -39,6 +39,8 @@ export const buildArticleToc = ({ slug, title, origin, summary = '', categories 
   categories,
   incomingLinks: Number.isFinite(incomingLinks) ? incomingLinks : 0,
   revisionCount: Number.isFinite(revisionCount) ? revisionCount : 0,
+  firstEdited: firstEdited ?? null,
+  lastEdited: lastEdited ?? null,
   count: sections.length,
   sections: sections.map((section) => ({
     number: section.number,

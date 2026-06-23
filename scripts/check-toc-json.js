@@ -68,6 +68,8 @@ const ORIGIN = 'https://taopedia.org';
     categories: ['Consensus', 'Security'],
     incomingLinks: 5,
     revisionCount: 12,
+    firstEdited: '2024-01-01T00:00:00.000Z',
+    lastEdited: '2024-06-01T00:00:00.000Z',
     sections,
   });
   assert.equal(doc.slug, 'source', 'builder: slug field');
@@ -90,6 +92,8 @@ const ORIGIN = 'https://taopedia.org';
   assert.deepEqual(doc.categories, ['Consensus', 'Security'], 'builder: categories field');
   assert.equal(doc.incomingLinks, 5, 'builder: incomingLinks field');
   assert.equal(doc.revisionCount, 12, 'builder: revisionCount field');
+  assert.equal(doc.firstEdited, '2024-01-01T00:00:00.000Z', 'builder: firstEdited field');
+  assert.equal(doc.lastEdited, '2024-06-01T00:00:00.000Z', 'builder: lastEdited field');
   assert.equal(doc.count, 3, 'builder: count field');
   assert.deepEqual(
     doc.sections,
@@ -252,6 +256,16 @@ for (const slug of articleSlugs) {
       doc.revisionCount,
       infoDoc.revisionCount,
       `${slug}: toc.json revisionCount must agree with the sibling info.json envelope`,
+    );
+    assert.equal(
+      doc.firstEdited,
+      infoDoc.firstEdited,
+      `${slug}: toc.json firstEdited must agree with the sibling info.json envelope`,
+    );
+    assert.equal(
+      doc.lastEdited,
+      infoDoc.lastEdited,
+      `${slug}: toc.json lastEdited must agree with the sibling info.json envelope`,
     );
   }
   assert.equal(typeof doc.count, 'number', `${slug}: toc.json count must be a number`);
