@@ -17,13 +17,16 @@ export async function getStaticPaths() {
 
   return pages.map((page) => {
     const slug = getPageSlug(page);
+    const history = historyForSlug(slug);
     return {
       params: { slug },
       props: {
         page,
         slug,
         incomingLinks: publishedInboundLinkCount(backlinksData, slug, titleBySlug),
-        revisionCount: historyForSlug(slug).length,
+        revisionCount: history.length,
+        firstEdited: history.length > 0 ? history[history.length - 1].date : null,
+        lastEdited: history.length > 0 ? history[0].date : null,
       },
     };
   });
@@ -33,11 +36,13 @@ export async function getStaticPaths() {
 // published-only join and compareTitles sort as backlinks.astro so the two
 // surfaces never drift.
 export const GET: APIRoute = async ({ props, site }) => {
-  const { page, slug, incomingLinks, revisionCount } = props as {
+  const { page, slug, incomingLinks, revisionCount, firstEdited, lastEdited } = props as {
     page: { data: { title: string; summary?: string; categories?: string[] } };
     slug: string;
     incomingLinks: number;
     revisionCount: number;
+    firstEdited: string | null;
+    lastEdited: string | null;
   };
   const origin = (site ?? new URL('https://taopedia.org')).origin;
 
@@ -72,6 +77,8 @@ export const GET: APIRoute = async ({ props, site }) => {
       categories: page.data.categories ?? [],
       incomingLinks,
       revisionCount,
+      firstEdited,
+      lastEdited,
       backlinks,
     }),
     null,

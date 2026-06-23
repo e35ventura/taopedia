@@ -1,7 +1,7 @@
 // Pure builder: no file I/O, no side effects. Converts the pre-joined and
 // pre-sorted backlinks list into the canonical JSON shape for
 // /wiki/<slug>/backlinks.json, mirroring what backlinks.astro renders.
-export const buildArticleBacklinks = ({ slug, title, origin, summary = '', categories = [], incomingLinks = 0, revisionCount = 0, backlinks = [] }) => ({
+export const buildArticleBacklinks = ({ slug, title, origin, summary = '', categories = [], incomingLinks = 0, revisionCount = 0, firstEdited = null, lastEdited = null, backlinks = [] }) => ({
   slug,
   title,
   summary: summary || null,
@@ -26,6 +26,11 @@ export const buildArticleBacklinks = ({ slug, title, origin, summary = '', categ
   // The article's revision count (its commit-history length) — the same figure
   // info.json / history.json / cite.json expose on their envelopes.
   revisionCount: Number.isFinite(revisionCount) ? revisionCount : 0,
+  // firstEdited / lastEdited bracket the article's revision history (oldest and
+  // newest commit dates) — the same pair info.json / history.json / cite.json /
+  // references.json / related.json expose; null when there's no history.
+  firstEdited: firstEdited ?? null,
+  lastEdited: lastEdited ?? null,
   count: backlinks.length,
   backlinks: backlinks.map((link) => ({
     slug: link.slug,

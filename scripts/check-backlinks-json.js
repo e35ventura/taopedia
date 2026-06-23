@@ -31,6 +31,8 @@ const ORIGIN = 'https://taopedia.org';
     categories: ['Consensus'],
     incomingLinks: 2,
     revisionCount: 8,
+    firstEdited: '2024-03-01T00:00:00.000Z',
+    lastEdited: '2026-04-01T00:00:00.000Z',
     backlinks: [
       { slug: 'neuron', title: 'Neuron', summary: 'A node in the network.', categories: ['Mechanism'] },
       { slug: 'subnet_1', title: 'Subnet 1', summary: '' },
@@ -56,6 +58,8 @@ const ORIGIN = 'https://taopedia.org';
   assert.deepEqual(result.categories, ['Consensus'], 'builder: categories field');
   assert.equal(result.incomingLinks, 2, 'builder: incomingLinks field');
   assert.equal(result.revisionCount, 8, 'builder: revisionCount field threaded verbatim');
+  assert.equal(result.firstEdited, '2024-03-01T00:00:00.000Z', 'builder: firstEdited field threaded verbatim');
+  assert.equal(result.lastEdited, '2026-04-01T00:00:00.000Z', 'builder: lastEdited field threaded verbatim');
   assert.equal(result.count, 2, 'builder: count equals backlinks length');
   assert.equal(result.backlinks.length, 2, 'builder: backlinks array length');
   assert.equal(result.backlinks[0].slug, 'neuron', 'builder: backlinks[0].slug');
@@ -100,6 +104,8 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(empty.summary, null, 'builder: default summary is null');
   assert.equal(empty.incomingLinks, 0, 'builder: default incomingLinks is 0');
   assert.equal(empty.revisionCount, 0, 'builder: default revisionCount is 0');
+  assert.equal(empty.firstEdited, null, 'builder: default firstEdited is null');
+  assert.equal(empty.lastEdited, null, 'builder: default lastEdited is null');
 }
 
 // ---- 2–6) Built-output checks ----------------------------------------------
@@ -209,6 +215,18 @@ for (const slug of articleSlugs) {
       doc.revisionCount,
       infoDoc.revisionCount,
       `${slug}: backlinks.json revisionCount must agree with the sibling info.json envelope`,
+    );
+    // firstEdited / lastEdited bracket the revision history — the same pair
+    // info.json exposes; they must agree with the sibling envelope.
+    assert.equal(
+      doc.firstEdited,
+      infoDoc.firstEdited,
+      `${slug}: backlinks.json firstEdited must agree with the sibling info.json envelope`,
+    );
+    assert.equal(
+      doc.lastEdited,
+      infoDoc.lastEdited,
+      `${slug}: backlinks.json lastEdited must agree with the sibling info.json envelope`,
     );
   }
   assert.equal(typeof doc.count, 'number', `${slug}: backlinks.json count must be a number`);
