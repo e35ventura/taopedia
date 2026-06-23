@@ -46,7 +46,7 @@ const ORIGIN = 'https://taopedia.org';
     'helper must exclude self/missing targets, dedupe repeated targets, and sort numerically by title',
   );
 
-  const doc = buildArticleReferences({ slug: 'source', title: 'Source', origin: ORIGIN, summary: 'The source article.', categories: ['Consensus', 'Security'], incomingLinks: 5, revisionCount: 12, references });
+  const doc = buildArticleReferences({ slug: 'source', title: 'Source', origin: ORIGIN, summary: 'The source article.', categories: ['Consensus', 'Security'], incomingLinks: 5, revisionCount: 12, firstEdited: '2024-01-01T00:00:00.000Z', lastEdited: '2024-06-01T00:00:00.000Z', references });
   assert.equal(doc.slug, 'source', 'builder: slug field');
   assert.equal(doc.title, 'Source', 'builder: title field');
   assert.equal(doc.summary, 'The source article.', 'builder: summary field');
@@ -67,6 +67,8 @@ const ORIGIN = 'https://taopedia.org';
   assert.deepEqual(doc.categories, ['Consensus', 'Security'], 'builder: categories field');
   assert.equal(doc.incomingLinks, 5, 'builder: incomingLinks field');
   assert.equal(doc.revisionCount, 12, 'builder: revisionCount field threaded verbatim');
+  assert.equal(doc.firstEdited, '2024-01-01T00:00:00.000Z', 'builder: firstEdited field threaded verbatim');
+  assert.equal(doc.lastEdited, '2024-06-01T00:00:00.000Z', 'builder: lastEdited field threaded verbatim');
   assert.equal(doc.count, 4, 'builder: count field');
   assert.deepEqual(
     doc.references,
@@ -164,6 +166,8 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(empty.summary, null, 'builder: default summary is null');
   assert.equal(empty.incomingLinks, 0, 'builder: default incomingLinks is 0');
   assert.equal(empty.revisionCount, 0, 'builder: default revisionCount is 0');
+  assert.equal(empty.firstEdited, null, 'builder: default firstEdited is null');
+  assert.equal(empty.lastEdited, null, 'builder: default lastEdited is null');
   assert.equal(empty.count, 0, 'builder: empty count is 0');
   assert.deepEqual(empty.references, [], 'builder: empty references is []');
 }
@@ -290,6 +294,19 @@ for (const slug of articleSlugs) {
       doc.revisionCount,
       infoDoc.revisionCount,
       `${slug}: references.json revisionCount must agree with the sibling info.json envelope`,
+    );
+    // firstEdited / lastEdited are the article's first and last revision dates —
+    // the same pair info.json / history.json expose. Cross-check both against the
+    // sibling info.json (independent source) so the envelopes can't disagree.
+    assert.equal(
+      doc.firstEdited,
+      infoDoc.firstEdited,
+      `${slug}: references.json firstEdited must agree with the sibling info.json envelope`,
+    );
+    assert.equal(
+      doc.lastEdited,
+      infoDoc.lastEdited,
+      `${slug}: references.json lastEdited must agree with the sibling info.json envelope`,
     );
   }
   assert.equal(typeof doc.count, 'number', `${slug}: references.json count must be a number`);

@@ -30,6 +30,10 @@ export async function getStaticPaths() {
       categories: categoriesBySlug[ref.slug] ?? [],
       backlinks: publishedInboundLinkCount(backlinksData, ref.slug, titleBySlug),
     }));
+    // History is newest-first, so [0] is the latest revision and the last entry
+    // is the original publication — the same firstEdited/lastEdited pair the
+    // info.json and history.json envelopes expose.
+    const history = historyForSlug(slug);
     return {
       params: { slug },
       props: {
@@ -38,7 +42,9 @@ export async function getStaticPaths() {
         summary: page.data.summary ?? '',
         categories: page.data.categories ?? [],
         incomingLinks: publishedInboundLinkCount(backlinksData, slug, titleBySlug),
-        revisionCount: historyForSlug(slug).length,
+        revisionCount: history.length,
+        firstEdited: history[history.length - 1]?.date ?? null,
+        lastEdited: history[0]?.date ?? null,
         references,
       },
     };
@@ -50,18 +56,20 @@ export async function getStaticPaths() {
 // graph that powers backlinks.json, without advertising an HTML subpage that
 // does not exist.
 export const GET: APIRoute = async ({ props, site }) => {
-  const { slug, title, summary, categories, incomingLinks, revisionCount, references } = props as {
+  const { slug, title, summary, categories, incomingLinks, revisionCount, firstEdited, lastEdited, references } = props as {
     slug: string;
     title: string;
     summary: string;
     categories: string[];
     incomingLinks: number;
     revisionCount: number;
+    firstEdited: string | null;
+    lastEdited: string | null;
     references: Array<{ slug: string; title: string; summary: string; categories: string[]; backlinks: number }>;
   };
   const origin = (site ?? new URL('https://taopedia.org')).origin;
 
-  const body = JSON.stringify(buildArticleReferences({ slug, title, origin, summary, categories, incomingLinks, revisionCount, references }), null, 2);
+  const body = JSON.stringify(buildArticleReferences({ slug, title, origin, summary, categories, incomingLinks, revisionCount, firstEdited, lastEdited, references }), null, 2);
 
   return new Response(body, {
     headers: { 'Content-Type': 'application/json; charset=utf-8' },
