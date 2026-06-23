@@ -19,7 +19,16 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
 const wikiDir = path.join(projectRoot, 'dist', 'wiki');
 const backlinksFile = path.join(projectRoot, 'public', 'data', 'backlinks.json');
+const historyDir = path.join(projectRoot, 'public', 'history');
 const ORIGIN = 'https://taopedia.org';
+// Each entry's lastEdited = the linking article's latest revision date (history
+// is newest-first), re-derived from the raw history file.
+const lastEditedOf = (slug) => {
+  const file = path.join(historyDir, `${slug}.json`);
+  if (!fs.existsSync(file)) return null;
+  const history = JSON.parse(fs.readFileSync(file, 'utf8')).history || [];
+  return Array.isArray(history) && history.length > 0 ? history[0].date : null;
+};
 
 // ---- 1) Unit: builder produces the correct JSON shape ----------------------
 {
@@ -34,7 +43,7 @@ const ORIGIN = 'https://taopedia.org';
     firstEdited: '2024-01-01T00:00:00.000Z',
     lastEdited: '2024-06-01T00:00:00.000Z',
     backlinks: [
-      { slug: 'neuron', title: 'Neuron', summary: 'A node in the network.', categories: ['Mechanism'] },
+      { slug: 'neuron', title: 'Neuron', summary: 'A node in the network.', categories: ['Mechanism'], lastEdited: '2025-01-01T00:00:00.000Z' },
       { slug: 'subnet_1', title: 'Subnet 1', summary: '' },
     ],
   });
@@ -67,6 +76,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.backlinks[0].summary, 'A node in the network.', 'builder: backlinks[0].summary');
   assert.deepEqual(result.backlinks[0].categories, ['Mechanism'], 'builder: backlinks[0].categories');
   assert.equal(result.backlinks[0].backlinks, 0, 'builder: backlinks[0].backlinks defaults to 0 when omitted');
+  assert.equal(result.backlinks[0].lastEdited, '2025-01-01T00:00:00.000Z', 'builder: backlinks[0].lastEdited threaded verbatim');
   assert.equal(result.backlinks[0].url, `${ORIGIN}/wiki/neuron/`, 'builder: backlinks[0].url');
   assert.equal(result.backlinks[0].infoUrl, `${ORIGIN}/wiki/neuron/info/`, 'builder: backlinks[0].infoUrl');
   assert.equal(result.backlinks[0].infoJsonUrl, `${ORIGIN}/wiki/neuron/info.json`, 'builder: backlinks[0].infoJsonUrl');
@@ -86,6 +96,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.backlinks[1].summary, null, 'builder: backlinks[1].summary is null when empty');
   assert.deepEqual(result.backlinks[1].categories, [], 'builder: backlinks[1].categories defaults to [] when omitted');
   assert.equal(result.backlinks[1].backlinks, 0, 'builder: backlinks[1].backlinks defaults to 0 when omitted');
+  assert.equal(result.backlinks[1].lastEdited, null, 'builder: backlinks[1].lastEdited defaults to null when omitted');
   assert.equal(result.backlinks[1].url, `${ORIGIN}/wiki/subnet_1/`, 'builder: backlinks[1].url');
   assert.equal(result.backlinks[1].historyUrl, `${ORIGIN}/wiki/subnet_1/history/`, 'builder: backlinks[1].historyUrl');
   assert.equal(result.backlinks[1].historyJsonUrl, `${ORIGIN}/wiki/subnet_1/history.json`, 'builder: backlinks[1].historyJsonUrl');
@@ -262,6 +273,10 @@ for (const slug of articleSlugs) {
       `${slug}: every backlink entry backlinks must match the published inbound-link count`,
     );
     assert.ok(Number.isInteger(entry.backlinks) && entry.backlinks >= 0, `${slug}: every backlink entry backlinks must be a non-negative integer`);
+    // lastEdited mirrors the linking article's latest revision date (the same
+    // per-entry field allpages.json / subnets.json / mostlinkedpages.json expose);
+    // null when the linking article has no recorded history.
+    assert.equal(entry.lastEdited, lastEditedOf(entry.slug), `${slug}: every backlink entry lastEdited must equal the linking article's latest revision date (or null)`);
     // infoUrl / infoJsonUrl point at the linking article's Page-information hub
     // and its machine-readable companion, so a consumer can reach a backlinking
     // page's metadata without reconstructing the route.
