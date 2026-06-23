@@ -228,6 +228,15 @@ for (let i = 0; i < data.changes.length; i++) {
     `change imageUrl must equal ${data.site}/og/${change.slug}.png for ${change.slug}`,
   );
   assert.equal(change.title, slugmap[change.slug]?.title, `change title must match the article title for ${change.slug}`);
+  // summary mirrors the changed article's one-line description (null when blank)
+  // — the same per-entry field allpages.json / mostlinkedpages.json /
+  // subnets.json / category-articles expose, so a change monitor can show a
+  // preview without a second fetch. Source of truth is the slug map.
+  assert.equal(
+    change.summary,
+    slugmap[change.slug]?.summary || null,
+    `change ${i} summary must be the slug-map summary (null when blank) for ${change.slug}`,
+  );
   // categories mirrors the changed article's topics — the same per-item category
   // set the recentchanges RSS/Atom/JSON feeds attach (recent-changes-feed.js), so
   // the structured endpoint and the feeds agree. Source of truth is the slug map.
