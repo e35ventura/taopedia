@@ -1,7 +1,7 @@
 // Pure builder: no file I/O, no side effects. Converts the pre-loaded revision
 // list into the canonical JSON shape for /wiki/<slug>/history.json, mirroring
 // what history.astro renders.
-export const buildArticleHistory = ({ slug, title, origin, summary = '', categories = [], revisions = [] }) => ({
+export const buildArticleHistory = ({ slug, title, origin, summary = '', categories = [], incomingLinks = 0, revisions = [] }) => ({
   slug,
   title,
   summary: summary || null,
@@ -20,6 +20,11 @@ export const buildArticleHistory = ({ slug, title, origin, summary = '', categor
   tocJsonUrl: `${origin}/wiki/${slug}/toc.json`,
   imageUrl: `${origin}/og/${slug}.png`,
   categories,
+  // The article's own published inbound-link count — the same figure info.json
+  // exposes (the two stats-bearing per-article envelopes), so a consumer of
+  // history.json can show link popularity alongside the revision activity
+  // without a second fetch.
+  incomingLinks,
   revisionCount: revisions.length,
   firstEdited: revisions.length > 0 ? revisions[revisions.length - 1].date : null,
   lastEdited: revisions.length > 0 ? revisions[0].date : null,

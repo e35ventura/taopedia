@@ -10,6 +10,12 @@ const historyModules = import.meta.glob('../../../../public/history/**/*.json', 
   { default?: { history?: RawRevision[] } }
 >;
 
+const backlinksModules = import.meta.glob('../../../../public/data/backlinks.json', { eager: true }) as Record<
+  string,
+  { default?: Record<string, Array<{ from: string }>> }
+>;
+const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
+
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
   return pages.map((page) => {
@@ -29,8 +35,15 @@ export const GET: APIRoute = async ({ props, site }) => {
   const mod = historyModules[`../../../../public/history/${slug}.json`];
   const revisions: RawRevision[] = mod?.default?.history ?? [];
 
+  // incomingLinks: published-only inbound-link count, computed exactly as
+  // info.json computes it (filter backlinks.json by the published article set
+  // from the same content collection), so the two stats-bearing envelopes agree.
+  const pages = await getCollection('pages');
+  const publishedSlugs = new Set(pages.map((p) => getPageSlug(p)));
+  const incomingLinks = (backlinksData[slug] ?? []).filter((entry) => publishedSlugs.has(entry.from)).length;
+
   const body = JSON.stringify(
-    buildArticleHistory({ slug, title: page.data.title, origin, summary: page.data.summary ?? '', categories: page.data.categories ?? [], revisions }),
+    buildArticleHistory({ slug, title: page.data.title, origin, summary: page.data.summary ?? '', categories: page.data.categories ?? [], incomingLinks, revisions }),
     null,
     2,
   );

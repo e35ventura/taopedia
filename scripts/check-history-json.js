@@ -25,7 +25,7 @@ const ORIGIN = 'https://taopedia.org';
     { sha: 'abc1234def5678', date: '2026-06-01T12:00:00.000Z', authorName: 'alice', message: 'initial commit' },
     { sha: '000aaabbbccc11', date: '2025-01-10T08:00:00.000Z', authorName: 'bob', message: 'update' },
   ];
-  const result = buildArticleHistory({ slug: 'recycling', title: 'Recycling', origin: ORIGIN, summary: 'Reclaiming emitted TAO.', categories: ['Consensus'], revisions: revs });
+  const result = buildArticleHistory({ slug: 'recycling', title: 'Recycling', origin: ORIGIN, summary: 'Reclaiming emitted TAO.', categories: ['Consensus'], incomingLinks: 7, revisions: revs });
   assert.equal(result.slug, 'recycling', 'builder: slug');
   assert.equal(result.title, 'Recycling', 'builder: title');
   assert.equal(result.summary, 'Reclaiming emitted TAO.', 'builder: summary');
@@ -44,6 +44,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.tocJsonUrl, `${ORIGIN}/wiki/recycling/toc.json`, 'builder: tocJsonUrl');
   assert.equal(result.imageUrl, `${ORIGIN}/og/recycling.png`, 'builder: imageUrl');
   assert.deepEqual(result.categories, ['Consensus'], 'builder: categories');
+  assert.equal(result.incomingLinks, 7, 'builder: incomingLinks');
   assert.equal(result.revisionCount, 2, 'builder: revisionCount');
   assert.equal(result.lastEdited, '2026-06-01T12:00:00.000Z', 'builder: lastEdited is revisions[0].date');
   assert.equal(result.firstEdited, '2025-01-10T08:00:00.000Z', 'builder: firstEdited is revisions[last].date');
@@ -58,6 +59,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.revisions[1].message, 'update', 'builder: revisions[1].message');
 
   const empty = buildArticleHistory({ slug: 'orphan', title: 'Orphan', origin: ORIGIN });
+  assert.equal(empty.incomingLinks, 0, 'builder: default incomingLinks is 0');
   assert.equal(empty.revisionCount, 0, 'builder: empty revisionCount is 0');
   assert.equal(empty.firstEdited, null, 'builder: empty firstEdited is null');
   assert.equal(empty.lastEdited, null, 'builder: empty lastEdited is null');
@@ -80,6 +82,14 @@ assert.ok(fs.existsSync(historyDir), 'public/history not found; run the build fi
 const slugmapFile = path.join(projectRoot, 'public', 'data', 'slugmap.json');
 assert.ok(fs.existsSync(slugmapFile), 'public/data/slugmap.json not found; run the build first');
 const slugmap = JSON.parse(fs.readFileSync(slugmapFile, 'utf8'));
+const backlinksFile = path.join(projectRoot, 'public', 'data', 'backlinks.json');
+assert.ok(fs.existsSync(backlinksFile), 'public/data/backlinks.json not found; run the build first');
+const backlinksData = JSON.parse(fs.readFileSync(backlinksFile, 'utf8'));
+// The published article set, used to count published-only inbound links the
+// same way info.json / history.json compute incomingLinks.
+const publishedSlugs = new Set(Object.keys(slugmap));
+const expectedIncomingLinks = (slug) =>
+  (backlinksData[slug] ?? []).filter((entry) => publishedSlugs.has(entry.from)).length;
 
 const articleSlugs = [];
 const walk = (dir) => {
@@ -153,6 +163,10 @@ for (const slug of articleSlugs) {
   // per-article field the sibling envelopes (backlinks/toc/references/cite/related) expose.
   const expectedSummary = slugmap[slug]?.summary || null;
   assert.deepEqual(doc.summary, expectedSummary, `${slug}: history.json summary must match the article's slug-map summary (or null)`);
+  // incomingLinks is the article's own published inbound-link count — must equal
+  // the figure info.json exposes (both filter backlinks.json by the published set).
+  assert.equal(doc.incomingLinks, expectedIncomingLinks(slug), `${slug}: history.json incomingLinks must equal the published inbound-link count (matching info.json)`);
+  assert.ok(Number.isInteger(doc.incomingLinks) && doc.incomingLinks >= 0, `${slug}: history.json incomingLinks must be a non-negative integer`);
   assert.equal(typeof doc.revisionCount, 'number', `${slug}: history.json revisionCount must be a number`);
   assert.ok(Array.isArray(doc.revisions), `${slug}: history.json revisions must be an array`);
   assert.equal(doc.revisionCount, doc.revisions.length, `${slug}: history.json revisionCount must equal revisions.length`);
