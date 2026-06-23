@@ -40,6 +40,7 @@ assert.ok(searchEntries.length > 0, 'search data must include article entries');
 
 const invalidUrls = [];
 const missingFromSitemap = [];
+const badSlugs = [];
 
 for (const entry of searchEntries) {
   if (typeof entry.url !== 'string' || !entry.url.startsWith(`${ORIGIN}/wiki/`)) {
@@ -49,6 +50,13 @@ for (const entry of searchEntries) {
 
   if (!sitemapUrls.has(entry.url)) {
     missingFromSitemap.push(entry.url);
+  }
+
+  // Each entry exposes the article slug it derives its url from, so a search
+  // consumer can key/dedupe results by slug instead of parsing the url. It must
+  // be a non-empty string consistent with the canonical url.
+  if (typeof entry.slug !== 'string' || !entry.slug || entry.url !== `${ORIGIN}/wiki/${entry.slug}/`) {
+    badSlugs.push(`${entry.slug} -> ${entry.url}`);
   }
 }
 
@@ -61,6 +69,11 @@ assert.equal(
   missingFromSitemap.length,
   0,
   `search data URLs must match sitemap article URLs:\n${missingFromSitemap.slice(0, 10).join('\n')}`,
+);
+assert.equal(
+  badSlugs.length,
+  0,
+  `every search entry must expose a non-empty slug consistent with its canonical url:\n${badSlugs.slice(0, 10).join('\n')}`,
 );
 
 // The entries must be in a deterministic order: by title (numeric collation),
