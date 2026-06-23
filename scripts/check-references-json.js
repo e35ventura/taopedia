@@ -11,6 +11,7 @@ const projectRoot = path.resolve(__dirname, '..');
 const wikiDir = path.join(projectRoot, 'dist', 'wiki');
 const linkgraphFile = path.join(projectRoot, 'public', 'data', 'linkgraph.json');
 const slugmapFile = path.join(projectRoot, 'public', 'data', 'slugmap.json');
+const backlinksFile = path.join(projectRoot, 'public', 'data', 'backlinks.json');
 const ORIGIN = 'https://taopedia.org';
 
 // ---- 1) Unit: helper and builder behavior ---------------------------------
