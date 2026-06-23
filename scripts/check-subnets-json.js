@@ -193,6 +193,25 @@ data.subnets.forEach((row, i) => {
     `${data.site}/wiki/${expected[i].slug}/backlinks.json`,
     `row ${i} backlinksJsonUrl must equal ${data.site}/wiki/${expected[i].slug}/backlinks.json`,
   );
+  // citeUrl / referencesUrl / relatedUrl complete the per-article API surface:
+  // the citation page (/cite/), the outbound-reference index (references.json),
+  // and the related-pages set (related.json) all exist per subnet article, so a
+  // registry consumer can reach them without reconstructing the routes.
+  assert.equal(
+    row.citeUrl,
+    `${data.site}/wiki/${expected[i].slug}/cite/`,
+    `row ${i} citeUrl must equal ${data.site}/wiki/${expected[i].slug}/cite/`,
+  );
+  assert.equal(
+    row.referencesUrl,
+    `${data.site}/wiki/${expected[i].slug}/references.json`,
+    `row ${i} referencesUrl must equal ${data.site}/wiki/${expected[i].slug}/references.json`,
+  );
+  assert.equal(
+    row.relatedUrl,
+    `${data.site}/wiki/${expected[i].slug}/related.json`,
+    `row ${i} relatedUrl must equal ${data.site}/wiki/${expected[i].slug}/related.json`,
+  );
   assert.equal(
     row.summary,
     expected[i].summary || null,
