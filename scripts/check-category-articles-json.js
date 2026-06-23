@@ -57,6 +57,8 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
         infoUrl: `${ORIGIN}/wiki/subnet_2/info/`,
         backlinksUrl: `${ORIGIN}/wiki/subnet_2/backlinks/`,
         citeUrl: `${ORIGIN}/wiki/subnet_2/cite/`,
+        citeJsonUrl: `${ORIGIN}/wiki/subnet_2/cite.json`,
+        bibtexUrl: `${ORIGIN}/wiki/subnet_2/cite.bib`,
         referencesUrl: `${ORIGIN}/wiki/subnet_2/references.json`,
         relatedUrl: `${ORIGIN}/wiki/subnet_2/related.json`,
       },
@@ -68,6 +70,8 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
         infoUrl: `${ORIGIN}/wiki/subnet_9/info/`,
         backlinksUrl: `${ORIGIN}/wiki/subnet_9/backlinks/`,
         citeUrl: `${ORIGIN}/wiki/subnet_9/cite/`,
+        citeJsonUrl: `${ORIGIN}/wiki/subnet_9/cite.json`,
+        bibtexUrl: `${ORIGIN}/wiki/subnet_9/cite.bib`,
         referencesUrl: `${ORIGIN}/wiki/subnet_9/references.json`,
         relatedUrl: `${ORIGIN}/wiki/subnet_9/related.json`,
       },
@@ -79,6 +83,8 @@ const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json')
         infoUrl: `${ORIGIN}/wiki/subnet_10/info/`,
         backlinksUrl: `${ORIGIN}/wiki/subnet_10/backlinks/`,
         citeUrl: `${ORIGIN}/wiki/subnet_10/cite/`,
+        citeJsonUrl: `${ORIGIN}/wiki/subnet_10/cite.json`,
+        bibtexUrl: `${ORIGIN}/wiki/subnet_10/cite.bib`,
         referencesUrl: `${ORIGIN}/wiki/subnet_10/references.json`,
         relatedUrl: `${ORIGIN}/wiki/subnet_10/related.json`,
       },
@@ -179,6 +185,16 @@ for (const category of categories) {
       article.citeUrl,
       `${ORIGIN}/wiki/${article.slug}/cite/`,
       `${category}: article ${article.slug} citeUrl must be the canonical citation-page URL`,
+    );
+    assert.equal(
+      article.citeJsonUrl,
+      `${ORIGIN}/wiki/${article.slug}/cite.json`,
+      `${category}: article ${article.slug} citeJsonUrl must be the canonical cite.json URL`,
+    );
+    assert.equal(
+      article.bibtexUrl,
+      `${ORIGIN}/wiki/${article.slug}/cite.bib`,
+      `${category}: article ${article.slug} bibtexUrl must be the canonical cite.bib URL`,
     );
     assert.equal(
       article.referencesUrl,
