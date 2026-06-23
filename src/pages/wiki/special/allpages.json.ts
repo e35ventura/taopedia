@@ -27,6 +27,8 @@ export const GET: APIRoute = async ({ site }) => {
         title: article.title,
         summary: article.summary || null,
         url: article.url,
+        infoUrl: `${origin}/wiki/${article.slug}/info/`,
+        backlinksUrl: `${origin}/wiki/${article.slug}/backlinks/`,
         historyUrl: `${origin}/wiki/${article.slug}/history/`,
         imageUrl: `${origin}/og/${article.slug}.png`,
         categories: article.categories,

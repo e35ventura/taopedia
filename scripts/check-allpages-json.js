@@ -184,6 +184,20 @@ data.articles.forEach((row, i) => {
   assert.ok(typeof row.slug === 'string' && row.slug.length > 0, `row ${i} slug must be a non-empty string`);
   assert.ok(typeof row.title === 'string' && row.title.length > 0, `row ${i} title must be a non-empty string`);
   assert.equal(row.url, `${data.site}/wiki/${row.slug}/`, `row ${i} url must be an absolute canonical URL`);
+  // infoUrl / backlinksUrl point at the article's Page-information and
+  // What-links-here pages — the same per-entry companions subnets.json /
+  // mostlinkedpages.json expose — so a consumer of the directory can reach each
+  // article's metadata and inbound links without rebuilding the route.
+  assert.equal(
+    row.infoUrl,
+    `${data.site}/wiki/${row.slug}/info/`,
+    `row ${i} infoUrl must equal ${data.site}/wiki/${row.slug}/info/`,
+  );
+  assert.equal(
+    row.backlinksUrl,
+    `${data.site}/wiki/${row.slug}/backlinks/`,
+    `row ${i} backlinksUrl must equal ${data.site}/wiki/${row.slug}/backlinks/`,
+  );
   // historyUrl points at the article's revision-history page — the same
   // companion subnets.json / mostlinkedpages.json expose — so a consumer of the
   // directory can reach each article's edit history without rebuilding the route.
