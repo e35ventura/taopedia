@@ -238,6 +238,23 @@ data.subnets.forEach((row, i) => {
     Number.isInteger(row.backlinks) && row.backlinks >= 0,
     `row ${i} backlinks must be a non-negative integer (got ${row.backlinks})`,
   );
+  // lastEdited is the subnet article's last-revision date — the same figure
+  // info.json / history.json expose per article and allpages.json /
+  // mostlinkedpages.json expose per directory entry. Cross-check it against the
+  // sibling built info.json (independent source) so the surfaces can't disagree.
+  assert.ok(
+    row.lastEdited === null || typeof row.lastEdited === 'string',
+    `row ${i} lastEdited must be a string date or null (got ${JSON.stringify(row.lastEdited)})`,
+  );
+  const snInfoJsonFile = path.join(projectRoot, 'dist', 'wiki', row.slug, 'info.json');
+  if (fs.existsSync(snInfoJsonFile)) {
+    const infoDoc = JSON.parse(fs.readFileSync(snInfoJsonFile, 'utf8'));
+    assert.equal(
+      row.lastEdited,
+      infoDoc.lastEdited,
+      `row ${i} lastEdited must agree with the sibling info.json envelope for ${row.slug}`,
+    );
+  }
   // citeUrl / referencesUrl / relatedUrl complete the per-article API surface:
   // the citation page (/cite/), the outbound-reference index (references.json),
   // and the related-pages set (related.json) all exist per subnet article, so a
