@@ -165,6 +165,25 @@ for (let i = 0; i < data.changes.length; i++) {
     `${data.site}/wiki/${change.slug}/history.json`,
     `change historyJsonUrl must equal ${data.site}/wiki/${change.slug}/history.json for ${change.slug}`,
   );
+  // citeUrl / referencesUrl / relatedUrl complete the per-article API surface:
+  // the citation page (/cite/), the outbound-reference index (references.json),
+  // and the related-pages set (related.json) all exist per article, so a
+  // consumer watching changes can reach them without reconstructing the routes.
+  assert.equal(
+    change.citeUrl,
+    `${data.site}/wiki/${change.slug}/cite/`,
+    `change citeUrl must equal ${data.site}/wiki/${change.slug}/cite/ for ${change.slug}`,
+  );
+  assert.equal(
+    change.referencesUrl,
+    `${data.site}/wiki/${change.slug}/references.json`,
+    `change referencesUrl must equal ${data.site}/wiki/${change.slug}/references.json for ${change.slug}`,
+  );
+  assert.equal(
+    change.relatedUrl,
+    `${data.site}/wiki/${change.slug}/related.json`,
+    `change relatedUrl must equal ${data.site}/wiki/${change.slug}/related.json for ${change.slug}`,
+  );
   // imageUrl is the article's OG share-card image — the same /og/<slug>.png the
   // recentchanges RSS/Atom/JSON feeds already embed per item. The structured
   // endpoint must expose it too so a consumer renders the same per-change
