@@ -138,6 +138,15 @@ for (let i = 0; i < data.changes.length; i++) {
     `${data.site}/wiki/${change.slug}/backlinks/`,
     `change backlinksUrl must equal ${data.site}/wiki/${change.slug}/backlinks/ for ${change.slug}`,
   );
+  // backlinksJsonUrl is the JSON companion of backlinksUrl — the same HTML+JSON
+  // pairing subnets.json / mostlinkedpages.json expose for backlinks, and the
+  // /wiki/<slug>/backlinks.json endpoint exists, so a consumer can fetch the
+  // changed page's machine-readable inbound links without rebuilding the route.
+  assert.equal(
+    change.backlinksJsonUrl,
+    `${data.site}/wiki/${change.slug}/backlinks.json`,
+    `change backlinksJsonUrl must equal ${data.site}/wiki/${change.slug}/backlinks.json for ${change.slug}`,
+  );
   assert.ok(
     change.historyUrl.startsWith(`${data.site}/wiki/`),
     `change historyUrl must be absolute and start with the envelope site (got ${change.historyUrl})`,
