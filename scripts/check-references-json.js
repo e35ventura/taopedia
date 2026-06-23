@@ -69,6 +69,7 @@ const ORIGIN = 'https://taopedia.org';
       {
         slug: 'delta',
         title: 'Delta',
+        summary: null,
         url: `${ORIGIN}/wiki/delta/`,
         infoUrl: `${ORIGIN}/wiki/delta/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/delta/info.json`,
@@ -87,6 +88,7 @@ const ORIGIN = 'https://taopedia.org';
       {
         slug: 'alpha',
         title: 'Subnet 2',
+        summary: null,
         url: `${ORIGIN}/wiki/alpha/`,
         infoUrl: `${ORIGIN}/wiki/alpha/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/alpha/info.json`,
@@ -105,6 +107,7 @@ const ORIGIN = 'https://taopedia.org';
       {
         slug: 'gamma',
         title: 'Subnet 9',
+        summary: null,
         url: `${ORIGIN}/wiki/gamma/`,
         infoUrl: `${ORIGIN}/wiki/gamma/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/gamma/info.json`,
@@ -123,6 +126,7 @@ const ORIGIN = 'https://taopedia.org';
       {
         slug: 'beta',
         title: 'Subnet 10',
+        summary: null,
         url: `${ORIGIN}/wiki/beta/`,
         infoUrl: `${ORIGIN}/wiki/beta/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/beta/info.json`,
@@ -264,6 +268,10 @@ for (const slug of articleSlugs) {
     assert.equal(typeof entry.slug, 'string', `${slug}: every reference entry must have a slug`);
     assert.equal(typeof entry.title, 'string', `${slug}: every reference entry must have a title`);
     assert.equal(entry.url, `${ORIGIN}/wiki/${entry.slug}/`, `${slug}: every reference entry url must be the canonical article URL`);
+    // summary mirrors the referenced article's own summary from the slug map (null
+    // when blank), the same per-entry field the listing endpoints / related.json expose.
+    const expectedSummary = slugmap[entry.slug]?.summary || null;
+    assert.deepEqual(entry.summary, expectedSummary, `${slug}: every reference entry summary must match the referenced article's slug-map summary (or null)`);
     assert.equal(
       entry.infoUrl,
       `${ORIGIN}/wiki/${entry.slug}/info/`,
