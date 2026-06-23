@@ -49,6 +49,7 @@ export interface ArticleRelatedPagesDocument {
   title: string;
   summary: string | null;
   categories: string[];
+  incomingLinks: number;
   url: string;
   relatedUrl: string;
   historyUrl: string;
@@ -157,6 +158,7 @@ export function buildArticleRelatedPages({
   origin,
   summary = '',
   categories = [],
+  incomingLinks = 0,
   relatedPages = [],
 }: {
   slug: string;
@@ -164,6 +166,7 @@ export function buildArticleRelatedPages({
   origin: string;
   summary?: string;
   categories?: string[];
+  incomingLinks?: number;
   relatedPages?: RelatedPage[];
 }): ArticleRelatedPagesDocument {
   return {
@@ -179,6 +182,10 @@ export function buildArticleRelatedPages({
     // is tagged with (and why a related page shares its tags) without a second
     // fetch. The per-related-entry `tags` already expose each candidate's topics.
     categories,
+    // The article's own published inbound-link count — the same figure
+    // info.json / history.json / cite.json expose on their envelopes (via the
+    // shared helper), so related.json can show link popularity without a refetch.
+    incomingLinks,
     url: `${origin}/wiki/${slug}/`,
     relatedUrl: `${origin}/wiki/${slug}/related.json`,
     historyUrl: `${origin}/wiki/${slug}/history/`,
