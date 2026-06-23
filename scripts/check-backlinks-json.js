@@ -64,6 +64,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.backlinks[0].referencesUrl, `${ORIGIN}/wiki/neuron/references.json`, 'builder: backlinks[0].referencesUrl');
   assert.equal(result.backlinks[0].relatedUrl, `${ORIGIN}/wiki/neuron/related.json`, 'builder: backlinks[0].relatedUrl');
   assert.equal(result.backlinks[0].tocJsonUrl, `${ORIGIN}/wiki/neuron/toc.json`, 'builder: backlinks[0].tocJsonUrl');
+  assert.equal(result.backlinks[0].imageUrl, `${ORIGIN}/og/neuron.png`, 'builder: backlinks[0].imageUrl');
   assert.equal(result.backlinks[1].slug, 'subnet_1', 'builder: backlinks[1].slug');
   assert.equal(result.backlinks[1].title, 'Subnet 1', 'builder: backlinks[1].title');
   assert.equal(result.backlinks[1].url, `${ORIGIN}/wiki/subnet_1/`, 'builder: backlinks[1].url');
@@ -75,6 +76,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.backlinks[1].referencesUrl, `${ORIGIN}/wiki/subnet_1/references.json`, 'builder: backlinks[1].referencesUrl');
   assert.equal(result.backlinks[1].relatedUrl, `${ORIGIN}/wiki/subnet_1/related.json`, 'builder: backlinks[1].relatedUrl');
   assert.equal(result.backlinks[1].tocJsonUrl, `${ORIGIN}/wiki/subnet_1/toc.json`, 'builder: backlinks[1].tocJsonUrl');
+  assert.equal(result.backlinks[1].imageUrl, `${ORIGIN}/og/subnet_1.png`, 'builder: backlinks[1].imageUrl');
 
   const empty = buildArticleBacklinks({ slug: 'orphan', title: 'Orphan', origin: ORIGIN });
   assert.equal(empty.count, 0, 'builder: empty count is 0');
@@ -240,6 +242,14 @@ for (const slug of articleSlugs) {
       entry.tocJsonUrl,
       `${ORIGIN}/wiki/${entry.slug}/toc.json`,
       `${slug}: every backlink entry tocJsonUrl must be the canonical article toc.json URL`,
+    );
+    // imageUrl is each linking article's own OG share-card (/og/<slug>.png),
+    // the same companion the listing-endpoint entries expose, so a consumer can
+    // render a thumbnail per linking article without rebuilding the route.
+    assert.equal(
+      entry.imageUrl,
+      `${ORIGIN}/og/${entry.slug}.png`,
+      `${slug}: every backlink entry imageUrl must be the linking article's OG share-card URL`,
     );
     assert.ok(articleBuilt(entry.slug), `${slug}: backlink entry ${entry.slug} references an unbuilt article`);
   }
