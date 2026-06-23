@@ -27,5 +27,6 @@ export const buildArticleReferences = ({ slug, title, origin, references = [] })
     title: link.title,
     url: `${origin}/wiki/${link.slug}/`,
     historyUrl: `${origin}/wiki/${link.slug}/history/`,
+    historyJsonUrl: `${origin}/wiki/${link.slug}/history.json`,
   })),
 });
