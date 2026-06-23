@@ -25,7 +25,7 @@ const ORIGIN = 'https://taopedia.org';
     { sha: 'abc1234def5678', date: '2026-06-01T12:00:00.000Z', authorName: 'alice', message: 'initial commit' },
     { sha: '000aaabbbccc11', date: '2025-01-10T08:00:00.000Z', authorName: 'bob', message: 'update' },
   ];
-  const result = buildArticleHistory({ slug: 'recycling', title: 'Recycling', origin: ORIGIN, revisions: revs });
+  const result = buildArticleHistory({ slug: 'recycling', title: 'Recycling', origin: ORIGIN, categories: ['Consensus'], revisions: revs });
   assert.equal(result.slug, 'recycling', 'builder: slug');
   assert.equal(result.title, 'Recycling', 'builder: title');
   assert.equal(result.url, `${ORIGIN}/wiki/recycling/`, 'builder: url');
@@ -42,6 +42,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.relatedUrl, `${ORIGIN}/wiki/recycling/related.json`, 'builder: relatedUrl');
   assert.equal(result.tocJsonUrl, `${ORIGIN}/wiki/recycling/toc.json`, 'builder: tocJsonUrl');
   assert.equal(result.imageUrl, `${ORIGIN}/og/recycling.png`, 'builder: imageUrl');
+  assert.deepEqual(result.categories, ['Consensus'], 'builder: categories');
   assert.equal(result.revisionCount, 2, 'builder: revisionCount');
   assert.equal(result.lastEdited, '2026-06-01T12:00:00.000Z', 'builder: lastEdited is revisions[0].date');
   assert.equal(result.firstEdited, '2025-01-10T08:00:00.000Z', 'builder: firstEdited is revisions[last].date');
@@ -60,6 +61,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(empty.firstEdited, null, 'builder: empty firstEdited is null');
   assert.equal(empty.lastEdited, null, 'builder: empty lastEdited is null');
   assert.deepEqual(empty.revisions, [], 'builder: empty revisions is []');
+  assert.deepEqual(empty.categories, [], 'builder: default categories is []');
 
   // message defaults to '' when absent in raw data
   const noMsg = buildArticleHistory({
@@ -72,6 +74,10 @@ const ORIGIN = 'https://taopedia.org';
 // ---- 2–6) Built-output checks ----------------------------------------------
 assert.ok(fs.existsSync(wikiDir), 'dist/wiki not found; run the build first');
 assert.ok(fs.existsSync(historyDir), 'public/history not found; run the build first');
+
+const slugmapFile = path.join(projectRoot, 'public', 'data', 'slugmap.json');
+assert.ok(fs.existsSync(slugmapFile), 'public/data/slugmap.json not found; run the build first');
+const slugmap = JSON.parse(fs.readFileSync(slugmapFile, 'utf8'));
 
 const articleSlugs = [];
 const walk = (dir) => {
@@ -137,6 +143,10 @@ for (const slug of articleSlugs) {
   // imageUrl is the article's own OG share-card (/og/<slug>.png) — the same
   // per-article image the directory entries and feeds expose.
   assert.equal(doc.imageUrl, `${ORIGIN}/og/${slug}.png`, `${slug}: history.json imageUrl must be the article's OG share-card URL`);
+  // categories must match the article's topic categories from the slug map,
+  // symmetric with info.json which already exposes the same field.
+  const expectedCategories = slugmap[slug]?.categories ?? [];
+  assert.deepEqual(doc.categories, expectedCategories, `${slug}: history.json categories must match the article's topic categories from the slug map`);
   assert.equal(typeof doc.revisionCount, 'number', `${slug}: history.json revisionCount must be a number`);
   assert.ok(Array.isArray(doc.revisions), `${slug}: history.json revisions must be an array`);
   assert.equal(doc.revisionCount, doc.revisions.length, `${slug}: history.json revisionCount must equal revisions.length`);
