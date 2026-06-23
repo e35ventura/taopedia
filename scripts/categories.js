@@ -13,6 +13,10 @@
 
 import { compareTitles } from '../src/lib/title-sort.js';
 
+export function categorySlug(name) {
+  return String(name ?? '').replace(/ /g, '_');
+}
+
 export function buildCategories({ pages }) {
   const counts = new Map();
   for (const page of pages ?? []) {
@@ -21,6 +25,6 @@ export function buildCategories({ pages }) {
     }
   }
   return [...counts.entries()]
-    .map(([name, count]) => ({ name, count }))
+    .map(([name, count]) => ({ name, count, slug: categorySlug(name) }))
     .sort((a, b) => compareTitles(a.name, b.name));
 }

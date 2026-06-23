@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { buildCategories } from './categories.js';
+import { buildCategories, categorySlug } from './categories.js';
 
 // /wiki/special/categories.json exposes the topic index as structured JSON for
 // programmatic consumers. The contract is load-bearing: a malformed response, a
@@ -29,11 +29,21 @@ const projectRoot = path.resolve(__dirname, '..');
   assert.deepEqual(
     topics,
     [
-      { name: 'Consensus', count: 2 },
-      { name: 'Wallets', count: 1 },
+      { name: 'Consensus', count: 2, slug: 'Consensus' },
+      { name: 'Wallets', count: 1, slug: 'Wallets' },
     ],
     'topics must count tagged articles and order by compareTitles',
   );
+}
+
+// ---- 1b) slug is the url-safe category path segment -----------------------
+{
+  const topics = buildCategories({
+    pages: [{ data: { categories: ['Smart Wallets', 'Subnet 9'] } }],
+  });
+  assert.equal(topics.find((t) => t.name === 'Smart Wallets')?.slug, 'Smart_Wallets');
+  assert.equal(topics.find((t) => t.name === 'Subnet 9')?.slug, 'Subnet_9');
+  assert.equal(categorySlug('Smart Wallets'), 'Smart_Wallets');
 }
 
 // ---- 2) Ordering uses compareTitles (numeric), NOT raw string -------------
@@ -80,6 +90,8 @@ assert.equal(
 );
 data.categories.forEach((row, i) => {
   assert.ok(typeof row.name === 'string' && row.name.length > 0, `row ${i} name must be a non-empty string`);
+  assert.ok(typeof row.slug === 'string' && row.slug.length > 0, `row ${i} slug must be a non-empty string`);
+  assert.equal(row.slug, categorySlug(row.name), `row ${i} slug must be the url-safe category path for "${row.name}"`);
   assert.ok(knownNames.has(row.name), `row ${i} topic "${row.name}" is not a known category`);
   assert.ok(Number.isInteger(row.articles) && row.articles > 0, `row ${i} articles must be a positive integer`);
   assert.ok(
@@ -88,8 +100,8 @@ data.categories.forEach((row, i) => {
   );
   assert.equal(
     row.url,
-    `${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/`,
-    `row ${i} url must equal ${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/`,
+    `${data.site}/wiki/category/${row.slug}/`,
+    `row ${i} url must equal ${data.site}/wiki/category/${row.slug}/`,
   );
   // articlesUrl points at the category's machine-readable article list
   // (/wiki/category/<slug>/articles.json), the companion the HTML url omits, so
@@ -101,8 +113,8 @@ data.categories.forEach((row, i) => {
   );
   assert.equal(
     row.articlesUrl,
-    `${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/articles.json`,
-    `row ${i} articlesUrl must equal ${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/articles.json`,
+    `${data.site}/wiki/category/${row.slug}/articles.json`,
+    `row ${i} articlesUrl must equal ${data.site}/wiki/category/${row.slug}/articles.json`,
   );
   // feedUrl points at the category's JSON Feed (/wiki/category/<slug>/feed.json),
   // so a feed-reader or programmatic consumer can subscribe to a category
@@ -114,8 +126,8 @@ data.categories.forEach((row, i) => {
   );
   assert.equal(
     row.feedUrl,
-    `${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/feed.json`,
-    `row ${i} feedUrl must equal ${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/feed.json`,
+    `${data.site}/wiki/category/${row.slug}/feed.json`,
+    `row ${i} feedUrl must equal ${data.site}/wiki/category/${row.slug}/feed.json`,
   );
   // atomUrl / rssUrl point at the category's Atom and RSS feeds
   // (/wiki/category/<slug>/atom.xml and /rss.xml), which exist alongside the
@@ -123,13 +135,13 @@ data.categories.forEach((row, i) => {
   // these to subscribe straight from the index. Same absolute-URL contract.
   assert.equal(
     row.atomUrl,
-    `${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/atom.xml`,
-    `row ${i} atomUrl must equal ${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/atom.xml`,
+    `${data.site}/wiki/category/${row.slug}/atom.xml`,
+    `row ${i} atomUrl must equal ${data.site}/wiki/category/${row.slug}/atom.xml`,
   );
   assert.equal(
     row.rssUrl,
-    `${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/rss.xml`,
-    `row ${i} rssUrl must equal ${data.site}/wiki/category/${row.name.replace(/ /g, '_')}/rss.xml`,
+    `${data.site}/wiki/category/${row.slug}/rss.xml`,
+    `row ${i} rssUrl must equal ${data.site}/wiki/category/${row.slug}/rss.xml`,
   );
 });
 
