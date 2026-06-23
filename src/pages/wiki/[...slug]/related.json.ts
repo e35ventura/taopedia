@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { getPageSlug } from '../../../lib/article-history';
 import { buildArticleRelatedPages, getRelatedPages } from '../../../lib/related-pages';
+import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
 
 const slugmapModules = import.meta.glob('../../../../public/data/slugmap.json', { eager: true }) as Record<
   string,
@@ -47,7 +48,11 @@ export async function getStaticPaths() {
           outgoing: linkgraphData,
           publishedSlugs,
           titleBySlug,
-        }).map((entry) => ({ ...entry, categories: slugMap[entry.slug]?.categories ?? [] })),
+        }).map((entry) => ({
+          ...entry,
+          categories: slugMap[entry.slug]?.categories ?? [],
+          backlinks: publishedInboundLinkCount(backlinksData, entry.slug, titleBySlug),
+        })),
       },
     };
   });
@@ -63,7 +68,7 @@ export const GET: APIRoute = async ({ props, site }) => {
     title: string;
     summary: string;
     categories: string[];
-    relatedPages: Array<{ slug: string; title: string; summary: string; tags: string[]; categories: string[] }>;
+    relatedPages: Array<{ slug: string; title: string; summary: string; tags: string[]; categories: string[]; backlinks: number }>;
   };
   const origin = (site ?? new URL('https://taopedia.org')).origin;
 
