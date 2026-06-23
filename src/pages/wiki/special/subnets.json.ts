@@ -21,7 +21,7 @@ export const GET: APIRoute = async ({ site }) => {
   const body = JSON.stringify(
     {
       site: origin,
-      url: `${origin}/wiki/special/subnets.json`,
+      subnetsJsonUrl: `${origin}/wiki/special/subnets.json`,
       count: subnets.length,
       subnets: subnets.map((subnet) => ({
         netuid: subnet.netuid,

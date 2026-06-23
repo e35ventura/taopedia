@@ -125,11 +125,14 @@ assert.ok(
   `site must be a non-empty URL string (got ${JSON.stringify(data.site)})`,
 );
 
-// url — the registry's own canonical endpoint URL.
+// subnetsJsonUrl — the registry's own canonical endpoint URL, named like the
+// self-link every sibling special-listing endpoint exposes (categoriesJsonUrl,
+// allpagesJsonUrl, mostlinkedpagesJsonUrl, recentchangesJsonUrl) rather than the
+// generic `url`, which on every subnet ROW means the article URL.
 assert.equal(
-  data.url,
+  data.subnetsJsonUrl,
   `${data.site}/wiki/special/subnets.json`,
-  `url must be the canonical subnets.json endpoint URL (got ${JSON.stringify(data.url)})`,
+  `subnetsJsonUrl must be the canonical subnets.json endpoint URL (got ${JSON.stringify(data.subnetsJsonUrl)})`,
 );
 
 // count field.
