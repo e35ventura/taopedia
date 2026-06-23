@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { buildMostLinkedPages } from './most-linked.js';
+import { buildMostLinkedPages } from '../src/lib/most-linked.js';
 
 // /wiki/special/mostlinkedpages.json exposes the inbound-link ranking as
 // structured JSON for programmatic consumers. The contract is load-bearing: a

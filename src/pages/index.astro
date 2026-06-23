@@ -6,12 +6,14 @@ import SearchSuggest from '../components/SearchSuggest.astro';
 import { sortPagesByTitle, compareTitles } from '../lib/title-sort.js';
 import { allRecentChanges } from '../lib/article-history';
 import { formatRevisionDate } from '../lib/format-date.js';
+import { buildMostLinkedPages } from '../lib/most-linked.js';
 import { buildSubnets } from '../../scripts/subnets.js';
 
 const pages = await getCollection('pages');
 const sortedPages = sortPagesByTitle(pages);
 const getPageSlug = (page: { id: string }) =>
   page.id.replace(/\/index\.(md|mdx)$/, '').replace(/\/index$/, '').replace(/\.(md|mdx)$/, '');
+const pageBySlug = new Map(pages.map((page) => [getPageSlug(page), page] as const));
 
 const categoryIndex = new Map<string, typeof pages>();
 for (const page of pages) {
@@ -27,16 +29,6 @@ const topicCategories = priorityCategories
   .map((name) => [name, categoryIndex.get(name)] as const)
   .filter((entry): entry is readonly [string, typeof pages] => Boolean(entry[1]));
 
-const featuredSlugs = [
-  'dynamic_tao',
-  'yuma_consensus',
-  'wallets_coldkey_hotkey',
-  'mining_and_validating',
-];
-const featuredPages = featuredSlugs
-  .map((slug) => pages.find((page) => getPageSlug(page) === slug))
-  .filter(Boolean);
-
 // Featured subnets for landing-page discovery. Subnets are the defining
 // Bittensor entity, but the homepage otherwise never surfaces an individual one
 // (only the broad "Subnets" topic). Show the foundational low-netuid subnets —
@@ -48,21 +40,39 @@ const featuredSubnets = buildSubnets({ pages, getPageSlug })
   .filter((subnet) => !/deprecated/i.test(subnet.name))
   .slice(0, 6);
 
+const backlinksModules = import.meta.glob('../../public/data/backlinks.json', { eager: true }) as Record<
+  string,
+  { default?: Record<string, Array<{ from: string }>> }
+>;
+const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
+
 // Most recently updated articles, newest first — the one piece of information
 // the landing page otherwise never shows (it carries no dates at all). Reuses
 // the same allRecentChanges() source as Special:RecentChanges; that flattens to
 // one entry per commit, so dedupe by slug to list each article once. The
-// featured Core Articles above are excluded so the two curated sections never
-// surface the same title twice on the page. limit 0 = consider every change,
+// link-graph ranking above is excluded so the two curated sections never
+// surface the same article twice on the page. limit 0 = consider every change,
 // then keep the newest distinct articles.
 const titleBySlug: Record<string, string> = {};
 for (const page of pages) titleBySlug[getPageSlug(page)] = page.data.title;
 
-const featuredSlugSet = new Set(featuredSlugs);
+// Replace the homepage's manual article curation with the same link-graph
+// ranking already published on Special:MostLinkedPages, so the landing page
+// surfaces the wiki's most-referenced concepts instead of a second hardcoded
+// editorial list. Refs #521.
+const mostLinkedPages = buildMostLinkedPages({ backlinks: backlinksData, titleBySlug })
+  .slice(0, 6)
+  .map((entry) => ({
+    ...entry,
+    summary: pageBySlug.get(entry.slug)?.data.summary ?? '',
+  }));
+const mostLinkedSlugSet = new Set(mostLinkedPages.map((entry) => entry.slug));
+const suggestedSearches = ['wallets', 'staking', 'yuma consensus', 'dynamic tao'];
+
 const seenRecent = new Set<string>();
 const recentlyUpdated: Array<{ slug: string; title: string; date: string }> = [];
 for (const change of allRecentChanges(titleBySlug, 0)) {
-  if (seenRecent.has(change.slug) || featuredSlugSet.has(change.slug)) continue;
+  if (seenRecent.has(change.slug) || mostLinkedSlugSet.has(change.slug)) continue;
   seenRecent.add(change.slug);
   recentlyUpdated.push(change);
   if (recentlyUpdated.length >= 6) break;
@@ -319,12 +329,20 @@ const initialLetter = alphabet[0] ?? '#';
       }
 
       .topic-link span,
-      .article-card span {
+      .article-summary {
         display: block;
         margin-top: 6px;
         color: var(--color-base-subtle);
         font-size: 13px;
         line-height: 1.45;
+      }
+
+      .article-meta {
+        display: block;
+        margin-top: 10px;
+        color: var(--color-base-subtle);
+        font-size: 12px;
+        line-height: 1.4;
       }
 
       .recent-list {
@@ -527,10 +545,9 @@ const initialLetter = alphabet[0] ?? '#';
           </form>
           <div class="search-suggestions" aria-label="Suggested searches">
             <span>{pages.length} articles</span>
-            <a href="/wiki/wallets/">wallets</a>
-            <a href="/wiki/category/Staking/">staking</a>
-            <a href="/wiki/yuma_consensus/">Yuma Consensus</a>
-            <a href="/wiki/dynamic_tao/">Dynamic TAO</a>
+            {suggestedSearches.map((query) => (
+              <a href={`/search/?q=${encodeURIComponent(query)}`}>{query}</a>
+            ))}
           </div>
         </div>
       </section>
@@ -552,14 +569,15 @@ const initialLetter = alphabet[0] ?? '#';
 
       <section class="home-section">
         <div class="section-heading">
-          <h2>Core Articles</h2>
-          <a href="/wiki/special/allpages">All articles</a>
+          <h2>Most Linked Concepts</h2>
+          <a href="/wiki/special/mostlinkedpages">Full ranking</a>
         </div>
         <div class="article-grid">
-          {featuredPages.map((page) => (
-            <a class="article-card" href={`/wiki/${getPageSlug(page)}/`}>
-              <strong>{page.data.title}</strong>
-              {page.data.summary && <span>{page.data.summary}</span>}
+          {mostLinkedPages.map((entry) => (
+            <a class="article-card" href={`/wiki/${entry.slug}/`}>
+              <strong>{entry.title}</strong>
+              {entry.summary && <span class="article-summary">{entry.summary}</span>}
+              <span class="article-meta">{entry.count} linking article{entry.count !== 1 ? 's' : ''}</span>
             </a>
           ))}
         </div>

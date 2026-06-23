@@ -1,13 +1,13 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { getPageSlug } from '../../../lib/article-history';
-import { buildMostLinkedPages } from '../../../../scripts/most-linked.js';
+import { buildMostLinkedPages } from '../../../lib/most-linked.js';
 
 // Machine-readable inbound-link ranking at /wiki/special/mostlinkedpages.json.
 // Mirrors the HTML Special:MostLinkedPages page as structured JSON for
 // programmatic consumers (dashboards, monitoring, cross-referencing tools). The
-// ranking is shared through scripts/most-linked.js (pure function) so the
-// endpoint and the regression check derive from one source of truth, and the
+// ranking is shared through src/lib/most-linked.js (pure function) so the
+// endpoint and the rendered page derive from one source of truth, and the
 // backlink graph is the same public/data/backlinks.json the HTML page reads.
 const backlinksModules = import.meta.glob('../../../../public/data/backlinks.json', { eager: true }) as Record<
   string,
