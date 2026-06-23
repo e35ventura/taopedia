@@ -44,10 +44,12 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.backlinks[0].title, 'Neuron', 'builder: backlinks[0].title');
   assert.equal(result.backlinks[0].url, `${ORIGIN}/wiki/neuron/`, 'builder: backlinks[0].url');
   assert.equal(result.backlinks[0].historyUrl, `${ORIGIN}/wiki/neuron/history/`, 'builder: backlinks[0].historyUrl');
+  assert.equal(result.backlinks[0].historyJsonUrl, `${ORIGIN}/wiki/neuron/history.json`, 'builder: backlinks[0].historyJsonUrl');
   assert.equal(result.backlinks[1].slug, 'subnet_1', 'builder: backlinks[1].slug');
   assert.equal(result.backlinks[1].title, 'Subnet 1', 'builder: backlinks[1].title');
   assert.equal(result.backlinks[1].url, `${ORIGIN}/wiki/subnet_1/`, 'builder: backlinks[1].url');
   assert.equal(result.backlinks[1].historyUrl, `${ORIGIN}/wiki/subnet_1/history/`, 'builder: backlinks[1].historyUrl');
+  assert.equal(result.backlinks[1].historyJsonUrl, `${ORIGIN}/wiki/subnet_1/history.json`, 'builder: backlinks[1].historyJsonUrl');
 
   const empty = buildArticleBacklinks({ slug: 'orphan', title: 'Orphan', origin: ORIGIN });
   assert.equal(empty.count, 0, 'builder: empty count is 0');
@@ -127,6 +129,13 @@ for (const slug of articleSlugs) {
       entry.historyUrl,
       `${ORIGIN}/wiki/${entry.slug}/history/`,
       `${slug}: every backlink entry historyUrl must be the canonical article history URL`,
+    );
+    // historyJsonUrl is the JSON companion of historyUrl — references.json /
+    // related.json already pair both per entry, so backlink entries match.
+    assert.equal(
+      entry.historyJsonUrl,
+      `${ORIGIN}/wiki/${entry.slug}/history.json`,
+      `${slug}: every backlink entry historyJsonUrl must be the canonical article history.json URL`,
     );
     assert.ok(articleBuilt(entry.slug), `${slug}: backlink entry ${entry.slug} references an unbuilt article`);
   }
