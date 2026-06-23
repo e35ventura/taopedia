@@ -58,11 +58,13 @@ const ORIGIN = 'https://taopedia.org';
     slug: 'source',
     title: 'Source',
     origin: ORIGIN,
+    summary: 'The source article.',
     categories: ['Security', 'Consensus'],
     relatedPages,
   });
   assert.equal(doc.slug, 'source', 'builder: slug field');
   assert.equal(doc.title, 'Source', 'builder: title field');
+  assert.equal(doc.summary, 'The source article.', 'builder: summary field');
   // The article's own topics must be threaded through verbatim (non-empty),
   // the same field history.json / info.json envelopes expose.
   assert.deepEqual(doc.categories, ['Security', 'Consensus'], 'builder: categories field threaded verbatim');
@@ -149,6 +151,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(empty.count, 0, 'builder: empty count is 0');
   assert.deepEqual(empty.related, [], 'builder: empty related array is []');
   assert.deepEqual(empty.categories, [], 'builder: categories defaults to [] when omitted');
+  assert.equal(empty.summary, null, 'builder: summary defaults to null when omitted');
 }
 
 // ---- 2) Built-output checks -----------------------------------------------
@@ -211,6 +214,7 @@ for (const slug of articleSlugs) {
     slug,
     title: titleBySlug[slug],
     origin: ORIGIN,
+    summary: slugMap[slug]?.summary ?? '',
     categories: slugMap[slug]?.categories ?? [],
     relatedPages: expectedRelatedPages,
   });
@@ -227,6 +231,13 @@ for (const slug of articleSlugs) {
     doc.categories,
     slugMap[slug]?.categories ?? [],
     `${slug}: related.json categories must equal the article's topics in the slug map`,
+  );
+  // summary is the article's own slug-map summary (null when blank), the same
+  // per-article field the sibling envelopes (backlinks/toc/references/cite) expose.
+  assert.deepEqual(
+    doc.summary,
+    slugMap[slug]?.summary || null,
+    `${slug}: related.json summary must equal the article's slug-map summary (or null)`,
   );
   assert.equal(doc.url, `${ORIGIN}/wiki/${slug}/`, `${slug}: related.json url must be the canonical article URL`);
   assert.equal(
