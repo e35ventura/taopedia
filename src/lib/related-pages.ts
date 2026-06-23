@@ -51,6 +51,8 @@ export interface ArticleRelatedPagesDocument {
   categories: string[];
   incomingLinks: number;
   revisionCount: number;
+  firstEdited: string | null;
+  lastEdited: string | null;
   url: string;
   relatedUrl: string;
   historyUrl: string;
@@ -161,6 +163,8 @@ export function buildArticleRelatedPages({
   categories = [],
   incomingLinks = 0,
   revisionCount = 0,
+  firstEdited = null,
+  lastEdited = null,
   relatedPages = [],
 }: {
   slug: string;
@@ -170,6 +174,8 @@ export function buildArticleRelatedPages({
   categories?: string[];
   incomingLinks?: number;
   revisionCount?: number;
+  firstEdited?: string | null;
+  lastEdited?: string | null;
   relatedPages?: RelatedPage[];
 }): ArticleRelatedPagesDocument {
   return {
@@ -192,6 +198,11 @@ export function buildArticleRelatedPages({
     // The article's revision count (its commit-history length) — the same figure
     // info.json / history.json / cite.json expose on their envelopes.
     revisionCount: Number.isFinite(revisionCount) ? revisionCount : 0,
+    // firstEdited / lastEdited bracket the article's revision history (oldest and
+    // newest commit dates) — the same pair info.json / history.json / cite.json /
+    // references.json expose; null when the article has no recorded history.
+    firstEdited: firstEdited ?? null,
+    lastEdited: lastEdited ?? null,
     url: `${origin}/wiki/${slug}/`,
     relatedUrl: `${origin}/wiki/${slug}/related.json`,
     historyUrl: `${origin}/wiki/${slug}/history/`,
