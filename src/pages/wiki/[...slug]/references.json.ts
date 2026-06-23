@@ -29,6 +29,7 @@ export async function getStaticPaths() {
       summary: summaryBySlug[ref.slug] ?? '',
       categories: categoriesBySlug[ref.slug] ?? [],
       backlinks: publishedInboundLinkCount(backlinksData, ref.slug, titleBySlug),
+      lastEdited: historyForSlug(ref.slug)[0]?.date ?? null,
     }));
     // History is newest-first, so [0] is the latest revision and the last entry
     // is the original publication — the same firstEdited/lastEdited pair the
@@ -65,7 +66,7 @@ export const GET: APIRoute = async ({ props, site }) => {
     revisionCount: number;
     firstEdited: string | null;
     lastEdited: string | null;
-    references: Array<{ slug: string; title: string; summary: string; categories: string[]; backlinks: number }>;
+    references: Array<{ slug: string; title: string; summary: string; categories: string[]; backlinks: number; lastEdited: string | null }>;
   };
   const origin = (site ?? new URL('https://taopedia.org')).origin;
 

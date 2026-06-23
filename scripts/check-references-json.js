@@ -12,7 +12,16 @@ const wikiDir = path.join(projectRoot, 'dist', 'wiki');
 const linkgraphFile = path.join(projectRoot, 'public', 'data', 'linkgraph.json');
 const slugmapFile = path.join(projectRoot, 'public', 'data', 'slugmap.json');
 const backlinksFile = path.join(projectRoot, 'public', 'data', 'backlinks.json');
+const historyDir = path.join(projectRoot, 'public', 'history');
 const ORIGIN = 'https://taopedia.org';
+// Each entry's lastEdited = the referenced article's latest revision date
+// (history is newest-first), re-derived from the raw history file.
+const lastEditedOf = (slug) => {
+  const file = path.join(historyDir, `${slug}.json`);
+  if (!fs.existsSync(file)) return null;
+  const history = JSON.parse(fs.readFileSync(file, 'utf8')).history || [];
+  return Array.isArray(history) && history.length > 0 ? history[0].date : null;
+};
 
 // ---- 1) Unit: helper and builder behavior ---------------------------------
 {
@@ -79,6 +88,7 @@ const ORIGIN = 'https://taopedia.org';
         summary: null,
         categories: [],
         backlinks: 0,
+        lastEdited: null,
         url: `${ORIGIN}/wiki/delta/`,
         infoUrl: `${ORIGIN}/wiki/delta/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/delta/info.json`,
@@ -100,6 +110,7 @@ const ORIGIN = 'https://taopedia.org';
         summary: null,
         categories: [],
         backlinks: 0,
+        lastEdited: null,
         url: `${ORIGIN}/wiki/alpha/`,
         infoUrl: `${ORIGIN}/wiki/alpha/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/alpha/info.json`,
@@ -121,6 +132,7 @@ const ORIGIN = 'https://taopedia.org';
         summary: null,
         categories: [],
         backlinks: 0,
+        lastEdited: null,
         url: `${ORIGIN}/wiki/gamma/`,
         infoUrl: `${ORIGIN}/wiki/gamma/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/gamma/info.json`,
@@ -142,6 +154,7 @@ const ORIGIN = 'https://taopedia.org';
         summary: null,
         categories: [],
         backlinks: 0,
+        lastEdited: null,
         url: `${ORIGIN}/wiki/beta/`,
         infoUrl: `${ORIGIN}/wiki/beta/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/beta/info.json`,
@@ -339,6 +352,10 @@ for (const slug of articleSlugs) {
     // same figure allpages.json / subnets.json / related.json expose per row.
     assert.equal(entry.backlinks, publishedInboundLinkCount(backlinksData, entry.slug, titleBySlug), `${slug}: every reference entry backlinks must match the published inbound-link count`);
     assert.ok(Number.isInteger(entry.backlinks) && entry.backlinks >= 0, `${slug}: every reference entry backlinks must be a non-negative integer`);
+    // lastEdited mirrors the referenced article's latest revision date (the same
+    // per-entry field allpages.json / subnets.json / mostlinkedpages.json expose);
+    // null when the referenced article has no recorded history.
+    assert.equal(entry.lastEdited, lastEditedOf(entry.slug), `${slug}: every reference entry lastEdited must equal the referenced article's latest revision date (or null)`);
     assert.equal(
       entry.infoUrl,
       `${ORIGIN}/wiki/${entry.slug}/info/`,
