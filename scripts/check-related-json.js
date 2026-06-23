@@ -63,6 +63,8 @@ const ORIGIN = 'https://taopedia.org';
     categories: ['Security', 'Consensus'],
     incomingLinks: 9,
     revisionCount: 14,
+    firstEdited: '2024-01-01T00:00:00.000Z',
+    lastEdited: '2024-06-01T00:00:00.000Z',
     relatedPages,
   });
   assert.equal(doc.slug, 'source', 'builder: slug field');
@@ -73,6 +75,8 @@ const ORIGIN = 'https://taopedia.org';
   assert.deepEqual(doc.categories, ['Security', 'Consensus'], 'builder: categories field threaded verbatim');
   assert.equal(doc.incomingLinks, 9, 'builder: incomingLinks field');
   assert.equal(doc.revisionCount, 14, 'builder: revisionCount field threaded verbatim');
+  assert.equal(doc.firstEdited, '2024-01-01T00:00:00.000Z', 'builder: firstEdited field threaded verbatim');
+  assert.equal(doc.lastEdited, '2024-06-01T00:00:00.000Z', 'builder: lastEdited field threaded verbatim');
   assert.equal(doc.url, `${ORIGIN}/wiki/source/`, 'builder: url field');
   assert.equal(doc.relatedUrl, `${ORIGIN}/wiki/source/related.json`, 'builder: relatedUrl self field');
   assert.equal(doc.historyUrl, `${ORIGIN}/wiki/source/history/`, 'builder: historyUrl cross-link');
@@ -168,6 +172,8 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(empty.summary, null, 'builder: summary defaults to null when omitted');
   assert.equal(empty.incomingLinks, 0, 'builder: incomingLinks defaults to 0 when omitted');
   assert.equal(empty.revisionCount, 0, 'builder: revisionCount defaults to 0 when omitted');
+  assert.equal(empty.firstEdited, null, 'builder: firstEdited defaults to null when omitted');
+  assert.equal(empty.lastEdited, null, 'builder: lastEdited defaults to null when omitted');
 }
 
 // ---- 2) Built-output checks -----------------------------------------------
@@ -282,6 +288,19 @@ for (const slug of articleSlugs) {
       doc.revisionCount,
       infoDoc.revisionCount,
       `${slug}: related.json revisionCount must agree with the sibling info.json envelope`,
+    );
+    // firstEdited / lastEdited are the article's first and last revision dates —
+    // the same pair info.json / history.json expose. Cross-check both against the
+    // sibling info.json (independent source).
+    assert.equal(
+      doc.firstEdited,
+      infoDoc.firstEdited,
+      `${slug}: related.json firstEdited must agree with the sibling info.json envelope`,
+    );
+    assert.equal(
+      doc.lastEdited,
+      infoDoc.lastEdited,
+      `${slug}: related.json lastEdited must agree with the sibling info.json envelope`,
     );
   }
   assert.equal(doc.url, `${ORIGIN}/wiki/${slug}/`, `${slug}: related.json url must be the canonical article URL`);
