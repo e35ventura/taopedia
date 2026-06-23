@@ -25,6 +25,7 @@ export const buildArticleBacklinks = ({ slug, title, origin, summary = '', categ
     slug: link.slug,
     title: link.title,
     summary: link.summary || null,
+    categories: Array.isArray(link.categories) ? link.categories : [],
     url: `${origin}/wiki/${link.slug}/`,
     infoUrl: `${origin}/wiki/${link.slug}/info/`,
     infoJsonUrl: `${origin}/wiki/${link.slug}/info.json`,

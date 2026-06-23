@@ -28,15 +28,22 @@ export const GET: APIRoute = async ({ props, site }) => {
   const pages = await getCollection('pages');
   const titleBySlug: Record<string, string> = {};
   const summaryBySlug: Record<string, string> = {};
+  const categoriesBySlug: Record<string, string[]> = {};
   for (const p of pages) {
     const pSlug = getPageSlug(p);
     titleBySlug[pSlug] = p.data.title;
     summaryBySlug[pSlug] = p.data.summary ?? '';
+    categoriesBySlug[pSlug] = p.data.categories ?? [];
   }
 
   const backlinks = (backlinksData[slug] ?? [])
     .filter((entry) => titleBySlug[entry.from])
-    .map((entry) => ({ slug: entry.from, title: titleBySlug[entry.from], summary: summaryBySlug[entry.from] ?? '' }))
+    .map((entry) => ({
+      slug: entry.from,
+      title: titleBySlug[entry.from],
+      summary: summaryBySlug[entry.from] ?? '',
+      categories: categoriesBySlug[entry.from] ?? [],
+    }))
     .sort((a, b) => compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug));
 
   const body = JSON.stringify(
