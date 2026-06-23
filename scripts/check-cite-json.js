@@ -148,6 +148,19 @@ for (const slug of articleSlugs) {
     `${ORIGIN}/wiki/${slug}/backlinks.json`,
     `cite.json backlinksJsonUrl must point at the sibling machine-readable backlinks endpoint for ${slug}`,
   );
+  // infoUrl / infoJsonUrl link back to the canonical Page-information hub, which
+  // info.json already links out to every sibling endpoint from; closing the loop
+  // lets a consumer of cite.json reach the article's metadata hub.
+  assert.equal(
+    doc.infoUrl,
+    `${ORIGIN}/wiki/${slug}/info/`,
+    `cite.json infoUrl must point at the sibling HTML info page for ${slug}`,
+  );
+  assert.equal(
+    doc.infoJsonUrl,
+    `${ORIGIN}/wiki/${slug}/info.json`,
+    `cite.json infoJsonUrl must point at the sibling machine-readable info endpoint for ${slug}`,
+  );
   if (date) {
     assert.equal(doc.date, date, `cite.json date must equal the article's last-revision date for ${slug}`);
   } else {
