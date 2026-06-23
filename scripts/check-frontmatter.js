@@ -48,6 +48,20 @@ import matter from './frontmatter.js';
 }
 
 {
+  const parsed = matter('---\ntitle: Subnet 4: Targon # preferred label\nseo:\n  title: Subnet 4: Targon # preferred label\ninfoboxRows:\n  - label: Subnet 4: Targon # row label\n    value: Validator permit: required # row value\n---\nBody\n');
+  assert.deepEqual(
+    parsed.data,
+    {
+      title: 'Subnet 4: Targon',
+      seo: { title: 'Subnet 4: Targon' },
+      infoboxRows: [{ label: 'Subnet 4: Targon', value: 'Validator permit: required' }],
+    },
+    'parses colon-space plain scalar values even when YAML inline comments are present',
+  );
+  assert.equal(parsed.content, 'Body\n', 'inline-comment colon-scalar repair preserves the body');
+}
+
+{
   const parsed = matter('Body without frontmatter\n');
   assert.deepEqual(parsed.data, {}, 'missing frontmatter returns empty data');
   assert.equal(parsed.content, 'Body without frontmatter\n', 'missing frontmatter preserves the whole body');

@@ -6,9 +6,16 @@ function quoteColonPlainScalars(source) {
   return source
     .split(/\r?\n/)
     .map((line) => {
-      const match = line.match(/^(\s*(?:-\s+)?[A-Za-z_][\w-]*:\s+)([^"'[{|>&*!%@`#][^#]*:\s+[^#]*)$/);
+      const match = line.match(/^(\s*(?:-\s+)?[A-Za-z_][\w-]*:\s+)(.+)$/);
       if (!match) return line;
-      return `${match[1]}${JSON.stringify(match[2].trimEnd())}`;
+
+      const remainder = match[2];
+      const commentMatch = remainder.match(/^(.*?)(\s+#.*)$/);
+      const value = (commentMatch?.[1] ?? remainder).trimEnd();
+      const comment = commentMatch?.[2] ?? '';
+
+      if (!/^[^"'[{|>&*!%@`#].*:\s+.+$/.test(value)) return line;
+      return `${match[1]}${JSON.stringify(value)}${comment}`;
     })
     .join('\n');
 }
