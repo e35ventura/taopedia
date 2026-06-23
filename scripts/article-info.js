@@ -2,6 +2,7 @@ export const buildArticleInfo = ({
   title,
   slug,
   origin,
+  summary = '',
   categories = [],
   incomingLinks = 0,
   revisionCount = 0,
@@ -10,6 +11,7 @@ export const buildArticleInfo = ({
 }) => ({
   title,
   slug,
+  summary: summary || null,
   url: `${origin}/wiki/${slug}/`,
   categories,
   incomingLinks,

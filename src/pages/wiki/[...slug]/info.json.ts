@@ -25,7 +25,7 @@ export async function getStaticPaths() {
 // serialized.
 export const GET: APIRoute = async ({ props, site }) => {
   const { page, slug } = props as {
-    page: { data: { title: string; categories?: string[] } };
+    page: { data: { title: string; summary?: string; categories?: string[] } };
     slug: string;
   };
 
@@ -46,6 +46,7 @@ export const GET: APIRoute = async ({ props, site }) => {
       title: page.data.title,
       slug,
       origin,
+      summary: page.data.summary ?? '',
       categories: page.data.categories ?? [],
       incomingLinks,
       revisionCount: history.length,
