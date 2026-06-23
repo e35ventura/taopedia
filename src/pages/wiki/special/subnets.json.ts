@@ -63,10 +63,13 @@ export const GET: APIRoute = async ({ site }) => {
         imageUrl: `${origin}/og/${subnet.slug}.png`,
         categories: subnet.categories,
         backlinks: publishedInboundLinkCount(backlinksData, subnet.slug, titleBySlug),
-        // The subnet article's last-revision date (history is newest-first) — the
-        // same lastEdited figure info.json / history.json expose per article and
-        // allpages.json / mostlinkedpages.json expose per directory entry — so a
-        // subnet dashboard can show each subnet's recency without a second fetch.
+        // The subnet article's revision stats (history is newest-first) — the same
+        // revisionCount / firstEdited / lastEdited trio info.json / history.json
+        // expose per article and allpages.json / mostlinkedpages.json expose per
+        // directory entry — so a subnet dashboard can show each subnet's age and
+        // recency without a second fetch.
+        revisionCount: historyForSlug(subnet.slug).length,
+        firstEdited: historyForSlug(subnet.slug).at(-1)?.date ?? null,
         lastEdited: historyForSlug(subnet.slug)[0]?.date ?? null,
       })),
     },
