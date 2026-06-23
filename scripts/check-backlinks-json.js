@@ -34,7 +34,7 @@ const ORIGIN = 'https://taopedia.org';
     firstEdited: '2024-01-01T00:00:00.000Z',
     lastEdited: '2024-06-01T00:00:00.000Z',
     backlinks: [
-      { slug: 'neuron', title: 'Neuron', summary: 'A node in the network.', categories: ['Mechanism'] },
+      { slug: 'neuron', title: 'Neuron', summary: 'A node in the network.', categories: ['Mechanism'], lastEdited: '2024-03-02T00:00:00.000Z' },
       { slug: 'subnet_1', title: 'Subnet 1', summary: '' },
     ],
   });
@@ -81,6 +81,8 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.backlinks[0].relatedUrl, `${ORIGIN}/wiki/neuron/related.json`, 'builder: backlinks[0].relatedUrl');
   assert.equal(result.backlinks[0].tocJsonUrl, `${ORIGIN}/wiki/neuron/toc.json`, 'builder: backlinks[0].tocJsonUrl');
   assert.equal(result.backlinks[0].imageUrl, `${ORIGIN}/og/neuron.png`, 'builder: backlinks[0].imageUrl');
+  assert.equal(result.backlinks[0].lastEdited, '2024-03-02T00:00:00.000Z', 'builder: backlinks[0].lastEdited threaded verbatim');
+  assert.equal(result.backlinks[1].lastEdited, null, 'builder: backlinks[1].lastEdited defaults to null when omitted');
   assert.equal(result.backlinks[1].slug, 'subnet_1', 'builder: backlinks[1].slug');
   assert.equal(result.backlinks[1].title, 'Subnet 1', 'builder: backlinks[1].title');
   assert.equal(result.backlinks[1].summary, null, 'builder: backlinks[1].summary is null when empty');
@@ -262,6 +264,23 @@ for (const slug of articleSlugs) {
       `${slug}: every backlink entry backlinks must match the published inbound-link count`,
     );
     assert.ok(Number.isInteger(entry.backlinks) && entry.backlinks >= 0, `${slug}: every backlink entry backlinks must be a non-negative integer`);
+    // lastEdited is the linking article's last-revision date — the same figure
+    // info.json exposes per article. Cross-check it against the linking article's
+    // own built info.json (independent source) so the backlink list and the
+    // per-article surfaces can't disagree on each linking page's recency.
+    assert.ok(
+      entry.lastEdited === null || typeof entry.lastEdited === 'string',
+      `${slug}: every backlink entry lastEdited must be a string date or null (got ${JSON.stringify(entry.lastEdited)})`,
+    );
+    const entryInfoJsonFile = path.join(wikiDir, entry.slug, 'info.json');
+    if (fs.existsSync(entryInfoJsonFile)) {
+      const entryInfoDoc = JSON.parse(fs.readFileSync(entryInfoJsonFile, 'utf8'));
+      assert.equal(
+        entry.lastEdited,
+        entryInfoDoc.lastEdited,
+        `${slug}: backlink entry ${entry.slug} lastEdited must agree with its sibling info.json envelope`,
+      );
+    }
     // infoUrl / infoJsonUrl point at the linking article's Page-information hub
     // and its machine-readable companion, so a consumer can reach a backlinking
     // page's metadata without reconstructing the route.
