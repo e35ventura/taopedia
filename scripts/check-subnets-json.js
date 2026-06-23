@@ -202,6 +202,20 @@ data.subnets.forEach((row, i) => {
     `${data.site}/wiki/${expected[i].slug}/cite/`,
     `row ${i} citeUrl must equal ${data.site}/wiki/${expected[i].slug}/cite/`,
   );
+  // citeJsonUrl / bibtexUrl are the machine-readable citation companions of
+  // citeUrl: structured citation metadata (cite.json) and a BibTeX record
+  // (cite.bib), both of which exist per article — the trio info.json exposes —
+  // so a registry consumer can fetch a subnet's citation directly.
+  assert.equal(
+    row.citeJsonUrl,
+    `${data.site}/wiki/${expected[i].slug}/cite.json`,
+    `row ${i} citeJsonUrl must equal ${data.site}/wiki/${expected[i].slug}/cite.json`,
+  );
+  assert.equal(
+    row.bibtexUrl,
+    `${data.site}/wiki/${expected[i].slug}/cite.bib`,
+    `row ${i} bibtexUrl must equal ${data.site}/wiki/${expected[i].slug}/cite.bib`,
+  );
   assert.equal(
     row.referencesUrl,
     `${data.site}/wiki/${expected[i].slug}/references.json`,
