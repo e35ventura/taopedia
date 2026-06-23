@@ -2,6 +2,17 @@ import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { getPageSlug, allRecentChanges } from '../../../lib/article-history';
 import { RECENT_LIMIT } from '../../../lib/recent-changes.js';
+import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
+
+// The inbound-link graph is the same public/data/backlinks.json the HTML
+// "What links here" page, allpages.json, mostlinkedpages.json, subnets.json and
+// the per-article listings read, so the per-change inbound count below uses the
+// exact published-only, orphan-skipping count those surfaces use.
+const backlinksModules = import.meta.glob('../../../../public/data/backlinks.json', { eager: true }) as Record<
+  string,
+  { default?: Record<string, Array<{ from: string }>> }
+>;
+const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
 
 // Machine-readable site-wide recent changes at /wiki/special/recentchanges.json.
 // Mirrors the HTML Special:RecentChanges feed as structured JSON for programmatic
@@ -60,6 +71,7 @@ export const GET: APIRoute = async ({ site }) => {
         tocJsonUrl: `${origin}/wiki/${change.slug}/toc.json`,
         imageUrl: `${origin}/og/${change.slug}.png`,
         categories: categoriesBySlug[change.slug] ?? [],
+        backlinks: publishedInboundLinkCount(backlinksData, change.slug, titleBySlug),
         date: change.date,
         authorName: change.authorName,
         sha: change.sha,
