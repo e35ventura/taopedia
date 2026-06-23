@@ -22,7 +22,7 @@ export async function getStaticPaths() {
 // published-only join and compareTitles sort as backlinks.astro so the two
 // surfaces never drift.
 export const GET: APIRoute = async ({ props, site }) => {
-  const { page, slug } = props as { page: { data: { title: string } }; slug: string };
+  const { page, slug } = props as { page: { data: { title: string; categories?: string[] } }; slug: string };
   const origin = (site ?? new URL('https://taopedia.org')).origin;
 
   const pages = await getCollection('pages');
@@ -35,7 +35,7 @@ export const GET: APIRoute = async ({ props, site }) => {
     .sort((a, b) => compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug));
 
   const body = JSON.stringify(
-    buildArticleBacklinks({ slug, title: page.data.title, origin, backlinks }),
+    buildArticleBacklinks({ slug, title: page.data.title, origin, categories: page.data.categories ?? [], backlinks }),
     null,
     2,
   );

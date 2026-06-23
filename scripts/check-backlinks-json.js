@@ -26,6 +26,7 @@ const ORIGIN = 'https://taopedia.org';
     slug: 'recycling',
     title: 'Recycling',
     origin: ORIGIN,
+    categories: ['Consensus'],
     backlinks: [
       { slug: 'neuron', title: 'Neuron' },
       { slug: 'subnet_1', title: 'Subnet 1' },
@@ -47,6 +48,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.relatedUrl, `${ORIGIN}/wiki/recycling/related.json`, 'builder: relatedUrl field');
   assert.equal(result.tocJsonUrl, `${ORIGIN}/wiki/recycling/toc.json`, 'builder: tocJsonUrl field');
   assert.equal(result.imageUrl, `${ORIGIN}/og/recycling.png`, 'builder: imageUrl field');
+  assert.deepEqual(result.categories, ['Consensus'], 'builder: categories field');
   assert.equal(result.count, 2, 'builder: count equals backlinks length');
   assert.equal(result.backlinks.length, 2, 'builder: backlinks array length');
   assert.equal(result.backlinks[0].slug, 'neuron', 'builder: backlinks[0].slug');
@@ -81,13 +83,18 @@ const ORIGIN = 'https://taopedia.org';
   const empty = buildArticleBacklinks({ slug: 'orphan', title: 'Orphan', origin: ORIGIN });
   assert.equal(empty.count, 0, 'builder: empty count is 0');
   assert.deepEqual(empty.backlinks, [], 'builder: empty backlinks is []');
+  assert.deepEqual(empty.categories, [], 'builder: default categories is []');
 }
 
 // ---- 2–6) Built-output checks ----------------------------------------------
 assert.ok(fs.existsSync(wikiDir), 'dist/wiki not found; run the build first');
 assert.ok(fs.existsSync(backlinksFile), 'public/data/backlinks.json not found; run the build first');
 
+const slugmapFile = path.join(projectRoot, 'public', 'data', 'slugmap.json');
+assert.ok(fs.existsSync(slugmapFile), 'public/data/slugmap.json not found; run the build first');
+
 const backlinksData = JSON.parse(fs.readFileSync(backlinksFile, 'utf8'));
+const slugmap = JSON.parse(fs.readFileSync(slugmapFile, 'utf8'));
 
 const articleSlugs = [];
 const walk = (dir) => {
@@ -153,6 +160,10 @@ for (const slug of articleSlugs) {
   // imageUrl is the article's own OG share-card (/og/<slug>.png), the same
   // companion the info/history/toc/references envelopes already expose.
   assert.equal(doc.imageUrl, `${ORIGIN}/og/${slug}.png`, `${slug}: backlinks.json imageUrl must be the article's OG share-card URL`);
+  // categories must match the article's topic categories from the slug map,
+  // symmetric with info.json and history.json which already expose the same field.
+  const expectedCategories = slugmap[slug]?.categories ?? [];
+  assert.deepEqual(doc.categories, expectedCategories, `${slug}: backlinks.json categories must match the article's topic categories from the slug map`);
   assert.equal(typeof doc.count, 'number', `${slug}: backlinks.json count must be a number`);
   assert.ok(Array.isArray(doc.backlinks), `${slug}: backlinks.json backlinks must be an array`);
   assert.equal(doc.count, doc.backlinks.length, `${slug}: backlinks.json count must equal backlinks.length`);
