@@ -134,6 +134,11 @@ for (let i = 0; i < data.changes.length; i++) {
     `change infoUrl must equal ${data.site}/wiki/${change.slug}/info/ for ${change.slug}`,
   );
   assert.equal(
+    change.infoJsonUrl,
+    `${data.site}/wiki/${change.slug}/info.json`,
+    `change infoJsonUrl must equal ${data.site}/wiki/${change.slug}/info.json for ${change.slug}`,
+  );
+  assert.equal(
     change.backlinksUrl,
     `${data.site}/wiki/${change.slug}/backlinks/`,
     `change backlinksUrl must equal ${data.site}/wiki/${change.slug}/backlinks/ for ${change.slug}`,
