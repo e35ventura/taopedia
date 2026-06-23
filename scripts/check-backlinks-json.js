@@ -30,6 +30,7 @@ const ORIGIN = 'https://taopedia.org';
     summary: 'Reclaiming emitted TAO.',
     categories: ['Consensus'],
     incomingLinks: 2,
+    revisionCount: 8,
     backlinks: [
       { slug: 'neuron', title: 'Neuron', summary: 'A node in the network.', categories: ['Mechanism'] },
       { slug: 'subnet_1', title: 'Subnet 1', summary: '' },
@@ -54,6 +55,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.imageUrl, `${ORIGIN}/og/recycling.png`, 'builder: imageUrl field');
   assert.deepEqual(result.categories, ['Consensus'], 'builder: categories field');
   assert.equal(result.incomingLinks, 2, 'builder: incomingLinks field');
+  assert.equal(result.revisionCount, 8, 'builder: revisionCount field threaded verbatim');
   assert.equal(result.count, 2, 'builder: count equals backlinks length');
   assert.equal(result.backlinks.length, 2, 'builder: backlinks array length');
   assert.equal(result.backlinks[0].slug, 'neuron', 'builder: backlinks[0].slug');
@@ -97,6 +99,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.deepEqual(empty.categories, [], 'builder: default categories is []');
   assert.equal(empty.summary, null, 'builder: default summary is null');
   assert.equal(empty.incomingLinks, 0, 'builder: default incomingLinks is 0');
+  assert.equal(empty.revisionCount, 0, 'builder: default revisionCount is 0');
 }
 
 // ---- 2–6) Built-output checks ----------------------------------------------
@@ -192,6 +195,22 @@ for (const slug of articleSlugs) {
     `${slug}: backlinks.json incomingLinks must equal the published inbound-link count`,
   );
   assert.equal(doc.incomingLinks, doc.count, `${slug}: backlinks.json incomingLinks must equal count`);
+  // revisionCount is the article's revision count (its commit-history length) —
+  // the same figure info.json / history.json / cite.json expose on their
+  // envelopes. Cross-check it against the sibling info.json (independent source).
+  assert.ok(
+    Number.isInteger(doc.revisionCount) && doc.revisionCount >= 0,
+    `${slug}: backlinks.json revisionCount must be a non-negative integer (got ${JSON.stringify(doc.revisionCount)})`,
+  );
+  const blInfoJsonFile = path.join(wikiDir, slug, 'info.json');
+  if (fs.existsSync(blInfoJsonFile)) {
+    const infoDoc = JSON.parse(fs.readFileSync(blInfoJsonFile, 'utf8'));
+    assert.equal(
+      doc.revisionCount,
+      infoDoc.revisionCount,
+      `${slug}: backlinks.json revisionCount must agree with the sibling info.json envelope`,
+    );
+  }
   assert.equal(typeof doc.count, 'number', `${slug}: backlinks.json count must be a number`);
   assert.ok(Array.isArray(doc.backlinks), `${slug}: backlinks.json backlinks must be an array`);
   assert.equal(doc.count, doc.backlinks.length, `${slug}: backlinks.json count must equal backlinks.length`);
