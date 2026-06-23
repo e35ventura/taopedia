@@ -80,6 +80,8 @@ const ORIGIN = 'https://taopedia.org';
         summary: 'alpha summary',
         tags: ['Security'],
         url: `${ORIGIN}/wiki/alpha/`,
+        infoUrl: `${ORIGIN}/wiki/alpha/info/`,
+        backlinksUrl: `${ORIGIN}/wiki/alpha/backlinks/`,
         historyUrl: `${ORIGIN}/wiki/alpha/history/`,
         historyJsonUrl: `${ORIGIN}/wiki/alpha/history.json`,
       },
@@ -89,6 +91,8 @@ const ORIGIN = 'https://taopedia.org';
         summary: null,
         tags: ['Security'],
         url: `${ORIGIN}/wiki/gamma/`,
+        infoUrl: `${ORIGIN}/wiki/gamma/info/`,
+        backlinksUrl: `${ORIGIN}/wiki/gamma/backlinks/`,
         historyUrl: `${ORIGIN}/wiki/gamma/history/`,
         historyJsonUrl: `${ORIGIN}/wiki/gamma/history.json`,
       },
@@ -98,6 +102,8 @@ const ORIGIN = 'https://taopedia.org';
         summary: 'delta summary',
         tags: ['Consensus'],
         url: `${ORIGIN}/wiki/delta/`,
+        infoUrl: `${ORIGIN}/wiki/delta/info/`,
+        backlinksUrl: `${ORIGIN}/wiki/delta/backlinks/`,
         historyUrl: `${ORIGIN}/wiki/delta/history/`,
         historyJsonUrl: `${ORIGIN}/wiki/delta/history.json`,
       },
@@ -210,6 +216,19 @@ for (const slug of articleSlugs) {
     assert.equal(typeof entry.slug, 'string', `${slug}: every related entry must have a slug`);
     assert.equal(typeof entry.title, 'string', `${slug}: every related entry must have a title`);
     assert.equal(entry.url, `${ORIGIN}/wiki/${entry.slug}/`, `${slug}: every related entry url must be canonical`);
+    // infoUrl / backlinksUrl point at the related article's Page-information and
+    // What-links-here pages, so a consumer can reach a related page's metadata
+    // and inbound links without reconstructing the route.
+    assert.equal(
+      entry.infoUrl,
+      `${ORIGIN}/wiki/${entry.slug}/info/`,
+      `${slug}: every related entry infoUrl must be the canonical article info URL`,
+    );
+    assert.equal(
+      entry.backlinksUrl,
+      `${ORIGIN}/wiki/${entry.slug}/backlinks/`,
+      `${slug}: every related entry backlinksUrl must be the canonical article backlinks URL`,
+    );
     // historyUrl points at the related article's revision-history page — the
     // same companion references.json exposes per referenced article — so a
     // consumer can reach a related page's edit history without rebuilding the route.
