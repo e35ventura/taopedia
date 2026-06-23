@@ -50,6 +50,18 @@ const projectRoot = path.resolve(__dirname, '..');
   assert.equal(out[1].name, 'Sturdy');
   assert.equal(out[2].name, '⚒', 'emoji name passes through (matches the HTML page)');
   assert.equal(out[1].summary, '');
+  assert.deepEqual(out[0].categories, [], 'categories defaults to [] when not present');
+}
+
+// Categories pass through from page data.
+{
+  const out = buildSubnets({
+    pages: [
+      { id: 'a/index.mdx', data: { title: 'Subnet 1: Apex', categories: ['Subnets'] } },
+    ],
+    getPageSlug: (page) => page.id.replace(/\/index\.mdx$/, ''),
+  });
+  assert.deepEqual(out[0].categories, ['Subnets'], 'categories pass through from page data');
 }
 
 // Whitespace tolerance around the colon (the HTML page's regex accepts `\s*`).
@@ -134,7 +146,7 @@ assert.ok(data.subnets.length > 0, 'subnets.json must list at least one subnet')
 const expected = buildSubnets({
   pages: Object.entries(slugmap).map(([slug, entry]) => ({
     id: `${slug}/index.mdx`,
-    data: { title: entry.title, summary: entry.summary ?? '' },
+    data: { title: entry.title, summary: entry.summary ?? '', categories: entry.categories ?? [] },
   })),
   getPageSlug: (page) => page.id.replace(/\/index\.mdx$/, ''),
 });
@@ -253,6 +265,15 @@ data.subnets.forEach((row, i) => {
     row.summary,
     expected[i].summary || null,
     `row ${i} summary must be the slug-map summary (null when blank)`,
+  );
+  // categories — the subnet article's topic list from its frontmatter, the same
+  // per-entry field allpages.json exposes, so a consumer of subnets.json can
+  // filter or group by topic without a separate lookup.
+  const expectedCategories = slugmap[row.slug]?.categories ?? [];
+  assert.deepEqual(
+    row.categories,
+    expectedCategories,
+    `row ${i} categories must match the slug-map categories`,
   );
   // Every slug must point to a built article. The article's TITLE in the slug
   // map is the full "Subnet <n>: <name>" string — row.name is just the split
