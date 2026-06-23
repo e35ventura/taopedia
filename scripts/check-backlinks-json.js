@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { compareTitles } from '../src/lib/title-sort.js';
 import { buildArticleBacklinks } from './article-backlinks.js';
+import { publishedInboundLinkCount } from './most-linked.js';
 
 // Load-bearing check for /wiki/<slug>/backlinks.json: the machine-readable
 // companion to the What-links-here HTML page. It (1) unit-tests the builder,
@@ -57,6 +58,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.backlinks[0].title, 'Neuron', 'builder: backlinks[0].title');
   assert.equal(result.backlinks[0].summary, 'A node in the network.', 'builder: backlinks[0].summary');
   assert.deepEqual(result.backlinks[0].categories, ['Mechanism'], 'builder: backlinks[0].categories');
+  assert.equal(result.backlinks[0].backlinks, 0, 'builder: backlinks[0].backlinks defaults to 0 when omitted');
   assert.equal(result.backlinks[0].url, `${ORIGIN}/wiki/neuron/`, 'builder: backlinks[0].url');
   assert.equal(result.backlinks[0].infoUrl, `${ORIGIN}/wiki/neuron/info/`, 'builder: backlinks[0].infoUrl');
   assert.equal(result.backlinks[0].infoJsonUrl, `${ORIGIN}/wiki/neuron/info.json`, 'builder: backlinks[0].infoJsonUrl');
@@ -75,6 +77,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.backlinks[1].title, 'Subnet 1', 'builder: backlinks[1].title');
   assert.equal(result.backlinks[1].summary, null, 'builder: backlinks[1].summary is null when empty');
   assert.deepEqual(result.backlinks[1].categories, [], 'builder: backlinks[1].categories defaults to [] when omitted');
+  assert.equal(result.backlinks[1].backlinks, 0, 'builder: backlinks[1].backlinks defaults to 0 when omitted');
   assert.equal(result.backlinks[1].url, `${ORIGIN}/wiki/subnet_1/`, 'builder: backlinks[1].url');
   assert.equal(result.backlinks[1].historyUrl, `${ORIGIN}/wiki/subnet_1/history/`, 'builder: backlinks[1].historyUrl');
   assert.equal(result.backlinks[1].historyJsonUrl, `${ORIGIN}/wiki/subnet_1/history.json`, 'builder: backlinks[1].historyJsonUrl');
@@ -102,6 +105,9 @@ assert.ok(fs.existsSync(slugmapFile), 'public/data/slugmap.json not found; run t
 
 const backlinksData = JSON.parse(fs.readFileSync(backlinksFile, 'utf8'));
 const slugmap = JSON.parse(fs.readFileSync(slugmapFile, 'utf8'));
+const titleBySlug = Object.fromEntries(
+  Object.entries(slugmap).map(([slug, meta]) => [slug, typeof meta?.title === 'string' ? meta.title : slug]),
+);
 
 const articleSlugs = [];
 const walk = (dir) => {
@@ -199,6 +205,14 @@ for (const slug of articleSlugs) {
     // map, the same per-entry field the listing endpoints (subnets/allpages) expose.
     const expectedEntryCategories = Array.isArray(slugmap[entry.slug]?.categories) ? slugmap[entry.slug].categories : [];
     assert.deepEqual(entry.categories, expectedEntryCategories, `${slug}: every backlink entry categories must match the linking article's slug-map categories`);
+    // backlinks is the linking article's published inbound-link count — the
+    // same figure allpages.json / references.json / related.json expose per row.
+    assert.equal(
+      entry.backlinks,
+      publishedInboundLinkCount(backlinksData, entry.slug, titleBySlug),
+      `${slug}: every backlink entry backlinks must match the published inbound-link count`,
+    );
+    assert.ok(Number.isInteger(entry.backlinks) && entry.backlinks >= 0, `${slug}: every backlink entry backlinks must be a non-negative integer`);
     // infoUrl / infoJsonUrl point at the linking article's Page-information hub
     // and its machine-readable companion, so a consumer can reach a backlinking
     // page's metadata without reconstructing the route.
