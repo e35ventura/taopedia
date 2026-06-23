@@ -198,6 +198,14 @@ data.articles.forEach((row, i) => {
     `${data.site}/wiki/${row.slug}/backlinks/`,
     `row ${i} backlinksUrl must equal ${data.site}/wiki/${row.slug}/backlinks/`,
   );
+  // backlinksJsonUrl is the machine-readable companion of backlinksUrl
+  // (/wiki/<slug>/backlinks.json), the same HTML+JSON pairing recentchanges.json,
+  // subnets.json, and mostlinkedpages.json already expose.
+  assert.equal(
+    row.backlinksJsonUrl,
+    `${data.site}/wiki/${row.slug}/backlinks.json`,
+    `row ${i} backlinksJsonUrl must equal ${data.site}/wiki/${row.slug}/backlinks.json`,
+  );
   // historyUrl points at the article's revision-history page — the same
   // companion subnets.json / mostlinkedpages.json expose — so a consumer of the
   // directory can reach each article's edit history without rebuilding the route.
