@@ -68,6 +68,7 @@ export const GET: APIRoute = async ({ props, site }) => {
       summary: summaryBySlug[entry.from] ?? '',
       categories: categoriesBySlug[entry.from] ?? [],
       backlinks: publishedInboundLinkCount(backlinksData, entry.from, titleBySlug),
+      lastEdited: historyForSlug(entry.from)[0]?.date ?? null,
     }))
     .sort((a, b) => compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug));
 

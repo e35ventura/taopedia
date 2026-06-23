@@ -37,6 +37,10 @@ export const buildArticleBacklinks = ({ slug, title, origin, summary = '', categ
     summary: link.summary || null,
     categories: Array.isArray(link.categories) ? link.categories : [],
     backlinks: Number.isFinite(link.backlinks) ? link.backlinks : 0,
+    // The linking article's last-revision date — the same lastEdited figure
+    // info.json exposes per article, so a consumer scanning the backlink list
+    // can gauge each linking page's recency without a per-entry fetch.
+    lastEdited: link.lastEdited ?? null,
     url: `${origin}/wiki/${link.slug}/`,
     infoUrl: `${origin}/wiki/${link.slug}/info/`,
     infoJsonUrl: `${origin}/wiki/${link.slug}/info.json`,
