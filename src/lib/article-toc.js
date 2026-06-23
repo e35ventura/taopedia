@@ -18,7 +18,7 @@ export const getArticleToc = (headings = []) => {
   });
 };
 
-export const buildArticleToc = ({ slug, title, origin, summary = '', categories = [], incomingLinks = 0, revisionCount = 0, firstEdited = null, lastEdited = null, sections = [] }) => ({
+export const buildArticleToc = ({ slug, title, origin, summary = '', categories = [], incomingLinks = 0, revisionCount = 0, firstEdited = null, lastEdited = null, referencesCount = 0, sections = [] }) => ({
   slug,
   title,
   summary: summary || null,
@@ -41,6 +41,9 @@ export const buildArticleToc = ({ slug, title, origin, summary = '', categories 
   revisionCount: Number.isFinite(revisionCount) ? revisionCount : 0,
   firstEdited: firstEdited ?? null,
   lastEdited: lastEdited ?? null,
+  // The article's published outbound-reference count — the same figure
+  // history.json and references.json expose (via the shared getArticleReferences helper).
+  referencesCount: Number.isFinite(referencesCount) ? referencesCount : 0,
   count: sections.length,
   sections: sections.map((section) => ({
     number: section.number,

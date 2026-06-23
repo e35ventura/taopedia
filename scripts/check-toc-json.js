@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildArticleToc, getArticleToc } from '../src/lib/article-toc.js';
+import { getArticleReferences } from '../src/lib/article-references.js';
 import { publishedInboundLinkCount } from './most-linked.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -70,6 +71,7 @@ const ORIGIN = 'https://taopedia.org';
     revisionCount: 12,
     firstEdited: '2024-01-01T00:00:00.000Z',
     lastEdited: '2024-06-01T00:00:00.000Z',
+    referencesCount: 4,
     sections,
   });
   assert.equal(doc.slug, 'source', 'builder: slug field');
@@ -94,6 +96,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(doc.revisionCount, 12, 'builder: revisionCount field');
   assert.equal(doc.firstEdited, '2024-01-01T00:00:00.000Z', 'builder: firstEdited field');
   assert.equal(doc.lastEdited, '2024-06-01T00:00:00.000Z', 'builder: lastEdited field');
+  assert.equal(doc.referencesCount, 4, 'builder: referencesCount field');
   assert.equal(doc.count, 3, 'builder: count field');
   assert.deepEqual(
     doc.sections,
@@ -104,6 +107,9 @@ const ORIGIN = 'https://taopedia.org';
     ],
     'builder: section entry shape',
   );
+
+  const badCount = buildArticleToc({ slug: 'x', title: 'X', origin: ORIGIN, referencesCount: NaN });
+  assert.equal(badCount.referencesCount, 0, 'builder: non-finite referencesCount defaults to 0');
 }
 
 // ---- 2) Built-output checks -----------------------------------------------
@@ -116,6 +122,9 @@ const slugmap = JSON.parse(fs.readFileSync(slugmapFile, 'utf8'));
 const backlinksFile = path.join(projectRoot, 'public', 'data', 'backlinks.json');
 assert.ok(fs.existsSync(backlinksFile), 'public/data/backlinks.json not found; run the build first');
 const backlinksData = JSON.parse(fs.readFileSync(backlinksFile, 'utf8'));
+const linkgraphFile = path.join(projectRoot, 'public', 'data', 'linkgraph.json');
+assert.ok(fs.existsSync(linkgraphFile), 'public/data/linkgraph.json not found; run the build first');
+const linkgraphData = JSON.parse(fs.readFileSync(linkgraphFile, 'utf8'));
 const titleBySlug = Object.fromEntries(
   Object.entries(slugmap).map(([slug, meta]) => [slug, typeof meta?.title === 'string' ? meta.title : slug]),
 );
@@ -266,6 +275,32 @@ for (const slug of articleSlugs) {
       doc.lastEdited,
       infoDoc.lastEdited,
       `${slug}: toc.json lastEdited must agree with the sibling info.json envelope`,
+    );
+  }
+  // referencesCount is the article's published outbound-reference count — the
+  // same figure history.json and references.json expose, computed via the shared helper.
+  assert.equal(
+    doc.referencesCount,
+    getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length,
+    `${slug}: toc.json referencesCount must match the published outbound-reference count`,
+  );
+  assert.ok(Number.isInteger(doc.referencesCount) && doc.referencesCount >= 0, `${slug}: toc.json referencesCount must be a non-negative integer`);
+  const historyJsonFile = path.join(wikiDir, slug, 'history.json');
+  if (fs.existsSync(historyJsonFile)) {
+    const historyDoc = JSON.parse(fs.readFileSync(historyJsonFile, 'utf8'));
+    assert.equal(
+      doc.referencesCount,
+      historyDoc.referencesCount,
+      `${slug}: toc.json referencesCount must agree with the sibling history.json envelope`,
+    );
+  }
+  const referencesJsonFile = path.join(wikiDir, slug, 'references.json');
+  if (fs.existsSync(referencesJsonFile)) {
+    const referencesDoc = JSON.parse(fs.readFileSync(referencesJsonFile, 'utf8'));
+    assert.equal(
+      doc.referencesCount,
+      referencesDoc.count,
+      `${slug}: toc.json referencesCount must agree with the sibling references.json envelope`,
     );
   }
   assert.equal(typeof doc.count, 'number', `${slug}: toc.json count must be a number`);
