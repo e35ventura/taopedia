@@ -15,8 +15,11 @@ export const GET: APIRoute = async ({ site }) => {
   const pages = await getCollection('pages');
 
   const titleBySlug: Record<string, string> = {};
+  const categoriesBySlug: Record<string, string[]> = {};
   for (const page of pages) {
-    titleBySlug[getPageSlug(page)] = page.data.title;
+    const slug = getPageSlug(page);
+    titleBySlug[slug] = page.data.title;
+    categoriesBySlug[slug] = page.data.categories ?? [];
   }
 
   const changes = allRecentChanges(titleBySlug, RECENT_LIMIT);
@@ -48,6 +51,7 @@ export const GET: APIRoute = async ({ site }) => {
         relatedUrl: `${origin}/wiki/${change.slug}/related.json`,
         tocJsonUrl: `${origin}/wiki/${change.slug}/toc.json`,
         imageUrl: `${origin}/og/${change.slug}.png`,
+        categories: categoriesBySlug[change.slug] ?? [],
         date: change.date,
         authorName: change.authorName,
         sha: change.sha,
