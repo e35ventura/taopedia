@@ -81,6 +81,20 @@ assert.equal(
 data.categories.forEach((row, i) => {
   assert.ok(typeof row.name === 'string' && row.name.length > 0, `row ${i} name must be a non-empty string`);
   assert.ok(knownNames.has(row.name), `row ${i} topic "${row.name}" is not a known category`);
+  // slug is the URL-safe form of the name (spaces -> underscores) that every
+  // url field is derived from, exposed so a consumer can build category routes
+  // without re-deriving the escaping — the same slug parity search-data.json
+  // exposes per article.
+  assert.equal(
+    row.slug,
+    row.name.replace(/ /g, '_'),
+    `row ${i} slug must be the URL-safe form of the name (got ${JSON.stringify(row.slug)})`,
+  );
+  assert.equal(
+    row.url,
+    `${data.site}/wiki/category/${row.slug}/`,
+    `row ${i} url must be /wiki/category/<slug>/ for slug ${row.slug}`,
+  );
   assert.ok(Number.isInteger(row.articles) && row.articles > 0, `row ${i} articles must be a positive integer`);
   assert.ok(
     row.url.startsWith(`${data.site}/wiki/category/`),
