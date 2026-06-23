@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { compareTitles } from '../src/lib/title-sort.js';
 import { RECENT_LIMIT } from '../src/lib/recent-changes.js';
+import { publishedInboundLinkCount } from './most-linked.js';
 
 const collectRecentChanges = (historyBySlug, titleBySlug, limit) => {
   const changes = [];
@@ -76,6 +77,9 @@ assert.ok(fs.existsSync(slugmapFile), 'public/data/slugmap.json not found; run t
 const data = JSON.parse(fs.readFileSync(distFile, 'utf8'));
 const slugmap = JSON.parse(fs.readFileSync(slugmapFile, 'utf8'));
 const titleBySlug = Object.fromEntries(Object.entries(slugmap).map(([slug, entry]) => [slug, entry.title]));
+const backlinksFile = path.join(projectRoot, 'public', 'data', 'backlinks.json');
+assert.ok(fs.existsSync(backlinksFile), 'public/data/backlinks.json not found; run the build first');
+const backlinksGraph = JSON.parse(fs.readFileSync(backlinksFile, 'utf8'));
 const historyBySlug = {};
 for (const file of fs.readdirSync(historyDir)) {
   if (!file.endsWith('.json')) continue;
@@ -245,6 +249,20 @@ for (let i = 0; i < data.changes.length; i++) {
     change.categories,
     slugmap[change.slug]?.categories ?? [],
     `change ${i} categories must match the article's topics in the slug map for ${change.slug}`,
+  );
+  // backlinks is the changed article's inbound-link count from OTHER published
+  // articles — the same published-only, orphan-skipping metric allpages.json /
+  // mostlinkedpages.json / subnets.json / related.json expose per entry,
+  // computed with the shared publishedInboundLinkCount helper. Re-derive it from
+  // the raw backlink graph (independent source) so it cannot drift.
+  assert.ok(
+    Number.isInteger(change.backlinks) && change.backlinks >= 0,
+    `change ${i} backlinks must be a non-negative integer (got ${JSON.stringify(change.backlinks)})`,
+  );
+  assert.equal(
+    change.backlinks,
+    publishedInboundLinkCount(backlinksGraph, change.slug, titleBySlug),
+    `change ${i} backlinks must equal the published inbound-link count for ${change.slug}`,
   );
   assert.equal(change.authorName, expected.authorName, `change ${i} authorName must match the revision history`);
   assert.equal(change.sha, expected.sha, `change ${i} sha must match the revision history`);
