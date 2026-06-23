@@ -6,7 +6,7 @@ function quoteColonPlainScalars(source) {
   return source
     .split(/\r?\n/)
     .map((line) => {
-      const match = line.match(/^([A-Za-z_][\w-]*:\s+)([^"'[{|>&*!%@`#][^#]*:\s+[^#]*)$/);
+      const match = line.match(/^(\s*(?:-\s+)?[A-Za-z_][\w-]*:\s+)([^"'[{|>&*!%@`#][^#]*:\s+[^#]*)$/);
       if (!match) return line;
       return `${match[1]}${JSON.stringify(match[2].trimEnd())}`;
     })
