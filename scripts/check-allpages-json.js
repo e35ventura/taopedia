@@ -206,6 +206,15 @@ data.articles.forEach((row, i) => {
     `${data.site}/wiki/${row.slug}/history/`,
     `row ${i} historyUrl must equal ${data.site}/wiki/${row.slug}/history/`,
   );
+  // historyJsonUrl is the machine-readable companion of historyUrl
+  // (/wiki/<slug>/history.json), the same pairing recentchanges.json /
+  // subnets.json expose, so a consumer can fetch an article's structured
+  // revision list directly.
+  assert.equal(
+    row.historyJsonUrl,
+    `${data.site}/wiki/${row.slug}/history.json`,
+    `row ${i} historyJsonUrl must equal ${data.site}/wiki/${row.slug}/history.json`,
+  );
   // imageUrl is the article's OG share-card image (/og/<slug>.png) — each
   // article binds its own card, so the directory can expose it for a consumer
   // that wants a per-article thumbnail without hitting the rendered HTML head.
