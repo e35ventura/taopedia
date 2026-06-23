@@ -6,6 +6,7 @@ import SearchSuggest from '../components/SearchSuggest.astro';
 import { sortPagesByTitle, compareTitles } from '../lib/title-sort.js';
 import { allRecentChanges } from '../lib/article-history';
 import { formatRevisionDate } from '../lib/format-date.js';
+import { buildSubnets } from '../../scripts/subnets.js';
 
 const pages = await getCollection('pages');
 const sortedPages = sortPagesByTitle(pages);
@@ -35,6 +36,17 @@ const featuredSlugs = [
 const featuredPages = featuredSlugs
   .map((slug) => pages.find((page) => getPageSlug(page) === slug))
   .filter(Boolean);
+
+// Featured subnets for landing-page discovery. Subnets are the defining
+// Bittensor entity, but the homepage otherwise never surfaces an individual one
+// (only the broad "Subnets" topic). Show the foundational low-netuid subnets —
+// excluding any retired/"Deprecated" entry — as a restrained taster that links
+// into the full Special:Subnets directory. Reuses the same buildSubnets() helper
+// that powers Special:Subnets and subnets.json, so the homepage can never
+// disagree with them on netuid, name, or slug. Refs #521.
+const featuredSubnets = buildSubnets({ pages, getPageSlug })
+  .filter((subnet) => !/deprecated/i.test(subnet.name))
+  .slice(0, 6);
 
 // Most recently updated articles, newest first — the one piece of information
 // the landing page otherwise never shows (it carries no dates at all). Reuses
@@ -552,6 +564,23 @@ const initialLetter = alphabet[0] ?? '#';
           ))}
         </div>
       </section>
+
+      {featuredSubnets.length > 0 && (
+        <section class="home-section">
+          <div class="section-heading">
+            <h2>Explore Subnets</h2>
+            <a href="/wiki/special/subnets">All subnets</a>
+          </div>
+          <div class="article-grid">
+            {featuredSubnets.map((subnet) => (
+              <a class="article-card" href={`/wiki/${subnet.slug}/`}>
+                <strong>Subnet {subnet.netuid}: {subnet.name}</strong>
+                {subnet.summary && <span>{subnet.summary}</span>}
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
 
       {recentlyUpdated.length > 0 && (
         <section class="home-section">
