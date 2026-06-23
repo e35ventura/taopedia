@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildSubnets } from './subnets.js';
+import { publishedInboundLinkCount } from './most-linked.js';
 
 // /wiki/special/subnets.json exposes the by-netuid subnet registry as
 // structured JSON for programmatic consumers. The contract is load-bearing: a
@@ -113,11 +114,18 @@ const projectRoot = path.resolve(__dirname, '..');
 // ---- 2) Built output: validate against the slug map ---------------------
 const distFile = path.join(projectRoot, 'dist', 'wiki', 'special', 'subnets.json');
 const slugmapFile = path.join(projectRoot, 'public', 'data', 'slugmap.json');
+const backlinksFile = path.join(projectRoot, 'public', 'data', 'backlinks.json');
 assert.ok(fs.existsSync(distFile), 'dist/wiki/special/subnets.json not found; run the build first');
 assert.ok(fs.existsSync(slugmapFile), 'public/data/slugmap.json not found; run the build first');
+assert.ok(fs.existsSync(backlinksFile), 'public/data/backlinks.json not found; run the build first');
 
 const data = JSON.parse(fs.readFileSync(distFile, 'utf8'));
 const slugmap = JSON.parse(fs.readFileSync(slugmapFile, 'utf8'));
+// Independent ground truth for each subnet's inbound-link count: the raw
+// backlink graph + the published-slug title map, re-derived with the SAME shared
+// helper allpages.json / mostlinkedpages.json use, so the count cannot drift.
+const backlinks = JSON.parse(fs.readFileSync(backlinksFile, 'utf8'));
+const titleBySlug = Object.fromEntries(Object.entries(slugmap).map(([slug, entry]) => [slug, entry.title]));
 
 // site — non-empty URL/origin string.
 assert.ok(
@@ -286,6 +294,20 @@ data.subnets.forEach((row, i) => {
     expectedCategories,
     `row ${i} categories must match the slug-map categories`,
   );
+  // backlinks is the subnet article's inbound-link count from OTHER published
+  // articles — the same published-only, orphan-skipping metric allpages.json and
+  // mostlinkedpages.json expose per entry (and info.json exposes as
+  // incomingLinks), computed with the shared publishedInboundLinkCount helper.
+  // Re-derive it from the raw backlink graph (independent source) so it can't drift.
+  assert.ok(
+    Number.isInteger(row.backlinks) && row.backlinks >= 0,
+    `row ${i} backlinks must be a non-negative integer (got ${JSON.stringify(row.backlinks)})`,
+  );
+  assert.equal(
+    row.backlinks,
+    publishedInboundLinkCount(backlinks, row.slug, titleBySlug),
+    `row ${i} backlinks must equal the published inbound-link count for ${row.slug}`,
+  );
   // Every slug must point to a built article. The article's TITLE in the slug
   // map is the full "Subnet <n>: <name>" string — row.name is just the split
   // name (e.g. "Apex"), not the full title, so check that the slug map title
@@ -300,6 +322,14 @@ data.subnets.forEach((row, i) => {
     `row ${i} links to an unbuilt article /wiki/${row.slug}/`,
   );
 });
+
+// At least one subnet must carry a non-zero inbound count — subnets are among
+// the most-referenced articles on the wiki — so the metric is proven populated
+// end-to-end and not stuck at zero for every row.
+assert.ok(
+  data.subnets.some((row) => row.backlinks > 0),
+  'at least one subnet must have a non-zero backlinks count (the metric must be populated, not all-zero)',
+);
 
 // Numeric ascending order (the bug if anyone reintroduces lexicographic sort).
 for (let i = 1; i < data.subnets.length; i++) {
