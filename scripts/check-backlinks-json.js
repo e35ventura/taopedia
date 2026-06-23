@@ -60,6 +60,8 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.backlinks[0].bibtexUrl, `${ORIGIN}/wiki/neuron/cite.bib`, 'builder: backlinks[0].bibtexUrl');
   assert.equal(result.backlinks[0].referencesUrl, `${ORIGIN}/wiki/neuron/references.json`, 'builder: backlinks[0].referencesUrl');
   assert.equal(result.backlinks[0].relatedUrl, `${ORIGIN}/wiki/neuron/related.json`, 'builder: backlinks[0].relatedUrl');
+  assert.equal(result.backlinks[0].infoJsonUrl, `${ORIGIN}/wiki/neuron/info.json`, 'builder: backlinks[0].infoJsonUrl');
+  assert.equal(result.backlinks[0].tocJsonUrl, `${ORIGIN}/wiki/neuron/toc.json`, 'builder: backlinks[0].tocJsonUrl');
   assert.equal(result.backlinks[1].slug, 'subnet_1', 'builder: backlinks[1].slug');
   assert.equal(result.backlinks[1].title, 'Subnet 1', 'builder: backlinks[1].title');
   assert.equal(result.backlinks[1].url, `${ORIGIN}/wiki/subnet_1/`, 'builder: backlinks[1].url');
@@ -70,6 +72,8 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.backlinks[1].bibtexUrl, `${ORIGIN}/wiki/subnet_1/cite.bib`, 'builder: backlinks[1].bibtexUrl');
   assert.equal(result.backlinks[1].referencesUrl, `${ORIGIN}/wiki/subnet_1/references.json`, 'builder: backlinks[1].referencesUrl');
   assert.equal(result.backlinks[1].relatedUrl, `${ORIGIN}/wiki/subnet_1/related.json`, 'builder: backlinks[1].relatedUrl');
+  assert.equal(result.backlinks[1].infoJsonUrl, `${ORIGIN}/wiki/subnet_1/info.json`, 'builder: backlinks[1].infoJsonUrl');
+  assert.equal(result.backlinks[1].tocJsonUrl, `${ORIGIN}/wiki/subnet_1/toc.json`, 'builder: backlinks[1].tocJsonUrl');
 
   const empty = buildArticleBacklinks({ slug: 'orphan', title: 'Orphan', origin: ORIGIN });
   assert.equal(empty.count, 0, 'builder: empty count is 0');
@@ -211,6 +215,19 @@ for (const slug of articleSlugs) {
       entry.relatedUrl,
       `${ORIGIN}/wiki/${entry.slug}/related.json`,
       `${slug}: every backlink entry relatedUrl must be the canonical article related.json URL`,
+    );
+    // infoJsonUrl pairs the HTML info page with its machine-readable form, and
+    // tocJsonUrl links the article's table-of-contents endpoint — completing the
+    // per-entry companion set the sibling endpoints expose.
+    assert.equal(
+      entry.infoJsonUrl,
+      `${ORIGIN}/wiki/${entry.slug}/info.json`,
+      `${slug}: every backlink entry infoJsonUrl must be the canonical article info.json URL`,
+    );
+    assert.equal(
+      entry.tocJsonUrl,
+      `${ORIGIN}/wiki/${entry.slug}/toc.json`,
+      `${slug}: every backlink entry tocJsonUrl must be the canonical article toc.json URL`,
     );
     assert.ok(articleBuilt(entry.slug), `${slug}: backlink entry ${entry.slug} references an unbuilt article`);
   }
