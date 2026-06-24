@@ -99,6 +99,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(doc.lastEdited, '2024-06-01T00:00:00.000Z', 'builder: lastEdited field');
   assert.equal(doc.referencesCount, 4, 'builder: referencesCount field');
   assert.equal(doc.wordCount, 812, 'builder: wordCount field');
+  assert.equal(doc.readingMinutes, 5, 'builder: readingMinutes from wordCount (ceil(812/200))');
   assert.equal(doc.count, 3, 'builder: count field');
   assert.deepEqual(
     doc.sections,
@@ -118,6 +119,7 @@ const ORIGIN = 'https://taopedia.org';
 
   const empty = buildArticleToc({ slug: 'x', title: 'X', origin: ORIGIN });
   assert.equal(empty.wordCount, 0, 'builder: default wordCount is 0');
+  assert.equal(empty.readingMinutes, 1, 'builder: default readingMinutes is 1 (ceil(0/200))');
 }
 
 // ---- 2) Built-output checks -----------------------------------------------
@@ -316,6 +318,27 @@ for (const slug of articleSlugs) {
       `${slug}: toc.json wordCount must match the article footer's rendered data-word-count`,
     );
   }
+  // readingMinutes is the ~200 wpm ceil estimate the article footer renders.
+  assert.ok(
+    Number.isInteger(doc.readingMinutes) && doc.readingMinutes >= 1,
+    `${slug}: toc.json readingMinutes must be a positive integer`,
+  );
+  const readingMatch = html.match(/(\d+) min read/);
+  if (readingMatch) {
+    assert.equal(
+      doc.readingMinutes,
+      Number(readingMatch[1]),
+      `${slug}: toc.json readingMinutes must match the article footer's rendered reading time`,
+    );
+  }
+  if (fs.existsSync(infoJsonFile)) {
+    const infoDoc = JSON.parse(fs.readFileSync(infoJsonFile, 'utf8'));
+    assert.equal(
+      doc.readingMinutes,
+      infoDoc.readingMinutes,
+      `${slug}: toc.json readingMinutes must agree with the sibling info.json envelope`,
+    );
+  }
   const historyJsonFile = path.join(wikiDir, slug, 'history.json');
   if (fs.existsSync(historyJsonFile)) {
     const historyDoc = JSON.parse(fs.readFileSync(historyJsonFile, 'utf8'));
@@ -378,7 +401,15 @@ for (const slug of articleSlugs) {
 }
 
 assert.ok(withToc > 0, 'expected at least one article with a rendered contents sidebar');
-assert.ok(withEmpty > 0, 'expected at least one article without a rendered contents sidebar');
+// The helper's empty-TOC contract is unit-tested above. When every published
+// article has 2+ visible headings, none omit the contents sidebar.
+if (withEmpty === 0) {
+  assert.equal(
+    withToc,
+    articleSlugs.length,
+    'when every article renders a contents sidebar, toc.json must be built for all of them',
+  );
+}
 
 console.log(
   `TOC JSON check passed (${articleSlugs.length} articles: ${withToc} with a contents sidebar, ${withEmpty} without; shared-runtime parity verified)`,
