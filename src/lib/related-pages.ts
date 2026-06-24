@@ -63,6 +63,7 @@ export interface ArticleRelatedPagesDocument {
   categories: string[];
   incomingLinks: number;
   referencesCount: number;
+  sectionCount: number;
   revisionCount: number;
   firstEdited: string | null;
   lastEdited: string | null;
@@ -180,6 +181,7 @@ export function buildArticleRelatedPages({
   categories = [],
   incomingLinks = 0,
   referencesCount = 0,
+  sectionCount = 0,
   revisionCount = 0,
   firstEdited = null,
   lastEdited = null,
@@ -192,6 +194,7 @@ export function buildArticleRelatedPages({
   categories?: string[];
   incomingLinks?: number;
   referencesCount?: number;
+  sectionCount?: number;
   revisionCount?: number;
   firstEdited?: string | null;
   lastEdited?: string | null;
@@ -217,6 +220,9 @@ export function buildArticleRelatedPages({
     // The article's published OUTBOUND reference count — the complement of
     // incomingLinks, the same figure info.json / history.json / cite.json expose.
     referencesCount: Number.isFinite(referencesCount) ? referencesCount : 0,
+    // The article's table-of-contents section count — the same figure toc.json
+    // exposes as `count` (via the shared getArticleToc helper).
+    sectionCount: Number.isFinite(sectionCount) ? sectionCount : 0,
     // The article's revision count (its commit-history length) — the same figure
     // info.json / history.json / cite.json expose on their envelopes.
     revisionCount: Number.isFinite(revisionCount) ? revisionCount : 0,
