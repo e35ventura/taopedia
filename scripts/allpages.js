@@ -11,6 +11,8 @@
 // expected directory.
 
 import { sortPagesByTitle } from '../src/lib/title-sort.js';
+import { getArticleReferences } from '../src/lib/article-references.js';
+import { publishedInboundLinkCount } from './most-linked.js';
 
 export function buildAllPages({ pages, getPageSlug, origin }) {
   if (!Array.isArray(pages) || pages.length === 0) return [];
@@ -27,4 +29,63 @@ export function buildAllPages({ pages, getPageSlug, origin }) {
     url: `${base}/wiki/${getPageSlug(page)}/`,
     categories: Array.isArray(page?.data?.categories) ? page.data.categories : [],
   }));
+}
+
+// Enrich one directory row with the per-article metadata and cross-links the
+// allpages.json endpoint exposes. Pure function so the Astro route and the
+// regression check share one source of truth (mirrors buildCategoryArticlesDocument).
+export function enrichAllPagesArticle({
+  article,
+  origin,
+  titleBySlug,
+  wordCountBySlug,
+  sectionCountBySlug,
+  backlinksData,
+  linkgraphData,
+  historyForSlug,
+}) {
+  const history = historyForSlug(article.slug);
+  const inboundLinks = publishedInboundLinkCount(backlinksData, article.slug, titleBySlug);
+  const wordCount = wordCountBySlug[article.slug] ?? 0;
+
+  return {
+    slug: article.slug,
+    title: article.title,
+    summary: article.summary || null,
+    url: article.url,
+    infoUrl: `${origin}/wiki/${article.slug}/info/`,
+    infoJsonUrl: `${origin}/wiki/${article.slug}/info.json`,
+    backlinksUrl: `${origin}/wiki/${article.slug}/backlinks/`,
+    backlinksJsonUrl: `${origin}/wiki/${article.slug}/backlinks.json`,
+    historyUrl: `${origin}/wiki/${article.slug}/history/`,
+    historyJsonUrl: `${origin}/wiki/${article.slug}/history.json`,
+    citeUrl: `${origin}/wiki/${article.slug}/cite/`,
+    citeJsonUrl: `${origin}/wiki/${article.slug}/cite.json`,
+    bibtexUrl: `${origin}/wiki/${article.slug}/cite.bib`,
+    referencesUrl: `${origin}/wiki/${article.slug}/references.json`,
+    referencesJsonUrl: `${origin}/wiki/${article.slug}/references.json`,
+    relatedUrl: `${origin}/wiki/${article.slug}/related.json`,
+    relatedJsonUrl: `${origin}/wiki/${article.slug}/related.json`,
+    tocJsonUrl: `${origin}/wiki/${article.slug}/toc.json`,
+    imageUrl: `${origin}/og/${article.slug}.png`,
+    categories: article.categories,
+    backlinks: inboundLinks,
+    incomingLinks: inboundLinks,
+    revisionCount: history.length,
+    firstEdited: history[history.length - 1]?.date ?? null,
+    lastEdited: history[0]?.date ?? null,
+    referencesCount: getArticleReferences({ slug: article.slug, linkGraph: linkgraphData, titleBySlug }).length,
+    wordCount,
+    readingMinutes: Math.max(1, Math.ceil(wordCount / 200)),
+    sectionCount: sectionCountBySlug[article.slug] ?? 0,
+  };
+}
+
+export function buildAllPagesDocument({ origin, articles = [] }) {
+  return {
+    site: origin,
+    allpagesJsonUrl: `${origin}/wiki/special/allpages.json`,
+    count: articles.length,
+    articles,
+  };
 }

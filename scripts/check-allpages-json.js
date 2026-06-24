@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { buildAllPages } from './allpages.js';
+import { buildAllPages, buildAllPagesDocument, enrichAllPagesArticle } from './allpages.js';
 import { getArticleReferences } from '../src/lib/article-references.js';
 import { publishedInboundLinkCount } from './most-linked.js';
 
@@ -151,6 +151,45 @@ const ORIGIN = 'https://taopedia.org';
   });
   assert.equal(out[0].summary, '', 'undefined summary normalizes to empty string');
   assert.deepEqual(out[0].categories, [], 'missing categories normalizes to an empty array');
+}
+
+// ---- 2b) Unit: enrichAllPagesArticle + buildAllPagesDocument --------------
+{
+  const article = {
+    slug: 'hub',
+    title: 'Hub',
+    summary: 'hub summary',
+    url: `${ORIGIN}/wiki/hub/`,
+    categories: ['Consensus'],
+  };
+  const historyForSlug = (slug) =>
+    slug === 'hub'
+      ? [{ date: '2024-06-01T00:00:00.000Z' }, { date: '2024-01-01T00:00:00.000Z' }]
+      : [];
+  const entry = enrichAllPagesArticle({
+    article,
+    origin: ORIGIN,
+    titleBySlug: { hub: 'Hub', leaf: 'Leaf' },
+    wordCountBySlug: { hub: 420 },
+    sectionCountBySlug: { hub: 5 },
+    backlinksData: { hub: [{ from: 'leaf' }] },
+    linkgraphData: { hub: [{ target: 'leaf' }] },
+    historyForSlug,
+  });
+  assert.equal(entry.revisionCount, 2, 'enricher: revisionCount');
+  assert.equal(entry.firstEdited, '2024-01-01T00:00:00.000Z', 'enricher: firstEdited');
+  assert.equal(entry.lastEdited, '2024-06-01T00:00:00.000Z', 'enricher: lastEdited');
+  assert.equal(entry.incomingLinks, 1, 'enricher: incomingLinks');
+  assert.equal(entry.referencesCount, 1, 'enricher: referencesCount');
+  assert.equal(entry.wordCount, 420, 'enricher: wordCount');
+  assert.equal(entry.readingMinutes, 3, 'enricher: readingMinutes ceil(420/200)');
+  assert.equal(entry.sectionCount, 5, 'enricher: sectionCount');
+  assert.equal(entry.referencesJsonUrl, entry.referencesUrl, 'enricher: referencesJsonUrl alias');
+  assert.equal(entry.relatedJsonUrl, entry.relatedUrl, 'enricher: relatedJsonUrl alias');
+
+  const doc = buildAllPagesDocument({ origin: ORIGIN, articles: [entry] });
+  assert.equal(doc.allpagesJsonUrl, `${ORIGIN}/wiki/special/allpages.json`, 'document: self url');
+  assert.equal(doc.count, 1, 'document: count');
 }
 
 // ---- 3) Built output: validate against the synced content collection ----
