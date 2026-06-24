@@ -82,6 +82,12 @@ export const buildCategoryArticlesDocument = ({ origin, categoryName, categoryPa
     bibtexUrl: `${origin}/wiki/${article.slug}/cite.bib`,
     referencesUrl: `${origin}/wiki/${article.slug}/references.json`,
     relatedUrl: `${origin}/wiki/${article.slug}/related.json`,
+    // referencesJsonUrl / relatedJsonUrl are the consistently-named *JsonUrl
+    // aliases for referencesUrl / relatedUrl, matching the infoJsonUrl /
+    // backlinksJsonUrl / citeJsonUrl / tocJsonUrl companions this entry already
+    // exposes. referencesUrl / relatedUrl are kept for back-compat.
+    referencesJsonUrl: `${origin}/wiki/${article.slug}/references.json`,
+    relatedJsonUrl: `${origin}/wiki/${article.slug}/related.json`,
     tocJsonUrl: `${origin}/wiki/${article.slug}/toc.json`,
     imageUrl: `${origin}/og/${article.slug}.png`,
   })),
