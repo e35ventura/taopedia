@@ -73,14 +73,22 @@ export const GET: APIRoute = async ({ props, site }) => {
 
   const backlinks = (backlinksData[slug] ?? [])
     .filter((entry) => titleBySlug[entry.from])
-    .map((entry) => ({
-      slug: entry.from,
-      title: titleBySlug[entry.from],
-      summary: summaryBySlug[entry.from] ?? '',
-      categories: categoriesBySlug[entry.from] ?? [],
-      backlinks: publishedInboundLinkCount(backlinksData, entry.from, titleBySlug),
-      lastEdited: historyForSlug(entry.from)[0]?.date ?? null,
-    }))
+    .map((entry) => {
+      // History is newest-first, so [0] is the latest revision and the last
+      // entry is the original publication — the same revisionCount / firstEdited
+      // / lastEdited per-entry stats references.json and allpages.json expose.
+      const entryHistory = historyForSlug(entry.from);
+      return {
+        slug: entry.from,
+        title: titleBySlug[entry.from],
+        summary: summaryBySlug[entry.from] ?? '',
+        categories: categoriesBySlug[entry.from] ?? [],
+        backlinks: publishedInboundLinkCount(backlinksData, entry.from, titleBySlug),
+        revisionCount: entryHistory.length,
+        firstEdited: entryHistory[entryHistory.length - 1]?.date ?? null,
+        lastEdited: entryHistory[0]?.date ?? null,
+      };
+    })
     .sort((a, b) => compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug));
 
   const body = JSON.stringify(

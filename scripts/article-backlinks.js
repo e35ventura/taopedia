@@ -41,9 +41,13 @@ export const buildArticleBacklinks = ({ slug, title, origin, summary = '', categ
     summary: link.summary || null,
     categories: Array.isArray(link.categories) ? link.categories : [],
     backlinks: Number.isFinite(link.backlinks) ? link.backlinks : 0,
-    // The linking article's last-revision date — the same lastEdited figure
-    // info.json exposes per article, so a consumer scanning the backlink list
-    // can gauge each linking page's recency without a per-entry fetch.
+    // The linking article's revision stats — revisionCount (commit-history
+    // length) and firstEdited (original publication date) alongside lastEdited
+    // (last revision) — the same per-entry stats references.json and
+    // allpages.json expose, so a consumer scanning the backlink list can gauge
+    // each linking page's age/activity without a per-entry fetch.
+    revisionCount: Number.isFinite(link.revisionCount) ? link.revisionCount : 0,
+    firstEdited: link.firstEdited ?? null,
     lastEdited: link.lastEdited ?? null,
     url: `${origin}/wiki/${link.slug}/`,
     infoUrl: `${origin}/wiki/${link.slug}/info/`,
