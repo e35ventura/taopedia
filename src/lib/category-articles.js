@@ -60,6 +60,10 @@ export const buildCategoryArticlesDocument = ({ origin, categoryName, categoryPa
     // The article body's word count — the same figure info.json exposes and
     // allpages.json / subnets.json / mostlinkedpages.json expose per directory entry.
     wordCount: Number.isFinite(article.wordCount) ? article.wordCount : 0,
+    // The article's table-of-contents section count — the same figure toc.json
+    // exposes as `count` and info.json / history.json expose, and subnets.json /
+    // mostlinkedpages.json expose per directory entry.
+    sectionCount: Number.isFinite(article.sectionCount) ? article.sectionCount : 0,
     url: `${origin}/wiki/${article.slug}/`,
     infoUrl: `${origin}/wiki/${article.slug}/info/`,
     infoJsonUrl: `${origin}/wiki/${article.slug}/info.json`,

@@ -88,6 +88,7 @@ const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.js
         firstEdited: null,
         lastEdited: null,
         wordCount: 0,
+        sectionCount: 0,
         url: `${ORIGIN}/wiki/subnet_2/`,
         infoUrl: `${ORIGIN}/wiki/subnet_2/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/subnet_2/info.json`,
@@ -115,6 +116,7 @@ const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.js
         firstEdited: null,
         lastEdited: null,
         wordCount: 0,
+        sectionCount: 0,
         url: `${ORIGIN}/wiki/subnet_9/`,
         infoUrl: `${ORIGIN}/wiki/subnet_9/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/subnet_9/info.json`,
@@ -142,6 +144,7 @@ const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.js
         firstEdited: null,
         lastEdited: null,
         wordCount: 0,
+        sectionCount: 0,
         url: `${ORIGIN}/wiki/subnet_10/`,
         infoUrl: `${ORIGIN}/wiki/subnet_10/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/subnet_10/info.json`,
@@ -204,6 +207,15 @@ const infoWordCountOf = (slug) => {
   const wc = JSON.parse(fs.readFileSync(file, 'utf8')).wordCount;
   return Number.isFinite(wc) ? wc : 0;
 };
+// sectionCount is the article's table-of-contents section count — re-derived from
+// the sibling built toc.json `count` (the independent source the endpoint
+// mirrors), so the category list and the per-article TOC surface can't disagree.
+const tocSectionCountOf = (slug) => {
+  const file = path.join(projectRoot, 'dist', 'wiki', slug, 'toc.json');
+  if (!fs.existsSync(file)) return 0;
+  const sc = JSON.parse(fs.readFileSync(file, 'utf8')).count;
+  return Number.isFinite(sc) ? sc : 0;
+};
 const withBacklinks = (list) =>
   list.map((a) => ({
     ...a,
@@ -211,6 +223,7 @@ const withBacklinks = (list) =>
     referencesCount: outboundCountFor(a.slug),
     ...revisionStatsOf(a.slug),
     wordCount: infoWordCountOf(a.slug),
+    sectionCount: tocSectionCountOf(a.slug),
   }));
 
 const dirToOriginal = new Map();
