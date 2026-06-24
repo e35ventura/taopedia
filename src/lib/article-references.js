@@ -51,6 +51,10 @@ export const buildArticleReferences = ({ slug, title, origin, summary = '', cate
   // The article body's word count — the same figure info.json / history.json
   // expose and the article-page footer (mw-article-meta data-word-count) renders.
   wordCount: Number.isFinite(wordCount) ? wordCount : 0,
+  // The ~200-wpm reading-time estimate derived from wordCount — the same figure
+  // info.json / history.json / cite.json / toc.json expose and the article-page
+  // footer ("N min read") renders.
+  readingMinutes: Math.max(1, Math.ceil((Number.isFinite(wordCount) ? wordCount : 0) / 200)),
   count: references.length,
   references: references.map((link) => ({
     slug: link.slug,
