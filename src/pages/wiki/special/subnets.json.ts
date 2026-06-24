@@ -100,6 +100,11 @@ export const GET: APIRoute = async ({ site }) => {
         referencesCount: getArticleReferences({ slug: subnet.slug, linkGraph: linkgraphData, titleBySlug }).length,
         sectionCount: sectionCountBySlug[subnet.slug] ?? 0,
         wordCount: wordCountBySlug[subnet.slug] ?? 0,
+        // The subnet article's estimated reading time in minutes — the same
+        // ~200 wpm ceil estimate info.json exposes and the article-page footer
+        // ("N min read") renders from wordCount, so a subnet dashboard can show
+        // each subnet's reading time without a second fetch.
+        readingMinutes: Math.max(1, Math.ceil((wordCountBySlug[subnet.slug] ?? 0) / 200)),
         // The subnet article's revision stats (history is newest-first) — the same
         // revisionCount / firstEdited / lastEdited trio info.json / history.json
         // expose per article and allpages.json / mostlinkedpages.json expose per
