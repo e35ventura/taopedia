@@ -84,6 +84,8 @@ const revisionStatsOf = (slug) => {
   assert.equal(doc.summary, 'The source article.', 'builder: summary field');
   assert.equal(doc.url, `${ORIGIN}/wiki/source/`, 'builder: url field');
   assert.equal(doc.referencesUrl, `${ORIGIN}/wiki/source/references.json`, 'builder: referencesUrl self field');
+  assert.equal(doc.referencesJsonUrl, `${ORIGIN}/wiki/source/references.json`, 'builder: referencesJsonUrl self-link (matches <name>JsonUrl convention)');
+  assert.equal(doc.referencesJsonUrl, doc.referencesUrl, 'builder: referencesJsonUrl must equal the back-compat referencesUrl');
   assert.equal(doc.historyUrl, `${ORIGIN}/wiki/source/history/`, 'builder: historyUrl cross-link');
   assert.equal(doc.historyJsonUrl, `${ORIGIN}/wiki/source/history.json`, 'builder: historyJsonUrl cross-link');
   assert.equal(doc.backlinksUrl, `${ORIGIN}/wiki/source/backlinks/`, 'builder: backlinksUrl cross-link');
@@ -309,6 +311,14 @@ for (const slug of articleSlugs) {
     `${ORIGIN}/wiki/${slug}/references.json`,
     `${slug}: references.json must expose its own canonical referencesUrl`,
   );
+  // referencesJsonUrl is the same canonical self-link under the consistent
+  // <name>JsonUrl key every sibling endpoint uses; it must equal referencesUrl.
+  assert.equal(
+    doc.referencesJsonUrl,
+    `${ORIGIN}/wiki/${slug}/references.json`,
+    `${slug}: references.json must expose its canonical referencesJsonUrl self-link`,
+  );
+  assert.equal(doc.referencesJsonUrl, doc.referencesUrl, `${slug}: referencesJsonUrl must equal the back-compat referencesUrl`);
   // historyUrl / historyJsonUrl cross-link to the article's own revision history,
   // the same self cross-link cite.json / backlinks.json / history.json envelopes
   // expose, so a consumer of references.json can reach the article's history too.

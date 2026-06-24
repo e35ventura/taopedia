@@ -22,6 +22,13 @@ export const buildArticleReferences = ({ slug, title, origin, summary = '', cate
   summary: summary || null,
   url: `${origin}/wiki/${slug}/`,
   referencesUrl: `${origin}/wiki/${slug}/references.json`,
+  // referencesJsonUrl is the endpoint's own canonical self-link named to match
+  // the <name>JsonUrl convention every sibling endpoint uses for its self-link
+  // (info.json → infoJsonUrl, history.json → historyJsonUrl, backlinks.json →
+  // backlinksJsonUrl, cite.json → citeJsonUrl, toc.json → tocJsonUrl). references.json
+  // was the lone outlier naming its self-link without the Json suffix; referencesUrl
+  // is kept for backwards compatibility and referencesJsonUrl is the consistent name.
+  referencesJsonUrl: `${origin}/wiki/${slug}/references.json`,
   historyUrl: `${origin}/wiki/${slug}/history/`,
   historyJsonUrl: `${origin}/wiki/${slug}/history.json`,
   backlinksUrl: `${origin}/wiki/${slug}/backlinks/`,
