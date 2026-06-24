@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { orderGeneratedData } from './build-linkgraph.js';
+import { orderGeneratedData, dedupeOutgoingLinks } from './build-linkgraph.js';
 
 const projectRoot = path.resolve(new URL('..', import.meta.url).pathname);
 const dataDir = path.join(projectRoot, 'public', 'data');
@@ -42,6 +42,19 @@ const input = {
 };
 
 const ordered = orderGeneratedData(input);
+
+assert.deepEqual(
+  dedupeOutgoingLinks([
+    { target: 'alpha', text: 'A' },
+    { target: 'alpha', text: 'B' },
+    { target: 'beta', text: 'B' },
+  ]),
+  [
+    { target: 'alpha', text: 'A' },
+    { target: 'beta', text: 'B' },
+  ],
+  'dedupeOutgoingLinks keeps the first link per target',
+);
 
 assertSortedKeys(ordered.linkGraph, 'linkgraph');
 assert.deepEqual(Object.keys(ordered.linkGraph), ['alpha', 'subnet_2', 'subnet_10']);
