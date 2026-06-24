@@ -8,9 +8,16 @@ const categorySlug = (categoryName: string) => categoryName.replace(/ /g, '_');
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
   const categories = new Set<string>();
+  // Cache each categorized article's history once. An article in N categories
+  // was otherwise having historyForSlug recomputed once per category feed; the
+  // map only depends on the article slug, so build it a single time here.
+  const historyBySlug: Record<string, ReturnType<typeof historyForSlug>> = {};
 
   for (const page of pages) {
-    for (const category of page.data.categories ?? []) categories.add(category);
+    const slug = getPageSlug(page);
+    const pageCategories = page.data.categories ?? [];
+    if (pageCategories.length > 0) historyBySlug[slug] = historyForSlug(slug);
+    for (const category of pageCategories) categories.add(category);
   }
 
   return [...categories].sort().map((categoryName) => {
@@ -23,7 +30,7 @@ export async function getStaticPaths() {
       .filter((page) => page.data.categories?.includes(categoryName))
       .map((page) => {
         const slug = getPageSlug(page);
-        const history = historyForSlug(slug);
+        const history = historyBySlug[slug] ?? [];
         return {
           slug,
           title: page.data.title,
