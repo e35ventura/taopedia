@@ -29,7 +29,7 @@ const ORIGIN = 'https://taopedia.org';
     { sha: 'abc1234def5678', date: '2026-06-01T12:00:00.000Z', authorName: 'alice', message: 'initial commit' },
     { sha: '000aaabbbccc11', date: '2025-01-10T08:00:00.000Z', authorName: 'bob', message: 'update' },
   ];
-  const result = buildArticleHistory({ slug: 'recycling', title: 'Recycling', origin: ORIGIN, summary: 'Reclaiming emitted TAO.', categories: ['Consensus'], incomingLinks: 5, referencesCount: 3, revisions: revs });
+  const result = buildArticleHistory({ slug: 'recycling', title: 'Recycling', origin: ORIGIN, summary: 'Reclaiming emitted TAO.', categories: ['Consensus'], incomingLinks: 5, referencesCount: 3, sectionCount: 4, revisions: revs });
   assert.equal(result.slug, 'recycling', 'builder: slug');
   assert.equal(result.title, 'Recycling', 'builder: title');
   assert.equal(result.summary, 'Reclaiming emitted TAO.', 'builder: summary');
@@ -50,6 +50,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.deepEqual(result.categories, ['Consensus'], 'builder: categories');
   assert.equal(result.incomingLinks, 5, 'builder: incomingLinks');
   assert.equal(result.referencesCount, 3, 'builder: referencesCount');
+  assert.equal(result.sectionCount, 4, 'builder: sectionCount');
   assert.equal(result.revisionCount, 2, 'builder: revisionCount');
   assert.equal(result.lastEdited, '2026-06-01T12:00:00.000Z', 'builder: lastEdited is revisions[0].date');
   assert.equal(result.firstEdited, '2025-01-10T08:00:00.000Z', 'builder: firstEdited is revisions[last].date');
@@ -72,6 +73,10 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(empty.summary, null, 'builder: default summary is null');
   assert.equal(empty.incomingLinks, 0, 'builder: default incomingLinks is 0');
   assert.equal(empty.referencesCount, 0, 'builder: default referencesCount is 0');
+  assert.equal(empty.sectionCount, 0, 'builder: default sectionCount is 0');
+
+  const badSection = buildArticleHistory({ slug: 'x', title: 'X', origin: ORIGIN, sectionCount: NaN });
+  assert.equal(badSection.sectionCount, 0, 'builder: non-finite sectionCount defaults to 0');
 
   const badCount = buildArticleHistory({ slug: 'x', title: 'X', origin: ORIGIN, referencesCount: NaN });
   assert.equal(badCount.referencesCount, 0, 'builder: non-finite referencesCount defaults to 0');
@@ -197,6 +202,18 @@ for (const slug of articleSlugs) {
       doc.referencesCount,
       referencesDoc.count,
       `${slug}: history.json referencesCount must agree with the sibling references.json envelope`,
+    );
+  }
+  // sectionCount is the article's table-of-contents section count — the same
+  // figure toc.json exposes as `count`, derived from the shared getArticleToc helper.
+  assert.ok(Number.isInteger(doc.sectionCount) && doc.sectionCount >= 0, `${slug}: history.json sectionCount must be a non-negative integer`);
+  const tocJsonFile = path.join(wikiDir, slug, 'toc.json');
+  if (fs.existsSync(tocJsonFile)) {
+    const tocDoc = JSON.parse(fs.readFileSync(tocJsonFile, 'utf8'));
+    assert.equal(
+      doc.sectionCount,
+      tocDoc.count,
+      `${slug}: history.json sectionCount must agree with the sibling toc.json envelope`,
     );
   }
   const infoJsonFile = path.join(wikiDir, slug, 'info.json');
