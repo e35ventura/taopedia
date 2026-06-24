@@ -283,12 +283,12 @@ data.subnets.forEach((row, i) => {
     Number.isInteger(row.wordCount) && row.wordCount >= 0,
     `row ${i} wordCount must be a non-negative integer (got ${JSON.stringify(row.wordCount)})`,
   );
-  const snInfoJsonFile = path.join(projectRoot, 'dist', 'wiki', row.slug, 'info.json');
-  if (fs.existsSync(snInfoJsonFile)) {
-    const infoDoc = JSON.parse(fs.readFileSync(snInfoJsonFile, 'utf8'));
+  const snWordInfoJsonFile = path.join(projectRoot, 'dist', 'wiki', row.slug, 'info.json');
+  if (fs.existsSync(snWordInfoJsonFile)) {
+    const wordInfoDoc = JSON.parse(fs.readFileSync(snWordInfoJsonFile, 'utf8'));
     assert.equal(
       row.wordCount,
-      infoDoc.wordCount,
+      wordInfoDoc.wordCount,
       `row ${i} wordCount must agree with the sibling info.json envelope for ${row.slug}`,
     );
   }
