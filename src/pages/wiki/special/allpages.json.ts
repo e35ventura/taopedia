@@ -57,6 +57,10 @@ export const GET: APIRoute = async ({ site }) => {
       count: articles.length,
       articles: articles.map((article) => {
         const history = historyForSlug(article.slug);
+        // Compute the published inbound-link count once; backlinks and its
+        // info.json-named alias incomingLinks are assigned from the same value so
+        // they can never drift and the count is not computed twice per row.
+        const inboundLinks = publishedInboundLinkCount(backlinksData, article.slug, titleBySlug);
         return {
           slug: article.slug,
           title: article.title,
@@ -76,7 +80,12 @@ export const GET: APIRoute = async ({ site }) => {
           tocJsonUrl: `${origin}/wiki/${article.slug}/toc.json`,
           imageUrl: `${origin}/og/${article.slug}.png`,
           categories: article.categories,
-          backlinks: publishedInboundLinkCount(backlinksData, article.slug, titleBySlug),
+          backlinks: inboundLinks,
+          // info.json names this same published inbound-link figure incomingLinks;
+          // keep backlinks for field-name compatibility and expose incomingLinks
+          // too (same value), the per-entry alias related.json / references.json /
+          // category articles.json carry for each row.
+          incomingLinks: inboundLinks,
           // The article's revision stats from its commit history (newest-first) —
           // the same revisionCount / firstEdited / lastEdited trio info.json and
           // history.json expose per article, and mostlinkedpages.json / subnets.json
