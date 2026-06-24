@@ -1089,6 +1089,20 @@ accepts('<a href="/wiki/aria-activedescendant=demo">aria-activedescendant docs</
 accepts('ARIA activedescendant is an accessibility concept described here only as prose.', 'benign aria-activedescendant prose');
 accepts('<span class=x/aria-activedescendant-demo>not an aria-activedescendant attribute</span>', 'benign aria-activedescendant substring in class value');
 
+// aria-relevant= is the third live-region control attribute alongside the merged
+// aria-live/aria-atomic block (#558); it shapes which mutations a live region
+// announces. A static glossary has no live regions, so complete the set.
+rejects('Intro.\n\n<div aria-relevant="all">x</div>', 'plain aria-relevant attribute');
+rejects('Intro.\n\n<div aria-relevant="additions text">x</div>', 'plain aria-relevant multi-token value');
+rejects('Intro.\n\n<  div   aria-relevant = "removals">x</div>', 'spaced aria-relevant attribute');
+rejects('<a href="x"aria-relevant="all">go</a>', 'quote-abutted aria-relevant attribute');
+rejects('<div class=x/aria-relevant="all">x</div>', 'slash-delimited aria-relevant attribute');
+rejects("<p class='x'aria-relevant='text'>x</p>", 'single-quote-abutted aria-relevant attribute');
+
+accepts('<a href="/wiki/aria-relevant=demo">aria-relevant docs</a>', 'benign aria-relevant substring in quoted href');
+accepts('ARIA relevant is an accessibility concept described here only as prose.', 'benign aria-relevant prose');
+accepts('<span class=x/aria-relevant-demo>not an aria-relevant attribute</span>', 'benign aria-relevant substring in class value');
+
 // srcset=/sizes= on <img> steer responsive loading — gap after #411 blocked picture/source.
 rejects('Intro.\n\n<img src="/wiki/fig.png" srcset="https://evil.example/x 1x" alt="x">', 'plain img srcset attribute');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   srcset = "https://evil.example/x 2x">', 'spaced img srcset attribute');
