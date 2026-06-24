@@ -1,9 +1,10 @@
 import type { APIRoute } from 'astro';
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
 import { buildArticleRelatedPages, getRelatedPages } from '../../../lib/related-pages';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
 import { getArticleReferences } from '../../../lib/article-references.js';
+import { getArticleToc } from '../../../lib/article-toc.js';
 
 const slugmapModules = import.meta.glob('../../../../public/data/slugmap.json', { eager: true }) as Record<
   string,
@@ -32,51 +33,48 @@ export async function getStaticPaths() {
   const titleBySlug = Object.fromEntries(pages.map((page) => [getPageSlug(page), page.data.title]));
   const publishedSlugs = new Set(Object.keys(titleBySlug));
 
-  return pages.map((page) => {
-    const slug = getPageSlug(page);
-    // History is newest-first, so [0] is the latest revision and the last entry
-    // is the original publication — the same firstEdited/lastEdited pair info.json
-    // and history.json expose.
-    const history = historyForSlug(slug);
-    return {
-      params: { slug },
-      props: {
-        slug,
-        title: page.data.title,
-        summary: page.data.summary ?? '',
-        categories: page.data.categories ?? [],
-        incomingLinks: publishedInboundLinkCount(backlinksData, slug, titleBySlug),
-        referencesCount: getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length,
-        revisionCount: history.length,
-        firstEdited: history[history.length - 1]?.date ?? null,
-        lastEdited: history[0]?.date ?? null,
-        relatedPages: getRelatedPages({
+  return Promise.all(
+    pages.map(async (page) => {
+      const slug = getPageSlug(page);
+      const history = historyForSlug(slug);
+      const { headings } = await render(page);
+      return {
+        params: { slug },
+        props: {
           slug,
-          slugMap,
-          categoriesIndex,
-          backlinks: backlinksData,
-          outgoing: linkgraphData,
-          publishedSlugs,
-          titleBySlug,
-        }).map((entry) => {
-          // History is newest-first, so [0] is the latest revision and the last
-          // entry is the original publication — the same revisionCount /
-          // firstEdited / lastEdited per-entry stats references.json and
-          // allpages.json expose for each entry.
-          const entryHistory = historyForSlug(entry.slug);
-          return {
-            ...entry,
-            categories: slugMap[entry.slug]?.categories ?? [],
-            backlinks: publishedInboundLinkCount(backlinksData, entry.slug, titleBySlug),
-            referencesCount: getArticleReferences({ slug: entry.slug, linkGraph: linkgraphData, titleBySlug }).length,
-            revisionCount: entryHistory.length,
-            firstEdited: entryHistory[entryHistory.length - 1]?.date ?? null,
-            lastEdited: entryHistory[0]?.date ?? null,
-          };
-        }),
-      },
-    };
-  });
+          title: page.data.title,
+          summary: page.data.summary ?? '',
+          categories: page.data.categories ?? [],
+          incomingLinks: publishedInboundLinkCount(backlinksData, slug, titleBySlug),
+          referencesCount: getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length,
+          sectionCount: getArticleToc(headings).length,
+          revisionCount: history.length,
+          firstEdited: history[history.length - 1]?.date ?? null,
+          lastEdited: history[0]?.date ?? null,
+          relatedPages: getRelatedPages({
+            slug,
+            slugMap,
+            categoriesIndex,
+            backlinks: backlinksData,
+            outgoing: linkgraphData,
+            publishedSlugs,
+            titleBySlug,
+          }).map((entry) => {
+            const entryHistory = historyForSlug(entry.slug);
+            return {
+              ...entry,
+              categories: slugMap[entry.slug]?.categories ?? [],
+              backlinks: publishedInboundLinkCount(backlinksData, entry.slug, titleBySlug),
+              referencesCount: getArticleReferences({ slug: entry.slug, linkGraph: linkgraphData, titleBySlug }).length,
+              revisionCount: entryHistory.length,
+              firstEdited: entryHistory[entryHistory.length - 1]?.date ?? null,
+              lastEdited: entryHistory[0]?.date ?? null,
+            };
+          }),
+        },
+      };
+    }),
+  );
 }
 
 // Machine-readable companion to the article-level "Related pages" block. It
@@ -84,13 +82,14 @@ export async function getStaticPaths() {
 // ordering, summaries, and topic tags stay aligned without introducing an HTML
 // subpage or any visual diff.
 export const GET: APIRoute = async ({ props, site }) => {
-  const { slug, title, summary, categories, incomingLinks, referencesCount, revisionCount, firstEdited, lastEdited, relatedPages } = props as {
+  const { slug, title, summary, categories, incomingLinks, referencesCount, sectionCount, revisionCount, firstEdited, lastEdited, relatedPages } = props as {
     slug: string;
     title: string;
     summary: string;
     categories: string[];
     incomingLinks: number;
     referencesCount: number;
+    sectionCount: number;
     revisionCount: number;
     firstEdited: string | null;
     lastEdited: string | null;
@@ -98,7 +97,7 @@ export const GET: APIRoute = async ({ props, site }) => {
   };
   const origin = (site ?? new URL('https://taopedia.org')).origin;
 
-  const body = JSON.stringify(buildArticleRelatedPages({ slug, title, origin, summary, categories, incomingLinks, referencesCount, revisionCount, firstEdited, lastEdited, relatedPages }), null, 2);
+  const body = JSON.stringify(buildArticleRelatedPages({ slug, title, origin, summary, categories, incomingLinks, referencesCount, sectionCount, revisionCount, firstEdited, lastEdited, relatedPages }), null, 2);
 
   return new Response(body, {
     headers: { 'Content-Type': 'application/json; charset=utf-8' },
