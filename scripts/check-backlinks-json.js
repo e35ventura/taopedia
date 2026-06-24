@@ -100,7 +100,9 @@ const revisionStatsOf = (slug) => {
   assert.equal(result.backlinks[0].citeJsonUrl, `${ORIGIN}/wiki/neuron/cite.json`, 'builder: backlinks[0].citeJsonUrl');
   assert.equal(result.backlinks[0].bibtexUrl, `${ORIGIN}/wiki/neuron/cite.bib`, 'builder: backlinks[0].bibtexUrl');
   assert.equal(result.backlinks[0].referencesUrl, `${ORIGIN}/wiki/neuron/references.json`, 'builder: backlinks[0].referencesUrl');
+  assert.equal(result.backlinks[0].referencesJsonUrl, `${ORIGIN}/wiki/neuron/references.json`, 'builder: backlinks[0].referencesJsonUrl');
   assert.equal(result.backlinks[0].relatedUrl, `${ORIGIN}/wiki/neuron/related.json`, 'builder: backlinks[0].relatedUrl');
+  assert.equal(result.backlinks[0].relatedJsonUrl, `${ORIGIN}/wiki/neuron/related.json`, 'builder: backlinks[0].relatedJsonUrl');
   assert.equal(result.backlinks[0].tocJsonUrl, `${ORIGIN}/wiki/neuron/toc.json`, 'builder: backlinks[0].tocJsonUrl');
   assert.equal(result.backlinks[0].imageUrl, `${ORIGIN}/og/neuron.png`, 'builder: backlinks[0].imageUrl');
   assert.equal(result.backlinks[0].referencesCount, 5, 'builder: backlinks[0].referencesCount threaded verbatim');
@@ -130,7 +132,9 @@ const revisionStatsOf = (slug) => {
   assert.equal(result.backlinks[1].citeJsonUrl, `${ORIGIN}/wiki/subnet_1/cite.json`, 'builder: backlinks[1].citeJsonUrl');
   assert.equal(result.backlinks[1].bibtexUrl, `${ORIGIN}/wiki/subnet_1/cite.bib`, 'builder: backlinks[1].bibtexUrl');
   assert.equal(result.backlinks[1].referencesUrl, `${ORIGIN}/wiki/subnet_1/references.json`, 'builder: backlinks[1].referencesUrl');
+  assert.equal(result.backlinks[1].referencesJsonUrl, `${ORIGIN}/wiki/subnet_1/references.json`, 'builder: backlinks[1].referencesJsonUrl');
   assert.equal(result.backlinks[1].relatedUrl, `${ORIGIN}/wiki/subnet_1/related.json`, 'builder: backlinks[1].relatedUrl');
+  assert.equal(result.backlinks[1].relatedJsonUrl, `${ORIGIN}/wiki/subnet_1/related.json`, 'builder: backlinks[1].relatedJsonUrl');
   assert.equal(result.backlinks[1].tocJsonUrl, `${ORIGIN}/wiki/subnet_1/toc.json`, 'builder: backlinks[1].tocJsonUrl');
   assert.equal(result.backlinks[1].imageUrl, `${ORIGIN}/og/subnet_1.png`, 'builder: backlinks[1].imageUrl');
 
@@ -507,6 +511,21 @@ for (const slug of articleSlugs) {
       `${ORIGIN}/wiki/${entry.slug}/related.json`,
       `${slug}: every backlink entry relatedUrl must be the canonical article related.json URL`,
     );
+    // referencesJsonUrl / relatedJsonUrl are the same companion links under the
+    // consistent <name>JsonUrl key the rest of the API uses; each equals its
+    // back-compat un-suffixed twin.
+    assert.equal(
+      entry.referencesJsonUrl,
+      `${ORIGIN}/wiki/${entry.slug}/references.json`,
+      `${slug}: every backlink entry referencesJsonUrl must be the canonical article references.json URL`,
+    );
+    assert.equal(entry.referencesJsonUrl, entry.referencesUrl, `${slug}: every backlink entry referencesJsonUrl must equal the back-compat referencesUrl`);
+    assert.equal(
+      entry.relatedJsonUrl,
+      `${ORIGIN}/wiki/${entry.slug}/related.json`,
+      `${slug}: every backlink entry relatedJsonUrl must be the canonical article related.json URL`,
+    );
+    assert.equal(entry.relatedJsonUrl, entry.relatedUrl, `${slug}: every backlink entry relatedJsonUrl must equal the back-compat relatedUrl`);
     // tocJsonUrl cross-links to the linking article's table-of-contents JSON,
     // the same companion the directory entries (allpages, mostlinkedpages)
     // already expose per article.
