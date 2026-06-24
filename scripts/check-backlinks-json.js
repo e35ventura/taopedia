@@ -70,6 +70,10 @@ const revisionStatsOf = (slug) => {
   assert.equal(result.bibtexUrl, `${ORIGIN}/wiki/recycling/cite.bib`, 'builder: bibtexUrl field');
   assert.equal(result.referencesUrl, `${ORIGIN}/wiki/recycling/references.json`, 'builder: referencesUrl field');
   assert.equal(result.relatedUrl, `${ORIGIN}/wiki/recycling/related.json`, 'builder: relatedUrl field');
+  assert.equal(result.referencesJsonUrl, `${ORIGIN}/wiki/recycling/references.json`, 'builder: referencesJsonUrl alias');
+  assert.equal(result.referencesJsonUrl, result.referencesUrl, 'builder: referencesJsonUrl must equal referencesUrl');
+  assert.equal(result.relatedJsonUrl, `${ORIGIN}/wiki/recycling/related.json`, 'builder: relatedJsonUrl alias');
+  assert.equal(result.relatedJsonUrl, result.relatedUrl, 'builder: relatedJsonUrl must equal relatedUrl');
   assert.equal(result.tocJsonUrl, `${ORIGIN}/wiki/recycling/toc.json`, 'builder: tocJsonUrl field');
   assert.equal(result.imageUrl, `${ORIGIN}/og/recycling.png`, 'builder: imageUrl field');
   assert.deepEqual(result.categories, ['Consensus'], 'builder: categories field');
@@ -230,6 +234,26 @@ for (const slug of articleSlugs) {
   // related-pages JSON endpoints on the envelope (entries already expose both).
   assert.equal(doc.referencesUrl, `${ORIGIN}/wiki/${slug}/references.json`, `${slug}: backlinks.json referencesUrl must point to the references.json hub`);
   assert.equal(doc.relatedUrl, `${ORIGIN}/wiki/${slug}/related.json`, `${slug}: backlinks.json relatedUrl must point to the related.json hub`);
+  // referencesJsonUrl / relatedJsonUrl are the consistently-named *JsonUrl aliases
+  // for referencesUrl / relatedUrl; each must equal the canonical .json URL and its counterpart.
+  assert.equal(doc.referencesJsonUrl, `${ORIGIN}/wiki/${slug}/references.json`, `${slug}: backlinks.json referencesJsonUrl must point to the references.json hub`);
+  assert.equal(doc.referencesJsonUrl, doc.referencesUrl, `${slug}: backlinks.json referencesJsonUrl must equal referencesUrl`);
+  assert.equal(doc.relatedJsonUrl, `${ORIGIN}/wiki/${slug}/related.json`, `${slug}: backlinks.json relatedJsonUrl must point to the related.json hub`);
+  assert.equal(doc.relatedJsonUrl, doc.relatedUrl, `${slug}: backlinks.json relatedJsonUrl must equal relatedUrl`);
+  const backlinksHistoryJsonFile = path.join(wikiDir, slug, 'history.json');
+  if (fs.existsSync(backlinksHistoryJsonFile)) {
+    const historyDoc = JSON.parse(fs.readFileSync(backlinksHistoryJsonFile, 'utf8'));
+    assert.equal(
+      doc.referencesJsonUrl,
+      historyDoc.referencesJsonUrl,
+      `${slug}: backlinks.json referencesJsonUrl must agree with the sibling history.json envelope`,
+    );
+    assert.equal(
+      doc.relatedJsonUrl,
+      historyDoc.relatedJsonUrl,
+      `${slug}: backlinks.json relatedJsonUrl must agree with the sibling history.json envelope`,
+    );
+  }
   // tocJsonUrl cross-links to the article's table-of-contents JSON, the same
   // companion the history.json / related.json envelopes and the directory
   // entries expose, so a consumer of backlinks.json can reach the article's TOC.
