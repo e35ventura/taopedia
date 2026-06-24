@@ -550,6 +550,19 @@ const ariaFormStateAttrPattern = /<[^>]*\saria-(?:disabled|readonly|required)\s*
 const nonSpaceDelimitedAriaFormStateAttrPattern =
   /<[^>]*[/"'`](?:aria-(?:disabled|readonly|required))\s*=/i;
 
+// aria-haspopup=/aria-modal= fake popup and modal-dialog state in assistive
+// technology — e.g. aria-haspopup="menu" makes a benign link sound like it
+// opens a submenu, and aria-modal="true" tells AT to treat the rest of the
+// page as inert background, trapping a screen-reader user's focus inside an
+// attacker-chosen element with no real dialog and no script. Same
+// accessibility-state spoof family as merged #587 (aria-disabled/readonly/
+// required), #583 (toggle state), and #582 (aria-busy). Glossary articles
+// never emit popup or dialog ARIA on static prose — the site's own dialog
+// components handle that.
+const ariaPopupStateAttrPattern = /<[^>]*\saria-(?:haspopup|modal)\s*=/i;
+const nonSpaceDelimitedAriaPopupStateAttrPattern =
+  /<[^>]*[/"'`](?:aria-(?:haspopup|modal))\s*=/i;
+
 // nowrap on allowed <td>/<th> disables text wrapping in the cell — an injected
 // long URL, fake wallet address, or padded phishing line breaks out of the
 // column, reflowing the real article text off-screen (a layout-defacement /
@@ -1183,6 +1196,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": aria-disabled, aria-readonly, and aria-required attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    ariaPopupStateAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAriaPopupStateAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": aria-haspopup and aria-modal attributes are not allowed in article content`,
     );
   }
 
