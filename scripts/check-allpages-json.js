@@ -257,13 +257,20 @@ data.articles.forEach((row, i) => {
     Number.isInteger(row.backlinks) && row.backlinks >= 0,
     `row ${i} backlinks must be a non-negative integer (got ${row.backlinks})`,
   );
-  // lastEdited is the article's last-revision date — the same figure info.json /
-  // history.json expose per article. Cross-check it against the sibling built
-  // info.json envelope (independent source) so the directory and the per-article
-  // surfaces can never disagree on recency.
+  // lastEdited / revisionCount / firstEdited mirror info.json per article.
+  // Cross-check against the sibling built info.json envelope (independent source)
+  // so the directory and the per-article surfaces can never disagree on history.
   assert.ok(
     row.lastEdited === null || typeof row.lastEdited === 'string',
     `row ${i} lastEdited must be a string date or null (got ${JSON.stringify(row.lastEdited)})`,
+  );
+  assert.ok(
+    Number.isInteger(row.revisionCount) && row.revisionCount >= 0,
+    `row ${i} revisionCount must be a non-negative integer (got ${JSON.stringify(row.revisionCount)})`,
+  );
+  assert.ok(
+    row.firstEdited === null || typeof row.firstEdited === 'string',
+    `row ${i} firstEdited must be a string date or null (got ${JSON.stringify(row.firstEdited)})`,
   );
   const apInfoJsonFile = path.join(projectRoot, 'dist', 'wiki', row.slug, 'info.json');
   if (fs.existsSync(apInfoJsonFile)) {
@@ -272,6 +279,16 @@ data.articles.forEach((row, i) => {
       row.lastEdited,
       infoDoc.lastEdited,
       `row ${i} lastEdited must agree with the sibling info.json envelope for ${row.slug}`,
+    );
+    assert.equal(
+      row.revisionCount,
+      infoDoc.revisionCount,
+      `row ${i} revisionCount must agree with the sibling info.json envelope for ${row.slug}`,
+    );
+    assert.equal(
+      row.firstEdited,
+      infoDoc.firstEdited,
+      `row ${i} firstEdited must agree with the sibling info.json envelope for ${row.slug}`,
     );
   }
   // historyUrl points at the article's revision-history page — the same

@@ -33,33 +33,35 @@ export const GET: APIRoute = async ({ site }) => {
       site: origin,
       allpagesJsonUrl: `${origin}/wiki/special/allpages.json`,
       count: articles.length,
-      articles: articles.map((article) => ({
-        slug: article.slug,
-        title: article.title,
-        summary: article.summary || null,
-        url: article.url,
-        infoUrl: `${origin}/wiki/${article.slug}/info/`,
-        infoJsonUrl: `${origin}/wiki/${article.slug}/info.json`,
-        backlinksUrl: `${origin}/wiki/${article.slug}/backlinks/`,
-        backlinksJsonUrl: `${origin}/wiki/${article.slug}/backlinks.json`,
-        historyUrl: `${origin}/wiki/${article.slug}/history/`,
-        historyJsonUrl: `${origin}/wiki/${article.slug}/history.json`,
-        citeUrl: `${origin}/wiki/${article.slug}/cite/`,
-        citeJsonUrl: `${origin}/wiki/${article.slug}/cite.json`,
-        bibtexUrl: `${origin}/wiki/${article.slug}/cite.bib`,
-        referencesUrl: `${origin}/wiki/${article.slug}/references.json`,
-        relatedUrl: `${origin}/wiki/${article.slug}/related.json`,
-        tocJsonUrl: `${origin}/wiki/${article.slug}/toc.json`,
-        imageUrl: `${origin}/og/${article.slug}.png`,
-        categories: article.categories,
-        backlinks: publishedInboundLinkCount(backlinksData, article.slug, titleBySlug),
-        // The article's last-revision date (history is newest-first) — the same
-        // lastEdited figure info.json / history.json expose per article — so a
-        // directory consumer can sort or filter by recency without an N-fetch
-        // sweep of every article's history. recentchanges.json already exposes a
-        // per-change date; this gives the full directory the same recency signal.
-        lastEdited: historyForSlug(article.slug)[0]?.date ?? null,
-      })),
+      articles: articles.map((article) => {
+        const history = historyForSlug(article.slug);
+        return {
+          slug: article.slug,
+          title: article.title,
+          summary: article.summary || null,
+          url: article.url,
+          infoUrl: `${origin}/wiki/${article.slug}/info/`,
+          infoJsonUrl: `${origin}/wiki/${article.slug}/info.json`,
+          backlinksUrl: `${origin}/wiki/${article.slug}/backlinks/`,
+          backlinksJsonUrl: `${origin}/wiki/${article.slug}/backlinks.json`,
+          historyUrl: `${origin}/wiki/${article.slug}/history/`,
+          historyJsonUrl: `${origin}/wiki/${article.slug}/history.json`,
+          citeUrl: `${origin}/wiki/${article.slug}/cite/`,
+          citeJsonUrl: `${origin}/wiki/${article.slug}/cite.json`,
+          bibtexUrl: `${origin}/wiki/${article.slug}/cite.bib`,
+          referencesUrl: `${origin}/wiki/${article.slug}/references.json`,
+          relatedUrl: `${origin}/wiki/${article.slug}/related.json`,
+          tocJsonUrl: `${origin}/wiki/${article.slug}/toc.json`,
+          imageUrl: `${origin}/og/${article.slug}.png`,
+          categories: article.categories,
+          backlinks: publishedInboundLinkCount(backlinksData, article.slug, titleBySlug),
+          // revisionCount / firstEdited / lastEdited mirror info.json and
+          // mostlinkedpages.json per entry — history is newest-first.
+          revisionCount: history.length,
+          firstEdited: history.at(-1)?.date ?? null,
+          lastEdited: history[0]?.date ?? null,
+        };
+      }),
     },
     null,
     2,
