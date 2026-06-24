@@ -22,6 +22,9 @@ export async function getStaticPaths() {
   const titleBySlug = Object.fromEntries(pages.map((page) => [getPageSlug(page), page.data.title]));
   const summaryBySlug = Object.fromEntries(pages.map((page) => [getPageSlug(page), page.data.summary ?? '']));
   const categoriesBySlug = Object.fromEntries(pages.map((page) => [getPageSlug(page), page.data.categories ?? []]));
+  const wordCountBySlug = Object.fromEntries(
+    pages.map((page) => [getPageSlug(page), (page.body ?? '').trim().split(/\s+/).filter(Boolean).length]),
+  );
 
   return Promise.all(pages.map(async (page) => {
     const slug = getPageSlug(page);
@@ -37,6 +40,7 @@ export async function getStaticPaths() {
         revisionCount: history.length,
         firstEdited: history[history.length - 1]?.date ?? null,
         lastEdited: history[0]?.date ?? null,
+        wordCount: wordCountBySlug[ref.slug] ?? 0,
       };
     });
     // History is newest-first, so [0] is the latest revision and the last entry
@@ -90,6 +94,7 @@ export const GET: APIRoute = async ({ props, site }) => {
       revisionCount: number;
       firstEdited: string | null;
       lastEdited: string | null;
+      wordCount: number;
     }>;
   };
   const origin = (site ?? new URL('https://taopedia.org')).origin;

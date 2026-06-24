@@ -28,6 +28,13 @@ const revisionStatsOf = (slug) => {
     lastEdited: Array.isArray(history) && history.length > 0 ? history[0].date : null,
   };
 };
+// Each entry's wordCount mirrors the referenced article's own info.json.wordCount.
+const wordCountOf = (slug) => {
+  const file = path.join(wikiDir, slug, 'info.json');
+  if (!fs.existsSync(file)) return 0;
+  const info = JSON.parse(fs.readFileSync(file, 'utf8'));
+  return Number.isInteger(info.wordCount) ? info.wordCount : 0;
+};
 
 // ---- 1) Unit: helper and builder behavior ---------------------------------
 {
@@ -116,6 +123,7 @@ const revisionStatsOf = (slug) => {
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
+        wordCount: 0,
         url: `${ORIGIN}/wiki/delta/`,
         infoUrl: `${ORIGIN}/wiki/delta/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/delta/info.json`,
@@ -141,6 +149,7 @@ const revisionStatsOf = (slug) => {
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
+        wordCount: 0,
         url: `${ORIGIN}/wiki/alpha/`,
         infoUrl: `${ORIGIN}/wiki/alpha/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/alpha/info.json`,
@@ -166,6 +175,7 @@ const revisionStatsOf = (slug) => {
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
+        wordCount: 0,
         url: `${ORIGIN}/wiki/gamma/`,
         infoUrl: `${ORIGIN}/wiki/gamma/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/gamma/info.json`,
@@ -191,6 +201,7 @@ const revisionStatsOf = (slug) => {
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
+        wordCount: 0,
         url: `${ORIGIN}/wiki/beta/`,
         infoUrl: `${ORIGIN}/wiki/beta/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/beta/info.json`,
@@ -451,6 +462,15 @@ for (const slug of articleSlugs) {
       entry.lastEdited,
       entryStats.lastEdited,
       `${slug}: every reference entry lastEdited must equal the referenced article's latest revision date (or null)`,
+    );
+    assert.ok(
+      Number.isInteger(entry.wordCount) && entry.wordCount >= 0,
+      `${slug}: every reference entry wordCount must be a non-negative integer (got ${JSON.stringify(entry.wordCount)})`,
+    );
+    assert.equal(
+      entry.wordCount,
+      wordCountOf(entry.slug),
+      `${slug}: every reference entry wordCount must agree with the referenced article's sibling info.json envelope`,
     );
     const entryInfoJsonFile = path.join(wikiDir, entry.slug, 'info.json');
     assert.ok(fs.existsSync(entryInfoJsonFile), `${slug}: every reference entry must have a sibling info.json for cross-surface stat parity`);
