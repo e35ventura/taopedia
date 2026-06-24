@@ -87,6 +87,7 @@ const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.js
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
+        wordCount: 0,
         url: `${ORIGIN}/wiki/subnet_2/`,
         infoUrl: `${ORIGIN}/wiki/subnet_2/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/subnet_2/info.json`,
@@ -113,6 +114,7 @@ const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.js
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
+        wordCount: 0,
         url: `${ORIGIN}/wiki/subnet_9/`,
         infoUrl: `${ORIGIN}/wiki/subnet_9/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/subnet_9/info.json`,
@@ -139,6 +141,7 @@ const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.js
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
+        wordCount: 0,
         url: `${ORIGIN}/wiki/subnet_10/`,
         infoUrl: `${ORIGIN}/wiki/subnet_10/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/subnet_10/info.json`,
@@ -192,12 +195,22 @@ const revisionStatsOf = (slug) => {
     lastEdited: arr.length > 0 ? arr[0].date : null,
   };
 };
+// wordCount is the article body's word count — re-derived from the sibling built
+// info.json (the independent source the endpoint mirrors), so the category list
+// and the per-article metadata surface can't disagree on article length.
+const infoWordCountOf = (slug) => {
+  const file = path.join(projectRoot, 'dist', 'wiki', slug, 'info.json');
+  if (!fs.existsSync(file)) return 0;
+  const wc = JSON.parse(fs.readFileSync(file, 'utf8')).wordCount;
+  return Number.isFinite(wc) ? wc : 0;
+};
 const withBacklinks = (list) =>
   list.map((a) => ({
     ...a,
     backlinks: publishedInboundLinkCount(backlinksData, a.slug, titleBySlug),
     referencesCount: outboundCountFor(a.slug),
     ...revisionStatsOf(a.slug),
+    wordCount: infoWordCountOf(a.slug),
   }));
 
 const dirToOriginal = new Map();
