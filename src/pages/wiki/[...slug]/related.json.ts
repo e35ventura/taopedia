@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
 import { buildArticleRelatedPages, getRelatedPages } from '../../../lib/related-pages';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
+import { getArticleReferences } from '../../../lib/article-references.js';
 
 const slugmapModules = import.meta.glob('../../../../public/data/slugmap.json', { eager: true }) as Record<
   string,
@@ -45,6 +46,7 @@ export async function getStaticPaths() {
         summary: page.data.summary ?? '',
         categories: page.data.categories ?? [],
         incomingLinks: publishedInboundLinkCount(backlinksData, slug, titleBySlug),
+        referencesCount: getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length,
         revisionCount: history.length,
         firstEdited: history[history.length - 1]?.date ?? null,
         lastEdited: history[0]?.date ?? null,
@@ -72,12 +74,13 @@ export async function getStaticPaths() {
 // ordering, summaries, and topic tags stay aligned without introducing an HTML
 // subpage or any visual diff.
 export const GET: APIRoute = async ({ props, site }) => {
-  const { slug, title, summary, categories, incomingLinks, revisionCount, firstEdited, lastEdited, relatedPages } = props as {
+  const { slug, title, summary, categories, incomingLinks, referencesCount, revisionCount, firstEdited, lastEdited, relatedPages } = props as {
     slug: string;
     title: string;
     summary: string;
     categories: string[];
     incomingLinks: number;
+    referencesCount: number;
     revisionCount: number;
     firstEdited: string | null;
     lastEdited: string | null;
@@ -85,7 +88,7 @@ export const GET: APIRoute = async ({ props, site }) => {
   };
   const origin = (site ?? new URL('https://taopedia.org')).origin;
 
-  const body = JSON.stringify(buildArticleRelatedPages({ slug, title, origin, summary, categories, incomingLinks, revisionCount, firstEdited, lastEdited, relatedPages }), null, 2);
+  const body = JSON.stringify(buildArticleRelatedPages({ slug, title, origin, summary, categories, incomingLinks, referencesCount, revisionCount, firstEdited, lastEdited, relatedPages }), null, 2);
 
   return new Response(body, {
     headers: { 'Content-Type': 'application/json; charset=utf-8' },

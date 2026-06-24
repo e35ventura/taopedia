@@ -53,6 +53,7 @@ export interface ArticleRelatedPagesDocument {
   summary: string | null;
   categories: string[];
   incomingLinks: number;
+  referencesCount: number;
   revisionCount: number;
   firstEdited: string | null;
   lastEdited: string | null;
@@ -166,6 +167,7 @@ export function buildArticleRelatedPages({
   summary = '',
   categories = [],
   incomingLinks = 0,
+  referencesCount = 0,
   revisionCount = 0,
   firstEdited = null,
   lastEdited = null,
@@ -177,6 +179,7 @@ export function buildArticleRelatedPages({
   summary?: string;
   categories?: string[];
   incomingLinks?: number;
+  referencesCount?: number;
   revisionCount?: number;
   firstEdited?: string | null;
   lastEdited?: string | null;
@@ -199,6 +202,9 @@ export function buildArticleRelatedPages({
     // info.json / history.json / cite.json expose on their envelopes (via the
     // shared helper), so related.json can show link popularity without a refetch.
     incomingLinks,
+    // The article's published OUTBOUND reference count — the complement of
+    // incomingLinks, the same figure info.json / history.json / cite.json expose.
+    referencesCount: Number.isFinite(referencesCount) ? referencesCount : 0,
     // The article's revision count (its commit-history length) — the same figure
     // info.json / history.json / cite.json expose on their envelopes.
     revisionCount: Number.isFinite(revisionCount) ? revisionCount : 0,
