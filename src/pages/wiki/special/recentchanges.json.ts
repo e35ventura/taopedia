@@ -98,7 +98,12 @@ export const GET: APIRoute = async ({ site }) => {
       limit: RECENT_LIMIT,
       count: changes.length,
       dateRange,
-      changes: changes.map((change) => ({
+      changes: changes.map((change) => {
+        // Compute the published inbound-link count once; backlinks and its
+        // info.json-named alias incomingLinks are assigned from the same value so
+        // they can never drift and the count is not computed twice per row.
+        const inboundLinks = publishedInboundLinkCount(backlinksData, change.slug, titleBySlug);
+        return {
         id: `urn:taopedia:recentchanges:${change.slug}:${change.sha}`,
         slug: change.slug,
         title: change.title,
@@ -118,7 +123,12 @@ export const GET: APIRoute = async ({ site }) => {
         tocJsonUrl: `${origin}/wiki/${change.slug}/toc.json`,
         imageUrl: `${origin}/og/${change.slug}.png`,
         categories: categoriesBySlug[change.slug] ?? [],
-        backlinks: publishedInboundLinkCount(backlinksData, change.slug, titleBySlug),
+        backlinks: inboundLinks,
+        // info.json names this same published inbound-link figure incomingLinks;
+        // keep backlinks for field-name compatibility and expose incomingLinks too
+        // (same value), the per-entry alias related.json / references.json /
+        // allpages.json / subnets.json / mostlinkedpages.json carry for each row.
+        incomingLinks: inboundLinks,
         // referencesCount is the changed article's published OUTBOUND reference
         // count — the complement of backlinks (its inbound count) — using the same
         // getArticleReferences helper (published-only join) that references.json /
@@ -139,7 +149,8 @@ export const GET: APIRoute = async ({ site }) => {
         authorName: change.authorName,
         sha: change.sha,
         message: change.message ?? '',
-      })),
+        };
+      }),
     },
     null,
     2,
