@@ -10,6 +10,7 @@ const ORIGIN = 'https://taopedia.org';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
+const wikiDir = path.join(projectRoot, 'dist', 'wiki');
 const categoryDir = path.join(projectRoot, 'dist', 'wiki', 'category');
 const categoriesJsonPath = path.join(projectRoot, 'public', 'data', 'categories.json');
 const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json');
@@ -83,6 +84,7 @@ const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.js
         summary: 'two',
         categories: ['Subnets', 'Economics'],
         backlinks: 0,
+        incomingLinks: 0,
         referencesCount: 0,
         revisionCount: 0,
         firstEdited: null,
@@ -112,6 +114,7 @@ const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.js
         summary: null,
         categories: [],
         backlinks: 0,
+        incomingLinks: 0,
         referencesCount: 0,
         revisionCount: 0,
         firstEdited: null,
@@ -141,6 +144,7 @@ const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.js
         summary: null,
         categories: [],
         backlinks: 0,
+        incomingLinks: 0,
         referencesCount: 0,
         revisionCount: 0,
         firstEdited: null,
@@ -330,6 +334,23 @@ for (const category of categories) {
       Number.isInteger(article.backlinks) && article.backlinks >= 0,
       `${category}: article ${article.slug} backlinks must be a non-negative integer (got ${article.backlinks})`,
     );
+    // incomingLinks is the published-only inbound-link count — the same figure
+    // info.json names and listing endpoints expose as `backlinks` per row.
+    assert.equal(
+      article.incomingLinks,
+      publishedInboundLinkCount(backlinksData, article.slug, titleBySlug),
+      `${category}: article ${article.slug} incomingLinks must match the published inbound-link count`,
+    );
+    assert.equal(article.incomingLinks, article.backlinks, `${category}: article ${article.slug} incomingLinks must equal backlinks`);
+    const articleInfoJson = path.join(wikiDir, article.slug, 'info.json');
+    if (fs.existsSync(articleInfoJson)) {
+      const articleInfo = JSON.parse(fs.readFileSync(articleInfoJson, 'utf8'));
+      assert.equal(
+        article.incomingLinks,
+        articleInfo.incomingLinks,
+        `${category}: article ${article.slug} incomingLinks must agree with sibling info.json`,
+      );
+    }
     assert.equal(
       article.infoUrl,
       `${ORIGIN}/wiki/${article.slug}/info/`,
