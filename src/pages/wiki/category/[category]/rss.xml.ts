@@ -8,9 +8,19 @@ const categorySlug = (categoryName: string) => categoryName.replace(/ /g, '_');
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
   const categories = new Set<string>();
+  // Per-slug lastmod, computed once. lastmodForSlug is historyForSlug(slug)[0]?.date
+  // (a full revision-history lookup); an article in N categories is processed N
+  // times below, so calling it inside the per-category map recomputes each
+  // article's history once per category membership. Cache it here in the single
+  // page pass — only for pages that have categories — the same way category/
+  // atom.xml (#1192) and category/feed.json (#1195) cache their per-slug history.
+  const lastmodBySlug: Record<string, string> = {};
 
   for (const page of pages) {
-    for (const category of page.data.categories ?? []) categories.add(category);
+    const slug = getPageSlug(page);
+    const pageCategories = page.data.categories ?? [];
+    if (pageCategories.length > 0) lastmodBySlug[slug] = lastmodForSlug(slug);
+    for (const category of pageCategories) categories.add(category);
   }
 
   return [...categories].sort().map((categoryName) => {
@@ -27,7 +37,7 @@ export async function getStaticPaths() {
           title: page.data.title,
           summary: page.data.summary ?? '',
           categories: page.data.categories ?? [],
-          date: lastmodForSlug(slug),
+          date: lastmodBySlug[slug] ?? '',
         };
       });
 
