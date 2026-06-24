@@ -103,6 +103,11 @@ const groupedArticles = [
           </section>
         ))}
       </div>
+
+      <p class="directory-empty" id="directory-empty" role="status" hidden>
+        <span class="directory-empty-text">No articles match your filter.</span>
+        <button type="button" id="directory-clear" class="directory-clear">Clear filters</button>
+      </p>
     </div>
   </div>
 
@@ -114,6 +119,8 @@ const groupedArticles = [
     const topicButtons = Array.from(document.querySelectorAll('.topic-filter button[data-topic]'));
     const articleCards = Array.from(document.querySelectorAll('[data-article-card]'));
     const groups = Array.from(document.querySelectorAll('[data-article-group]'));
+    const emptyState = document.getElementById('directory-empty');
+    const clearButton = document.getElementById('directory-clear');
     let selectedTopic = 'all';
 
     function normalize(value) {
@@ -136,7 +143,28 @@ const groupedArticles = [
         const matchesGroupTopic = selectedTopic === 'all' || group.dataset.topic === selectedTopic;
         group.hidden = !matchesGroupTopic || visibleItems === 0;
       });
+
+      // When a filter or query hides everything the directory would otherwise
+      // go silently blank, leaving the reader stuck. Surface a clear message and
+      // a reset control instead.
+      if (emptyState) {
+        emptyState.hidden = articleCards.some((card) => !card.hidden);
+      }
     }
+
+    function clearFilters() {
+      if (searchInput) searchInput.value = '';
+      selectedTopic = 'all';
+      topicButtons.forEach((btn) => {
+        const isAll = (btn.dataset.topic || 'all') === 'all';
+        btn.classList.toggle('active', isAll);
+        btn.setAttribute('aria-pressed', isAll ? 'true' : 'false');
+      });
+      applyFilters();
+      searchInput?.focus();
+    }
+
+    clearButton?.addEventListener('click', clearFilters);
 
     topicButtons.forEach((button) => {
       button.addEventListener('click', () => {
@@ -293,6 +321,41 @@ const groupedArticles = [
     padding: 12px;
     border: 1px solid var(--border-color-subtle);
     background: var(--background-color-interactive);
+  }
+
+  .directory-empty {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 0;
+    padding: 16px;
+    border: 1px solid var(--border-color-subtle);
+    background: var(--background-color-interactive);
+  }
+
+  .directory-empty-text {
+    color: var(--color-base-subtle);
+    font-size: 14px;
+  }
+
+  .directory-clear {
+    padding: 7px 12px;
+    border: 1px solid var(--border-color-subtle);
+    background: var(--background-color-base);
+    color: var(--color-link);
+    cursor: pointer;
+    font: inherit;
+    font-size: 13px;
+  }
+
+  .directory-clear:hover {
+    border-color: var(--color-link);
+  }
+
+  .directory-clear:focus-visible {
+    outline: 2px solid var(--color-link);
+    outline-offset: 1px;
   }
 
   [hidden] {
