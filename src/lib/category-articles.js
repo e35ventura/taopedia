@@ -47,9 +47,11 @@ export const buildCategoryArticlesDocument = ({ origin, categoryName, categoryPa
     summary: article.summary || null,
     categories: article.categories ?? [],
     backlinks: Number.isFinite(article.backlinks) ? article.backlinks : 0,
-    // The article's last-revision date — the same lastEdited figure info.json /
-    // history.json expose per article and allpages.json / mostlinkedpages.json /
-    // subnets.json expose per directory entry.
+    // The article's revision stats — revisionCount (commit-history length),
+    // firstEdited (original publication date), lastEdited (last revision) — the
+    // same per-entry trio references.json / allpages.json expose for each entry.
+    revisionCount: Number.isFinite(article.revisionCount) ? article.revisionCount : 0,
+    firstEdited: article.firstEdited ?? null,
     lastEdited: article.lastEdited ?? null,
     url: `${origin}/wiki/${article.slug}/`,
     infoUrl: `${origin}/wiki/${article.slug}/info/`,

@@ -33,11 +33,20 @@ export async function getStaticPaths() {
       props: {
         categoryName,
         categoryPath: categorySlug(categoryName),
-        articles: getCategoryArticles({ categoryName, categoriesIndex, slugMap }).map((article) => ({
-          ...article,
-          backlinks: publishedInboundLinkCount(backlinksData, article.slug, titleBySlug),
-          lastEdited: historyForSlug(article.slug)[0]?.date ?? null,
-        })),
+        articles: getCategoryArticles({ categoryName, categoriesIndex, slugMap }).map((article) => {
+          // History is newest-first, so [0] is the latest revision and the last
+          // entry is the original publication — the same revisionCount /
+          // firstEdited / lastEdited per-entry stats references.json and
+          // allpages.json expose for each entry.
+          const history = historyForSlug(article.slug);
+          return {
+            ...article,
+            backlinks: publishedInboundLinkCount(backlinksData, article.slug, titleBySlug),
+            revisionCount: history.length,
+            firstEdited: history[history.length - 1]?.date ?? null,
+            lastEdited: history[0]?.date ?? null,
+          };
+        }),
       },
     }));
 }
@@ -50,7 +59,7 @@ export const GET: APIRoute = async ({ props, site }) => {
   const { categoryName, categoryPath, articles } = props as {
     categoryName: string;
     categoryPath: string;
-    articles: Array<{ slug: string; title: string; summary: string; backlinks: number; lastEdited: string | null }>;
+    articles: Array<{ slug: string; title: string; summary: string; backlinks: number; revisionCount: number; firstEdited: string | null; lastEdited: string | null }>;
   };
   const origin = (site ?? new URL('https://taopedia.org')).origin;
 
