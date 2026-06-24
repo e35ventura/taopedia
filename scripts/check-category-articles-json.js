@@ -90,7 +90,6 @@ const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.js
         wordCount: 0,
         readingMinutes: 1,
         sectionCount: 0,
-        readingMinutes: 1,
         url: `${ORIGIN}/wiki/subnet_2/`,
         infoUrl: `${ORIGIN}/wiki/subnet_2/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/subnet_2/info.json`,
@@ -120,7 +119,6 @@ const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.js
         wordCount: 0,
         readingMinutes: 1,
         sectionCount: 0,
-        readingMinutes: 1,
         url: `${ORIGIN}/wiki/subnet_9/`,
         infoUrl: `${ORIGIN}/wiki/subnet_9/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/subnet_9/info.json`,
@@ -150,7 +148,6 @@ const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.js
         wordCount: 0,
         readingMinutes: 1,
         sectionCount: 0,
-        readingMinutes: 1,
         url: `${ORIGIN}/wiki/subnet_10/`,
         infoUrl: `${ORIGIN}/wiki/subnet_10/info/`,
         infoJsonUrl: `${ORIGIN}/wiki/subnet_10/info.json`,
@@ -229,12 +226,11 @@ const withBacklinks = (list) =>
     referencesCount: outboundCountFor(a.slug),
     ...revisionStatsOf(a.slug),
     wordCount: infoWordCountOf(a.slug),
-    readingMinutes: Math.max(1, Math.ceil(infoWordCountOf(a.slug) / 200)),
-    sectionCount: tocSectionCountOf(a.slug),
     // readingMinutes is the ~200 wpm ceil estimate derived from the article's
     // word count — the same figure info.json exposes — so the category list and
     // the per-article metadata surface can't disagree on reading time.
     readingMinutes: Math.max(1, Math.ceil(infoWordCountOf(a.slug) / 200)),
+    sectionCount: tocSectionCountOf(a.slug),
   }));
 
 const dirToOriginal = new Map();
