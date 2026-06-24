@@ -13,8 +13,12 @@ import path from 'node:path';
 // digital-credentials-get for unsolicited Digital Credentials API ID prompts;
 // storage-access for embedded content elevating to cross-site cookie access;
 // attribution-reporting for ad-conversion measurement/cross-site reporting;
-// compute-pressure for CPU/thermal-pressure side-channel and fingerprinting).
+// compute-pressure for CPU/thermal-pressure side-channel and fingerprinting;
+// document-domain for the legacy document.domain setter that relaxes the
+// same-origin policy — two pages sharing a document.domain become same-origin for
+// scripting, dropping the origin's host/port isolation; a static wiki never sets it).
 export const SUPPLEMENTAL_DENIED_FEATURES = [
+  'document-domain',
   'execution-while-not-rendered',
   'execution-while-out-of-viewport',
   'digital-credentials-get',
@@ -57,6 +61,21 @@ const config = fs.readFileSync(path.join(projectRoot, 'netlify.toml'), 'utf8');
 validateSupplementalPermissionsPolicy(permissionsPolicyValue(config));
 
 const FULL_POLICY = permissionsPolicyValue(config);
+
+assert.throws(
+  () => validateSupplementalPermissionsPolicy(FULL_POLICY.replace('document-domain=(), ', '')),
+  /must deny document-domain/,
+  'a Permissions-Policy missing document-domain must be rejected',
+);
+
+assert.throws(
+  () =>
+    validateSupplementalPermissionsPolicy(
+      FULL_POLICY.replace('document-domain=()', 'document-domain=(self)'),
+    ),
+  /must deny document-domain/,
+  'a Permissions-Policy that grants document-domain to an origin must be rejected',
+);
 
 assert.throws(
   () => validateSupplementalPermissionsPolicy(FULL_POLICY.replace('idle-detection=(), ', '')),
