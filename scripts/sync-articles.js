@@ -639,6 +639,16 @@ const quoteSlashDelimitedTdThNowrapAttrPattern = /<\s*(?:td|th)\b[^>]*["'`]\/now
 const tdThSpanAttrPattern = /<\s*(?:td|th)\b[^>]*\s(?:colspan|rowspan)\s*=/i;
 const nonSpaceDelimitedTdThSpanAttrPattern = /<\s*(?:td|th)\b[^>]*[/"'`](?:colspan|rowspan)\s*=/i;
 
+// headers= on <td>/<th> remaps a data/header cell to attacker-chosen ids, while
+// scope=/abbr= on <th> change which cells a header announces for and what short
+// label assistive tech exposes. That lets article-body tables present different
+// semantics to screen readers than to sighted readers, the same table
+// accessibility-spoof class as the merged summary= block (#471).
+const tdThHeadersAttrPattern = /<\s*(?:td|th)\b[^>]*\sheaders\s*=/i;
+const nonSpaceDelimitedTdThHeadersAttrPattern = /<\s*(?:td|th)\b[^>]*[/"'`]headers\s*=/i;
+const thScopeAbbrAttrPattern = /<\s*th\b[^>]*\s(?:scope|abbr)\s*=/i;
+const nonSpaceDelimitedThScopeAbbrAttrPattern = /<\s*th\b[^>]*[/"'`](?:scope|abbr)\s*=/i;
+
 // srcset=/sizes= on an allowed <img> steer responsive image loading to attacker-chosen
 // URLs — the gap left after merged #411 blocked <picture>/<source> but not plain
 // <img srcset>/<img sizes>. Tag-scoped, emptyQuotedAttributeValues(), ["'`] only.
@@ -1348,6 +1358,17 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": colspan and rowspan attributes are not allowed on table cells`,
+    );
+  }
+
+  if (
+    tdThHeadersAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedTdThHeadersAttrPattern.test(emptiedAttributeContent)
+    || thScopeAbbrAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedThScopeAbbrAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": headers, scope, and abbr attributes are not allowed on table cells`,
     );
   }
 
