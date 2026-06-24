@@ -31,10 +31,16 @@ export const GET: APIRoute = async ({ site }) => {
   const pages = await getCollection('pages');
   const titleBySlug: Record<string, string> = {};
   const pageBySlug: Record<string, (typeof pages)[number]> = {};
+  // The article body's word count — the same figure info.json exposes and the
+  // article-page footer (mw-article-meta data-word-count) renders, computed from
+  // the raw markdown body so a subnet dashboard can gauge each subnet's article
+  // length without a second fetch.
+  const wordCountBySlug: Record<string, number> = {};
   for (const page of pages) {
     const slug = getPageSlug(page);
     titleBySlug[slug] = page.data.title;
     pageBySlug[slug] = page;
+    wordCountBySlug[slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
   }
 
   const subnets = buildSubnets({ pages, getPageSlug });
@@ -93,6 +99,7 @@ export const GET: APIRoute = async ({ site }) => {
         // of each subnet's link degree without a second fetch.
         referencesCount: getArticleReferences({ slug: subnet.slug, linkGraph: linkgraphData, titleBySlug }).length,
         sectionCount: sectionCountBySlug[subnet.slug] ?? 0,
+        wordCount: wordCountBySlug[subnet.slug] ?? 0,
         // The subnet article's revision stats (history is newest-first) — the same
         // revisionCount / firstEdited / lastEdited trio info.json / history.json
         // expose per article and allpages.json / mostlinkedpages.json expose per
