@@ -630,6 +630,18 @@ const ariaPopupStateAttrPattern = /<[^>]*\saria-(?:haspopup|modal)\s*=/i;
 const nonSpaceDelimitedAriaPopupStateAttrPattern =
   /<[^>]*[/"'`](?:aria-(?:haspopup|modal))\s*=/i;
 
+// aria-invalid= fakes a validation-error state for assistive technology — e.g.
+// aria-invalid="true" on injected prose announces a real paragraph as a field
+// that "failed validation", and aria-invalid="spelling"/"grammar" reports a
+// fake correction prompt. It is the remaining form-widget state attribute not
+// yet blocked alongside the merged aria-disabled/aria-readonly/aria-required
+// (#587) — the same accessibility-state spoof family as #583 (toggle state),
+// #582 (aria-busy), and #570 (aria-errormessage, the message aria-invalid
+// pairs with). Glossary articles never emit form-validation ARIA on static
+// prose — the site's own form components handle that.
+const ariaInvalidStateAttrPattern = /<[^>]*\saria-invalid\s*=/i;
+const nonSpaceDelimitedAriaInvalidStateAttrPattern = /<[^>]*[/"'`]aria-invalid\s*=/i;
+
 // nowrap on allowed <td>/<th> disables text wrapping in the cell — an injected
 // long URL, fake wallet address, or padded phishing line breaks out of the
 // column, reflowing the real article text off-screen (a layout-defacement /
@@ -1373,6 +1385,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": aria-haspopup and aria-modal attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    ariaInvalidStateAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAriaInvalidStateAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": aria-invalid attributes are not allowed in article content`,
     );
   }
 

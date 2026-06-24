@@ -943,6 +943,20 @@ accepts('<a href="/wiki/aria-haspopup=demo">aria-haspopup docs</a>', 'benign ari
 accepts('ARIA haspopup state is an accessibility concept described here only as prose.', 'benign aria-haspopup prose');
 accepts('<span class=x/aria-modal-demo>not an aria-modal attribute</span>', 'benign aria-modal substring in class value');
 
+// aria-invalid= fakes a validation-error state — same form-widget state-spoof
+// family as merged #587 (aria-disabled/readonly/required), #583 (toggle state),
+// and #570 (aria-errormessage). It is the remaining form-validation ARIA path.
+rejects('Intro.\n\n<a href="https://evil.example/" aria-invalid="true">Verify wallet</a>', 'plain aria-invalid attribute on anchor');
+rejects('Intro.\n\n<div aria-invalid="spelling">Paste seed phrase here</div>', 'plain aria-invalid attribute');
+rejects('Intro.\n\n<  a   href="/wiki/stake/"   aria-invalid = "true">stake</a>', 'spaced aria-invalid attribute');
+rejects('<a href="x"aria-invalid="true">go</a>', 'quote-abutted aria-invalid attribute');
+rejects('<div class=x/aria-invalid="true">x</div>', 'slash-delimited aria-invalid attribute');
+rejects("<p class='x'aria-invalid='grammar'>x</p>", 'single-quote-abutted aria-invalid attribute');
+
+accepts('<a href="/wiki/aria-invalid=demo">aria-invalid docs</a>', 'benign aria-invalid substring in quoted href');
+accepts('ARIA invalid state is an accessibility concept described here only as prose.', 'benign aria-invalid prose');
+accepts('<span class=x/aria-invalid-demo>not an aria-invalid attribute</span>', 'benign aria-invalid substring in class value');
+
 // srcset=/sizes= on <img> steer responsive loading — gap after #411 blocked picture/source.
 rejects('Intro.\n\n<img src="/wiki/fig.png" srcset="https://evil.example/x 1x" alt="x">', 'plain img srcset attribute');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   srcset = "https://evil.example/x 2x">', 'spaced img srcset attribute');
