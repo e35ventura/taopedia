@@ -731,6 +731,18 @@ const ariaTextFieldAttrPattern = /<[^>]*\saria-(?:placeholder|multiline|autocomp
 const nonSpaceDelimitedAriaTextFieldAttrPattern =
   /<[^>]*[/"'`](?:aria-(?:placeholder|multiline|autocomplete))\s*=/i;
 
+// aria-activedescendant= fakes the virtually-focused child of a composite widget
+// for assistive technology: on a container it names the descendant a screen
+// reader should treat as focused, so an injected
+// aria-activedescendant="evil-link" steers an AT user's perceived focus to an
+// attacker-chosen element of static prose without any real focus move or script.
+// Same composite-widget spoof family as the merged aria-orientation/
+// multiselectable, the grid-position block, and the toggle/selection state block
+// (#583). Glossary articles never manage their own ARIA focus on static prose.
+const ariaActiveDescendantAttrPattern = /<[^>]*\saria-activedescendant\s*=/i;
+const nonSpaceDelimitedAriaActiveDescendantAttrPattern =
+  /<[^>]*[/"'`]aria-activedescendant\s*=/i;
+
 // nowrap on allowed <td>/<th> disables text wrapping in the cell — an injected
 // long URL, fake wallet address, or padded phishing line breaks out of the
 // column, reflowing the real article text off-screen (a layout-defacement /
@@ -1576,6 +1588,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": aria-placeholder, aria-multiline, and aria-autocomplete attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    ariaActiveDescendantAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAriaActiveDescendantAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": aria-activedescendant attributes are not allowed in article content`,
     );
   }
 
