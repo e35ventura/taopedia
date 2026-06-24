@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import { getPageSlug, allRecentChanges } from '../../../lib/article-history';
 import { RECENT_LIMIT } from '../../../lib/recent-changes.js';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
+import { getArticleReferences } from '../../../lib/article-references.js';
 
 // The inbound-link graph is the same public/data/backlinks.json the HTML
 // "What links here" page, allpages.json, mostlinkedpages.json, subnets.json and
@@ -13,6 +14,11 @@ const backlinksModules = import.meta.glob('../../../../public/data/backlinks.jso
   { default?: Record<string, Array<{ from: string }>> }
 >;
 const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
+const linkgraphModules = import.meta.glob('../../../../public/data/linkgraph.json', { eager: true }) as Record<
+  string,
+  { default?: Record<string, string[]> }
+>;
+const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
 
 // Machine-readable site-wide recent changes at /wiki/special/recentchanges.json.
 // Mirrors the HTML Special:RecentChanges feed as structured JSON for programmatic
@@ -72,6 +78,12 @@ export const GET: APIRoute = async ({ site }) => {
         imageUrl: `${origin}/og/${change.slug}.png`,
         categories: categoriesBySlug[change.slug] ?? [],
         backlinks: publishedInboundLinkCount(backlinksData, change.slug, titleBySlug),
+        // referencesCount is the changed article's published OUTBOUND reference
+        // count — the complement of backlinks (its inbound count) — using the same
+        // getArticleReferences helper (published-only join) that references.json /
+        // cite.json / info.json use, so a feed consumer can see both directions of
+        // each changed article's link degree without a second fetch.
+        referencesCount: getArticleReferences({ slug: change.slug, linkGraph: linkgraphData, titleBySlug }).length,
         date: change.date,
         authorName: change.authorName,
         sha: change.sha,
