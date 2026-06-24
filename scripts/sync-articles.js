@@ -743,6 +743,17 @@ const ariaActiveDescendantAttrPattern = /<[^>]*\saria-activedescendant\s*=/i;
 const nonSpaceDelimitedAriaActiveDescendantAttrPattern =
   /<[^>]*[/"'`]aria-activedescendant\s*=/i;
 
+// aria-relevant= is the remaining live-region control attribute alongside the
+// already-blocked aria-live and aria-atomic (#558): it tells assistive technology
+// which kinds of mutation (additions/removals/text) inside a live region to
+// announce. It belongs with aria-live/aria-atomic — an injected
+// aria-relevant="all" paired with the (separately-blocked) live-region markup is
+// the third knob that shapes an interrupting fake announcement, and a static
+// glossary that has no live regions never needs it. Same accessibility live-region
+// family as the merged aria-live/aria-atomic block; complete the set.
+const ariaRelevantAttrPattern = /<[^>]*\saria-relevant\s*=/i;
+const nonSpaceDelimitedAriaRelevantAttrPattern = /<[^>]*[/"'`]aria-relevant\s*=/i;
+
 // nowrap on allowed <td>/<th> disables text wrapping in the cell — an injected
 // long URL, fake wallet address, or padded phishing line breaks out of the
 // column, reflowing the real article text off-screen (a layout-defacement /
@@ -1661,6 +1672,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": aria-activedescendant attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    ariaRelevantAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAriaRelevantAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": aria-relevant attributes are not allowed in article content`,
     );
   }
 
