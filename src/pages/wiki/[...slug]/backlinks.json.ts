@@ -1,10 +1,11 @@
 import type { APIRoute } from 'astro';
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
 import { compareTitles } from '../../../lib/title-sort.js';
 import { buildArticleBacklinks } from '../../../../scripts/article-backlinks.js';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
 import { getArticleReferences } from '../../../lib/article-references.js';
+import { getArticleToc } from '../../../lib/article-toc.js';
 
 const backlinksModules = import.meta.glob('../../../../public/data/backlinks.json', { eager: true }) as Record<
   string,
@@ -21,34 +22,36 @@ export async function getStaticPaths() {
   const pages = await getCollection('pages');
   const titleBySlug = Object.fromEntries(pages.map((page) => [getPageSlug(page), page.data.title]));
 
-  return pages.map((page) => {
-    const slug = getPageSlug(page);
-    // History is newest-first, so [0] is the latest revision and the last entry
-    // is the original publication — the same firstEdited/lastEdited pair info.json
-    // and history.json expose.
-    const history = historyForSlug(slug);
-    return {
-      params: { slug },
-      props: {
-        page,
-        slug,
-        incomingLinks: publishedInboundLinkCount(backlinksData, slug, titleBySlug),
-        revisionCount: history.length,
-        firstEdited: history[history.length - 1]?.date ?? null,
-        lastEdited: history[0]?.date ?? null,
-      },
-    };
-  });
+  return Promise.all(
+    pages.map(async (page) => {
+      const slug = getPageSlug(page);
+      const history = historyForSlug(slug);
+      const { headings } = await render(page);
+      return {
+        params: { slug },
+        props: {
+          page,
+          slug,
+          incomingLinks: publishedInboundLinkCount(backlinksData, slug, titleBySlug),
+          sectionCount: getArticleToc(headings).length,
+          revisionCount: history.length,
+          firstEdited: history[history.length - 1]?.date ?? null,
+          lastEdited: history[0]?.date ?? null,
+        },
+      };
+    }),
+  );
 }
 
 // Machine-readable companion to /wiki/<slug>/backlinks/. Uses the same
 // published-only join and compareTitles sort as backlinks.astro so the two
 // surfaces never drift.
 export const GET: APIRoute = async ({ props, site }) => {
-  const { page, slug, incomingLinks, revisionCount, firstEdited, lastEdited } = props as {
+  const { page, slug, incomingLinks, sectionCount, revisionCount, firstEdited, lastEdited } = props as {
     page: { data: { title: string; summary?: string; categories?: string[] } };
     slug: string;
     incomingLinks: number;
+    sectionCount: number;
     revisionCount: number;
     firstEdited: string | null;
     lastEdited: string | null;
@@ -98,6 +101,7 @@ export const GET: APIRoute = async ({ props, site }) => {
       categories: page.data.categories ?? [],
       incomingLinks,
       referencesCount,
+      sectionCount,
       revisionCount,
       firstEdited,
       lastEdited,
