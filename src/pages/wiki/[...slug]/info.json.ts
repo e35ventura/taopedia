@@ -1,8 +1,9 @@
 import type { APIRoute } from 'astro';
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
 import { buildArticleInfo } from '../../../../scripts/article-info.js';
 import { getArticleReferences } from '../../../lib/article-references.js';
+import { getArticleToc } from '../../../lib/article-toc.js';
 
 const backlinksModules = import.meta.glob('../../../../public/data/backlinks.json', { eager: true }) as Record<
   string,
@@ -54,6 +55,8 @@ export const GET: APIRoute = async ({ props, site }) => {
   const titleBySlug: Record<string, string> = {};
   for (const p of pages) titleBySlug[getPageSlug(p)] = p.data.title;
   const referencesCount = getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length;
+  const { headings } = await render(page);
+  const sectionCount = getArticleToc(headings).length;
 
   const body = JSON.stringify(
     buildArticleInfo({
@@ -64,6 +67,7 @@ export const GET: APIRoute = async ({ props, site }) => {
       categories: page.data.categories ?? [],
       incomingLinks,
       referencesCount,
+      sectionCount,
       revisionCount: history.length,
       firstEdited: history[history.length - 1]?.date ?? null,
       lastEdited: history[0]?.date ?? null,

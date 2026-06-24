@@ -31,6 +31,7 @@ const ORIGIN = 'https://taopedia.org';
     categories: ['Consensus'],
     incomingLinks: 5,
     referencesCount: 7,
+    sectionCount: 5,
     revisionCount: 3,
     firstEdited: '2024-01-01T00:00:00.000Z',
     lastEdited: '2024-06-01T00:00:00.000Z',
@@ -53,11 +54,13 @@ const ORIGIN = 'https://taopedia.org';
   assert.deepEqual(result.categories, ['Consensus'], 'builder: categories');
   assert.equal(result.incomingLinks, 5, 'builder: incomingLinks');
   assert.equal(result.referencesCount, 7, 'builder: referencesCount');
+  assert.equal(result.sectionCount, 5, 'builder: sectionCount');
   assert.equal(result.revisionCount, 3, 'builder: revisionCount');
 
   const empty = buildArticleInfo({ title: 'X', slug: 'x', origin: ORIGIN });
   assert.equal(empty.incomingLinks, 0, 'builder: default incomingLinks is 0');
   assert.equal(empty.referencesCount, 0, 'builder: default referencesCount is 0');
+  assert.equal(empty.sectionCount, 0, 'builder: default sectionCount is 0');
   assert.equal(empty.revisionCount, 0, 'builder: default revisionCount is 0');
   assert.equal(empty.firstEdited, null, 'builder: default firstEdited is null');
   assert.equal(empty.lastEdited, null, 'builder: default lastEdited is null');
@@ -225,6 +228,21 @@ for (const slug of articleSlugs) {
     outboundCountFor(slug),
     `/wiki/${slug}/info.json referencesCount must match the published outbound-reference count`,
   );
+  // sectionCount is the article's table-of-contents section count — the same
+  // figure toc.json exposes as `count`, derived from the shared getArticleToc helper.
+  assert.ok(
+    Number.isInteger(infoJson.sectionCount) && infoJson.sectionCount >= 0,
+    `/wiki/${slug}/info.json sectionCount must be a non-negative integer`,
+  );
+  const infoTocJsonFile = path.join(wikiDir, slug, 'toc.json');
+  if (fs.existsSync(infoTocJsonFile)) {
+    const tocDoc = JSON.parse(fs.readFileSync(infoTocJsonFile, 'utf8'));
+    assert.equal(
+      infoJson.sectionCount,
+      tocDoc.count,
+      `/wiki/${slug}/info.json sectionCount must agree with the sibling toc.json envelope`,
+    );
+  }
   // Extract the origin from the article URL so the companion-URL checks are
   // independent of the configured site value.
   const jsonOrigin = new URL(infoJson.url).origin;
