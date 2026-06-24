@@ -108,6 +108,10 @@ assert.equal(
 // subscribe straight from the structured endpoint. The routes exist under
 // /wiki/special/recentchanges/ and are already listed in feeds.opml.
 assert.equal(data.feedUrl, `${data.site}/wiki/special/recentchanges/feed.json`, 'feedUrl must be the recent-changes JSON Feed URL');
+// feedJsonUrl is the same JSON Feed link under the consistent <name>JsonUrl key
+// every other JSON companion uses; it must equal feedUrl (kept for back-compat).
+assert.equal(data.feedJsonUrl, `${data.site}/wiki/special/recentchanges/feed.json`, 'feedJsonUrl must be the recent-changes JSON Feed URL');
+assert.equal(data.feedJsonUrl, data.feedUrl, 'feedJsonUrl must equal the back-compat feedUrl');
 assert.equal(data.atomUrl, `${data.site}/wiki/special/recentchanges/atom.xml`, 'atomUrl must be the recent-changes Atom feed URL');
 assert.equal(data.rssUrl, `${data.site}/wiki/special/recentchanges/rss.xml`, 'rssUrl must be the recent-changes RSS feed URL');
 assert.equal(data.limit, RECENT_LIMIT, `limit must be the shared RECENT_LIMIT (${RECENT_LIMIT})`);
