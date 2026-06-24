@@ -864,6 +864,20 @@ accepts('<a href="/wiki/aria-disabled=demo">aria-disabled docs</a>', 'benign ari
 accepts('ARIA disabled state is an accessibility concept described here only as prose.', 'benign aria-disabled prose');
 accepts('<span class=x/aria-required-demo>not an aria-required attribute</span>', 'benign aria-required substring in class value');
 
+// aria-haspopup=/aria-modal= fake popup and modal-dialog state — same family
+// as merged #587 (aria-disabled/readonly/required), #583 (toggle state), and
+// #582 (aria-busy).
+rejects('Intro.\n\n<a href="https://evil.example/" aria-haspopup="menu">Verify wallet</a>', 'plain aria-haspopup attribute on anchor');
+rejects('Intro.\n\n<div aria-modal="true">Enter seed phrase</div>', 'plain aria-modal attribute');
+rejects('Intro.\n\n<  a   href="/wiki/stake/"   aria-haspopup = "true">stake</a>', 'spaced aria-haspopup attribute');
+rejects('<a href="x"aria-haspopup="true">go</a>', 'quote-abutted aria-haspopup attribute');
+rejects('<div class=x/aria-modal="true">x</div>', 'slash-delimited aria-modal attribute');
+rejects("<p class='x'aria-modal='true'>x</p>", 'single-quote-abutted aria-modal attribute');
+
+accepts('<a href="/wiki/aria-haspopup=demo">aria-haspopup docs</a>', 'benign aria-haspopup substring in quoted href');
+accepts('ARIA haspopup state is an accessibility concept described here only as prose.', 'benign aria-haspopup prose');
+accepts('<span class=x/aria-modal-demo>not an aria-modal attribute</span>', 'benign aria-modal substring in class value');
+
 // srcset=/sizes= on <img> steer responsive loading — gap after #411 blocked picture/source.
 rejects('Intro.\n\n<img src="/wiki/fig.png" srcset="https://evil.example/x 1x" alt="x">', 'plain img srcset attribute');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   srcset = "https://evil.example/x 2x">', 'spaced img srcset attribute');
