@@ -221,6 +221,21 @@ for (let i = 0; i < data.changes.length; i++) {
     `${data.site}/wiki/${change.slug}/related.json`,
     `change relatedUrl must equal ${data.site}/wiki/${change.slug}/related.json for ${change.slug}`,
   );
+  // referencesJsonUrl / relatedJsonUrl are the consistently-named *JsonUrl aliases
+  // for referencesUrl / relatedUrl; each must equal the canonical .json URL and
+  // its non-JsonUrl-named counterpart.
+  assert.equal(
+    change.referencesJsonUrl,
+    `${data.site}/wiki/${change.slug}/references.json`,
+    `change referencesJsonUrl must equal ${data.site}/wiki/${change.slug}/references.json for ${change.slug}`,
+  );
+  assert.equal(change.referencesJsonUrl, change.referencesUrl, `change referencesJsonUrl must equal the referencesUrl companion for ${change.slug}`);
+  assert.equal(
+    change.relatedJsonUrl,
+    `${data.site}/wiki/${change.slug}/related.json`,
+    `change relatedJsonUrl must equal ${data.site}/wiki/${change.slug}/related.json for ${change.slug}`,
+  );
+  assert.equal(change.relatedJsonUrl, change.relatedUrl, `change relatedJsonUrl must equal the relatedUrl companion for ${change.slug}`);
   // tocJsonUrl links the changed article's table-of-contents endpoint — the
   // same per-article companion allpages.json and mostlinkedpages.json expose,
   // so a consumer watching changes can fetch the section outline directly.
