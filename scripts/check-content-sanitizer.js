@@ -1103,6 +1103,21 @@ accepts('<a href="/wiki/aria-relevant=demo">aria-relevant docs</a>', 'benign ari
 accepts('ARIA relevant is an accessibility concept described here only as prose.', 'benign aria-relevant prose');
 accepts('<span class=x/aria-relevant-demo>not an aria-relevant attribute</span>', 'benign aria-relevant substring in class value');
 
+// inputmode/enterkeyhint/virtualkeyboardpolicy are virtual-keyboard / IME hints
+// that only apply to editable content; the editable surfaces they configure
+// (contenteditable, input/textarea) are already blocked, so block the matching
+// gap. Every delimiter is covered; class/data-* values and URLs pass.
+rejects('Intro.\n\n<div inputmode="numeric">x</div>', 'plain inputmode attribute');
+rejects('Intro.\n\n<div enterkeyhint="send">x</div>', 'plain enterkeyhint attribute');
+rejects('Intro.\n\n<div virtualkeyboardpolicy="manual">x</div>', 'plain virtualkeyboardpolicy attribute');
+rejects("Intro.\n\n<  div   inputmode = 'tel'>y</div>", 'spaced inputmode single-quoted value');
+rejects('<a href="/wiki/x/"inputmode="numeric">x</a>', 'quote-abutted inputmode attribute');
+rejects('<div class=x/enterkeyhint="go">x</div>', 'slash-delimited enterkeyhint attribute');
+accepts('<div class="inputmode">x</div>', 'benign quoted class value "inputmode" is not the attribute');
+accepts('<div data-inputmode="x">y</div>', 'benign data-inputmode attribute is not inputmode');
+accepts('See <a href="/wiki/inputmode-guide">the inputmode guide</a>.', 'benign URL containing inputmode substring');
+accepts('The enterkeyhint attribute is described here only as prose.', 'benign enterkeyhint prose');
+
 // srcset=/sizes= on <img> steer responsive loading — gap after #411 blocked picture/source.
 rejects('Intro.\n\n<img src="/wiki/fig.png" srcset="https://evil.example/x 1x" alt="x">', 'plain img srcset attribute');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   srcset = "https://evil.example/x 2x">', 'spaced img srcset attribute');

@@ -754,6 +754,20 @@ const nonSpaceDelimitedAriaActiveDescendantAttrPattern =
 const ariaRelevantAttrPattern = /<[^>]*\saria-relevant\s*=/i;
 const nonSpaceDelimitedAriaRelevantAttrPattern = /<[^>]*[/"'`]aria-relevant\s*=/i;
 
+// inputmode=/enterkeyhint=/virtualkeyboardpolicy= are virtual-keyboard / IME
+// affordance hints that only apply to editable content. The editable surfaces
+// they configure — contenteditable and the form fields input/textarea — are
+// already blocked, so on read-only glossary prose these are the matching gap in
+// that same editing-surface family (the keyboard counterpart to the merged
+// spellcheck/autocapitalize text-entry hints). Article content is static prose
+// the build never marks editable, and Markdown emits none of them. Scanned over
+// emptyQuotedAttributeValues(); the patterns require whitespace, a quote, or the
+// tag name immediately before the attribute, so a class/data-* value or a URL
+// containing the word is NOT flagged.
+const vkbdHintAttrPattern = /<[^>]*\s(?:inputmode|enterkeyhint|virtualkeyboardpolicy)\s*=/i;
+const nonSpaceDelimitedVkbdHintAttrPattern =
+  /<[^>]*[/"'`](?:inputmode|enterkeyhint|virtualkeyboardpolicy)\s*=/i;
+
 // nowrap on allowed <td>/<th> disables text wrapping in the cell — an injected
 // long URL, fake wallet address, or padded phishing line breaks out of the
 // column, reflowing the real article text off-screen (a layout-defacement /
@@ -1681,6 +1695,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": aria-relevant attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    vkbdHintAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedVkbdHintAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": inputmode, enterkeyhint, and virtualkeyboardpolicy attributes are not allowed in article content`,
     );
   }
 
