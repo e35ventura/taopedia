@@ -50,6 +50,8 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.historyUrl, `${ORIGIN}/wiki/recycling/history/`, 'builder: historyUrl');
   assert.equal(result.referencesUrl, `${ORIGIN}/wiki/recycling/references.json`, 'builder: referencesUrl');
   assert.equal(result.relatedUrl, `${ORIGIN}/wiki/recycling/related.json`, 'builder: relatedUrl');
+  assert.equal(result.referencesJsonUrl, `${ORIGIN}/wiki/recycling/references.json`, 'builder: referencesJsonUrl alias');
+  assert.equal(result.relatedJsonUrl, `${ORIGIN}/wiki/recycling/related.json`, 'builder: relatedJsonUrl alias');
   assert.equal(result.tocJsonUrl, `${ORIGIN}/wiki/recycling/toc.json`, 'builder: tocJsonUrl');
   assert.equal(result.imageUrl, `${ORIGIN}/og/recycling.png`, 'builder: imageUrl');
   assert.deepEqual(result.categories, ['Consensus'], 'builder: categories');
@@ -80,6 +82,8 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(empty.historyJsonUrl, `${ORIGIN}/wiki/x/history.json`, 'builder: historyJsonUrl with defaults');
   assert.equal(empty.referencesUrl, `${ORIGIN}/wiki/x/references.json`, 'builder: referencesUrl with defaults');
   assert.equal(empty.relatedUrl, `${ORIGIN}/wiki/x/related.json`, 'builder: relatedUrl with defaults');
+  assert.equal(empty.referencesJsonUrl, `${ORIGIN}/wiki/x/references.json`, 'builder: referencesJsonUrl with defaults');
+  assert.equal(empty.relatedJsonUrl, `${ORIGIN}/wiki/x/related.json`, 'builder: relatedJsonUrl with defaults');
   assert.equal(empty.tocJsonUrl, `${ORIGIN}/wiki/x/toc.json`, 'builder: tocJsonUrl with defaults');
   assert.equal(empty.imageUrl, `${ORIGIN}/og/x.png`, 'builder: imageUrl with defaults');
 }
@@ -294,6 +298,10 @@ for (const slug of articleSlugs) {
   assert.equal(infoJson.historyUrl, `${jsonOrigin}/wiki/${slug}/history/`, `/wiki/${slug}/info.json historyUrl`);
   assert.equal(infoJson.referencesUrl, `${jsonOrigin}/wiki/${slug}/references.json`, `/wiki/${slug}/info.json referencesUrl`);
   assert.equal(infoJson.relatedUrl, `${jsonOrigin}/wiki/${slug}/related.json`, `/wiki/${slug}/info.json relatedUrl`);
+  assert.equal(infoJson.referencesJsonUrl, `${jsonOrigin}/wiki/${slug}/references.json`, `/wiki/${slug}/info.json referencesJsonUrl alias`);
+  assert.equal(infoJson.referencesJsonUrl, infoJson.referencesUrl, `/wiki/${slug}/info.json referencesJsonUrl must equal referencesUrl`);
+  assert.equal(infoJson.relatedJsonUrl, `${jsonOrigin}/wiki/${slug}/related.json`, `/wiki/${slug}/info.json relatedJsonUrl alias`);
+  assert.equal(infoJson.relatedJsonUrl, infoJson.relatedUrl, `/wiki/${slug}/info.json relatedJsonUrl must equal relatedUrl`);
   assert.equal(infoJson.tocJsonUrl, `${jsonOrigin}/wiki/${slug}/toc.json`, `/wiki/${slug}/info.json tocJsonUrl`);
   // imageUrl is the article's own OG share-card (/og/<slug>.png) — the same
   // per-article image the allpages/mostlinkedpages/recentchanges directory
