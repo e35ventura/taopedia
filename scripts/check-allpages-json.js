@@ -261,6 +261,14 @@ data.articles.forEach((row, i) => {
     Number.isInteger(row.backlinks) && row.backlinks >= 0,
     `row ${i} backlinks must be a non-negative integer (got ${row.backlinks})`,
   );
+  // incomingLinks is the published-only inbound-link count — the same figure
+  // info.json names and listing endpoints expose as `backlinks` per row.
+  assert.equal(
+    row.incomingLinks,
+    publishedInboundLinkCount(backlinks, row.slug, titleBySlug),
+    `row ${i} incomingLinks must match the published inbound-link count for ${row.slug}`,
+  );
+  assert.equal(row.incomingLinks, row.backlinks, `row ${i} incomingLinks must equal backlinks`);
   // lastEdited is the article's last-revision date — the same figure info.json /
   // history.json expose per article. Cross-check it against the sibling built
   // info.json envelope (independent source) so the directory and the per-article
@@ -297,6 +305,11 @@ data.articles.forEach((row, i) => {
       row.firstEdited,
       infoDoc.firstEdited,
       `row ${i} firstEdited must agree with the sibling info.json envelope for ${row.slug}`,
+    );
+    assert.equal(
+      row.incomingLinks,
+      infoDoc.incomingLinks,
+      `row ${i} incomingLinks must agree with the sibling info.json envelope for ${row.slug}`,
     );
   }
   // referencesCount is the article's published outbound-reference count — the

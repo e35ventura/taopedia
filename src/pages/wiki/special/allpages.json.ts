@@ -57,6 +57,7 @@ export const GET: APIRoute = async ({ site }) => {
       count: articles.length,
       articles: articles.map((article) => {
         const history = historyForSlug(article.slug);
+        const inboundLinks = publishedInboundLinkCount(backlinksData, article.slug, titleBySlug);
         return {
           slug: article.slug,
           title: article.title,
@@ -76,7 +77,10 @@ export const GET: APIRoute = async ({ site }) => {
           tocJsonUrl: `${origin}/wiki/${article.slug}/toc.json`,
           imageUrl: `${origin}/og/${article.slug}.png`,
           categories: article.categories,
-          backlinks: publishedInboundLinkCount(backlinksData, article.slug, titleBySlug),
+          backlinks: inboundLinks,
+          // info.json names this figure incomingLinks; keep backlinks for the
+          // field name the HTML listing endpoints (subnets/mostlinked) expose.
+          incomingLinks: inboundLinks,
           // The article's revision stats from its commit history (newest-first) —
           // the same revisionCount / firstEdited / lastEdited trio info.json and
           // history.json expose per article, and mostlinkedpages.json / subnets.json
