@@ -62,6 +62,10 @@ export const buildArticleReferences = ({ slug, title, origin, summary = '', cate
     summary: link.summary || null,
     categories: Array.isArray(link.categories) ? link.categories : [],
     backlinks: Number.isFinite(link.backlinks) ? link.backlinks : 0,
+    // info.json names this same published inbound-link figure incomingLinks; keep
+    // backlinks for field-name compatibility and expose incomingLinks too, the
+    // per-entry alias related.json / allpages.json / subnets.json carry.
+    incomingLinks: Number.isFinite(link.backlinks) ? link.backlinks : 0,
     // The referenced article's published outbound-reference count — the same
     // figure its own history.json / cite.json / info.json / references.json
     // envelope exposes, so consumers can compare both inbound and outbound link

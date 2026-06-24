@@ -114,6 +114,7 @@ const revisionStatsOf = (slug) => {
         summary: null,
         categories: [],
         backlinks: 0,
+        incomingLinks: 0,
         referencesCount: 1,
         sectionCount: 10,
         wordCount: 0,
@@ -142,6 +143,7 @@ const revisionStatsOf = (slug) => {
         summary: null,
         categories: [],
         backlinks: 0,
+        incomingLinks: 0,
         referencesCount: 2,
         sectionCount: 20,
         wordCount: 0,
@@ -170,6 +172,7 @@ const revisionStatsOf = (slug) => {
         summary: null,
         categories: [],
         backlinks: 0,
+        incomingLinks: 0,
         referencesCount: 3,
         sectionCount: 30,
         wordCount: 0,
@@ -198,6 +201,7 @@ const revisionStatsOf = (slug) => {
         summary: null,
         categories: [],
         backlinks: 0,
+        incomingLinks: 0,
         referencesCount: 4,
         sectionCount: 40,
         wordCount: 0,
@@ -441,6 +445,9 @@ for (const slug of articleSlugs) {
     // same figure allpages.json / subnets.json / related.json expose per row.
     assert.equal(entry.backlinks, publishedInboundLinkCount(backlinksData, entry.slug, titleBySlug), `${slug}: every reference entry backlinks must match the published inbound-link count`);
     assert.ok(Number.isInteger(entry.backlinks) && entry.backlinks >= 0, `${slug}: every reference entry backlinks must be a non-negative integer`);
+    // incomingLinks is the info.json-named alias of the same inbound count, the
+    // per-entry field related.json / allpages.json / subnets.json also carry.
+    assert.equal(entry.incomingLinks, entry.backlinks, `${slug}: every reference entry incomingLinks must equal its backlinks (the published inbound-link count)`);
     // referencesCount is the referenced article's own published outbound-link
     // count — the same figure its references.json / info.json / history.json /
     // cite.json envelope exposes — so a consumer can compare the referenced
