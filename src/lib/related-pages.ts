@@ -45,6 +45,11 @@ export interface RelatedPage {
   // The candidate article's latest revision date (optional; the endpoint
   // enriches each entry so consumers can gauge recency).
   lastEdited?: string | null;
+  // The candidate article's revision count + first-revision date (optional; the
+  // endpoint enriches each entry with the same per-entry revision stats
+  // references.json / allpages.json expose).
+  revisionCount?: number;
+  firstEdited?: string | null;
 }
 
 export interface ArticleRelatedPagesDocument {
@@ -79,6 +84,8 @@ export interface ArticleRelatedPagesDocument {
     tags: string[];
     categories: string[];
     backlinks: number;
+    revisionCount: number;
+    firstEdited: string | null;
     lastEdited: string | null;
     url: string;
     infoUrl: string;
@@ -234,6 +241,8 @@ export function buildArticleRelatedPages({
       tags: entry.tags,
       categories: Array.isArray(entry.categories) ? entry.categories : [],
       backlinks: Number.isFinite(entry.backlinks) ? entry.backlinks : 0,
+      revisionCount: Number.isFinite(entry.revisionCount) ? entry.revisionCount : 0,
+      firstEdited: entry.firstEdited ?? null,
       lastEdited: entry.lastEdited ?? null,
       url: `${origin}/wiki/${entry.slug}/`,
       infoUrl: `${origin}/wiki/${entry.slug}/info/`,

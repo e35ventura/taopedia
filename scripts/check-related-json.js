@@ -15,14 +15,15 @@ const backlinksFile = path.join(projectRoot, 'public', 'data', 'backlinks.json')
 const linkgraphFile = path.join(projectRoot, 'public', 'data', 'linkgraph.json');
 const historyDir = path.join(projectRoot, 'public', 'history');
 const ORIGIN = 'https://taopedia.org';
-// Each entry's lastEdited = the related article's latest revision date (history
-// is newest-first), re-derived from the raw history file.
-const lastEditedOf = (slug) => {
+// Each entry's revision stats are re-derived from the raw history file (history
+// is newest-first: [0] is the latest revision, the last entry is the original).
+const historyOf = (slug) => {
   const file = path.join(historyDir, `${slug}.json`);
-  if (!fs.existsSync(file)) return null;
+  if (!fs.existsSync(file)) return [];
   const history = JSON.parse(fs.readFileSync(file, 'utf8')).history || [];
-  return Array.isArray(history) && history.length > 0 ? history[0].date : null;
+  return Array.isArray(history) ? history : [];
 };
+const lastEditedOf = (slug) => historyOf(slug)[0]?.date ?? null;
 
 // ---- 1) Unit: helper + builder behavior -----------------------------------
 {
@@ -114,6 +115,8 @@ const lastEditedOf = (slug) => {
         tags: ['Security'],
         categories: [],
         backlinks: 0,
+        revisionCount: 0,
+        firstEdited: null,
         lastEdited: null,
         url: `${ORIGIN}/wiki/alpha/`,
         infoUrl: `${ORIGIN}/wiki/alpha/info/`,
@@ -137,6 +140,8 @@ const lastEditedOf = (slug) => {
         tags: ['Security'],
         categories: [],
         backlinks: 0,
+        revisionCount: 0,
+        firstEdited: null,
         lastEdited: null,
         url: `${ORIGIN}/wiki/gamma/`,
         infoUrl: `${ORIGIN}/wiki/gamma/info/`,
@@ -160,6 +165,8 @@ const lastEditedOf = (slug) => {
         tags: ['Consensus'],
         categories: [],
         backlinks: 0,
+        revisionCount: 0,
+        firstEdited: null,
         lastEdited: null,
         url: `${ORIGIN}/wiki/delta/`,
         infoUrl: `${ORIGIN}/wiki/delta/info/`,
@@ -247,12 +254,17 @@ for (const slug of articleSlugs) {
     outgoing: linkgraphData,
     publishedSlugs,
     titleBySlug,
-  }).map((entry) => ({
-    ...entry,
-    categories: slugMap[entry.slug]?.categories ?? [],
-    backlinks: publishedInboundLinkCount(backlinksData, entry.slug, titleBySlug),
-    lastEdited: lastEditedOf(entry.slug),
-  }));
+  }).map((entry) => {
+    const entryHistory = historyOf(entry.slug);
+    return {
+      ...entry,
+      categories: slugMap[entry.slug]?.categories ?? [],
+      backlinks: publishedInboundLinkCount(backlinksData, entry.slug, titleBySlug),
+      revisionCount: entryHistory.length,
+      firstEdited: entryHistory[entryHistory.length - 1]?.date ?? null,
+      lastEdited: entryHistory[0]?.date ?? null,
+    };
+  });
   const expectedDoc = buildArticleRelatedPages({
     slug,
     title: titleBySlug[slug],

@@ -58,12 +58,21 @@ export async function getStaticPaths() {
           outgoing: linkgraphData,
           publishedSlugs,
           titleBySlug,
-        }).map((entry) => ({
-          ...entry,
-          categories: slugMap[entry.slug]?.categories ?? [],
-          backlinks: publishedInboundLinkCount(backlinksData, entry.slug, titleBySlug),
-          lastEdited: historyForSlug(entry.slug)[0]?.date ?? null,
-        })),
+        }).map((entry) => {
+          // History is newest-first, so [0] is the latest revision and the last
+          // entry is the original publication — the same revisionCount /
+          // firstEdited / lastEdited per-entry stats references.json and
+          // allpages.json expose for each entry.
+          const entryHistory = historyForSlug(entry.slug);
+          return {
+            ...entry,
+            categories: slugMap[entry.slug]?.categories ?? [],
+            backlinks: publishedInboundLinkCount(backlinksData, entry.slug, titleBySlug),
+            revisionCount: entryHistory.length,
+            firstEdited: entryHistory[entryHistory.length - 1]?.date ?? null,
+            lastEdited: entryHistory[0]?.date ?? null,
+          };
+        }),
       },
     };
   });
@@ -84,7 +93,7 @@ export const GET: APIRoute = async ({ props, site }) => {
     revisionCount: number;
     firstEdited: string | null;
     lastEdited: string | null;
-    relatedPages: Array<{ slug: string; title: string; summary: string; tags: string[]; categories: string[]; backlinks: number; lastEdited: string | null }>;
+    relatedPages: Array<{ slug: string; title: string; summary: string; tags: string[]; categories: string[]; backlinks: number; revisionCount: number; firstEdited: string | null; lastEdited: string | null }>;
   };
   const origin = (site ?? new URL('https://taopedia.org')).origin;
 
