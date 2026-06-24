@@ -328,6 +328,23 @@ data.articles.forEach((row, i) => {
       `row ${i} referencesCount must agree with the sibling references.json envelope for ${row.slug}`,
     );
   }
+  // wordCount is the article body's word count — the same figure info.json
+  // exposes on its envelope. Validate its shape and cross-check it against the
+  // sibling built info.json (the independent source) so the directory and the
+  // per-article metadata surface can't disagree on article length.
+  assert.ok(
+    Number.isInteger(row.wordCount) && row.wordCount >= 0,
+    `row ${i} wordCount must be a non-negative integer (got ${JSON.stringify(row.wordCount)})`,
+  );
+  const apWordInfoJsonFile = path.join(projectRoot, 'dist', 'wiki', row.slug, 'info.json');
+  if (fs.existsSync(apWordInfoJsonFile)) {
+    const infoDoc = JSON.parse(fs.readFileSync(apWordInfoJsonFile, 'utf8'));
+    assert.equal(
+      row.wordCount,
+      infoDoc.wordCount,
+      `row ${i} wordCount must agree with the sibling info.json envelope for ${row.slug}`,
+    );
+  }
   // historyUrl points at the article's revision-history page — the same
   // companion subnets.json / mostlinkedpages.json expose — so a consumer of the
   // directory can reach each article's edit history without rebuilding the route.
