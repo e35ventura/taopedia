@@ -34,24 +34,33 @@ export async function getStaticPaths() {
     pages.map((page) => [getPageSlug(page), (page.body ?? '').trim().split(/\s+/).filter(Boolean).length]),
   );
   // Per-slug revision history, published inbound-link count, and outbound
-  // reference count — the three stats each reference entry (and the envelope)
-  // carries. They depend only on the target slug, but the same target recurs
-  // across many articles' reference lists, so computing them inside the entry
-  // map below recomputes each target's stats once per referencing article
-  // (O(articles × references)) — and getArticleReferences is a full link-graph
-  // join. Precompute them once over the page collection, the same way
+  // reference list — the stats each reference entry (and the envelope) carries.
+  // They depend only on the target slug, but the same target recurs across many
+  // articles' reference lists, so computing them inside the entry map below
+  // recomputes each target's stats once per referencing article (O(articles ×
+  // references)) — and getArticleReferences is a full link-graph join.
+  // Precompute them once over the page collection, the same way
   // subnets.json / mostlinkedpages.json precompute their historyBySlug map.
+  // referencesBySlug caches the full list (not just its length) so the main
+  // loop below can reuse the current page's own outbound list directly instead
+  // of calling getArticleReferences a second time for the same slug.
   const historyBySlug = Object.fromEntries(pages.map((page) => [getPageSlug(page), historyForSlug(getPageSlug(page))]));
   const inboundBySlug = Object.fromEntries(
     pages.map((page) => [getPageSlug(page), publishedInboundLinkCount(backlinksData, getPageSlug(page), titleBySlug)]),
   );
+  const referencesBySlug = Object.fromEntries(
+    pages.map((page) => [getPageSlug(page), getArticleReferences({ slug: getPageSlug(page), linkGraph: linkgraphData, titleBySlug })]),
+  );
   const referencesCountBySlug = Object.fromEntries(
-    pages.map((page) => [getPageSlug(page), getArticleReferences({ slug: getPageSlug(page), linkGraph: linkgraphData, titleBySlug }).length]),
+    pages.map((page) => {
+      const slug = getPageSlug(page);
+      return [slug, referencesBySlug[slug]?.length ?? 0];
+    }),
   );
 
   return Promise.all(pages.map(async (page) => {
     const slug = getPageSlug(page);
-    const references = getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).map((ref) => {
+    const references = (referencesBySlug[slug] ?? []).map((ref) => {
       const history = historyBySlug[ref.slug] ?? [];
       return {
         ...ref,
