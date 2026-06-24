@@ -1,9 +1,10 @@
 import type { APIRoute } from 'astro';
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import { buildCategoryArticlesDocument, getCategoryArticles } from '../../../../lib/category-articles.js';
 import { publishedInboundLinkCount } from '../../../../../scripts/most-linked.js';
 import { getPageSlug, historyForSlug } from '../../../../lib/article-history';
 import { getArticleReferences } from '../../../../lib/article-references.js';
+import { getArticleToc } from '../../../../lib/article-toc.js';
 
 const categoriesModules = import.meta.glob('../../../../../public/data/categories.json', { eager: true }) as Record<
   string,
@@ -41,6 +42,15 @@ export async function getStaticPaths() {
   const wordCountBySlug = Object.fromEntries(
     pages.map((page) => [getPageSlug(page), (page.body ?? '').trim().split(/\s+/).filter(Boolean).length]),
   );
+  // sectionCount is the article's table-of-contents section count — the same
+  // figure toc.json exposes as `count` and info.json / history.json expose on
+  // their envelopes, derived from the shared getArticleToc helper, so a category
+  // consumer can gauge each article's depth without a second fetch.
+  const sectionCountBySlug = Object.fromEntries(
+    await Promise.all(
+      pages.map(async (page) => [getPageSlug(page), getArticleToc((await render(page)).headings).length]),
+    ),
+  );
   return Object.keys(categoriesIndex)
     .sort()
     .map((categoryName) => ({
@@ -62,6 +72,7 @@ export async function getStaticPaths() {
             firstEdited: history[history.length - 1]?.date ?? null,
             lastEdited: history[0]?.date ?? null,
             wordCount: wordCountBySlug[article.slug] ?? 0,
+            sectionCount: sectionCountBySlug[article.slug] ?? 0,
           };
         }),
       },
@@ -76,7 +87,7 @@ export const GET: APIRoute = async ({ props, site }) => {
   const { categoryName, categoryPath, articles } = props as {
     categoryName: string;
     categoryPath: string;
-    articles: Array<{ slug: string; title: string; summary: string; backlinks: number; referencesCount: number; revisionCount: number; firstEdited: string | null; lastEdited: string | null; wordCount: number }>;
+    articles: Array<{ slug: string; title: string; summary: string; backlinks: number; referencesCount: number; revisionCount: number; firstEdited: string | null; lastEdited: string | null; wordCount: number; sectionCount: number }>;
   };
   const origin = (site ?? new URL('https://taopedia.org')).origin;
 
