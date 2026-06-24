@@ -90,7 +90,9 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(doc.citeJsonUrl, `${ORIGIN}/wiki/source/cite.json`, 'builder: citeJsonUrl cross-link');
   assert.equal(doc.bibtexUrl, `${ORIGIN}/wiki/source/cite.bib`, 'builder: bibtexUrl cross-link');
   assert.equal(doc.referencesUrl, `${ORIGIN}/wiki/source/references.json`, 'builder: referencesUrl cross-link');
+  assert.equal(doc.referencesJsonUrl, `${ORIGIN}/wiki/source/references.json`, 'builder: referencesJsonUrl alias cross-link');
   assert.equal(doc.relatedUrl, `${ORIGIN}/wiki/source/related.json`, 'builder: relatedUrl cross-link');
+  assert.equal(doc.relatedJsonUrl, `${ORIGIN}/wiki/source/related.json`, 'builder: relatedJsonUrl alias cross-link');
   assert.equal(doc.imageUrl, `${ORIGIN}/og/source.png`, 'builder: imageUrl');
   assert.deepEqual(doc.categories, ['Consensus', 'Security'], 'builder: categories field');
   assert.equal(doc.incomingLinks, 5, 'builder: incomingLinks field');
@@ -232,7 +234,9 @@ for (const slug of articleSlugs) {
   assert.equal(doc.citeJsonUrl, `${ORIGIN}/wiki/${slug}/cite.json`, `${slug}: toc.json citeJsonUrl must be canonical`);
   assert.equal(doc.bibtexUrl, `${ORIGIN}/wiki/${slug}/cite.bib`, `${slug}: toc.json bibtexUrl must be canonical`);
   assert.equal(doc.referencesUrl, `${ORIGIN}/wiki/${slug}/references.json`, `${slug}: toc.json referencesUrl must be canonical`);
+  assert.equal(doc.referencesJsonUrl, `${ORIGIN}/wiki/${slug}/references.json`, `${slug}: toc.json referencesJsonUrl alias must be canonical`);
   assert.equal(doc.relatedUrl, `${ORIGIN}/wiki/${slug}/related.json`, `${slug}: toc.json relatedUrl must be canonical`);
+  assert.equal(doc.relatedJsonUrl, `${ORIGIN}/wiki/${slug}/related.json`, `${slug}: toc.json relatedJsonUrl alias must be canonical`);
   // imageUrl is the article's own OG share-card (/og/<slug>.png).
   assert.equal(doc.imageUrl, `${ORIGIN}/og/${slug}.png`, `${slug}: toc.json imageUrl must be the article's OG share-card URL`);
   // categories must match the article's own topic categories from the slug map,
