@@ -53,11 +53,13 @@ export const GET: APIRoute = async ({ site }) => {
         imageUrl: `${origin}/og/${article.slug}.png`,
         categories: article.categories,
         backlinks: publishedInboundLinkCount(backlinksData, article.slug, titleBySlug),
-        // The article's last-revision date (history is newest-first) — the same
-        // lastEdited figure info.json / history.json expose per article — so a
-        // directory consumer can sort or filter by recency without an N-fetch
-        // sweep of every article's history. recentchanges.json already exposes a
-        // per-change date; this gives the full directory the same recency signal.
+        // The article's revision stats from its commit history (newest-first) —
+        // the same revisionCount / firstEdited / lastEdited trio info.json and
+        // history.json expose per article, and mostlinkedpages.json / subnets.json
+        // expose per directory entry — so a directory consumer can sort or filter
+        // by age or recency without an N-fetch sweep of every article's history.
+        revisionCount: historyForSlug(article.slug).length,
+        firstEdited: historyForSlug(article.slug).at(-1)?.date ?? null,
         lastEdited: historyForSlug(article.slug)[0]?.date ?? null,
       })),
     },
