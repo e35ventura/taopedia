@@ -258,6 +258,23 @@ data.subnets.forEach((row, i) => {
     Number.isInteger(row.referencesCount) && row.referencesCount >= 0,
     `row ${i} referencesCount must be a non-negative integer (got ${row.referencesCount})`,
   );
+  // sectionCount is the subnet article's table-of-contents section count — the
+  // same figure toc.json exposes as `count` and info.json / history.json expose
+  // on their envelopes. Cross-check it against the sibling built toc.json (the
+  // independent source of truth the endpoint renders) so they can't disagree.
+  assert.ok(
+    Number.isInteger(row.sectionCount) && row.sectionCount >= 0,
+    `row ${i} sectionCount must be a non-negative integer (got ${JSON.stringify(row.sectionCount)})`,
+  );
+  const snTocJsonFile = path.join(projectRoot, 'dist', 'wiki', row.slug, 'toc.json');
+  if (fs.existsSync(snTocJsonFile)) {
+    const tocDoc = JSON.parse(fs.readFileSync(snTocJsonFile, 'utf8'));
+    assert.equal(
+      row.sectionCount,
+      tocDoc.count,
+      `row ${i} sectionCount must agree with the sibling toc.json count for ${row.slug}`,
+    );
+  }
   // lastEdited is the subnet article's last-revision date — the same figure
   // info.json / history.json expose per article and allpages.json /
   // mostlinkedpages.json expose per directory entry. Cross-check it against the
