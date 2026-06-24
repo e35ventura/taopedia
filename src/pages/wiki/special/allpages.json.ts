@@ -50,14 +50,30 @@ export const GET: APIRoute = async ({ site }) => {
 
   const articles = buildAllPages({ pages, getPageSlug, origin });
 
+  // Per-slug revision history, published inbound-link count, and outbound
+  // reference count carried on each directory row. They depend only on the
+  // article slug, but the mapper below visits every article once and was
+  // calling historyForSlug / publishedInboundLinkCount / getArticleReferences
+  // inline per row — and getArticleReferences is a full link-graph join.
+  // Precompute them once over the directory list, the same way category
+  // articles.json / recentchanges.json / subnets.json precompute their maps.
+  const historyBySlug: Record<string, ReturnType<typeof historyForSlug>> = {};
+  const inboundBySlug: Record<string, number> = {};
+  const referencesCountBySlug: Record<string, number> = {};
+  for (const article of articles) {
+    historyBySlug[article.slug] = historyForSlug(article.slug);
+    inboundBySlug[article.slug] = publishedInboundLinkCount(backlinksData, article.slug, titleBySlug);
+    referencesCountBySlug[article.slug] = getArticleReferences({ slug: article.slug, linkGraph: linkgraphData, titleBySlug }).length;
+  }
+
   const body = JSON.stringify(
     {
       site: origin,
       allpagesJsonUrl: `${origin}/wiki/special/allpages.json`,
       count: articles.length,
       articles: articles.map((article) => {
-        const history = historyForSlug(article.slug);
-        const inboundLinks = publishedInboundLinkCount(backlinksData, article.slug, titleBySlug);
+        const history = historyBySlug[article.slug] ?? [];
+        const inboundLinks = inboundBySlug[article.slug] ?? 0;
         return {
           slug: article.slug,
           title: article.title,
@@ -98,7 +114,7 @@ export const GET: APIRoute = async ({ site }) => {
           lastEdited: history[0]?.date ?? null,
           // The article's published outbound-reference count — the same figure
           // history.json and references.json expose (via getArticleReferences).
-          referencesCount: getArticleReferences({ slug: article.slug, linkGraph: linkgraphData, titleBySlug }).length,
+          referencesCount: referencesCountBySlug[article.slug] ?? 0,
           // The article body's word count — the same figure info.json exposes —
           // so the directory can be sorted or filtered by article length.
           wordCount: wordCountBySlug[article.slug] ?? 0,
