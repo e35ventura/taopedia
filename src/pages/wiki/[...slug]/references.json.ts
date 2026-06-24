@@ -28,6 +28,11 @@ export async function getStaticPaths() {
   const sectionCountBySlug = Object.fromEntries(
     await Promise.all(pages.map(async (page) => [getPageSlug(page), getArticleToc((await render(page)).headings).length])),
   );
+  // Per-slug body word count — the same wordCount info.json / history.json expose
+  // and allpages.json / subnets.json expose per directory entry.
+  const wordCountBySlug = Object.fromEntries(
+    pages.map((page) => [getPageSlug(page), (page.body ?? '').trim().split(/\s+/).filter(Boolean).length]),
+  );
 
   return Promise.all(pages.map(async (page) => {
     const slug = getPageSlug(page);
@@ -40,6 +45,7 @@ export async function getStaticPaths() {
         backlinks: publishedInboundLinkCount(backlinksData, ref.slug, titleBySlug),
         referencesCount: getArticleReferences({ slug: ref.slug, linkGraph: linkgraphData, titleBySlug }).length,
         sectionCount: sectionCountBySlug[ref.slug] ?? 0,
+        wordCount: wordCountBySlug[ref.slug] ?? 0,
         revisionCount: history.length,
         firstEdited: history[history.length - 1]?.date ?? null,
         lastEdited: history[0]?.date ?? null,
@@ -94,6 +100,7 @@ export const GET: APIRoute = async ({ props, site }) => {
       backlinks: number;
       referencesCount: number;
       sectionCount: number;
+      wordCount: number;
       revisionCount: number;
       firstEdited: string | null;
       lastEdited: string | null;
