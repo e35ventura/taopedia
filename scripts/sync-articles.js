@@ -943,6 +943,7 @@ export function validateArticleContent(slug, content) {
   }
 
   const emptiedAttributeContent = emptyQuotedAttributeValues(content);
+  const decodedEmptied = emptyQuotedAttributeValues(decodedForAttributes);
 
   if (nonSpaceDelimitedHandlerPattern.test(emptiedAttributeContent)) {
     throw new Error(`Unsafe article content in "${slug}": inline event handlers are not allowed in article content`);
@@ -1254,6 +1255,8 @@ export function validateArticleContent(slug, content) {
   if (
     olReversedAttrPattern.test(emptiedAttributeContent)
     || quoteAbuttedOlReversedAttrPattern.test(emptiedAttributeContent)
+    || olReversedAttrPattern.test(decodedEmptied)
+    || quoteAbuttedOlReversedAttrPattern.test(decodedEmptied)
   ) {
     throw new Error(`Unsafe article content in "${slug}": reversed attributes are not allowed on ol elements`);
   }

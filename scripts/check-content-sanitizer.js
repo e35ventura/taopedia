@@ -898,6 +898,8 @@ rejects('<ol class="x"type="A">x</ol>', 'quote-abutted ol type attribute');
 rejects('<ul class=x/type="square">', 'slash-delimited ul type attribute');
 rejects('Intro.\n\n<ol reversed><li>Step 1</li><li>Step 2</li></ol>', 'plain ol reversed attribute');
 rejects('Intro.\n\n<ol   reversed   ><li>x</li></ol>', 'spaced ol reversed attribute');
+rejects('Intro.\n\n<ol rev&#101;rsed><li>x</li></ol>', 'entity-obfuscated ol reversed attribute');
+rejects('Intro.\n\n<ol r&#101;versed><li>x</li></ol>', 'decimal-entity ol reversed attribute');
 rejects('Intro.\n\n<ol reversed="reversed"><li>x</li></ol>', 'valued ol reversed attribute');
 rejects('<ol class="x"reversed><li>x</li></ol>', 'quote-abutted ol reversed attribute');
 
