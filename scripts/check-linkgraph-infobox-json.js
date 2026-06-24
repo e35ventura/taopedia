@@ -35,6 +35,16 @@ try {
     [{ target: 'staking', text: 'Staking' }],
     'linkgraph should match the frontmatter rows that the article page renders',
   );
+
+  const badDir = path.join(tempRoot, 'bad_infobox');
+  fs.mkdirSync(badDir, { recursive: true });
+  const badPath = path.join(badDir, 'infobox.json');
+  fs.writeFileSync(badPath, '{ invalid');
+  assert.throws(
+    () => getVisibleInfoboxRows(badDir, undefined),
+    /Malformed infobox JSON/,
+    'malformed infobox.json must throw a clear build error',
+  );
 } finally {
   fs.rmSync(tempRoot, { recursive: true, force: true });
 }

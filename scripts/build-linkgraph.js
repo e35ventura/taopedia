@@ -71,7 +71,12 @@ export function getVisibleInfoboxRows(articleDir, frontmatterRows) {
   const infoboxPath = path.join(articleDir, 'infobox.json');
   if (!fs.existsSync(infoboxPath)) return undefined;
 
-  const infobox = JSON.parse(fs.readFileSync(infoboxPath, 'utf-8'));
+  let infobox;
+  try {
+    infobox = JSON.parse(fs.readFileSync(infoboxPath, 'utf-8'));
+  } catch (error) {
+    throw new Error(`Malformed infobox JSON in "${infoboxPath}": ${error.message}`);
+  }
   return Array.isArray(infobox?.rows) ? infobox.rows : undefined;
 }
 
