@@ -29,8 +29,15 @@ export const GET: APIRoute = async ({ site }) => {
   const origin = (site ?? new URL('https://taopedia.org')).origin;
   const pages = await getCollection('pages');
   const titleBySlug: Record<string, string> = {};
+  // The article body's word count — the same figure info.json exposes and the
+  // article-page footer (mw-article-meta data-word-count) renders, computed from
+  // the raw markdown body so a directory consumer can sort or filter the
+  // directory by article length without an N-fetch sweep.
+  const wordCountBySlug: Record<string, number> = {};
   for (const page of pages) {
-    titleBySlug[getPageSlug(page)] = page.data.title;
+    const slug = getPageSlug(page);
+    titleBySlug[slug] = page.data.title;
+    wordCountBySlug[slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
   }
 
   const articles = buildAllPages({ pages, getPageSlug, origin });
@@ -73,6 +80,9 @@ export const GET: APIRoute = async ({ site }) => {
           // The article's published outbound-reference count — the same figure
           // history.json and references.json expose (via getArticleReferences).
           referencesCount: getArticleReferences({ slug: article.slug, linkGraph: linkgraphData, titleBySlug }).length,
+          // The article body's word count — the same figure info.json exposes —
+          // so the directory can be sorted or filtered by article length.
+          wordCount: wordCountBySlug[article.slug] ?? 0,
         };
       }),
     },
