@@ -103,6 +103,7 @@ const revisionStatsOf = (slug) => {
   assert.equal(doc.lastEdited, '2024-06-01T00:00:00.000Z', 'builder: lastEdited field threaded verbatim');
   assert.equal(doc.sectionCount, 7, 'builder: sectionCount field threaded verbatim');
   assert.equal(doc.wordCount, 654, 'builder: wordCount field threaded verbatim');
+  assert.equal(doc.readingMinutes, 4, 'builder: readingMinutes = ceil(654/200)');
   assert.equal(doc.count, 4, 'builder: count field');
   assert.deepEqual(
     doc.references,
@@ -388,6 +389,18 @@ for (const slug of articleSlugs) {
       doc.wordCount,
       infoDoc.wordCount,
       `${slug}: references.json wordCount must agree with the sibling info.json envelope`,
+    );
+    // readingMinutes is the ~200-wpm estimate derived from wordCount — the same
+    // figure info.json / history.json / cite.json / toc.json expose.
+    assert.equal(
+      doc.readingMinutes,
+      Math.max(1, Math.ceil(doc.wordCount / 200)),
+      `${slug}: references.json readingMinutes must equal ceil(wordCount/200) (min 1)`,
+    );
+    assert.equal(
+      doc.readingMinutes,
+      infoDoc.readingMinutes,
+      `${slug}: references.json readingMinutes must agree with the sibling info.json envelope`,
     );
   }
   assert.equal(typeof doc.count, 'number', `${slug}: references.json count must be a number`);
