@@ -82,9 +82,14 @@ export const GET: APIRoute = async ({ site, props }) => {
       // firstEdited / lastEdited bracket the article's revision history (oldest
       // and newest commit dates), the same pair info.json and history.json
       // expose on their envelopes — completing the history-stats set cite.json
-      // already exposes revisionCount for. null when the article has no history.
-      firstEdited: history.length > 0 ? history[history.length - 1].date : null,
-      lastEdited: history.length > 0 ? history[0].date : null,
+      // already exposes revisionCount for. Use the same optional-chaining access
+      // (`history[i]?.date ?? null`) every sibling endpoint uses (info.json,
+      // references.json, related.json, backlinks.json): a history entry's `date`
+      // is optional, and `history[i].date` would yield `undefined` for a dateless
+      // entry — which JSON.stringify OMITS, dropping the key entirely and breaking
+      // the string|null contract the siblings and the regression check rely on.
+      firstEdited: history[history.length - 1]?.date ?? null,
+      lastEdited: history[0]?.date ?? null,
       // referencesCount is the article's published outbound-reference count —
       // the same figure history.json and references.json expose (as `count`),
       // so a consumer citing the article can record how many wiki pages it links

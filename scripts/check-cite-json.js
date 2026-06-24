@@ -297,7 +297,18 @@ for (const slug of articleSlugs) {
       `cite.json revisionCount must agree with the sibling info.json envelope for ${slug}`,
     );
     // firstEdited / lastEdited bracket the revision history — the same pair
-    // info.json exposes; they must agree with the sibling envelope.
+    // info.json exposes; they must agree with the sibling envelope. The keys must
+    // ALWAYS be present as a string date or null (never omitted): a dateless
+    // history entry accessed without optional chaining yields `undefined`, which
+    // JSON.stringify drops, silently breaking this string|null contract.
+    assert.ok(
+      'firstEdited' in doc && (doc.firstEdited === null || typeof doc.firstEdited === 'string'),
+      `cite.json firstEdited must always be present as a string date or null for ${slug} (got ${JSON.stringify(doc.firstEdited)})`,
+    );
+    assert.ok(
+      'lastEdited' in doc && (doc.lastEdited === null || typeof doc.lastEdited === 'string'),
+      `cite.json lastEdited must always be present as a string date or null for ${slug} (got ${JSON.stringify(doc.lastEdited)})`,
+    );
     assert.equal(
       doc.firstEdited,
       infoDoc.firstEdited,
