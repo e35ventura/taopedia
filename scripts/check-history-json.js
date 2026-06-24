@@ -52,6 +52,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.referencesCount, 3, 'builder: referencesCount');
   assert.equal(result.sectionCount, 4, 'builder: sectionCount');
   assert.equal(result.wordCount, 812, 'builder: wordCount');
+  assert.equal(result.readingMinutes, 5, 'builder: readingMinutes is ceil(812/200)');
   assert.equal(result.revisionCount, 2, 'builder: revisionCount');
   assert.equal(result.lastEdited, '2026-06-01T12:00:00.000Z', 'builder: lastEdited is revisions[0].date');
   assert.equal(result.firstEdited, '2025-01-10T08:00:00.000Z', 'builder: firstEdited is revisions[last].date');
@@ -76,12 +77,14 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(empty.referencesCount, 0, 'builder: default referencesCount is 0');
   assert.equal(empty.sectionCount, 0, 'builder: default sectionCount is 0');
   assert.equal(empty.wordCount, 0, 'builder: default wordCount is 0');
+  assert.equal(empty.readingMinutes, 1, 'builder: default readingMinutes is 1 (ceil(0/200))');
 
   const badSection = buildArticleHistory({ slug: 'x', title: 'X', origin: ORIGIN, sectionCount: NaN });
   assert.equal(badSection.sectionCount, 0, 'builder: non-finite sectionCount defaults to 0');
 
   const badWords = buildArticleHistory({ slug: 'x', title: 'X', origin: ORIGIN, wordCount: NaN });
   assert.equal(badWords.wordCount, 0, 'builder: non-finite wordCount defaults to 0');
+  assert.equal(badWords.readingMinutes, 1, 'builder: non-finite wordCount still yields readingMinutes 1');
 
   const badCount = buildArticleHistory({ slug: 'x', title: 'X', origin: ORIGIN, referencesCount: NaN });
   assert.equal(badCount.referencesCount, 0, 'builder: non-finite referencesCount defaults to 0');
@@ -239,6 +242,17 @@ for (const slug of articleSlugs) {
       `${slug}: history.json wordCount must match the article footer's data-word-count`,
     );
   }
+  // readingMinutes is the ~200 wpm ceil estimate the article footer renders
+  // ("N min read") and info.json exposes on its own envelope.
+  assert.ok(
+    Number.isInteger(doc.readingMinutes) && doc.readingMinutes >= 1,
+    `${slug}: history.json readingMinutes must be a positive integer`,
+  );
+  assert.equal(
+    doc.readingMinutes,
+    Math.max(1, Math.ceil(doc.wordCount / 200)),
+    `${slug}: history.json readingMinutes must equal ceil(wordCount/200)`,
+  );
   const infoJsonFile = path.join(wikiDir, slug, 'info.json');
   if (fs.existsSync(infoJsonFile)) {
     const infoDoc = JSON.parse(fs.readFileSync(infoJsonFile, 'utf8'));
@@ -246,6 +260,11 @@ for (const slug of articleSlugs) {
       doc.incomingLinks,
       infoDoc.incomingLinks,
       `${slug}: history.json incomingLinks must agree with the sibling info.json envelope`,
+    );
+    assert.equal(
+      doc.readingMinutes,
+      infoDoc.readingMinutes,
+      `${slug}: history.json readingMinutes must agree with the sibling info.json envelope`,
     );
   }
   assert.equal(typeof doc.revisionCount, 'number', `${slug}: history.json revisionCount must be a number`);
