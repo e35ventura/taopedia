@@ -135,7 +135,9 @@ const revisionStatsOf = (slug) => {
         citeJsonUrl: `${ORIGIN}/wiki/delta/cite.json`,
         bibtexUrl: `${ORIGIN}/wiki/delta/cite.bib`,
         referencesUrl: `${ORIGIN}/wiki/delta/references.json`,
+        referencesJsonUrl: `${ORIGIN}/wiki/delta/references.json`,
         relatedUrl: `${ORIGIN}/wiki/delta/related.json`,
+        relatedJsonUrl: `${ORIGIN}/wiki/delta/related.json`,
         tocJsonUrl: `${ORIGIN}/wiki/delta/toc.json`,
         imageUrl: `${ORIGIN}/og/delta.png`,
       },
@@ -164,7 +166,9 @@ const revisionStatsOf = (slug) => {
         citeJsonUrl: `${ORIGIN}/wiki/alpha/cite.json`,
         bibtexUrl: `${ORIGIN}/wiki/alpha/cite.bib`,
         referencesUrl: `${ORIGIN}/wiki/alpha/references.json`,
+        referencesJsonUrl: `${ORIGIN}/wiki/alpha/references.json`,
         relatedUrl: `${ORIGIN}/wiki/alpha/related.json`,
+        relatedJsonUrl: `${ORIGIN}/wiki/alpha/related.json`,
         tocJsonUrl: `${ORIGIN}/wiki/alpha/toc.json`,
         imageUrl: `${ORIGIN}/og/alpha.png`,
       },
@@ -193,7 +197,9 @@ const revisionStatsOf = (slug) => {
         citeJsonUrl: `${ORIGIN}/wiki/gamma/cite.json`,
         bibtexUrl: `${ORIGIN}/wiki/gamma/cite.bib`,
         referencesUrl: `${ORIGIN}/wiki/gamma/references.json`,
+        referencesJsonUrl: `${ORIGIN}/wiki/gamma/references.json`,
         relatedUrl: `${ORIGIN}/wiki/gamma/related.json`,
+        relatedJsonUrl: `${ORIGIN}/wiki/gamma/related.json`,
         tocJsonUrl: `${ORIGIN}/wiki/gamma/toc.json`,
         imageUrl: `${ORIGIN}/og/gamma.png`,
       },
@@ -222,7 +228,9 @@ const revisionStatsOf = (slug) => {
         citeJsonUrl: `${ORIGIN}/wiki/beta/cite.json`,
         bibtexUrl: `${ORIGIN}/wiki/beta/cite.bib`,
         referencesUrl: `${ORIGIN}/wiki/beta/references.json`,
+        referencesJsonUrl: `${ORIGIN}/wiki/beta/references.json`,
         relatedUrl: `${ORIGIN}/wiki/beta/related.json`,
+        relatedJsonUrl: `${ORIGIN}/wiki/beta/related.json`,
         tocJsonUrl: `${ORIGIN}/wiki/beta/toc.json`,
         imageUrl: `${ORIGIN}/og/beta.png`,
       },
@@ -601,6 +609,10 @@ for (const slug of articleSlugs) {
     assert.equal(entry.bibtexUrl, `${ORIGIN}/wiki/${entry.slug}/cite.bib`, `${slug}: every reference entry bibtexUrl must be canonical`);
     assert.equal(entry.referencesUrl, `${ORIGIN}/wiki/${entry.slug}/references.json`, `${slug}: every reference entry referencesUrl must be canonical`);
     assert.equal(entry.relatedUrl, `${ORIGIN}/wiki/${entry.slug}/related.json`, `${slug}: every reference entry relatedUrl must be canonical`);
+    assert.equal(entry.referencesJsonUrl, `${ORIGIN}/wiki/${entry.slug}/references.json`, `${slug}: every reference entry referencesJsonUrl must be canonical`);
+    assert.equal(entry.referencesJsonUrl, entry.referencesUrl, `${slug}: every reference entry referencesJsonUrl must equal the back-compat referencesUrl`);
+    assert.equal(entry.relatedJsonUrl, `${ORIGIN}/wiki/${entry.slug}/related.json`, `${slug}: every reference entry relatedJsonUrl must be canonical`);
+    assert.equal(entry.relatedJsonUrl, entry.relatedUrl, `${slug}: every reference entry relatedJsonUrl must equal the back-compat relatedUrl`);
     assert.equal(entry.tocJsonUrl, `${ORIGIN}/wiki/${entry.slug}/toc.json`, `${slug}: every reference entry tocJsonUrl must be the canonical article toc.json URL`);
     assert.equal(entry.imageUrl, `${ORIGIN}/og/${entry.slug}.png`, `${slug}: every reference entry imageUrl must be the referenced article's OG share-card URL`);
   }
