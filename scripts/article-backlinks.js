@@ -33,6 +33,10 @@ export const buildArticleBacklinks = ({ slug, title, origin, summary = '', categ
   // The article body's word count — the same figure info.json / history.json
   // expose and the article-page footer (mw-article-meta data-word-count) renders.
   wordCount: Number.isFinite(wordCount) ? wordCount : 0,
+  // Estimated reading time in minutes — the same ~200 wpm ceil formula
+  // info.json exposes and the article-page footer ("N min read") renders
+  // from wordCount.
+  readingMinutes: Math.max(1, Math.ceil((Number.isFinite(wordCount) ? wordCount : 0) / 200)),
   // The article's revision count (its commit-history length) — the same figure
   // info.json / history.json / cite.json expose on their envelopes.
   revisionCount: Number.isFinite(revisionCount) ? revisionCount : 0,

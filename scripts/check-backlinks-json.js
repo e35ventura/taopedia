@@ -77,6 +77,7 @@ const revisionStatsOf = (slug) => {
   assert.equal(result.referencesCount, 6, 'builder: referencesCount field threaded verbatim');
   assert.equal(result.sectionCount, 4, 'builder: sectionCount field threaded verbatim');
   assert.equal(result.wordCount, 789, 'builder: wordCount field threaded verbatim');
+  assert.equal(result.readingMinutes, 4, 'builder: readingMinutes is ceil(789/200)');
   assert.equal(result.revisionCount, 8, 'builder: revisionCount field threaded verbatim');
   assert.equal(result.firstEdited, '2024-01-01T00:00:00.000Z', 'builder: firstEdited field threaded verbatim');
   assert.equal(result.lastEdited, '2024-06-01T00:00:00.000Z', 'builder: lastEdited field threaded verbatim');
@@ -134,6 +135,7 @@ const revisionStatsOf = (slug) => {
   assert.equal(empty.referencesCount, 0, 'builder: default referencesCount is 0');
   assert.equal(empty.sectionCount, 0, 'builder: default sectionCount is 0');
   assert.equal(empty.wordCount, 0, 'builder: default wordCount is 0');
+  assert.equal(empty.readingMinutes, 1, 'builder: default readingMinutes is 1 (ceil(0/200))');
   assert.equal(empty.revisionCount, 0, 'builder: default revisionCount is 0');
   assert.equal(empty.firstEdited, null, 'builder: default firstEdited is null');
   assert.equal(empty.lastEdited, null, 'builder: default lastEdited is null');
@@ -301,6 +303,22 @@ for (const slug of articleSlugs) {
       doc.wordCount,
       infoDoc.wordCount,
       `${slug}: backlinks.json wordCount must agree with the sibling info.json envelope`,
+    );
+    // readingMinutes is the ~200 wpm ceil estimate info.json exposes and the
+    // article-page footer ("N min read") renders from wordCount.
+    assert.ok(
+      Number.isInteger(doc.readingMinutes) && doc.readingMinutes >= 1,
+      `${slug}: backlinks.json readingMinutes must be a positive integer`,
+    );
+    assert.equal(
+      doc.readingMinutes,
+      Math.max(1, Math.ceil(doc.wordCount / 200)),
+      `${slug}: backlinks.json readingMinutes must equal ceil(wordCount/200)`,
+    );
+    assert.equal(
+      doc.readingMinutes,
+      infoDoc.readingMinutes,
+      `${slug}: backlinks.json readingMinutes must agree with the sibling info.json envelope`,
     );
   }
   assert.equal(typeof doc.count, 'number', `${slug}: backlinks.json count must be a number`);
