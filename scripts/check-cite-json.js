@@ -277,6 +277,19 @@ for (const slug of articleSlugs) {
       infoDoc.wordCount,
       `cite.json wordCount must agree with the sibling info.json envelope for ${slug}`,
     );
+    // readingMinutes is the ~200-wpm estimate derived from wordCount — the same
+    // figure info.json / history.json / toc.json expose. Cross-check the value
+    // and the derivation against the sibling info.json envelope.
+    assert.equal(
+      doc.readingMinutes,
+      Math.max(1, Math.ceil(doc.wordCount / 200)),
+      `cite.json readingMinutes must equal ceil(wordCount/200) (min 1) for ${slug}`,
+    );
+    assert.equal(
+      doc.readingMinutes,
+      infoDoc.readingMinutes,
+      `cite.json readingMinutes must agree with the sibling info.json envelope for ${slug}`,
+    );
   }
   const historyJsonFile = path.join(wikiDir, slug, 'history.json');
   if (fs.existsSync(historyJsonFile)) {
