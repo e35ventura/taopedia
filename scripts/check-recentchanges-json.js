@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { compareTitles } from '../src/lib/title-sort.js';
 import { RECENT_LIMIT } from '../src/lib/recent-changes.js';
 import { publishedInboundLinkCount } from './most-linked.js';
+import { getArticleReferences } from '../src/lib/article-references.js';
 
 const collectRecentChanges = (historyBySlug, titleBySlug, limit) => {
   const changes = [];
@@ -80,6 +81,12 @@ const titleBySlug = Object.fromEntries(Object.entries(slugmap).map(([slug, entry
 const backlinksFile = path.join(projectRoot, 'public', 'data', 'backlinks.json');
 assert.ok(fs.existsSync(backlinksFile), 'public/data/backlinks.json not found; run the build first');
 const backlinksGraph = JSON.parse(fs.readFileSync(backlinksFile, 'utf8'));
+// linkgraph drives referencesCount (the published OUTBOUND reference count),
+// re-derived with the same getArticleReferences helper the endpoint uses.
+const linkgraphFile = path.join(projectRoot, 'public', 'data', 'linkgraph.json');
+assert.ok(fs.existsSync(linkgraphFile), 'public/data/linkgraph.json not found; run the build first');
+const linkgraphData = JSON.parse(fs.readFileSync(linkgraphFile, 'utf8'));
+const outboundCountFor = (slug) => getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length;
 const historyBySlug = {};
 for (const file of fs.readdirSync(historyDir)) {
   if (!file.endsWith('.json')) continue;
@@ -263,6 +270,19 @@ for (let i = 0; i < data.changes.length; i++) {
     change.backlinks,
     publishedInboundLinkCount(backlinksGraph, change.slug, titleBySlug),
     `change ${i} backlinks must equal the published inbound-link count for ${change.slug}`,
+  );
+  // referencesCount is the changed article's published OUTBOUND reference count —
+  // the complement of backlinks — re-derived with the same getArticleReferences
+  // helper the endpoint uses (published-only join), so the feed and references.json
+  // / cite.json / info.json can't disagree on outbound degree.
+  assert.ok(
+    Number.isInteger(change.referencesCount) && change.referencesCount >= 0,
+    `change ${i} referencesCount must be a non-negative integer (got ${JSON.stringify(change.referencesCount)})`,
+  );
+  assert.equal(
+    change.referencesCount,
+    outboundCountFor(change.slug),
+    `change ${i} referencesCount must equal the published outbound-reference count for ${change.slug}`,
   );
   assert.equal(change.authorName, expected.authorName, `change ${i} authorName must match the revision history`);
   assert.equal(change.sha, expected.sha, `change ${i} sha must match the revision history`);
