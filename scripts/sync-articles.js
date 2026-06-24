@@ -300,6 +300,27 @@ function findUnescapedMdxBrace(content) {
   return null;
 }
 
+export function sanitizeScalarFrontmatter(raw) {
+  const match = raw.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  if (!match) return raw;
+
+  const sanitizedFrontmatter = match[1].split(/\r?\n/).map((line) => {
+    const fieldMatch = line.match(/^(\s*)([A-Za-z0-9_]+):\s+(.*)$/);
+    if (!fieldMatch) return line;
+
+    const [, indent, key, value] = fieldMatch;
+    const trimmed = value.trim();
+    if (!trimmed || /^["'|>\-[{\[]/.test(trimmed) || !trimmed.includes(':')) {
+      return line;
+    }
+
+    const escaped = trimmed.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    return `${indent}${key}: "${escaped}"`;
+  }).join('\n');
+
+  return raw.replace(match[0], `---\n${sanitizedFrontmatter}\n---`);
+}
+
 export function validateArticleContent(slug, content) {
   for (const { pattern, reason } of unsafeContentPatterns) {
     if (pattern.test(content)) {
@@ -458,7 +479,7 @@ function main() {
     const sourceFile = resolveArticleSourceFile(sourceDir, sourceRoot, `Article entry "${slug}"`);
     if (!sourceFile) continue;
 
-    const raw = fs.readFileSync(sourceFile, 'utf8');
+    const raw = sanitizeScalarFrontmatter(fs.readFileSync(sourceFile, 'utf8'));
     validateArticleContent(slug, raw);
     const parsed = matter(raw);
     validateFrontmatterImageFields(slug, parsed.data);
