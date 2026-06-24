@@ -1,7 +1,8 @@
 import type { APIRoute } from 'astro';
+import { getCollection } from 'astro:content';
 import { buildCategoryArticlesDocument, getCategoryArticles } from '../../../../lib/category-articles.js';
 import { publishedInboundLinkCount } from '../../../../../scripts/most-linked.js';
-import { historyForSlug } from '../../../../lib/article-history';
+import { getPageSlug, historyForSlug } from '../../../../lib/article-history';
 import { getArticleReferences } from '../../../../lib/article-references.js';
 
 const categoriesModules = import.meta.glob('../../../../../public/data/categories.json', { eager: true }) as Record<
@@ -32,6 +33,16 @@ const titleBySlug = Object.fromEntries(
 const categorySlug = (categoryName: string) => categoryName.replace(/ /g, '_');
 
 export async function getStaticPaths() {
+  // Per-entry wordCount: the article body's word count — the same figure
+  // info.json / history.json expose and the article footer renders (and
+  // allpages.json / subnets.json expose per directory entry). Built once from
+  // the content collection so each category row can carry it.
+  const pages = await getCollection('pages');
+  const wordCountBySlug: Record<string, number> = {};
+  for (const p of pages) {
+    wordCountBySlug[getPageSlug(p)] = (p.body ?? '').trim().split(/\s+/).filter(Boolean).length;
+  }
+
   return Object.keys(categoriesIndex)
     .sort()
     .map((categoryName) => ({
@@ -49,6 +60,7 @@ export async function getStaticPaths() {
             ...article,
             backlinks: publishedInboundLinkCount(backlinksData, article.slug, titleBySlug),
             referencesCount: getArticleReferences({ slug: article.slug, linkGraph: linkgraphData, titleBySlug }).length,
+            wordCount: wordCountBySlug[article.slug] ?? 0,
             revisionCount: history.length,
             firstEdited: history[history.length - 1]?.date ?? null,
             lastEdited: history[0]?.date ?? null,
@@ -66,7 +78,7 @@ export const GET: APIRoute = async ({ props, site }) => {
   const { categoryName, categoryPath, articles } = props as {
     categoryName: string;
     categoryPath: string;
-    articles: Array<{ slug: string; title: string; summary: string; backlinks: number; referencesCount: number; revisionCount: number; firstEdited: string | null; lastEdited: string | null }>;
+    articles: Array<{ slug: string; title: string; summary: string; backlinks: number; referencesCount: number; wordCount: number; revisionCount: number; firstEdited: string | null; lastEdited: string | null }>;
   };
   const origin = (site ?? new URL('https://taopedia.org')).origin;
 

@@ -84,6 +84,7 @@ const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.js
         categories: ['Subnets', 'Economics'],
         backlinks: 0,
         referencesCount: 0,
+        wordCount: 0,
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
@@ -110,6 +111,7 @@ const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.js
         categories: [],
         backlinks: 0,
         referencesCount: 0,
+        wordCount: 0,
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
@@ -136,6 +138,7 @@ const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.js
         categories: [],
         backlinks: 0,
         referencesCount: 0,
+        wordCount: 0,
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
@@ -192,11 +195,21 @@ const revisionStatsOf = (slug) => {
     lastEdited: arr.length > 0 ? arr[0].date : null,
   };
 };
+// Each entry's wordCount mirrors the linked article's own info.json.wordCount
+// (itself cross-checked against the article footer's data-word-count), so the
+// category row and the per-article surface can't disagree.
+const wordCountOf = (slug) => {
+  const file = path.join(categoryDir, '..', slug, 'info.json');
+  if (!fs.existsSync(file)) return 0;
+  const info = JSON.parse(fs.readFileSync(file, 'utf8'));
+  return Number.isInteger(info.wordCount) ? info.wordCount : 0;
+};
 const withBacklinks = (list) =>
   list.map((a) => ({
     ...a,
     backlinks: publishedInboundLinkCount(backlinksData, a.slug, titleBySlug),
     referencesCount: outboundCountFor(a.slug),
+    wordCount: wordCountOf(a.slug),
     ...revisionStatsOf(a.slug),
   }));
 
