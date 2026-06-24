@@ -88,6 +88,7 @@ const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.js
         firstEdited: null,
         lastEdited: null,
         wordCount: 0,
+        readingMinutes: 1,
         sectionCount: 0,
         readingMinutes: 1,
         url: `${ORIGIN}/wiki/subnet_2/`,
@@ -117,6 +118,7 @@ const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.js
         firstEdited: null,
         lastEdited: null,
         wordCount: 0,
+        readingMinutes: 1,
         sectionCount: 0,
         readingMinutes: 1,
         url: `${ORIGIN}/wiki/subnet_9/`,
@@ -146,6 +148,7 @@ const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.js
         firstEdited: null,
         lastEdited: null,
         wordCount: 0,
+        readingMinutes: 1,
         sectionCount: 0,
         readingMinutes: 1,
         url: `${ORIGIN}/wiki/subnet_10/`,
@@ -226,6 +229,7 @@ const withBacklinks = (list) =>
     referencesCount: outboundCountFor(a.slug),
     ...revisionStatsOf(a.slug),
     wordCount: infoWordCountOf(a.slug),
+    readingMinutes: Math.max(1, Math.ceil(infoWordCountOf(a.slug) / 200)),
     sectionCount: tocSectionCountOf(a.slug),
     // readingMinutes is the ~200 wpm ceil estimate derived from the article's
     // word count — the same figure info.json exposes — so the category list and
