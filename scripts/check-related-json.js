@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildArticleRelatedPages, getRelatedPages } from '../src/lib/related-pages.ts';
 import { publishedInboundLinkCount } from '../scripts/most-linked.js';
+import { getArticleReferences } from '../src/lib/article-references.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
@@ -71,6 +72,7 @@ const lastEditedOf = (slug) => {
     summary: 'The source article.',
     categories: ['Security', 'Consensus'],
     incomingLinks: 9,
+    referencesCount: 11,
     revisionCount: 14,
     firstEdited: '2024-01-01T00:00:00.000Z',
     lastEdited: '2024-06-01T00:00:00.000Z',
@@ -83,6 +85,7 @@ const lastEditedOf = (slug) => {
   // the same field history.json / info.json envelopes expose.
   assert.deepEqual(doc.categories, ['Security', 'Consensus'], 'builder: categories field threaded verbatim');
   assert.equal(doc.incomingLinks, 9, 'builder: incomingLinks field');
+  assert.equal(doc.referencesCount, 11, 'builder: referencesCount field threaded verbatim');
   assert.equal(doc.revisionCount, 14, 'builder: revisionCount field threaded verbatim');
   assert.equal(doc.firstEdited, '2024-01-01T00:00:00.000Z', 'builder: firstEdited field threaded verbatim');
   assert.equal(doc.lastEdited, '2024-06-01T00:00:00.000Z', 'builder: lastEdited field threaded verbatim');
@@ -183,6 +186,7 @@ const lastEditedOf = (slug) => {
   assert.deepEqual(empty.categories, [], 'builder: categories defaults to [] when omitted');
   assert.equal(empty.summary, null, 'builder: summary defaults to null when omitted');
   assert.equal(empty.incomingLinks, 0, 'builder: incomingLinks defaults to 0 when omitted');
+  assert.equal(empty.referencesCount, 0, 'builder: referencesCount defaults to 0 when omitted');
   assert.equal(empty.revisionCount, 0, 'builder: revisionCount defaults to 0 when omitted');
   assert.equal(empty.firstEdited, null, 'builder: firstEdited defaults to null when omitted');
   assert.equal(empty.lastEdited, null, 'builder: lastEdited defaults to null when omitted');
@@ -256,6 +260,7 @@ for (const slug of articleSlugs) {
     summary: slugMap[slug]?.summary ?? '',
     categories: slugMap[slug]?.categories ?? [],
     incomingLinks: publishedInboundLinkCount(backlinksData, slug, titleBySlug),
+    referencesCount: getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length,
     relatedPages: expectedRelatedPages,
   });
 
@@ -285,6 +290,14 @@ for (const slug of articleSlugs) {
     doc.incomingLinks,
     publishedInboundLinkCount(backlinksData, slug, titleBySlug),
     `${slug}: related.json incomingLinks must equal the published inbound-link count`,
+  );
+  // referencesCount is the article's published OUTBOUND reference count (the
+  // complement of incomingLinks) — the same figure info.json / history.json /
+  // cite.json expose — derived from the same getArticleReferences join.
+  assert.equal(
+    doc.referencesCount,
+    getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length,
+    `${slug}: related.json referencesCount must equal the published outbound-reference count`,
   );
   // revisionCount is the article's revision count (its commit-history length) —
   // the same figure info.json / history.json / cite.json expose on their
