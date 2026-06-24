@@ -1,9 +1,10 @@
 import type { APIRoute } from 'astro';
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import { getPageSlug, allRecentChanges } from '../../../lib/article-history';
 import { RECENT_LIMIT } from '../../../lib/recent-changes.js';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
 import { getArticleReferences } from '../../../lib/article-references.js';
+import { getArticleToc } from '../../../lib/article-toc.js';
 
 // The inbound-link graph is the same public/data/backlinks.json the HTML
 // "What links here" page, allpages.json, mostlinkedpages.json, subnets.json and
@@ -34,14 +35,31 @@ export const GET: APIRoute = async ({ site }) => {
   const titleBySlug: Record<string, string> = {};
   const categoriesBySlug: Record<string, string[]> = {};
   const summaryBySlug: Record<string, string> = {};
+  const pageBySlug: Record<string, (typeof pages)[number]> = {};
   for (const page of pages) {
     const slug = getPageSlug(page);
     titleBySlug[slug] = page.data.title;
     categoriesBySlug[slug] = page.data.categories ?? [];
     summaryBySlug[slug] = page.data.summary ?? '';
+    pageBySlug[slug] = page;
   }
 
   const changes = allRecentChanges(titleBySlug, RECENT_LIMIT);
+
+  // sectionCount is the changed article's table-of-contents section count — the
+  // same figure toc.json exposes as `count` and info.json / history.json expose
+  // on their envelopes, derived from the shared getArticleToc helper. Rendered
+  // only for the changed articles in the feed so a change-feed consumer can gauge
+  // each article's depth without a second fetch. Cached per slug because an
+  // article can appear in multiple changes.
+  const sectionCountBySlug: Record<string, number> = {};
+  for (const change of changes) {
+    if (change.slug in sectionCountBySlug) continue;
+    const page = pageBySlug[change.slug];
+    if (!page) continue;
+    const { headings } = await render(page);
+    sectionCountBySlug[change.slug] = getArticleToc(headings).length;
+  }
   const dateRange =
     changes.length > 0
       ? { newest: changes[0].date, oldest: changes[changes.length - 1].date }
@@ -84,6 +102,7 @@ export const GET: APIRoute = async ({ site }) => {
         // cite.json / info.json use, so a feed consumer can see both directions of
         // each changed article's link degree without a second fetch.
         referencesCount: getArticleReferences({ slug: change.slug, linkGraph: linkgraphData, titleBySlug }).length,
+        sectionCount: sectionCountBySlug[change.slug] ?? 0,
         date: change.date,
         authorName: change.authorName,
         sha: change.sha,
