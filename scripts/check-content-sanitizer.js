@@ -916,6 +916,22 @@ accepts('<a href="/wiki/aria-valuenow=demo">aria-valuenow docs</a>', 'benign ari
 accepts('ARIA valuenow is an accessibility concept described here only as prose.', 'benign aria-valuenow prose');
 accepts('<span class=x/aria-valuetext-demo>not an aria-valuetext attribute</span>', 'benign aria-valuetext substring in class value');
 
+// aria-level/posinset/setsize= fake the structure announced to AT — same
+// accessibility-state spoof family as merged aria-value, #582 (aria-busy), and
+// #583 (toggle state). aria-level forges heading outline; posinset/setsize forge
+// list position on allowed native headings and list items.
+rejects('Intro.\n\n<h2 aria-level="1">Minor note</h2>', 'plain aria-level attribute on heading');
+rejects('Intro.\n\n<li aria-posinset="3">Final step</li>', 'plain aria-posinset attribute');
+rejects('Intro.\n\n<li aria-setsize="3">x</li>', 'plain aria-setsize attribute');
+rejects('Intro.\n\n<  h3   aria-level = "1">x</h3>', 'spaced aria-level attribute');
+rejects('<a href="x"aria-level="1">go</a>', 'quote-abutted aria-level attribute');
+rejects('<li class=x/aria-posinset="3">x</li>', 'slash-delimited aria-posinset attribute');
+rejects("<li class='x'aria-setsize='3'>x</li>", 'single-quote-abutted aria-setsize attribute');
+
+accepts('<a href="/wiki/aria-level=demo">aria-level docs</a>', 'benign aria-level substring in quoted href');
+accepts('ARIA level is an accessibility concept described here only as prose.', 'benign aria-level prose');
+accepts('<span class=x/aria-setsize-demo>not an aria-setsize attribute</span>', 'benign aria-setsize substring in class value');
+
 // aria-pressed=/aria-checked=/aria-selected= fake toggle and option state —
 // same family as merged #582 (aria-busy), #568 (aria-current), and #559
 // (aria-expanded).

@@ -608,6 +608,19 @@ const ariaValueStateAttrPattern = /<[^>]*\saria-value(?:now|min|max|text)\s*=/i;
 const nonSpaceDelimitedAriaValueStateAttrPattern =
   /<[^>]*[/"'`](?:aria-value(?:now|min|max|text))\s*=/i;
 
+// aria-level=/aria-posinset=/aria-setsize= fake the document structure announced
+// to assistive technology on allowed native elements. aria-level="1" on an
+// allowed sub-heading (h2–h6) makes a screen reader announce it as a top-level
+// heading, forging the article's outline; aria-posinset/aria-setsize on an
+// allowed <li> fake a list position ("step 3 of 3"), making an injected step
+// sound like the final action of a complete procedure. Same accessibility-state
+// spoof family as the merged aria-value range attributes, aria-busy (#582), and
+// the toggle/selection state block (#583). Glossary articles never set their own
+// structural ARIA — heading level and list order come from the Markdown source.
+const ariaStructureAttrPattern = /<[^>]*\saria-(?:level|posinset|setsize)\s*=/i;
+const nonSpaceDelimitedAriaStructureAttrPattern =
+  /<[^>]*[/"'`](?:aria-(?:level|posinset|setsize))\s*=/i;
+
 // aria-pressed=/aria-checked=/aria-selected= fake toggle and option state in
 // assistive technology — e.g. aria-pressed="true" makes a link sound pressed,
 // aria-selected="true" marks a list item as the chosen procedure step, and
@@ -1380,6 +1393,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": aria-valuenow, aria-valuemin, aria-valuemax, and aria-valuetext attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    ariaStructureAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAriaStructureAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": aria-level, aria-posinset, and aria-setsize attributes are not allowed in article content`,
     );
   }
 
