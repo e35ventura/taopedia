@@ -81,6 +81,7 @@ export const GET: APIRoute = async ({ props, site }) => {
         summary: summaryBySlug[entry.from] ?? '',
         categories: categoriesBySlug[entry.from] ?? [],
         backlinks: publishedInboundLinkCount(backlinksData, entry.from, titleBySlug),
+        referencesCount: getArticleReferences({ slug: entry.from, linkGraph: linkgraphData, titleBySlug }).length,
         revisionCount: history.length,
         firstEdited: history[history.length - 1]?.date ?? null,
         lastEdited: history[0]?.date ?? null,
