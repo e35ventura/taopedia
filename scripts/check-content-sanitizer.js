@@ -708,6 +708,20 @@ accepts('<table><tr><td>x</td></tr></table>', 'plain table without headers/scope
 accepts('Table headers, scope rules, and abbreviations are described here only as prose.', 'benign headers/scope/abbr prose');
 accepts('<table><tr><td class="headers-demo">x</td></tr></table>', 'benign headers word inside class value');
 
+// aria-sort=/aria-rowcount=/aria-colcount=/aria-rowindex=/aria-colindex= on
+// table structures announce fake sort order, size, and cell positions to AT.
+rejects('Intro.\n\n<table><tr><th aria-sort="descending">Validator</th></tr></table>', 'plain th aria-sort attribute');
+rejects('Intro.\n\n<table aria-rowcount="128"><tr><td>x</td></tr></table>', 'plain table aria-rowcount attribute');
+rejects('Intro.\n\n<table><tr><td aria-rowindex="99">x</td></tr></table>', 'plain td aria-rowindex attribute');
+rejects('Intro.\n\n<table><tr><th aria-colindex="9">x</th></tr></table>', 'plain th aria-colindex attribute');
+rejects('<table><tr><th class="x"aria-sort="ascending">Validator</th></tr></table>', 'quote-abutted th aria-sort attribute');
+rejects('<table class=x/aria-colcount="99"><tr><td>x</td></tr></table>', 'slash-delimited table aria-colcount attribute');
+rejects('<table><tr class=x/aria-rowindex="99"><td>x</td></tr></table>', 'slash-delimited tr aria-rowindex attribute');
+
+accepts('<table><tr><td>x</td></tr></table>', 'plain table without table aria metadata');
+accepts('ARIA sort and row index metadata are described here only as prose.', 'benign table aria metadata prose');
+accepts('<table><tr><td class="aria-rowindex-demo">x</td></tr></table>', 'benign aria-rowindex word inside class value');
+
 rejects('Intro.\n\n<div hidden>panel</div>', 'bare hidden attribute');
 rejects('Intro.\n\n<div hidden class="x">panel</div>', 'hidden before another attribute');
 rejects('Intro.\n\n<  p   hidden = "until-found">x</p>', 'spaced hidden attribute with value');
