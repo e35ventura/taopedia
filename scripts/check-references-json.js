@@ -96,6 +96,8 @@ const revisionStatsOf = (slug) => {
   assert.equal(doc.citeJsonUrl, `${ORIGIN}/wiki/source/cite.json`, 'builder: citeJsonUrl cross-link');
   assert.equal(doc.bibtexUrl, `${ORIGIN}/wiki/source/cite.bib`, 'builder: bibtexUrl cross-link');
   assert.equal(doc.relatedUrl, `${ORIGIN}/wiki/source/related.json`, 'builder: relatedUrl cross-link');
+  assert.equal(doc.relatedJsonUrl, `${ORIGIN}/wiki/source/related.json`, 'builder: relatedJsonUrl cross-link (matches <name>JsonUrl convention)');
+  assert.equal(doc.relatedJsonUrl, doc.relatedUrl, 'builder: relatedJsonUrl must equal the back-compat relatedUrl');
   assert.equal(doc.tocJsonUrl, `${ORIGIN}/wiki/source/toc.json`, 'builder: tocJsonUrl cross-link');
   assert.equal(doc.imageUrl, `${ORIGIN}/og/source.png`, 'builder: imageUrl');
   assert.deepEqual(doc.categories, ['Consensus', 'Security'], 'builder: categories field');
@@ -349,6 +351,8 @@ for (const slug of articleSlugs) {
   assert.equal(doc.citeJsonUrl, `${ORIGIN}/wiki/${slug}/cite.json`, `${slug}: references.json citeJsonUrl must be the canonical article cite.json URL`);
   assert.equal(doc.bibtexUrl, `${ORIGIN}/wiki/${slug}/cite.bib`, `${slug}: references.json bibtexUrl must be the canonical article cite.bib URL`);
   assert.equal(doc.relatedUrl, `${ORIGIN}/wiki/${slug}/related.json`, `${slug}: references.json relatedUrl must be the canonical article related.json URL`);
+  assert.equal(doc.relatedJsonUrl, `${ORIGIN}/wiki/${slug}/related.json`, `${slug}: references.json relatedJsonUrl must be the canonical article related.json URL`);
+  assert.equal(doc.relatedJsonUrl, doc.relatedUrl, `${slug}: references.json relatedJsonUrl must equal the back-compat relatedUrl`);
   // tocJsonUrl cross-links to the article's table-of-contents endpoint, the
   // same companion cite.json already exposes, so a consumer of references.json
   // can reach the section-level outline without an extra info.json round-trip.

@@ -39,6 +39,12 @@ export const buildArticleReferences = ({ slug, title, origin, summary = '', cate
   citeJsonUrl: `${origin}/wiki/${slug}/cite.json`,
   bibtexUrl: `${origin}/wiki/${slug}/cite.bib`,
   relatedUrl: `${origin}/wiki/${slug}/related.json`,
+  // relatedJsonUrl is the same related.json cross-link under the consistent
+  // <name>JsonUrl key every other JSON companion uses on this envelope
+  // (infoJsonUrl, historyJsonUrl, backlinksJsonUrl, citeJsonUrl, referencesJsonUrl).
+  // relatedUrl was the last cross-link lacking the Json suffix; it is kept for
+  // backwards compatibility.
+  relatedJsonUrl: `${origin}/wiki/${slug}/related.json`,
   tocJsonUrl: `${origin}/wiki/${slug}/toc.json`,
   imageUrl: `${origin}/og/${slug}.png`,
   categories,
