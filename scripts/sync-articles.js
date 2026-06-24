@@ -935,6 +935,13 @@ export function validateArticleContent(slug, content) {
     }
   }
 
+  const decodedForAttributes = decodeForSchemeScan(content);
+  for (const { pattern, reason } of unsafeContentPatterns) {
+    if (!pattern.test(content) && pattern.test(decodedForAttributes)) {
+      throw new Error(`Unsafe article content in "${slug}": ${reason}`);
+    }
+  }
+
   const emptiedAttributeContent = emptyQuotedAttributeValues(content);
 
   if (nonSpaceDelimitedHandlerPattern.test(emptiedAttributeContent)) {
