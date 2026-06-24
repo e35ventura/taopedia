@@ -719,6 +719,15 @@ const quoteSlashDelimitedOlReversedAttrPattern = /<\s*ol\b[^>]*["'`]\/reversed(?
 const imgFetchpriorityAttrPattern = /<\s*img\b[^>]*\sfetchpriority\s*=/i;
 const imgFetchpriorityQuoteAbuttedPattern = /<\s*img\b[^>]*["'`]fetchpriority\s*=/i;
 
+// decoding= on an allowed <img> forces synchronous image decoding of an
+// attacker-chosen URL (decoding="sync"), blocking the main thread until the
+// remote image decodes — a no-script content-stall / reading-experience DoS, the
+// same img-scoped rendering-control family as the merged loading= (#462) and
+// fetchpriority= blocks. Markdown never emits decoding= in source, so article
+// content never needs it.
+const imgDecodingAttrPattern = /<\s*img\b[^>]*\sdecoding\s*=/i;
+const imgDecodingQuoteAbuttedPattern = /<\s*img\b[^>]*["'`]decoding\s*=/i;
+
 // ismap on an allowed <img> is the server-side image-map primitive (the counterpart
 // to the already-blocked client-side <map>/<area>/usemap= in #411). When set on an
 // <img> nested in an <a href="...">, the browser appends the click coordinates
@@ -1454,6 +1463,15 @@ export function validateArticleContent(slug, content) {
     || quoteSlashDelimitedOlReversedAttrPattern.test(emptiedAttributeContent)
   ) {
     throw new Error(`Unsafe article content in "${slug}": reversed attributes are not allowed on ol elements`);
+  }
+
+  if (
+    imgDecodingAttrPattern.test(emptiedAttributeContent)
+    || imgDecodingQuoteAbuttedPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": decoding attributes are not allowed in article content`,
+    );
   }
 
   if (
