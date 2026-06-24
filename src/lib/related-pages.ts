@@ -101,6 +101,7 @@ export interface ArticleRelatedPagesDocument {
     referencesCount: number;
     sectionCount: number;
     wordCount: number;
+    readingMinutes: number;
     revisionCount: number;
     firstEdited: string | null;
     lastEdited: string | null;
@@ -275,6 +276,7 @@ export function buildArticleRelatedPages({
       referencesCount: Number.isFinite(entry.referencesCount) ? entry.referencesCount : 0,
       sectionCount: Number.isFinite(entry.sectionCount) ? entry.sectionCount : 0,
       wordCount: Number.isFinite(entry.wordCount) ? entry.wordCount : 0,
+      readingMinutes: Math.max(1, Math.ceil((Number.isFinite(entry.wordCount) ? entry.wordCount : 0) / 200)),
       revisionCount: Number.isFinite(entry.revisionCount) ? entry.revisionCount : 0,
       firstEdited: entry.firstEdited ?? null,
       lastEdited: entry.lastEdited ?? null,
