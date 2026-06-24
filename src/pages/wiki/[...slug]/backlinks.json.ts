@@ -66,11 +66,13 @@ export const GET: APIRoute = async ({ props, site }) => {
   const titleBySlug: Record<string, string> = {};
   const summaryBySlug: Record<string, string> = {};
   const categoriesBySlug: Record<string, string[]> = {};
+  const wordCountBySlug: Record<string, number> = {};
   for (const p of pages) {
     const pSlug = getPageSlug(p);
     titleBySlug[pSlug] = p.data.title;
     summaryBySlug[pSlug] = p.data.summary ?? '';
     categoriesBySlug[pSlug] = p.data.categories ?? [];
+    wordCountBySlug[pSlug] = (p.body ?? '').trim().split(/\s+/).filter(Boolean).length;
   }
 
   // The article's published OUTBOUND reference count — the complement of
@@ -92,6 +94,7 @@ export const GET: APIRoute = async ({ props, site }) => {
         revisionCount: history.length,
         firstEdited: history[history.length - 1]?.date ?? null,
         lastEdited: history[0]?.date ?? null,
+        wordCount: wordCountBySlug[entry.from] ?? 0,
       };
     })
     .sort((a, b) => compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug));
