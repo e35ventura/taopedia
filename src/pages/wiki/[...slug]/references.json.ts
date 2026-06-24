@@ -31,6 +31,7 @@ export async function getStaticPaths() {
         summary: summaryBySlug[ref.slug] ?? '',
         categories: categoriesBySlug[ref.slug] ?? [],
         backlinks: publishedInboundLinkCount(backlinksData, ref.slug, titleBySlug),
+        referencesCount: getArticleReferences({ slug: ref.slug, linkGraph: linkgraphData, titleBySlug }).length,
         revisionCount: history.length,
         firstEdited: history[history.length - 1]?.date ?? null,
         lastEdited: history[0]?.date ?? null,
@@ -77,6 +78,7 @@ export const GET: APIRoute = async ({ props, site }) => {
       summary: string;
       categories: string[];
       backlinks: number;
+      referencesCount: number;
       revisionCount: number;
       firstEdited: string | null;
       lastEdited: string | null;

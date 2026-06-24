@@ -52,6 +52,11 @@ export const buildArticleReferences = ({ slug, title, origin, summary = '', cate
     summary: link.summary || null,
     categories: Array.isArray(link.categories) ? link.categories : [],
     backlinks: Number.isFinite(link.backlinks) ? link.backlinks : 0,
+    // The referenced article's published outbound-reference count — the same
+    // figure its own history.json / cite.json / info.json / references.json
+    // envelope exposes, so consumers can compare both inbound and outbound link
+    // totals across the referenced set without a second fetch.
+    referencesCount: Number.isFinite(link.referencesCount) ? link.referencesCount : 0,
     // The referenced article's revision-history summary — the same trio
     // info.json and history.json expose per article.
     revisionCount: Number.isFinite(link.revisionCount) ? link.revisionCount : 0,
