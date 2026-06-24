@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildMostLinkedPages } from './most-linked.js';
+import { getArticleReferences } from '../src/lib/article-references.js';
 
 // /wiki/special/mostlinkedpages.json exposes the inbound-link ranking as
 // structured JSON for programmatic consumers. The contract is load-bearing: a
@@ -107,6 +108,12 @@ assert.ok(data.pages.length > 0, 'mostlinkedpages.json must list at least one ra
 const titleBySlug = {};
 for (const [slug, entry] of Object.entries(slugmap)) titleBySlug[slug] = entry.title;
 const expected = buildMostLinkedPages({ backlinks, titleBySlug });
+// linkgraph drives referencesCount (the published OUTBOUND reference count),
+// re-derived with the same getArticleReferences helper the endpoint uses.
+const linkgraphFile = path.join(projectRoot, 'public', 'data', 'linkgraph.json');
+assert.ok(fs.existsSync(linkgraphFile), 'public/data/linkgraph.json not found; run the build first');
+const linkgraphData = JSON.parse(fs.readFileSync(linkgraphFile, 'utf8'));
+const outboundCountFor = (slug) => getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length;
 
 assert.equal(data.pages.length, expected.length, `mostlinkedpages.json must list all ${expected.length} ranked articles (got ${data.pages.length})`);
 data.pages.forEach((row, i) => {
@@ -131,6 +138,19 @@ data.pages.forEach((row, i) => {
     `row ${i} summary must be the slug-map summary (null when blank) for ${row.slug}`,
   );
   assert.ok(Number.isInteger(row.backlinks) && row.backlinks > 0, `row ${i} backlinks must be a positive integer`);
+  // referencesCount is the article's published OUTBOUND reference count — the
+  // complement of backlinks — re-derived with the same getArticleReferences
+  // helper the endpoint uses (published-only join), so the ranking and
+  // references.json / cite.json / info.json can't disagree on outbound degree.
+  assert.equal(
+    row.referencesCount,
+    outboundCountFor(row.slug),
+    `row ${i} referencesCount must equal the published outbound-reference count for ${row.slug}`,
+  );
+  assert.ok(
+    Number.isInteger(row.referencesCount) && row.referencesCount >= 0,
+    `row ${i} referencesCount must be a non-negative integer (got ${row.referencesCount})`,
+  );
   // lastEdited is the article's last-revision date — the same figure info.json /
   // history.json expose per article and allpages.json exposes per directory
   // entry. Cross-check it against the sibling built info.json (independent
