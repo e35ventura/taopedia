@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getCollection, render } from 'astro:content';
-import { getPageSlug, allRecentChanges } from '../../../lib/article-history';
+import { getPageSlug, allRecentChanges, historyForSlug } from '../../../lib/article-history';
 import { RECENT_LIMIT } from '../../../lib/recent-changes.js';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
 import { getArticleReferences } from '../../../lib/article-references.js';
@@ -66,6 +66,23 @@ export const GET: APIRoute = async ({ site }) => {
     const { headings } = await render(page);
     sectionCountBySlug[change.slug] = getArticleToc(headings).length;
   }
+  // revisionCount/firstEdited/lastEdited are the changed article's own commit-
+  // history stats (history is newest-first) — the same trio info.json /
+  // allpages.json expose per article, and mostlinkedpages.json / subnets.json /
+  // category articles.json expose per directory entry — so a change-feed
+  // consumer can see the changed article's overall edit age/activity, not just
+  // this one change's date, without a second fetch. Cached per slug because an
+  // article can appear in multiple changes.
+  const revisionStatsBySlug: Record<string, { revisionCount: number; firstEdited: string | null; lastEdited: string | null }> = {};
+  for (const change of changes) {
+    if (change.slug in revisionStatsBySlug) continue;
+    const history = historyForSlug(change.slug);
+    revisionStatsBySlug[change.slug] = {
+      revisionCount: history.length,
+      firstEdited: history[history.length - 1]?.date ?? null,
+      lastEdited: history[0]?.date ?? null,
+    };
+  }
   const dateRange =
     changes.length > 0
       ? { newest: changes[0].date, oldest: changes[changes.length - 1].date }
@@ -115,6 +132,9 @@ export const GET: APIRoute = async ({ site }) => {
         // info.json / toc.json / history.json expose from wordCount, so a change-
         // feed consumer can gauge each article's reading time without a second fetch.
         readingMinutes: Math.max(1, Math.ceil((wordCountBySlug[change.slug] ?? 0) / 200)),
+        revisionCount: revisionStatsBySlug[change.slug]?.revisionCount ?? 0,
+        firstEdited: revisionStatsBySlug[change.slug]?.firstEdited ?? null,
+        lastEdited: revisionStatsBySlug[change.slug]?.lastEdited ?? null,
         date: change.date,
         authorName: change.authorName,
         sha: change.sha,
