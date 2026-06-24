@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
+import { getArticleReferences } from '../../../lib/article-references.js';
 import { buildAllPages } from '../../../../scripts/allpages.js';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
 
@@ -18,6 +19,12 @@ const backlinksModules = import.meta.glob('../../../../public/data/backlinks.jso
 >;
 const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
 
+const linkgraphModules = import.meta.glob('../../../../public/data/linkgraph.json', { eager: true }) as Record<
+  string,
+  { default?: Record<string, Array<{ target?: string }>> }
+>;
+const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
+
 export const GET: APIRoute = async ({ site }) => {
   const origin = (site ?? new URL('https://taopedia.org')).origin;
   const pages = await getCollection('pages');
@@ -33,35 +40,41 @@ export const GET: APIRoute = async ({ site }) => {
       site: origin,
       allpagesJsonUrl: `${origin}/wiki/special/allpages.json`,
       count: articles.length,
-      articles: articles.map((article) => ({
-        slug: article.slug,
-        title: article.title,
-        summary: article.summary || null,
-        url: article.url,
-        infoUrl: `${origin}/wiki/${article.slug}/info/`,
-        infoJsonUrl: `${origin}/wiki/${article.slug}/info.json`,
-        backlinksUrl: `${origin}/wiki/${article.slug}/backlinks/`,
-        backlinksJsonUrl: `${origin}/wiki/${article.slug}/backlinks.json`,
-        historyUrl: `${origin}/wiki/${article.slug}/history/`,
-        historyJsonUrl: `${origin}/wiki/${article.slug}/history.json`,
-        citeUrl: `${origin}/wiki/${article.slug}/cite/`,
-        citeJsonUrl: `${origin}/wiki/${article.slug}/cite.json`,
-        bibtexUrl: `${origin}/wiki/${article.slug}/cite.bib`,
-        referencesUrl: `${origin}/wiki/${article.slug}/references.json`,
-        relatedUrl: `${origin}/wiki/${article.slug}/related.json`,
-        tocJsonUrl: `${origin}/wiki/${article.slug}/toc.json`,
-        imageUrl: `${origin}/og/${article.slug}.png`,
-        categories: article.categories,
-        backlinks: publishedInboundLinkCount(backlinksData, article.slug, titleBySlug),
-        // The article's revision stats from its commit history (newest-first) —
-        // the same revisionCount / firstEdited / lastEdited trio info.json and
-        // history.json expose per article, and mostlinkedpages.json / subnets.json
-        // expose per directory entry — so a directory consumer can sort or filter
-        // by age or recency without an N-fetch sweep of every article's history.
-        revisionCount: historyForSlug(article.slug).length,
-        firstEdited: historyForSlug(article.slug).at(-1)?.date ?? null,
-        lastEdited: historyForSlug(article.slug)[0]?.date ?? null,
-      })),
+      articles: articles.map((article) => {
+        const history = historyForSlug(article.slug);
+        return {
+          slug: article.slug,
+          title: article.title,
+          summary: article.summary || null,
+          url: article.url,
+          infoUrl: `${origin}/wiki/${article.slug}/info/`,
+          infoJsonUrl: `${origin}/wiki/${article.slug}/info.json`,
+          backlinksUrl: `${origin}/wiki/${article.slug}/backlinks/`,
+          backlinksJsonUrl: `${origin}/wiki/${article.slug}/backlinks.json`,
+          historyUrl: `${origin}/wiki/${article.slug}/history/`,
+          historyJsonUrl: `${origin}/wiki/${article.slug}/history.json`,
+          citeUrl: `${origin}/wiki/${article.slug}/cite/`,
+          citeJsonUrl: `${origin}/wiki/${article.slug}/cite.json`,
+          bibtexUrl: `${origin}/wiki/${article.slug}/cite.bib`,
+          referencesUrl: `${origin}/wiki/${article.slug}/references.json`,
+          relatedUrl: `${origin}/wiki/${article.slug}/related.json`,
+          tocJsonUrl: `${origin}/wiki/${article.slug}/toc.json`,
+          imageUrl: `${origin}/og/${article.slug}.png`,
+          categories: article.categories,
+          backlinks: publishedInboundLinkCount(backlinksData, article.slug, titleBySlug),
+          // The article's revision stats from its commit history (newest-first) —
+          // the same revisionCount / firstEdited / lastEdited trio info.json and
+          // history.json expose per article, and mostlinkedpages.json / subnets.json
+          // expose per directory entry — so a directory consumer can sort or filter
+          // by age or recency without an N-fetch sweep of every article's history.
+          revisionCount: history.length,
+          firstEdited: history[history.length - 1]?.date ?? null,
+          lastEdited: history[0]?.date ?? null,
+          // The article's published outbound-reference count — the same figure
+          // history.json and references.json expose (via getArticleReferences).
+          referencesCount: getArticleReferences({ slug: article.slug, linkGraph: linkgraphData, titleBySlug }).length,
+        };
+      }),
     },
     null,
     2,

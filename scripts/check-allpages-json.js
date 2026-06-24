@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildAllPages } from './allpages.js';
+import { getArticleReferences } from '../src/lib/article-references.js';
 import { publishedInboundLinkCount } from './most-linked.js';
 
 // /wiki/special/allpages.json exposes the article directory as structured
@@ -167,10 +168,13 @@ assert.ok(fs.existsSync(distFile), 'dist/wiki/special/allpages.json not found; r
 assert.ok(fs.existsSync(htmlFile), 'dist/wiki/special/allpages/index.html not found; run the build first');
 assert.ok(fs.existsSync(backlinksFile), 'public/data/backlinks.json not found; run the build first');
 assert.ok(fs.existsSync(slugmapFile), 'public/data/slugmap.json not found; run the build first');
+const linkgraphFile = path.join(projectRoot, 'public', 'data', 'linkgraph.json');
+assert.ok(fs.existsSync(linkgraphFile), 'public/data/linkgraph.json not found; run the build first');
 
 const data = JSON.parse(fs.readFileSync(distFile, 'utf8'));
 const html = fs.readFileSync(htmlFile, 'utf8');
 const backlinks = JSON.parse(fs.readFileSync(backlinksFile, 'utf8'));
+const linkgraphData = JSON.parse(fs.readFileSync(linkgraphFile, 'utf8'));
 const slugmap = JSON.parse(fs.readFileSync(slugmapFile, 'utf8'));
 const titleBySlug = Object.fromEntries(Object.entries(slugmap).map(([slug, entry]) => [slug, entry.title]));
 
@@ -293,6 +297,35 @@ data.articles.forEach((row, i) => {
       row.firstEdited,
       infoDoc.firstEdited,
       `row ${i} firstEdited must agree with the sibling info.json envelope for ${row.slug}`,
+    );
+  }
+  // referencesCount is the article's published outbound-reference count — the
+  // same figure history.json and references.json expose, computed via the shared helper.
+  assert.equal(
+    row.referencesCount,
+    getArticleReferences({ slug: row.slug, linkGraph: linkgraphData, titleBySlug }).length,
+    `row ${i} referencesCount must match the published outbound-reference count for ${row.slug}`,
+  );
+  assert.ok(
+    Number.isInteger(row.referencesCount) && row.referencesCount >= 0,
+    `row ${i} referencesCount must be a non-negative integer (got ${JSON.stringify(row.referencesCount)})`,
+  );
+  const apHistoryJsonFile = path.join(projectRoot, 'dist', 'wiki', row.slug, 'history.json');
+  if (fs.existsSync(apHistoryJsonFile)) {
+    const historyDoc = JSON.parse(fs.readFileSync(apHistoryJsonFile, 'utf8'));
+    assert.equal(
+      row.referencesCount,
+      historyDoc.referencesCount,
+      `row ${i} referencesCount must agree with the sibling history.json envelope for ${row.slug}`,
+    );
+  }
+  const apReferencesJsonFile = path.join(projectRoot, 'dist', 'wiki', row.slug, 'references.json');
+  if (fs.existsSync(apReferencesJsonFile)) {
+    const referencesDoc = JSON.parse(fs.readFileSync(apReferencesJsonFile, 'utf8'));
+    assert.equal(
+      row.referencesCount,
+      referencesDoc.count,
+      `row ${i} referencesCount must agree with the sibling references.json envelope for ${row.slug}`,
     );
   }
   // historyUrl points at the article's revision-history page — the same
