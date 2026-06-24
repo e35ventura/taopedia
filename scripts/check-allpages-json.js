@@ -257,6 +257,17 @@ data.articles.forEach((row, i) => {
     Number.isInteger(row.backlinks) && row.backlinks >= 0,
     `row ${i} backlinks must be a non-negative integer (got ${row.backlinks})`,
   );
+  // revisionCount (commit-history length) and firstEdited (oldest revision) are
+  // the rest of the revision-stats trio info.json / history.json expose.
+  // lastEdited (newest revision) completes the trio on each directory row.
+  assert.ok(
+    Number.isInteger(row.revisionCount) && row.revisionCount >= 0,
+    `row ${i} revisionCount must be a non-negative integer (got ${JSON.stringify(row.revisionCount)})`,
+  );
+  assert.ok(
+    row.firstEdited === null || typeof row.firstEdited === 'string',
+    `row ${i} firstEdited must be a string date or null (got ${JSON.stringify(row.firstEdited)})`,
+  );
   // lastEdited is the article's last-revision date — the same figure info.json /
   // history.json expose per article. Cross-check it against the sibling built
   // info.json envelope (independent source) so the directory and the per-article
@@ -268,6 +279,16 @@ data.articles.forEach((row, i) => {
   const apInfoJsonFile = path.join(projectRoot, 'dist', 'wiki', row.slug, 'info.json');
   if (fs.existsSync(apInfoJsonFile)) {
     const infoDoc = JSON.parse(fs.readFileSync(apInfoJsonFile, 'utf8'));
+    assert.equal(
+      row.revisionCount,
+      infoDoc.revisionCount,
+      `row ${i} revisionCount must agree with the sibling info.json envelope for ${row.slug}`,
+    );
+    assert.equal(
+      row.firstEdited,
+      infoDoc.firstEdited,
+      `row ${i} firstEdited must agree with the sibling info.json envelope for ${row.slug}`,
+    );
     assert.equal(
       row.lastEdited,
       infoDoc.lastEdited,
