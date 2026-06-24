@@ -46,6 +46,7 @@ const revisionStatsOf = (slug) => {
     incomingLinks: 2,
     referencesCount: 6,
     sectionCount: 4,
+    wordCount: 512,
     revisionCount: 8,
     firstEdited: '2024-01-01T00:00:00.000Z',
     lastEdited: '2024-06-01T00:00:00.000Z',
@@ -75,6 +76,7 @@ const revisionStatsOf = (slug) => {
   assert.equal(result.incomingLinks, 2, 'builder: incomingLinks field');
   assert.equal(result.referencesCount, 6, 'builder: referencesCount field threaded verbatim');
   assert.equal(result.sectionCount, 4, 'builder: sectionCount field threaded verbatim');
+  assert.equal(result.wordCount, 512, 'builder: wordCount field threaded verbatim');
   assert.equal(result.revisionCount, 8, 'builder: revisionCount field threaded verbatim');
   assert.equal(result.firstEdited, '2024-01-01T00:00:00.000Z', 'builder: firstEdited field threaded verbatim');
   assert.equal(result.lastEdited, '2024-06-01T00:00:00.000Z', 'builder: lastEdited field threaded verbatim');
@@ -131,6 +133,7 @@ const revisionStatsOf = (slug) => {
   assert.equal(empty.incomingLinks, 0, 'builder: default incomingLinks is 0');
   assert.equal(empty.referencesCount, 0, 'builder: default referencesCount is 0');
   assert.equal(empty.sectionCount, 0, 'builder: default sectionCount is 0');
+  assert.equal(empty.wordCount, 0, 'builder: default wordCount is 0');
   assert.equal(empty.revisionCount, 0, 'builder: default revisionCount is 0');
   assert.equal(empty.firstEdited, null, 'builder: default firstEdited is null');
   assert.equal(empty.lastEdited, null, 'builder: default lastEdited is null');
@@ -257,6 +260,33 @@ for (const slug of articleSlugs) {
       doc.sectionCount,
       tocDoc.count,
       `${slug}: backlinks.json sectionCount must agree with the sibling toc.json envelope`,
+    );
+  }
+  // wordCount is the article's word count — the same figure the article footer
+  // exposes as data-word-count and info.json / history.json expose on their envelopes.
+  assert.ok(
+    Number.isInteger(doc.wordCount) && doc.wordCount >= 0,
+    `${slug}: backlinks.json wordCount must be a non-negative integer (got ${JSON.stringify(doc.wordCount)})`,
+  );
+  const blArticleHtmlFile = path.join(wikiDir, slug, 'index.html');
+  if (fs.existsSync(blArticleHtmlFile)) {
+    const articleHtml = fs.readFileSync(blArticleHtmlFile, 'utf8');
+    const wordCountAttr = articleHtml.match(/data-word-count="(\d+)"/);
+    if (wordCountAttr) {
+      assert.equal(
+        doc.wordCount,
+        Number(wordCountAttr[1]),
+        `${slug}: backlinks.json wordCount must match the article footer's data-word-count`,
+      );
+    }
+  }
+  const blHistoryJsonFile = path.join(wikiDir, slug, 'history.json');
+  if (fs.existsSync(blHistoryJsonFile)) {
+    const historyDoc = JSON.parse(fs.readFileSync(blHistoryJsonFile, 'utf8'));
+    assert.equal(
+      doc.wordCount,
+      historyDoc.wordCount,
+      `${slug}: backlinks.json wordCount must agree with the sibling history.json envelope`,
     );
   }
   // revisionCount is the article's revision count (its commit-history length) —

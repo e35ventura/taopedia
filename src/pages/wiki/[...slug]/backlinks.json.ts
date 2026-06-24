@@ -34,6 +34,7 @@ export async function getStaticPaths() {
           slug,
           incomingLinks: publishedInboundLinkCount(backlinksData, slug, titleBySlug),
           sectionCount: getArticleToc(headings).length,
+          wordCount: (page.body ?? '').trim().split(/\s+/).filter(Boolean).length,
           revisionCount: history.length,
           firstEdited: history[history.length - 1]?.date ?? null,
           lastEdited: history[0]?.date ?? null,
@@ -47,11 +48,12 @@ export async function getStaticPaths() {
 // published-only join and compareTitles sort as backlinks.astro so the two
 // surfaces never drift.
 export const GET: APIRoute = async ({ props, site }) => {
-  const { page, slug, incomingLinks, sectionCount, revisionCount, firstEdited, lastEdited } = props as {
+  const { page, slug, incomingLinks, sectionCount, wordCount, revisionCount, firstEdited, lastEdited } = props as {
     page: { data: { title: string; summary?: string; categories?: string[] } };
     slug: string;
     incomingLinks: number;
     sectionCount: number;
+    wordCount: number;
     revisionCount: number;
     firstEdited: string | null;
     lastEdited: string | null;
@@ -102,6 +104,7 @@ export const GET: APIRoute = async ({ props, site }) => {
       incomingLinks,
       referencesCount,
       sectionCount,
+      wordCount,
       revisionCount,
       firstEdited,
       lastEdited,
