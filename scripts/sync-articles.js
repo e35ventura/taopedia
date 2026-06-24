@@ -796,6 +796,19 @@ const quoteSlashDelimitedOlReversedAttrPattern = /<\s*ol\b[^>]*["'`]\/reversed(?
 const imgFetchpriorityAttrPattern = /<\s*img\b[^>]*\sfetchpriority\s*=/i;
 const imgFetchpriorityQuoteAbuttedPattern = /<\s*img\b[^>]*["'`]fetchpriority\s*=/i;
 
+// crossorigin= on an allowed <img> upgrades the fetch to a CORS request, and
+// `use-credentials` sends user credentials on the attacker-chosen image URL.
+// That is a concrete privacy surface beyond a plain anonymous `<img src>`, in
+// the same img fetch/privacy family as loading=/fetchpriority=/decoding=. parse5
+// also accepts `<img/crossorigin=...>`, `<img /crossorigin=...>`, and
+// `<img src="..."/crossorigin=...>` as real attributes, so slash-delimited
+// forms must be blocked too.
+const imgCrossoriginAttrPattern = /<\s*img\b[^>]*\scrossorigin\s*=/i;
+const imgCrossoriginQuoteAbuttedPattern = /<\s*img\b[^>]*["'`]crossorigin\s*=/i;
+const imgCrossoriginTagNameSlashDelimitedPattern = /<\s*img\/crossorigin\s*=/i;
+const imgCrossoriginWhitespaceSlashDelimitedPattern = /<\s*img\b[^>]*\s\/crossorigin\s*=/i;
+const imgCrossoriginQuoteSlashDelimitedPattern = /<\s*img\b[^>]*["'`]\/crossorigin\s*=/i;
+
 // decoding= on an allowed <img> forces synchronous image decoding of an
 // attacker-chosen URL (decoding="sync"), blocking the main thread until the
 // remote image decodes — a no-script content-stall / reading-experience DoS, the
@@ -1607,6 +1620,16 @@ export function validateArticleContent(slug, content) {
     throw new Error(
       `Unsafe article content in "${slug}": decoding attributes are not allowed in article content`,
     );
+  }
+
+  if (
+    imgCrossoriginAttrPattern.test(emptiedAttributeContent)
+    || imgCrossoriginQuoteAbuttedPattern.test(emptiedAttributeContent)
+    || imgCrossoriginTagNameSlashDelimitedPattern.test(emptiedAttributeContent)
+    || imgCrossoriginWhitespaceSlashDelimitedPattern.test(emptiedAttributeContent)
+    || imgCrossoriginQuoteSlashDelimitedPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(`Unsafe article content in "${slug}": crossorigin attributes are not allowed in article content`);
   }
 
   if (

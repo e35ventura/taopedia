@@ -1090,6 +1090,18 @@ rejects('<img src="/wiki/fig.png"fetchpriority="high">', 'quote-abutted img fetc
 accepts('<img src=/wiki/fetchpriority-demo.png alt=diagram>', 'benign unquoted img src path containing fetchpriority substring');
 accepts('Fetch priority hints improve performance and are described here only as prose.', 'benign fetchpriority prose');
 
+// crossorigin= on <img> upgrades the request to a CORS fetch, and
+// use-credentials sends user credentials on attacker-chosen URLs.
+rejects('Intro.\n\n<img src="https://evil.example/pixel.gif" crossorigin="use-credentials" alt="x">', 'plain img crossorigin attribute');
+rejects('Intro.\n\n<  img   src="/wiki/fig.png"   crossorigin = "anonymous">', 'spaced img crossorigin attribute');
+rejects('<img src="/wiki/fig.png"crossorigin="anonymous">', 'quote-abutted img crossorigin attribute');
+rejects('Intro.\n\n<img/crossorigin="anonymous" src="/wiki/fig.png" alt="x">', 'slash-delimited img crossorigin after tag name');
+rejects('Intro.\n\n<img /crossorigin="anonymous" src="/wiki/fig.png" alt="x">', 'slash-delimited img crossorigin after whitespace');
+rejects('<img src="/wiki/fig.png"/crossorigin="anonymous" alt="x">', 'quote-plus-slash-delimited img crossorigin attribute');
+
+accepts('<img src=/wiki/crossorigin-demo.png alt=diagram>', 'benign unquoted img src path containing crossorigin substring');
+accepts('Crossorigin requests are described here only as prose.', 'benign crossorigin prose');
+
 // decoding= on <img> forces synchronous decode of an attacker URL (main-thread
 // stall / reading DoS) — same img-scoped rendering-control family as loading #462
 // and fetchpriority. Markdown never emits decoding=.
