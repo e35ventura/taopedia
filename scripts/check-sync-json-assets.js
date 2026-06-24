@@ -31,6 +31,9 @@ try {
   const bidiCaptionInfobox = infoboxFixturePath('bidi_caption_infobox');
   const bidiRowLabelInfobox = infoboxFixturePath('bidi_row_label_infobox');
   const bidiRowValueInfobox = infoboxFixturePath('bidi_row_value_infobox');
+  const unsafeCaptionInfobox = infoboxFixturePath('unsafe_caption_infobox');
+  const obfuscatedCaptionInfobox = infoboxFixturePath('obfuscated_caption_infobox');
+  const unsafeRowLabelInfobox = infoboxFixturePath('unsafe_row_label_infobox');
   // Bidirectional control characters render in infobox text (title, caption,
   // labels, values) just like article body prose, so they carry the same Trojan
   // Source/spoofing risk. RLO = U+202E.
@@ -86,6 +89,18 @@ try {
   fs.writeFileSync(
     bidiRowValueInfobox,
     JSON.stringify({ rows: [{ label: 'Link', value: `docs.bittensor.com${RLO}/evil/` }] }),
+  );
+  fs.writeFileSync(
+    unsafeCaptionInfobox,
+    JSON.stringify({ caption: 'See [x](javascript:alert(1))', rows: [{ label: 'Type', value: 'Fixture' }] }),
+  );
+  fs.writeFileSync(
+    obfuscatedCaptionInfobox,
+    JSON.stringify({ caption: 'See [x](java&#115;cript:alert(1))', rows: [{ label: 'Type', value: 'Fixture' }] }),
+  );
+  fs.writeFileSync(
+    unsafeRowLabelInfobox,
+    JSON.stringify({ rows: [{ label: 'See [x](javascript:alert(1))', value: 'Fixture' }] }),
   );
 
   assert.doesNotThrow(
@@ -175,6 +190,21 @@ try {
     () => validateArticleJsonAsset(bidiRowValueInfobox),
     /Invalid infobox JSON asset.*rows\[0\]\.value contains bidirectional control characters/,
     'bidi controls in an infobox row value should be rejected during sync',
+  );
+  assert.throws(
+    () => validateArticleJsonAsset(unsafeCaptionInfobox),
+    /Invalid infobox JSON asset.*caption contains a disallowed URL scheme/,
+    'javascript: URLs in infobox captions should be rejected during sync',
+  );
+  assert.throws(
+    () => validateArticleJsonAsset(obfuscatedCaptionInfobox),
+    /Invalid infobox JSON asset.*caption contains a disallowed URL scheme/,
+    'entity-obfuscated javascript: URLs in infobox captions should be rejected during sync',
+  );
+  assert.throws(
+    () => validateArticleJsonAsset(unsafeRowLabelInfobox),
+    /Invalid infobox JSON asset.*rows\[0\]\.label contains a disallowed URL scheme/,
+    'javascript: URLs in infobox row labels should be rejected during sync',
   );
 } finally {
   fs.rmSync(tempRoot, { recursive: true, force: true });

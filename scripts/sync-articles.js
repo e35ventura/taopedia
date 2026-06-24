@@ -259,15 +259,19 @@ const infoboxRowValueSchemePatterns = [
   /data\s*:\s*(?:text|application)\/(?:javascript|ecmascript)/i,
 ];
 
-function assertSafeInfoboxRowValue(value, filePath, index) {
+function assertSafeInfoboxTextField(value, fieldName, filePath) {
   const decoded = decodeForSchemeScan(value);
   for (const pattern of infoboxRowValueSchemePatterns) {
     if (pattern.test(value) || pattern.test(decoded)) {
       throw new Error(
-        `Invalid infobox JSON asset in "${filePath}": rows[${index}].value contains a disallowed URL scheme`,
+        `Invalid infobox JSON asset in "${filePath}": ${fieldName} contains a disallowed URL scheme`,
       );
     }
   }
+}
+
+function assertSafeInfoboxRowValue(value, filePath, index) {
+  assertSafeInfoboxTextField(value, `rows[${index}].value`, filePath);
 }
 
 // The whitespace-anchored handler pattern above misses handlers that HTML lets
@@ -1326,6 +1330,9 @@ export function validateInfoboxJsonAsset(filePath, data) {
   assertOptionalString(data.caption, 'caption', filePath);
   assertNoBidiControls(data.title, 'title', filePath);
   assertNoBidiControls(data.caption, 'caption', filePath);
+  if (typeof data.caption === 'string' && data.caption.trim()) {
+    assertSafeInfoboxTextField(data.caption, 'caption', filePath);
+  }
 
   if (typeof data.image === 'string' && data.image.trim()) {
     if (isUnsafeImageUrl(data.image) || hasLocalImagePathTraversal(data.image)) {
@@ -1350,6 +1357,7 @@ export function validateInfoboxJsonAsset(filePath, data) {
     }
     assertNoBidiControls(row.label, `rows[${index}].label`, filePath);
     assertNoBidiControls(row.value, `rows[${index}].value`, filePath);
+    assertSafeInfoboxTextField(row.label, `rows[${index}].label`, filePath);
     assertSafeInfoboxRowValue(row.value, filePath, index);
   });
 }
