@@ -1047,6 +1047,21 @@ accepts('<a href="/wiki/aria-braillelabel=demo">aria-braillelabel docs</a>', 'be
 accepts('ARIA braillelabel is an accessibility concept described here only as prose.', 'benign aria-braillelabel prose');
 accepts('<span class=x/aria-braillelabel-demo>not an aria-braillelabel attribute</span>', 'benign aria-braillelabel substring in class value');
 
+// aria-placeholder/multiline/autocomplete= fake editable text-field semantics —
+// the form-widget config counterpart to the merged #587 form-widget state block
+// (aria-disabled/readonly/required); read-only prose never exposes input ARIA.
+rejects('Intro.\n\n<div aria-placeholder="Paste your seed phrase">x</div>', 'plain aria-placeholder attribute');
+rejects('Intro.\n\n<div aria-multiline="true">x</div>', 'plain aria-multiline attribute');
+rejects('Intro.\n\n<div aria-autocomplete="list">x</div>', 'plain aria-autocomplete attribute');
+rejects('Intro.\n\n<  div   aria-placeholder = "seed">x</div>', 'spaced aria-placeholder attribute');
+rejects('<a href="x"aria-placeholder="seed">go</a>', 'quote-abutted aria-placeholder attribute');
+rejects('<div class=x/aria-multiline="true">x</div>', 'slash-delimited aria-multiline attribute');
+rejects("<p class='x'aria-autocomplete='list'>x</p>", 'single-quote-abutted aria-autocomplete attribute');
+
+accepts('<a href="/wiki/aria-placeholder=demo">aria-placeholder docs</a>', 'benign aria-placeholder substring in quoted href');
+accepts('ARIA placeholder is an accessibility concept described here only as prose.', 'benign aria-placeholder prose');
+accepts('<span class=x/aria-multiline-demo>not an aria-multiline attribute</span>', 'benign aria-multiline substring in class value');
+
 // srcset=/sizes= on <img> steer responsive loading — gap after #411 blocked picture/source.
 rejects('Intro.\n\n<img src="/wiki/fig.png" srcset="https://evil.example/x 1x" alt="x">', 'plain img srcset attribute');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   srcset = "https://evil.example/x 2x">', 'spaced img srcset attribute');

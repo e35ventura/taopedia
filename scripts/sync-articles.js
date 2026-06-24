@@ -707,6 +707,18 @@ const ariaBrailleAttrPattern = /<[^>]*\saria-braille(?:label|roledescription)\s*
 const nonSpaceDelimitedAriaBrailleAttrPattern =
   /<[^>]*[/"'`](?:aria-braille(?:label|roledescription))\s*=/i;
 
+// aria-placeholder=/aria-multiline=/aria-autocomplete= fake editable text-field
+// semantics for assistive technology — the form-widget CONFIG counterpart to the
+// already-blocked form-widget STATE attributes aria-disabled/aria-readonly/
+// aria-required (#587). aria-placeholder="Paste your seed phrase" announces a
+// fabricated input prompt over plain prose, while aria-multiline/aria-autocomplete
+// make a static element sound like a fillable field — a no-script accessibility
+// spoof that can coax an AT user toward an injected input affordance. Glossary
+// articles are read-only prose and never expose editable-field ARIA.
+const ariaTextFieldAttrPattern = /<[^>]*\saria-(?:placeholder|multiline|autocomplete)\s*=/i;
+const nonSpaceDelimitedAriaTextFieldAttrPattern =
+  /<[^>]*[/"'`](?:aria-(?:placeholder|multiline|autocomplete))\s*=/i;
+
 // nowrap on allowed <td>/<th> disables text wrapping in the cell — an injected
 // long URL, fake wallet address, or padded phishing line breaks out of the
 // column, reflowing the real article text off-screen (a layout-defacement /
@@ -1517,6 +1529,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": aria-braillelabel and aria-brailleroledescription attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    ariaTextFieldAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAriaTextFieldAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": aria-placeholder, aria-multiline, and aria-autocomplete attributes are not allowed in article content`,
     );
   }
 
