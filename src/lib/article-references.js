@@ -68,6 +68,9 @@ export const buildArticleReferences = ({ slug, title, origin, summary = '', cate
     revisionCount: Number.isFinite(link.revisionCount) ? link.revisionCount : 0,
     firstEdited: link.firstEdited ?? null,
     lastEdited: link.lastEdited ?? null,
+    // The referenced article's body word count — the same figure info.json
+    // exposes and related.json / allpages.json expose per directory entry.
+    wordCount: Number.isFinite(link.wordCount) ? link.wordCount : 0,
     url: `${origin}/wiki/${link.slug}/`,
     infoUrl: `${origin}/wiki/${link.slug}/info/`,
     infoJsonUrl: `${origin}/wiki/${link.slug}/info.json`,
