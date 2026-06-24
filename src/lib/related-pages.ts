@@ -78,6 +78,7 @@ export interface ArticleRelatedPagesDocument {
   lastEdited: string | null;
   url: string;
   relatedUrl: string;
+  relatedJsonUrl: string;
   historyUrl: string;
   historyJsonUrl: string;
   backlinksUrl: string;
@@ -254,6 +255,14 @@ export function buildArticleRelatedPages({
     lastEdited: lastEdited ?? null,
     url: `${origin}/wiki/${slug}/`,
     relatedUrl: `${origin}/wiki/${slug}/related.json`,
+    // relatedJsonUrl is the endpoint's own canonical self-link named to match the
+    // <name>JsonUrl convention every sibling endpoint uses for its self-link
+    // (info.json → infoJsonUrl, history.json → historyJsonUrl, backlinks.json →
+    // backlinksJsonUrl, cite.json → citeJsonUrl, toc.json → tocJsonUrl, references.json
+    // → referencesJsonUrl). related.json named its self-link relatedUrl without the
+    // Json suffix; relatedUrl is kept for backwards compatibility and relatedJsonUrl
+    // is the consistent name.
+    relatedJsonUrl: `${origin}/wiki/${slug}/related.json`,
     historyUrl: `${origin}/wiki/${slug}/history/`,
     historyJsonUrl: `${origin}/wiki/${slug}/history.json`,
     backlinksUrl: `${origin}/wiki/${slug}/backlinks/`,
