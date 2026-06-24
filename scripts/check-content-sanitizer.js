@@ -751,6 +751,16 @@ rejects('<img src="/wiki/fig.png"/aria-describedby="fake-caption">', 'slash-deli
 accepts('<a href="/wiki/aria-describedby=demo">ARIA describedby docs</a>', 'benign aria-describedby substring in quoted href');
 accepts('ARIA describedby is an accessibility concept described here only as prose.', 'benign aria-describedby prose');
 
+// aria-description= injects hidden assistive-tech-only description text — same
+// auxiliary-text spoof family as aria-describedby.
+rejects('Intro.\n\n<a href="https://evil.example/" aria-description="Official staking guide">claim TAO</a>', 'plain aria-description attribute');
+rejects('Intro.\n\n<  a   href="/wiki/stake/"   aria-description = "Trusted staking guide">stake</a>', 'spaced aria-description attribute');
+rejects('<a href="x"aria-description="Trusted docs">go</a>', 'quote-abutted aria-description attribute');
+rejects('<img src="/wiki/fig.png"/aria-description="Official chart">', 'slash-delimited aria-description attribute');
+
+accepts('<a href="/wiki/aria-description=demo">ARIA description docs</a>', 'benign aria-description substring in quoted href');
+accepts('ARIA description is an accessibility concept described here only as prose.', 'benign aria-description prose');
+
 // role= overrides accessibility semantics — same family as merged #501/#550/#553.
 rejects('Intro.\n\n<p role="alert">Wallet compromised — act now</p>', 'plain role=alert live-region spoof');
 rejects('Intro.\n\n<a href="https://evil.example/" role="button">claim TAO</a>', 'plain role attribute on anchor');

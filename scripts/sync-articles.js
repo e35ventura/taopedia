@@ -461,6 +461,14 @@ const nonSpaceDelimitedTitleAttrPattern = /<[^>]*[/"'`](?:title)\s*=/i;
 const ariaDescribedbyAttrPattern = /<[^>]*\saria-describedby\s*=/i;
 const nonSpaceDelimitedAriaDescribedbyAttrPattern = /<[^>]*[/"'`](?:aria-describedby)\s*=/i;
 
+// aria-description= is the string-valued counterpart to aria-describedby=: it
+// injects hidden assistive-tech-only descriptive text that can differ from the
+// visible article content. A malicious link can sound like "Official staking
+// guide" to screen-reader users while remaining ordinary-looking prose on the
+// page. Same AT-only auxiliary-text spoof family as #501 and #553.
+const ariaDescriptionAttrPattern = /<[^>]*\saria-description\s*=/i;
+const nonSpaceDelimitedAriaDescriptionAttrPattern = /<[^>]*[/"'`](?:aria-description)\s*=/i;
+
 // role= overrides an element's accessibility semantics — e.g. role="alert" makes
 // assistive tech announce injected text as an urgent live region, and role="button"
 // on a link changes how it is presented. Same accessibility-spoof family as merged
@@ -1250,6 +1258,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": aria-describedby attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    ariaDescriptionAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAriaDescriptionAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": aria-description attributes are not allowed in article content`,
     );
   }
 
