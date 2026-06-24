@@ -785,15 +785,19 @@ rejects('<p class=x/aria-hidden="true">x</p>', 'slash-delimited aria-hidden attr
 accepts('<a href="/wiki/aria-hidden=demo">aria-hidden docs</a>', 'benign aria-hidden substring in quoted href');
 accepts('ARIA hidden state is an accessibility concept described here only as prose.', 'benign aria-hidden prose');
 
-// aria-live=/aria-atomic= create live regions — attribute counterpart to merged #554 role=alert.
+// aria-live=/aria-atomic=/aria-relevant= create live regions — attribute
+// counterpart to merged #554 role=alert.
 rejects('Intro.\n\n<div aria-live="assertive">Wallet compromised — act now</div>', 'plain aria-live assertive live-region spoof');
 rejects('Intro.\n\n<p aria-atomic="true">Send TAO to evil.example</p>', 'plain aria-atomic attribute');
+rejects('Intro.\n\n<div aria-relevant="additions text">x</div>', 'plain aria-relevant attribute');
 rejects('Intro.\n\n<  div   aria-live = "polite">x</div>', 'spaced aria-live attribute');
 rejects('<a href="x"aria-live="assertive">go</a>', 'quote-abutted aria-live attribute');
 rejects('<div class=x/aria-atomic="true">x</div>', 'slash-delimited aria-atomic attribute');
+rejects("<p class='x'aria-relevant='additions'>x</p>", 'single-quote-abutted aria-relevant attribute');
 
 accepts('<a href="/wiki/aria-live=demo">aria-live docs</a>', 'benign aria-live substring in quoted href');
 accepts('ARIA live regions are an accessibility concept described here only as prose.', 'benign aria-live prose');
+accepts('<span class=x/aria-relevant-demo>not an aria-relevant attribute</span>', 'benign aria-relevant substring in class value');
 
 // aria-controls=/aria-expanded= fake disclosure state — same family as merged #558/#554.
 rejects('Intro.\n\n<a href="https://evil.example/" aria-expanded="true">Wallet settings</a>', 'plain aria-expanded disclosure spoof');

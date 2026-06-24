@@ -475,12 +475,14 @@ const nonSpaceDelimitedRoleAttrPattern = /<[^>]*[/"'`](?:role)\s*=/i;
 const ariaHiddenAttrPattern = /<[^>]*\saria-hidden\s*=/i;
 const nonSpaceDelimitedAriaHiddenAttrPattern = /<[^>]*[/"'`](?:aria-hidden)\s*=/i;
 
-// aria-live=/aria-atomic= turn injected markup into live regions that interrupt
-// assistive tech with attacker-chosen text — the attribute counterpart to merged
-// #554 role="alert". aria-live="assertive" announces immediately; aria-atomic="true"
-// forces the whole region to be read. Glossary prose never needs live regions.
-const ariaLiveRegionAttrPattern = /<[^>]*\saria-(?:live|atomic)\s*=/i;
-const nonSpaceDelimitedAriaLiveRegionAttrPattern = /<[^>]*[/"'`](?:aria-(?:live|atomic))\s*=/i;
+// aria-live=/aria-atomic=/aria-relevant= turn injected markup into live regions
+// that interrupt assistive tech with attacker-chosen text — the attribute
+// counterpart to merged #554 role="alert". aria-live="assertive" announces
+// immediately; aria-atomic="true" forces the whole region to be read;
+// aria-relevant="additions text" tells AT which injected mutations within the
+// region to announce. Glossary prose never needs live regions.
+const ariaLiveRegionAttrPattern = /<[^>]*\saria-(?:live|atomic|relevant)\s*=/i;
+const nonSpaceDelimitedAriaLiveRegionAttrPattern = /<[^>]*[/"'`](?:aria-(?:live|atomic|relevant))\s*=/i;
 
 // aria-controls=/aria-expanded= fake disclosure widgets in assistive tech — e.g.
 // aria-expanded="true" reports an injected link as an open panel, and aria-controls
@@ -1403,7 +1405,7 @@ export function validateArticleContent(slug, content) {
     || nonSpaceDelimitedAriaLiveRegionAttrPattern.test(emptiedAttributeContent)
   ) {
     throw new Error(
-      `Unsafe article content in "${slug}": aria-live and aria-atomic attributes are not allowed in article content`,
+      `Unsafe article content in "${slug}": aria-live, aria-atomic, and aria-relevant attributes are not allowed in article content`,
     );
   }
 
