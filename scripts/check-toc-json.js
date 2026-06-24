@@ -72,6 +72,7 @@ const ORIGIN = 'https://taopedia.org';
     firstEdited: '2024-01-01T00:00:00.000Z',
     lastEdited: '2024-06-01T00:00:00.000Z',
     referencesCount: 4,
+    sectionCount: 3,
     sections,
   });
   assert.equal(doc.slug, 'source', 'builder: slug field');
@@ -97,6 +98,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(doc.firstEdited, '2024-01-01T00:00:00.000Z', 'builder: firstEdited field');
   assert.equal(doc.lastEdited, '2024-06-01T00:00:00.000Z', 'builder: lastEdited field');
   assert.equal(doc.referencesCount, 4, 'builder: referencesCount field');
+  assert.equal(doc.sectionCount, 3, 'builder: sectionCount field');
   assert.equal(doc.count, 3, 'builder: count field');
   assert.deepEqual(
     doc.sections,
@@ -110,6 +112,9 @@ const ORIGIN = 'https://taopedia.org';
 
   const badCount = buildArticleToc({ slug: 'x', title: 'X', origin: ORIGIN, referencesCount: NaN });
   assert.equal(badCount.referencesCount, 0, 'builder: non-finite referencesCount defaults to 0');
+
+  const badSection = buildArticleToc({ slug: 'x', title: 'X', origin: ORIGIN, sectionCount: NaN });
+  assert.equal(badSection.sectionCount, 0, 'builder: non-finite sectionCount defaults to 0');
 }
 
 // ---- 2) Built-output checks -----------------------------------------------
@@ -303,6 +308,8 @@ for (const slug of articleSlugs) {
       `${slug}: toc.json referencesCount must agree with the sibling references.json envelope`,
     );
   }
+  assert.equal(doc.sectionCount, doc.count, `${slug}: toc.json sectionCount must equal count`);
+  assert.equal(doc.sectionCount, doc.sections.length, `${slug}: toc.json sectionCount must equal sections.length`);
   assert.equal(typeof doc.count, 'number', `${slug}: toc.json count must be a number`);
   assert.ok(Array.isArray(doc.sections), `${slug}: toc.json sections must be an array`);
   assert.equal(doc.count, doc.sections.length, `${slug}: toc.json count must equal sections.length`);
