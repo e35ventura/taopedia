@@ -117,6 +117,7 @@ const revisionStatsOf = (slug) => {
         referencesCount: 1,
         sectionCount: 10,
         wordCount: 0,
+        readingMinutes: 1,
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
@@ -144,6 +145,7 @@ const revisionStatsOf = (slug) => {
         referencesCount: 2,
         sectionCount: 20,
         wordCount: 0,
+        readingMinutes: 1,
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
@@ -171,6 +173,7 @@ const revisionStatsOf = (slug) => {
         referencesCount: 3,
         sectionCount: 30,
         wordCount: 0,
+        readingMinutes: 1,
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
@@ -198,6 +201,7 @@ const revisionStatsOf = (slug) => {
         referencesCount: 4,
         sectionCount: 40,
         wordCount: 0,
+        readingMinutes: 1,
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
@@ -521,6 +525,12 @@ for (const slug of articleSlugs) {
       entry.wordCount,
       entryInfoDoc.wordCount,
       `${slug}: every reference entry wordCount must agree with its sibling info.json envelope`,
+    );
+    // readingMinutes is the ~200-wpm estimate derived from the entry's wordCount.
+    assert.equal(
+      entry.readingMinutes,
+      Math.max(1, Math.ceil(entry.wordCount / 200)),
+      `${slug}: every reference entry readingMinutes must equal ceil(wordCount/200) (min 1)`,
     );
     assert.equal(
       entry.infoUrl,
