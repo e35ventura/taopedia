@@ -116,6 +116,7 @@ const revisionStatsOf = (slug) => {
         backlinks: 0,
         referencesCount: 1,
         sectionCount: 10,
+        wordCount: 0,
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
@@ -142,6 +143,7 @@ const revisionStatsOf = (slug) => {
         backlinks: 0,
         referencesCount: 2,
         sectionCount: 20,
+        wordCount: 0,
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
@@ -168,6 +170,7 @@ const revisionStatsOf = (slug) => {
         backlinks: 0,
         referencesCount: 3,
         sectionCount: 30,
+        wordCount: 0,
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
@@ -194,6 +197,7 @@ const revisionStatsOf = (slug) => {
         backlinks: 0,
         referencesCount: 4,
         sectionCount: 40,
+        wordCount: 0,
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
@@ -506,6 +510,17 @@ for (const slug of articleSlugs) {
       entry.sectionCount,
       entryInfoDoc.sectionCount,
       `${slug}: every reference entry sectionCount must agree with its sibling info.json envelope`,
+    );
+    // wordCount is the referenced article's body word count — the same figure its
+    // own info.json / history.json envelope exposes.
+    assert.ok(
+      Number.isInteger(entry.wordCount) && entry.wordCount >= 0,
+      `${slug}: every reference entry wordCount must be a non-negative integer (got ${JSON.stringify(entry.wordCount)})`,
+    );
+    assert.equal(
+      entry.wordCount,
+      entryInfoDoc.wordCount,
+      `${slug}: every reference entry wordCount must agree with its sibling info.json envelope`,
     );
     assert.equal(
       entry.infoUrl,
