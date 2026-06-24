@@ -338,6 +338,40 @@ for (let i = 0; i < data.changes.length; i++) {
       `change ${i} readingMinutes must agree with the sibling info.json envelope for ${change.slug}`,
     );
   }
+  // revisionCount/firstEdited/lastEdited are the changed article's own
+  // commit-history stats — the same trio info.json / allpages.json expose —
+  // distinct from this entry's own `date` (the date of THIS change). Cross-
+  // check against the sibling built info.json for the changed article.
+  assert.ok(
+    Number.isInteger(change.revisionCount) && change.revisionCount >= 0,
+    `change ${i} revisionCount must be a non-negative integer (got ${JSON.stringify(change.revisionCount)})`,
+  );
+  assert.ok(
+    change.firstEdited === null || typeof change.firstEdited === 'string',
+    `change ${i} firstEdited must be a string date or null (got ${JSON.stringify(change.firstEdited)})`,
+  );
+  assert.ok(
+    change.lastEdited === null || typeof change.lastEdited === 'string',
+    `change ${i} lastEdited must be a string date or null (got ${JSON.stringify(change.lastEdited)})`,
+  );
+  if (fs.existsSync(rcInfoJsonFile)) {
+    const infoDoc = JSON.parse(fs.readFileSync(rcInfoJsonFile, 'utf8'));
+    assert.equal(
+      change.revisionCount,
+      infoDoc.revisionCount,
+      `change ${i} revisionCount must agree with the sibling info.json envelope for ${change.slug}`,
+    );
+    assert.equal(
+      change.firstEdited,
+      infoDoc.firstEdited,
+      `change ${i} firstEdited must agree with the sibling info.json envelope for ${change.slug}`,
+    );
+    assert.equal(
+      change.lastEdited,
+      infoDoc.lastEdited,
+      `change ${i} lastEdited must agree with the sibling info.json envelope for ${change.slug}`,
+    );
+  }
   assert.equal(change.authorName, expected.authorName, `change ${i} authorName must match the revision history`);
   assert.equal(change.sha, expected.sha, `change ${i} sha must match the revision history`);
   assert.ok(typeof change.sha === 'string' && change.sha.length > 0, `change ${i} sha must be a non-empty string`);
