@@ -59,7 +59,11 @@ const unsafeContentPatterns = [
   { pattern: /^\s*export\s/m, reason: 'MDX exports are not allowed in article content' },
   { pattern: /<\s*script[\s>]/i, reason: 'script tags are not allowed in article content' },
   { pattern: /<\s*\/\s*script\s*>/i, reason: 'script tags are not allowed in article content' },
-  { pattern: /<\s*(base|frame|frameset|iframe|object|embed|link|meta|style|form|input|button|textarea|select|option|fieldset|legend|datalist|output)\b/i, reason: 'active HTML elements are not allowed in article content' },
+  // <isindex> is a legacy element the parser expands into a <form> with a text
+  // <input> prompt — the same form-injection / phishing surface as the already-
+  // blocked <form> / <input>, materialized from a single tag. The sanitizer
+  // normalizes on the SOURCE markup, so block it alongside the form family.
+  { pattern: /<\s*(base|frame|frameset|iframe|object|embed|link|meta|style|form|input|isindex|button|textarea|select|option|fieldset|legend|datalist|output)\b/i, reason: 'active HTML elements are not allowed in article content' },
   // <dialog open> renders in the browser top layer -- above all page content, with
   // a backdrop -- with no script and no inline style. That makes a raw <dialog> a
   // clickjacking/phishing overlay primitive (e.g. a fake "wallet compromised" modal

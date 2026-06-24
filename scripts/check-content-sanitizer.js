@@ -501,6 +501,13 @@ rejects('Intro.\n\n<portal src="https://evil.example/"></portal>', 'plain <porta
 rejects('Intro.\n\n<  portal  >x</portal>', 'spaced <portal>');
 accepts('A portal is a page-embedding primitive described here only as prose.', 'benign portal prose');
 
+// <isindex> is a legacy element the parser expands into a <form> with a text
+// <input> prompt — the same form-injection / phishing surface as the already-
+// blocked <form> / <input>, materialized from a single tag. Blocked alongside them.
+rejects('Intro.\n\n<isindex prompt="Enter your seed phrase:">', 'plain <isindex>');
+rejects('Intro.\n\n<  isindex  >', 'spaced <isindex>');
+accepts('An isindex prompt is a legacy form element described here only as prose.', 'benign isindex prose');
+
 // <video>/<audio> render native media UI with no script; CSP media-src 'none' does not
 // stop the elements from appearing. Block them like dialog and fencedframe.
 rejects('Intro.\n\n<video src="/evil.mp4" controls></video>', 'plain <video>');
