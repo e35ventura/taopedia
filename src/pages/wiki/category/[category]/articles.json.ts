@@ -2,8 +2,13 @@ import type { APIRoute } from 'astro';
 import { buildCategoryArticlesDocument, getCategoryArticles } from '../../../../lib/category-articles.js';
 import { publishedInboundLinkCount } from '../../../../../scripts/most-linked.js';
 import { historyForSlug } from '../../../../lib/article-history';
+import { getArticleReferences } from '../../../../lib/article-references.js';
 
 const categoriesModules = import.meta.glob('../../../../../public/data/categories.json', { eager: true }) as Record<
+  string,
+  { default?: Record<string, string[]> }
+>;
+const linkgraphModules = import.meta.glob('../../../../../public/data/linkgraph.json', { eager: true }) as Record<
   string,
   { default?: Record<string, string[]> }
 >;
@@ -19,6 +24,7 @@ const backlinksModules = import.meta.glob('../../../../../public/data/backlinks.
 const categoriesIndex = Object.values(categoriesModules)[0]?.default ?? {};
 const slugMap = Object.values(slugmapModules)[0]?.default ?? {};
 const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
+const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
 const titleBySlug = Object.fromEntries(
   Object.entries(slugMap).map(([slug, entry]) => [slug, entry?.title ?? slug]),
 );
@@ -42,6 +48,7 @@ export async function getStaticPaths() {
           return {
             ...article,
             backlinks: publishedInboundLinkCount(backlinksData, article.slug, titleBySlug),
+            referencesCount: getArticleReferences({ slug: article.slug, linkGraph: linkgraphData, titleBySlug }).length,
             revisionCount: history.length,
             firstEdited: history[history.length - 1]?.date ?? null,
             lastEdited: history[0]?.date ?? null,
@@ -59,7 +66,7 @@ export const GET: APIRoute = async ({ props, site }) => {
   const { categoryName, categoryPath, articles } = props as {
     categoryName: string;
     categoryPath: string;
-    articles: Array<{ slug: string; title: string; summary: string; backlinks: number; revisionCount: number; firstEdited: string | null; lastEdited: string | null }>;
+    articles: Array<{ slug: string; title: string; summary: string; backlinks: number; referencesCount: number; revisionCount: number; firstEdited: string | null; lastEdited: string | null }>;
   };
   const origin = (site ?? new URL('https://taopedia.org')).origin;
 
