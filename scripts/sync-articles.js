@@ -376,6 +376,14 @@ const quoteAbuttedHiddenAttrPattern = /<[^>]*["'`]hidden(?=[\s>/=])/i;
 const downloadAttrPattern = /<[^>]*\sdownload(?=[\s>/=])/i;
 const quoteAbuttedDownloadAttrPattern = /<[^>]*["'`]download(?=[\s>/=])/i;
 
+// popover on an allowed element renders a native top-layer overlay even when
+// omitted its explicit value (`<div popover>...</div>` parses as the auto
+// state). The existing interaction-surface scan above already blocks
+// `popover=`; these patterns close the remaining presence-only form with the
+// same tag-boundary / quote-abutted logic used for other bare attributes.
+const popoverAttrPattern = /<[^>]*\spopover(?=[\s>/=])/i;
+const quoteAbuttedPopoverAttrPattern = /<[^>]*["'`]popover(?=[\s>/=])/i;
+
 // inert= on an allowed element is a clickjacking / focus-hijack surface: it removes
 // the element from the tab order and pointer events, so an injected <a inert
 // href="https://evil/"> or <form inert>…</form> renders as visible "disabled-looking"
@@ -1059,6 +1067,13 @@ export function validateArticleContent(slug, content) {
     || quoteAbuttedDownloadAttrPattern.test(emptiedAttributeContent)
   ) {
     throw new Error(`Unsafe article content in "${slug}": download attributes are not allowed in article content`);
+  }
+
+  if (
+    popoverAttrPattern.test(emptiedAttributeContent)
+    || quoteAbuttedPopoverAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(`Unsafe article content in "${slug}": popover attributes are not allowed in article content`);
   }
 
   if (
