@@ -948,6 +948,20 @@ rejects('<img src="/wiki/fig.png"fetchpriority="high">', 'quote-abutted img fetc
 accepts('<img src=/wiki/fetchpriority-demo.png alt=diagram>', 'benign unquoted img src path containing fetchpriority substring');
 accepts('Fetch priority hints improve performance and are described here only as prose.', 'benign fetchpriority prose');
 
+// attributionsrc on <a> or <img> opts the element into the Attribution Reporting
+// API, causing extra browser reporting requests on click/view without script.
+rejects('Intro.\n\n<a href="https://evil.example/" attributionsrc="https://evil.example/register-source">go</a>', 'plain anchor attributionsrc attribute');
+rejects('Intro.\n\n<  a   href="/wiki/foo/"   attributionsrc = "https://evil.example/register-source">go</a>', 'spaced anchor attributionsrc attribute');
+rejects('<a href="/wiki/foo/"attributionsrc="https://evil.example/register-source">go</a>', 'quote-abutted anchor attributionsrc attribute');
+rejects('Intro.\n\n<a href="https://evil.example/" attributionsrc>go</a>', 'bare anchor attributionsrc attribute');
+rejects('Intro.\n\n<img src="https://evil.example/pixel.gif" attributionsrc="https://evil.example/register-source" alt="x">', 'plain img attributionsrc attribute');
+rejects('Intro.\n\n<  img   src="/wiki/fig.png"   attributionsrc = "https://evil.example/register-source">', 'spaced img attributionsrc attribute');
+rejects('<img src="/wiki/fig.png"attributionsrc="https://evil.example/register-source">', 'quote-abutted img attributionsrc attribute');
+rejects('Intro.\n\n<img src="/wiki/fig.png" attributionsrc alt="x">', 'bare img attributionsrc attribute');
+accepts('See <a href="/wiki/stake?attributionsrc=doc">stake docs</a> for details.', 'benign attributionsrc= inside quoted href');
+accepts('<img src="/wiki/attributionsrc-demo.png" alt="diagram">', 'benign img src containing attributionsrc substring');
+accepts('The attributionsrc attribute is described here only as prose.', 'benign attributionsrc prose');
+
 // ismap on <img> is the server-side image-map primitive (counterpart to the
 // already-blocked client-side <map>/<area>/usemap= in #411). When the <img> sits
 // inside an <a href="...">, clicking the image appends ?x,y coordinates to the
