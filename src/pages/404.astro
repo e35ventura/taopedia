@@ -1,5 +1,40 @@
 ---
 import WikiLayout from '../layouts/WikiLayout.astro';
+
+// Each card is a recovery path off the not-found page. Keeping them as data lets
+// the markup stay a simple, accessible list while the set is easy to extend.
+const recoveryLinks = [
+  {
+    href: '/wiki/special/allpages/',
+    title: 'Article directory',
+    description: 'Browse every Taopedia article in one alphabetical list.',
+  },
+  {
+    href: '/wiki/special/categories/',
+    title: 'Topics',
+    description: 'Find articles grouped by subject area.',
+  },
+  {
+    href: '/wiki/special/subnets/',
+    title: 'Subnets',
+    description: 'Jump to the per-subnet reference pages.',
+  },
+  {
+    href: '/wiki/special/recentchanges/',
+    title: 'Recent changes',
+    description: 'See what has been updated across the knowledge base.',
+  },
+  {
+    href: '/wiki/special/mostlinkedpages/',
+    title: 'Most linked',
+    description: 'Start from the most referenced concepts.',
+  },
+  {
+    href: '/wiki/special/random/',
+    title: 'Random article',
+    description: 'Discover a concept you were not looking for.',
+  },
+];
 ---
 
 <WikiLayout
@@ -13,15 +48,175 @@ import WikiLayout from '../layouts/WikiLayout.astro';
     <div class="mw-parser-output">
       <p>
         The page you requested does not exist in Taopedia. The article may have
-        been renamed or removed, or the address may be mistyped.
+        been renamed or removed, or the address may be mistyped. Search for the
+        topic below, or pick one of the paths back into the knowledge base.
       </p>
 
-      <ul>
-        <li><a href="/search/">Search Taopedia</a> for the topic you were looking for.</li>
-        <li>Browse the full <a href="/wiki/special/allpages/">article directory</a>.</li>
-        <li>Explore articles grouped by <a href="/wiki/special/categories/">topic</a>.</li>
-        <li>Return to the <a href="/">main page</a>.</li>
-      </ul>
+      <section class="notfound-search" aria-labelledby="notfound-search-heading">
+        <h2 id="notfound-search-heading" class="notfound-search-heading">
+          Search Taopedia
+        </h2>
+        <form action="/search/" method="get" role="search" class="notfound-search-form">
+          <label for="notfound-search-input" class="notfound-search-label">
+            Search the Bittensor knowledge base
+          </label>
+          <div class="notfound-search-field">
+            <input
+              type="search"
+              id="notfound-search-input"
+              name="q"
+              class="mw-search-input notfound-search-input"
+              placeholder="Search Taopedia"
+              autocomplete="off"
+              autofocus
+            />
+            <button type="submit" class="notfound-search-button">Search</button>
+          </div>
+        </form>
+      </section>
+
+      <nav class="notfound-nav" aria-label="Ways to continue browsing">
+        <h2 class="notfound-nav-heading">Find your way back</h2>
+        <ul class="notfound-nav-grid">
+          {recoveryLinks.map((link) => (
+            <li class="notfound-nav-item">
+              <a href={link.href} class="notfound-nav-link">
+                <span class="notfound-nav-title">{link.title}</span>
+                <span class="notfound-nav-desc">{link.description}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+        <p class="notfound-nav-home">
+          Or return to the <a href="/">main page</a>.
+        </p>
+      </nav>
     </div>
   </div>
 </WikiLayout>
+
+<style>
+  .notfound-search {
+    margin: 1.5rem 0;
+  }
+
+  .notfound-search-heading,
+  .notfound-nav-heading {
+    font-size: 1.05rem;
+    margin: 0 0 0.5rem;
+    color: var(--color-base);
+  }
+
+  /* Keep the form usable for assistive tech while hiding the redundant visible
+     label — the field already has a placeholder and the section heading. */
+  .notfound-search-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .notfound-search-field {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .notfound-search-input {
+    flex: 1 1 16rem;
+    min-width: 0;
+    padding: 0.5rem 0.75rem;
+    font-size: 1rem;
+    color: var(--color-base);
+    background-color: var(--background-color-base);
+    border: 1px solid var(--border-color-base);
+    border-radius: 2px;
+  }
+
+  .notfound-search-input:focus-visible {
+    outline: 2px solid var(--color-progressive);
+    outline-offset: 1px;
+  }
+
+  .notfound-search-button {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+    background-color: var(--color-progressive);
+    border: 1px solid var(--color-progressive);
+    border-radius: 2px;
+    cursor: pointer;
+  }
+
+  .notfound-search-button:hover {
+    background-color: var(--color-progressive-hover);
+    border-color: var(--color-progressive-hover);
+  }
+
+  .notfound-search-button:focus-visible {
+    outline: 2px solid var(--color-progressive);
+    outline-offset: 2px;
+  }
+
+  .notfound-nav {
+    margin: 1.75rem 0 0.5rem;
+  }
+
+  .notfound-nav-grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: 0.75rem;
+  }
+
+  .notfound-nav-link {
+    display: block;
+    height: 100%;
+    padding: 0.75rem 0.9rem;
+    background-color: var(--background-color-interactive);
+    border: 1px solid var(--border-color-subtle);
+    border-radius: 4px;
+    text-decoration: none;
+  }
+
+  .notfound-nav-link:hover {
+    border-color: var(--border-color-base);
+    background-color: var(--background-color-neutral);
+  }
+
+  .notfound-nav-link:focus-visible {
+    outline: 2px solid var(--color-progressive);
+    outline-offset: 2px;
+  }
+
+  .notfound-nav-title {
+    display: block;
+    font-weight: 600;
+    color: var(--color-link);
+  }
+
+  .notfound-nav-desc {
+    display: block;
+    margin-top: 0.2rem;
+    font-size: 0.9rem;
+    color: var(--color-base-subtle);
+  }
+
+  .notfound-nav-home {
+    margin-top: 1rem;
+  }
+
+  @media (max-width: 480px) {
+    .notfound-search-button {
+      flex: 1 1 100%;
+    }
+  }
+</style>
