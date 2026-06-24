@@ -51,6 +51,10 @@ export const buildArticleBacklinks = ({ slug, title, origin, summary = '', categ
     summary: link.summary || null,
     categories: Array.isArray(link.categories) ? link.categories : [],
     backlinks: Number.isFinite(link.backlinks) ? link.backlinks : 0,
+    // info.json names this same published inbound-link figure incomingLinks; keep
+    // backlinks for field-name compatibility and expose incomingLinks too, the
+    // per-entry alias related.json / references.json / allpages.json carry.
+    incomingLinks: Number.isFinite(link.backlinks) ? link.backlinks : 0,
     // The linking article's published OUTBOUND reference count — the inbound
     // complement of backlinks, the same per-entry referencesCount allpages.json
     // and subnets.json expose for each directory entry.
