@@ -32,7 +32,7 @@ export async function getStaticPaths() {
 // serialized.
 export const GET: APIRoute = async ({ props, site }) => {
   const { page, slug } = props as {
-    page: { data: { title: string; summary?: string; categories?: string[] } };
+    page: { data: { title: string; summary?: string; categories?: string[] }; body?: string };
     slug: string;
   };
 
@@ -58,6 +58,12 @@ export const GET: APIRoute = async ({ props, site }) => {
   const { headings } = await render(page);
   const sectionCount = getArticleToc(headings).length;
 
+  // wordCount: the article body's word count — the same figure the article-page
+  // footer (mw-article-meta data-word-count) renders, computed identically
+  // (whitespace-split of the raw body). Exposing it on the info hub lets a
+  // consumer show length / estimate reading time without scraping the HTML.
+  const wordCount = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
+
   const body = JSON.stringify(
     buildArticleInfo({
       title: page.data.title,
@@ -68,6 +74,7 @@ export const GET: APIRoute = async ({ props, site }) => {
       incomingLinks,
       referencesCount,
       sectionCount,
+      wordCount,
       revisionCount: history.length,
       firstEdited: history[history.length - 1]?.date ?? null,
       lastEdited: history[0]?.date ?? null,

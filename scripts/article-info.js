@@ -7,6 +7,7 @@ export const buildArticleInfo = ({
   incomingLinks = 0,
   referencesCount = 0,
   sectionCount = 0,
+  wordCount = 0,
   revisionCount = 0,
   firstEdited = null,
   lastEdited = null,
@@ -23,6 +24,9 @@ export const buildArticleInfo = ({
   // The article's table-of-contents section count — the same figure toc.json
   // exposes as `count` (via the shared getArticleToc helper).
   sectionCount: Number.isFinite(sectionCount) ? sectionCount : 0,
+  // The article body's word count — the same figure the article-page footer
+  // (mw-article-meta data-word-count) renders, computed identically.
+  wordCount: Number.isFinite(wordCount) ? wordCount : 0,
   backlinksUrl: `${origin}/wiki/${slug}/backlinks/`,
   backlinksJsonUrl: `${origin}/wiki/${slug}/backlinks.json`,
   citeUrl: `${origin}/wiki/${slug}/cite/`,
