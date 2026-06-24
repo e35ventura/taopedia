@@ -120,6 +120,10 @@ data.pages.forEach((row, i) => {
   assert.equal(row.slug, expected[i].slug, `row ${i} slug must match the link-graph ranking`);
   assert.equal(row.title, expected[i].title, `row ${i} title must match the article title for ${expected[i].slug}`);
   assert.equal(row.backlinks, expected[i].count, `row ${i} backlinks count must match the link graph`);
+  // incomingLinks is the info.json-named alias of the same inbound count this
+  // page is ranked by — the per-entry field related.json / references.json /
+  // allpages.json / subnets.json also carry.
+  assert.equal(row.incomingLinks, row.backlinks, `row ${i} incomingLinks must equal its backlinks (the published inbound-link count)`);
   // categories mirrors the article's topics (the same set allpages.json exposes
   // per entry), so a consumer can filter the ranking by topic. Source of truth
   // is the slug map.
