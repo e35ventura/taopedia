@@ -74,6 +74,9 @@ export const buildArticleReferences = ({ slug, title, origin, summary = '', cate
     // The referenced article's body word count — the same figure info.json /
     // history.json expose and allpages.json / subnets.json expose per entry.
     wordCount: Number.isFinite(link.wordCount) ? link.wordCount : 0,
+    // The referenced article's ~200-wpm reading-time estimate — the same figure
+    // info.json exposes and related.json's per-entry related[] already expose.
+    readingMinutes: Math.max(1, Math.ceil((Number.isFinite(link.wordCount) ? link.wordCount : 0) / 200)),
     // The referenced article's revision-history summary — the same trio
     // info.json and history.json expose per article.
     revisionCount: Number.isFinite(link.revisionCount) ? link.revisionCount : 0,

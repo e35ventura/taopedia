@@ -117,6 +117,7 @@ const revisionStatsOf = (slug) => {
         referencesCount: 1,
         sectionCount: 10,
         wordCount: 0,
+        readingMinutes: 1,
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
@@ -144,6 +145,7 @@ const revisionStatsOf = (slug) => {
         referencesCount: 2,
         sectionCount: 20,
         wordCount: 0,
+        readingMinutes: 1,
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
@@ -171,6 +173,7 @@ const revisionStatsOf = (slug) => {
         referencesCount: 3,
         sectionCount: 30,
         wordCount: 0,
+        readingMinutes: 1,
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
@@ -198,6 +201,7 @@ const revisionStatsOf = (slug) => {
         referencesCount: 4,
         sectionCount: 40,
         wordCount: 0,
+        readingMinutes: 1,
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
@@ -521,6 +525,22 @@ for (const slug of articleSlugs) {
       entry.wordCount,
       entryInfoDoc.wordCount,
       `${slug}: every reference entry wordCount must agree with its sibling info.json envelope`,
+    );
+    // readingMinutes is the referenced article's ~200-wpm reading-time estimate —
+    // the same figure its own info.json envelope exposes.
+    assert.ok(
+      Number.isInteger(entry.readingMinutes) && entry.readingMinutes >= 1,
+      `${slug}: every reference entry readingMinutes must be a positive integer (got ${JSON.stringify(entry.readingMinutes)})`,
+    );
+    assert.equal(
+      entry.readingMinutes,
+      Math.max(1, Math.ceil(entry.wordCount / 200)),
+      `${slug}: every reference entry readingMinutes must equal ceil(wordCount/200)`,
+    );
+    assert.equal(
+      entry.readingMinutes,
+      entryInfoDoc.readingMinutes,
+      `${slug}: every reference entry readingMinutes must agree with its sibling info.json envelope`,
     );
     assert.equal(
       entry.infoUrl,
