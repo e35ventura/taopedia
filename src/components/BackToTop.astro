@@ -1,0 +1,63 @@
+---
+// Floating back-to-top control for long article pages. Complements the TOC
+// sidebar's inline "Back to top" link with a viewport-fixed button that stays
+// reachable while the reader scrolls through the article body. Progressive
+// enhancement: hidden until the reader has scrolled down, and inert with JS off.
+---
+
+<button class="back-to-top" type="button" aria-label="Back to top" hidden>
+  <svg width="16" height="16" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path d="M6 9V3M6 3L3 6M6 3L9 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</button>
+
+<script is:inline>
+  (function () {
+    if (window.__taopediaBackToTop) return;
+    window.__taopediaBackToTop = true;
+
+    function init() {
+      var button = document.querySelector('.back-to-top');
+      if (!button) return;
+
+      var threshold = 320;
+      var ticking = false;
+      var reduceMotion = false;
+      try {
+        reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      } catch (e) {}
+
+      function updateVisibility() {
+        ticking = false;
+        var scrollY = window.scrollY || document.documentElement.scrollTop || 0;
+        if (scrollY >= threshold) {
+          button.hidden = false;
+          button.classList.add('visible');
+        } else {
+          button.classList.remove('visible');
+          button.hidden = true;
+        }
+      }
+
+      function onScroll() {
+        if (ticking) return;
+        ticking = true;
+        window.requestAnimationFrame(updateVisibility);
+      }
+
+      button.addEventListener('click', function () {
+        window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+      });
+
+      window.addEventListener('scroll', onScroll, { passive: true });
+      window.addEventListener('resize', onScroll, { passive: true });
+      updateVisibility();
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  })();
+</script>
