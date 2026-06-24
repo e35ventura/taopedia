@@ -93,7 +93,9 @@ export async function getStaticPaths() {
         sectionCount: sectionCountBySlug[slug] ?? 0,
         // The article body's word count — the same figure info.json / history.json
         // expose and the article-page footer (mw-article-meta data-word-count) renders.
-        wordCount: (page.body ?? '').trim().split(/\s+/).filter(Boolean).length,
+        // Reuse wordCountBySlug instead of re-splitting page.body here — the map was
+        // built for this envelope and the related entries below.
+        wordCount: wordCountBySlug[slug] ?? 0,
         references,
       },
     };
