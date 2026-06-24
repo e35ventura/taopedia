@@ -23,13 +23,43 @@ const sortedCategories = Object.entries(categoryIndex)
 <WikiLayout title="Categories" description="Browse all topics in the Taopedia Bittensor knowledge base.">
   <div class="mw-body-content">
     <h1 class="firstHeading">Topics</h1>
-    
+
     <div class="mw-parser-output">
       <div class="categories-list">
         <h2 id="categories">All Topics ({sortedCategories.length})</h2>
-        <ul>
+
+        <div class="topics-tools">
+          <label class="topics-filter">
+            <span class="topics-filter-label">Filter topics</span>
+            <input
+              type="search"
+              id="topics-filter"
+              class="topics-filter-input"
+              placeholder="Filter by topic name..."
+              autocomplete="off"
+            />
+          </label>
+
+          <div class="topics-sort" role="group" aria-label="Sort topics">
+            <span class="topics-sort-label">Sort</span>
+            <button type="button" class="topics-sort-btn is-active" data-sort="name" aria-pressed="true">
+              A–Z
+            </button>
+            <button type="button" class="topics-sort-btn" data-sort="count" aria-pressed="false">
+              Most pages
+            </button>
+          </div>
+        </div>
+
+        <p class="topics-status" id="topics-status" role="status" aria-live="polite"></p>
+
+        <ul id="topics-list">
           {sortedCategories.map(([categoryName, categoryPages]) => (
-            <li>
+            <li
+              data-topic-item
+              data-name={categoryName.toLowerCase()}
+              data-count={categoryPages.length}
+            >
               <a href={`/wiki/category/${categoryName.replace(/ /g, '_')}/`}>
                 {categoryName}
               </a>
@@ -39,12 +69,177 @@ const sortedCategories = Object.entries(categoryIndex)
             </li>
           ))}
         </ul>
+
+        <p class="topics-empty" id="topics-empty" hidden>
+          <span class="topics-empty-text">No topics match your filter.</span>
+          <button type="button" id="topics-clear" class="topics-clear">Clear filter</button>
+        </p>
       </div>
     </div>
   </div>
+
+  <script is:inline>
+    const filterInput = document.getElementById('topics-filter');
+    const sortButtons = Array.from(document.querySelectorAll('.topics-sort-btn'));
+    const list = document.getElementById('topics-list');
+    const statusEl = document.getElementById('topics-status');
+    const emptyState = document.getElementById('topics-empty');
+    const clearButton = document.getElementById('topics-clear');
+    const items = list ? Array.from(list.querySelectorAll('[data-topic-item]')) : [];
+    // Preserve the server-rendered (alphabetical) order so the "A–Z" sort can
+    // restore it exactly without re-deriving locale collation in the browser.
+    const originalOrder = items.slice();
+    let sortMode = 'name';
+
+    function normalize(value) {
+      return (value || '').toLowerCase().trim();
+    }
+
+    function sortItems() {
+      if (!list) return;
+      const ordered =
+        sortMode === 'count'
+          ? items
+              .slice()
+              .sort(
+                (a, b) =>
+                  Number(b.dataset.count) - Number(a.dataset.count) ||
+                  originalOrder.indexOf(a) - originalOrder.indexOf(b),
+              )
+          : originalOrder;
+      ordered.forEach((item) => list.appendChild(item));
+    }
+
+    function applyFilter() {
+      const query = normalize(filterInput && filterInput.value);
+      let visible = 0;
+      items.forEach((item) => {
+        const match = !query || (item.dataset.name || '').includes(query);
+        item.hidden = !match;
+        if (match) visible += 1;
+      });
+
+      if (emptyState) emptyState.hidden = visible !== 0;
+      if (statusEl) {
+        if (query) {
+          statusEl.textContent = `Showing ${visible} of ${items.length} topics`;
+          statusEl.hidden = false;
+        } else {
+          statusEl.hidden = true;
+        }
+      }
+    }
+
+    sortButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        sortMode = button.dataset.sort || 'name';
+        sortButtons.forEach((btn) => {
+          const active = btn === button;
+          btn.classList.toggle('is-active', active);
+          btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
+        sortItems();
+      });
+    });
+
+    if (clearButton) {
+      clearButton.addEventListener('click', () => {
+        if (filterInput) filterInput.value = '';
+        applyFilter();
+        if (filterInput) filterInput.focus();
+      });
+    }
+
+    if (filterInput) filterInput.addEventListener('input', applyFilter);
+  </script>
 </WikiLayout>
 
 <style>
+  .topics-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px 20px;
+    margin: 14px 0 10px;
+    padding: 14px;
+    border: 1px solid var(--border-color-subtle);
+    background: var(--background-color-interactive);
+    border-radius: 4px;
+  }
+
+  .topics-filter {
+    display: block;
+    flex: 1 1 16rem;
+  }
+
+  .topics-filter-label,
+  .topics-sort-label {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--color-base-subtle);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .topics-filter-input {
+    width: 100%;
+    padding: 9px 11px;
+    border: 1px solid var(--border-color-base);
+    border-radius: 2px;
+    background: var(--background-color-base);
+    color: var(--color-base);
+    font: inherit;
+  }
+
+  .topics-filter-input:focus-visible {
+    outline: 2px solid var(--color-progressive);
+    outline-offset: 1px;
+  }
+
+  .topics-sort {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .topics-sort-label {
+    margin-bottom: 0;
+  }
+
+  .topics-sort-btn {
+    padding: 7px 12px;
+    border: 1px solid var(--border-color-subtle);
+    background: var(--background-color-base);
+    color: var(--color-base);
+    cursor: pointer;
+    font: inherit;
+    font-size: 13px;
+    border-radius: 2px;
+  }
+
+  .topics-sort-btn:hover {
+    border-color: var(--color-link);
+    color: var(--color-link);
+  }
+
+  .topics-sort-btn:focus-visible {
+    outline: 2px solid var(--color-progressive);
+    outline-offset: 1px;
+  }
+
+  .topics-sort-btn.is-active {
+    border-color: var(--color-link);
+    color: var(--color-link);
+    font-weight: 700;
+  }
+
+  .topics-status {
+    margin: 0 0 10px;
+    color: var(--color-base-subtle);
+    font-size: 13px;
+  }
+
   .categories-list ul {
     list-style: none;
     margin: 0;
@@ -52,7 +247,7 @@ const sortedCategories = Object.entries(categoryIndex)
     columns: 3;
     column-gap: 24px;
   }
-  
+
   .categories-list li {
     margin: 8px 0;
     break-inside: avoid;
@@ -60,29 +255,70 @@ const sortedCategories = Object.entries(categoryIndex)
     background: var(--background-color-interactive);
     border-radius: 4px;
   }
-  
+
   .categories-list a {
     font-weight: 600;
     color: var(--color-link);
     text-decoration: none;
   }
-  
+
   .categories-list a:hover {
     text-decoration: underline;
   }
-  
+
   .category-count {
     color: var(--color-base-subtle);
     font-size: 13px;
     margin-left: 8px;
   }
-  
+
+  .topics-empty {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 0;
+    padding: 14px;
+    border: 1px solid var(--border-color-subtle);
+    background: var(--background-color-interactive);
+    border-radius: 4px;
+  }
+
+  .topics-empty-text {
+    color: var(--color-base-subtle);
+    font-size: 14px;
+  }
+
+  .topics-clear {
+    padding: 7px 12px;
+    border: 1px solid var(--border-color-subtle);
+    background: var(--background-color-base);
+    color: var(--color-link);
+    cursor: pointer;
+    font: inherit;
+    font-size: 13px;
+    border-radius: 2px;
+  }
+
+  .topics-clear:hover {
+    border-color: var(--color-link);
+  }
+
+  .topics-clear:focus-visible {
+    outline: 2px solid var(--color-progressive);
+    outline-offset: 1px;
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+
   @media (max-width: 900px) {
     .categories-list ul {
       columns: 2;
     }
   }
-  
+
   @media (max-width: 600px) {
     .categories-list ul {
       columns: 1;
