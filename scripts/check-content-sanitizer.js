@@ -1040,6 +1040,22 @@ accepts('See <a href="/wiki/stake?target=summer">stake docs</a> for details.', '
 accepts('Opening links in a new target window is described here only as prose.', 'benign target prose');
 accepts('<a href="/wiki/target-list">internal link</a>', 'benign target substring in quoted href');
 
+// cite= on an allowed <blockquote>/<q>/<ins>/<del> points to an author-chosen
+// external URL presented as the authoritative source of the quoted/edited text —
+// assistive tech and microformats parsers expose/follow it, a silent authority
+// spoof with no script, handler, or flagged scheme. Markdown never emits cite=, so
+// article content never needs it. Scanned on emptyQuotedAttributeValues() so a
+// quoted href query string like ?cite=x still passes.
+rejects('Intro.\n\n<blockquote cite="https://evil.example/fake-source">Stake here.</blockquote>', 'plain blockquote cite attribute');
+rejects('Intro.\n\n<  blockquote   cite = "https://evil.example/">x</blockquote>', 'spaced blockquote cite attribute');
+rejects('He said <q cite="https://evil.example/">send 1 TAO</q>.', 'q cite attribute');
+rejects('Intro.\n\n<ins cite="https://evil.example/">added</ins>', 'ins cite attribute');
+rejects('Intro.\n\n<del cite="https://evil.example/">removed</del>', 'del cite attribute');
+rejects('<blockquote cite="https://evil.example/"cite="x">y</blockquote>', 'quote-abutted blockquote cite attribute');
+rejects('<blockquote cite=https://evil.example/>y</blockquote>', 'slash-abutted blockquote cite attribute');
+accepts('See <a href="/wiki/stake?cite=apa">citation styles</a> for details.', 'benign cite= inside quoted href');
+accepts('Always cite = your sources when editing an article, the editors note.', 'benign cite prose with equals');
+
 // Prose that merely mentions these English words without the directive colon
 // must still pass — guard the new patterns against false positives.
 accepts('This client is set to define the class list style, and the server is fast.', 'benign client/server/set/class/define prose');

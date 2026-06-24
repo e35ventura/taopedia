@@ -774,6 +774,19 @@ const nonSpaceDelimitedHrColorSizeAttrPattern = /<\s*hr\b[^>]*[/"'`](?:color|siz
 const anchorTargetAttrPattern = /<\s*a\b[^>]*\starget\s*=/i;
 const nonSpaceDelimitedAnchorTargetAttrPattern = /<\s*a\b[^>]*[/"'`]target\s*=/i;
 
+// cite= on an allowed <blockquote>/<q>/<ins>/<del> points to an author-chosen
+// external URL presented as the authoritative source (or the change-reason for
+// ins/del) of the quoted/edited text. Assistive technology and microformats /
+// Linked-Data parsers expose or follow that URL, so an injected cite= is a silent
+// authority-spoof — it makes attacker-controlled external content read as the
+// citation for the passage — with no script, handler, or flagged scheme. Same
+// "unvalidated author-set URL the site never emits" surface as the merged
+// target=/ping=/referrerpolicy= blocks; Markdown never emits cite= in source, so
+// article content never needs it. Tag-scoped to the four cite-bearing elements and
+// scanned on emptyQuotedAttributeValues() so a quoted href query like ?cite=x passes.
+const quoteEditCiteAttrPattern = /<\s*(?:blockquote|q|ins|del)\b[^>]*\scite\s*=/i;
+const nonSpaceDelimitedQuoteEditCiteAttrPattern = /<\s*(?:blockquote|q|ins|del)\b[^>]*[/"'`]cite\s*=/i;
+
 // attributionsrc on allowed <a> or <img> opt an element into the browser's
 // Attribution Reporting API. A click or view on attacker-authored markup can
 // trigger extra network requests to attacker-chosen reporting endpoints even
@@ -1432,6 +1445,13 @@ export function validateArticleContent(slug, content) {
     || nonSpaceDelimitedAnchorTargetAttrPattern.test(emptiedAttributeContent)
   ) {
     throw new Error(`Unsafe article content in "${slug}": target attributes are not allowed on anchor elements`);
+  }
+
+  if (
+    quoteEditCiteAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedQuoteEditCiteAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(`Unsafe article content in "${slug}": cite attributes are not allowed on blockquote, q, ins, or del elements`);
   }
 
   if (
