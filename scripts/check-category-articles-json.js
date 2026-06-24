@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildCategoryArticlesDocument, getCategoryArticles } from '../src/lib/category-articles.js';
 import { publishedInboundLinkCount } from './most-linked.js';
+import { getArticleReferences } from '../src/lib/article-references.js';
 
 const ORIGIN = 'https://taopedia.org';
 
@@ -82,6 +83,7 @@ const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.js
         summary: 'two',
         categories: ['Subnets', 'Economics'],
         backlinks: 0,
+        referencesCount: 0,
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
@@ -107,6 +109,7 @@ const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.js
         summary: null,
         categories: [],
         backlinks: 0,
+        referencesCount: 0,
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
@@ -132,6 +135,7 @@ const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.js
         summary: null,
         categories: [],
         backlinks: 0,
+        referencesCount: 0,
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
@@ -166,6 +170,12 @@ const slugMap = JSON.parse(fs.readFileSync(slugmapJsonPath, 'utf8'));
 assert.ok(fs.existsSync(backlinksJsonPath), 'public/data/backlinks.json not found; run the build first');
 const backlinksData = JSON.parse(fs.readFileSync(backlinksJsonPath, 'utf8'));
 const titleBySlug = Object.fromEntries(Object.entries(slugMap).map(([slug, entry]) => [slug, entry?.title ?? slug]));
+// linkgraph drives referencesCount (the published OUTBOUND reference count),
+// re-derived with the same getArticleReferences helper the endpoint uses.
+const linkgraphJsonPath = path.join(projectRoot, 'public', 'data', 'linkgraph.json');
+assert.ok(fs.existsSync(linkgraphJsonPath), 'public/data/linkgraph.json not found; run the build first');
+const linkgraphData = JSON.parse(fs.readFileSync(linkgraphJsonPath, 'utf8'));
+const outboundCountFor = (slug) => getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length;
 // Mirror the endpoint's enrichment: each article carries its published-only
 // inbound-link count and its last-revision date, so the expected doc matches the
 // built doc field-for-field. lastEdited is re-derived from the raw history file
@@ -186,6 +196,7 @@ const withBacklinks = (list) =>
   list.map((a) => ({
     ...a,
     backlinks: publishedInboundLinkCount(backlinksData, a.slug, titleBySlug),
+    referencesCount: outboundCountFor(a.slug),
     ...revisionStatsOf(a.slug),
   }));
 

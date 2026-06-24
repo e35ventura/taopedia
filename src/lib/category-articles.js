@@ -47,6 +47,10 @@ export const buildCategoryArticlesDocument = ({ origin, categoryName, categoryPa
     summary: article.summary || null,
     categories: article.categories ?? [],
     backlinks: Number.isFinite(article.backlinks) ? article.backlinks : 0,
+    // The article's published OUTBOUND reference count — the complement of
+    // backlinks (its inbound count) — the same figure references.json / cite.json
+    // / info.json expose and allpages.json / subnets.json expose per directory entry.
+    referencesCount: Number.isFinite(article.referencesCount) ? article.referencesCount : 0,
     // The article's revision stats — revisionCount (commit-history length),
     // firstEdited (original publication date), lastEdited (last revision) — the
     // same per-entry trio references.json / allpages.json expose for each entry.
