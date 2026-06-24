@@ -8,6 +8,7 @@ export const buildArticleInfo = ({
   referencesCount = 0,
   sectionCount = 0,
   wordCount = 0,
+  contributorCount = 0,
   revisionCount = 0,
   firstEdited = null,
   lastEdited = null,
@@ -43,6 +44,10 @@ export const buildArticleInfo = ({
   tocJsonUrl: `${origin}/wiki/${slug}/toc.json`,
   imageUrl: `${origin}/og/${slug}.png`,
   revisionCount,
+  // The number of DISTINCT authors across the article's commit history — the
+  // complement of revisionCount (people, not edits), derived from the same
+  // history.json (authorName; authorEmail is never exposed).
+  contributorCount: Number.isFinite(contributorCount) ? contributorCount : 0,
   historyUrl: `${origin}/wiki/${slug}/history/`,
   firstEdited: firstEdited ?? null,
   lastEdited: lastEdited ?? null,

@@ -33,6 +33,7 @@ const ORIGIN = 'https://taopedia.org';
     referencesCount: 7,
     sectionCount: 5,
     wordCount: 1234,
+    contributorCount: 3,
     revisionCount: 3,
     firstEdited: '2024-01-01T00:00:00.000Z',
     lastEdited: '2024-06-01T00:00:00.000Z',
@@ -57,6 +58,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.referencesCount, 7, 'builder: referencesCount');
   assert.equal(result.sectionCount, 5, 'builder: sectionCount');
   assert.equal(result.wordCount, 1234, 'builder: wordCount');
+  assert.equal(result.contributorCount, 3, 'builder: contributorCount');
   assert.equal(result.readingMinutes, 7, 'builder: readingMinutes from wordCount (ceil(1234/200))');
   assert.equal(result.revisionCount, 3, 'builder: revisionCount');
 
@@ -65,6 +67,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(empty.referencesCount, 0, 'builder: default referencesCount is 0');
   assert.equal(empty.sectionCount, 0, 'builder: default sectionCount is 0');
   assert.equal(empty.wordCount, 0, 'builder: default wordCount is 0');
+  assert.equal(empty.contributorCount, 0, 'builder: default contributorCount is 0');
   assert.equal(empty.readingMinutes, 1, 'builder: default readingMinutes is 1 (ceil(0/200))');
   assert.equal(empty.revisionCount, 0, 'builder: default revisionCount is 0');
   assert.equal(empty.firstEdited, null, 'builder: default firstEdited is null');
@@ -263,6 +266,17 @@ for (const slug of articleSlugs) {
       `/wiki/${slug}/info.json wordCount must match the article footer's rendered data-word-count`,
     );
   }
+  // contributorCount is the number of distinct authors across the article's
+  // history — re-derived from the raw history file (the same source revisionCount
+  // counts), using authorName, so it can't drift from the ground-truth history.
+  const expectedContributors = new Set(
+    historyOf(slug).map((entry) => entry.authorName).filter((name) => typeof name === 'string' && name.length > 0),
+  ).size;
+  assert.equal(
+    infoJson.contributorCount,
+    expectedContributors,
+    `/wiki/${slug}/info.json contributorCount must equal the distinct author count in the article's history`,
+  );
   // readingMinutes is the ~200 wpm ceil estimate the article footer renders.
   assert.ok(
     Number.isInteger(infoJson.readingMinutes) && infoJson.readingMinutes >= 1,

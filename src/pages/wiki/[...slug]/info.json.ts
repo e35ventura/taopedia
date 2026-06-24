@@ -64,6 +64,15 @@ export const GET: APIRoute = async ({ props, site }) => {
   // consumer show length / estimate reading time without scraping the HTML.
   const wordCount = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
 
+  // contributorCount: the number of DISTINCT authors across the article's commit
+  // history — derived from the same history.json the revisionCount figure counts,
+  // using authorName (already public per-revision in history.json; authorEmail is
+  // never exposed). A complement to revisionCount: how many people, not just how
+  // many edits.
+  const contributorCount = new Set(
+    history.map((entry) => entry.authorName).filter((name) => typeof name === 'string' && name.length > 0),
+  ).size;
+
   const body = JSON.stringify(
     buildArticleInfo({
       title: page.data.title,
@@ -75,6 +84,7 @@ export const GET: APIRoute = async ({ props, site }) => {
       referencesCount,
       sectionCount,
       wordCount,
+      contributorCount,
       revisionCount: history.length,
       firstEdited: history[history.length - 1]?.date ?? null,
       lastEdited: history[0]?.date ?? null,

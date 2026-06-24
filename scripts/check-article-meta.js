@@ -121,6 +121,9 @@ for (const { file, slug } of articlePages) {
     referencesCount: outboundCountFor(slug),
     sectionCount,
     wordCount,
+    contributorCount: new Set(
+      history.map((entry) => entry.authorName).filter((name) => typeof name === 'string' && name.length > 0),
+    ).size,
     revisionCount: history.length,
     firstEdited: history[history.length - 1]?.date ?? null,
     lastEdited: history[0]?.date ?? null,
