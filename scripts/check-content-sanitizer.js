@@ -660,9 +660,13 @@ rejects('Intro.\n\n<a hidden href="https://evil.example/">go</a>', 'plain hidden
 rejects('Intro.\n\n<table><tr><td nowrap>x</td></tr></table>', 'plain td nowrap attribute');
 rejects('Intro.\n\n<table><tr><th   nowrap   >x</th></tr></table>', 'spaced th nowrap attribute');
 rejects('<table><tr><td class="x"nowrap>x</td></tr></table>', 'quote-abutted td nowrap attribute');
+rejects('Intro.\n\n<table><tr><td/nowrap>x</td></tr></table>', 'slash-delimited td nowrap after tag name');
+rejects('Intro.\n\n<table><tr><td /nowrap>x</td></tr></table>', 'slash-delimited td nowrap after whitespace');
+rejects('Intro.\n\n<table><tr><td class="x"/nowrap>x</td></tr></table>', 'quote-plus-slash-delimited td nowrap attribute');
 
 accepts('<table><tr><td>x</td></tr></table>', 'plain table without nowrap');
 accepts('A nowrap attribute on a cell is described here only as prose.', 'benign nowrap prose');
+accepts('<table><tr><td class=x/nowrap>x</td></tr></table>', 'benign slash inside unquoted class value before bare nowrap word');
 
 // colspan=/rowspan= on allowed <td>/<th> merge or split cells — same layout-defacement
 // class as merged #465 (table dimensions) and #479 (nowrap).
@@ -844,8 +848,12 @@ rejects('Intro.\n\n<div   itemtype = "https://schema.org/Product"></div>', 'spac
 rejects('<a href="x"itemprop="name">go</a>', 'quote-abutted itemprop attribute');
 rejects('<img src="/wiki/fig.png"/itemtype="https://schema.org/Product">', 'slash-delimited itemtype attribute');
 rejects('<div class="x"itemscope></div>', 'quote-abutted itemscope boolean');
+rejects('Intro.\n\n<div/itemscope></div>', 'slash-delimited itemscope after tag name');
+rejects('Intro.\n\n<div /itemscope></div>', 'slash-delimited itemscope after whitespace');
+rejects('<div class="x"/itemscope></div>', 'quote-plus-slash-delimited itemscope boolean');
 
 accepts('Schema.org microdata is a vocabulary described here only as prose.', 'benign schema.org prose');
+accepts('<div class=x/itemscope></div>', 'benign slash inside unquoted class value before bare itemscope word');
 accepts('itemscope, itemtype, itemprop, itemref, and itemid are HTML5 microdata attributes.', 'benign microdata attribute names in prose');
 accepts('<a href="/wiki/itemprop=demo">microdata demo</a>', 'benign itemprop substring in quoted href');
 accepts('<span class=x/itemprop-demo>itemprop class example</span>', 'benign itemprop substring in class value');
@@ -943,11 +951,15 @@ rejects('Intro.\n\n<ol reversed><li>Step 1</li><li>Step 2</li></ol>', 'plain ol 
 rejects('Intro.\n\n<ol   reversed   ><li>x</li></ol>', 'spaced ol reversed attribute');
 rejects('Intro.\n\n<ol reversed="reversed"><li>x</li></ol>', 'valued ol reversed attribute');
 rejects('<ol class="x"reversed><li>x</li></ol>', 'quote-abutted ol reversed attribute');
+rejects('Intro.\n\n<ol/reversed><li>x</li></ol>', 'slash-delimited ol reversed after tag name');
+rejects('Intro.\n\n<ol /reversed><li>x</li></ol>', 'slash-delimited ol reversed after whitespace');
+rejects('<ol class="x"/reversed><li>x</li></ol>', 'quote-plus-slash-delimited ol reversed attribute');
 
 accepts('<ol><li>plain item</li></ol>', 'plain ordered list without start/value');
 accepts('<ul class="topics"><li>plain item</li></ul>', 'plain unordered list without type');
 accepts('Step 1: setup; Step 2: build. The numbering must remain default.', 'benign step numbering prose');
 accepts('A list marker type can be described in prose without setting an attribute.', 'benign list type prose');
+accepts('<ol class=x/reversed><li>x</li></ol>', 'benign slash inside unquoted class value before bare reversed word');
 accepts('A reversed list can be described in prose without setting an attribute.', 'benign reversed prose');
 accepts('<ol class=x/reversed-list><li>not a reversed attribute</li></ol>', 'benign slash inside class value before reversed');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   loading = "lazy">', 'spaced img loading attribute');
