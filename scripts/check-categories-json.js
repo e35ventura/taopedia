@@ -116,6 +116,19 @@ data.categories.forEach((row, i) => {
     `${data.site}/wiki/category/${row.slug}/articles.json`,
     `row ${i} articlesUrl must equal ${data.site}/wiki/category/${row.slug}/articles.json`,
   );
+  // articlesJsonUrl is the same article-list link under the consistent
+  // <name>JsonUrl key every other JSON companion uses and the category page
+  // envelope exposes; it must equal articlesUrl (kept for back-compat).
+  assert.ok(
+    row.articlesJsonUrl.startsWith(`${data.site}/wiki/category/`),
+    `row ${i} articlesJsonUrl must be absolute and start with the envelope site (got ${row.articlesJsonUrl})`,
+  );
+  assert.equal(
+    row.articlesJsonUrl,
+    `${data.site}/wiki/category/${row.slug}/articles.json`,
+    `row ${i} articlesJsonUrl must equal ${data.site}/wiki/category/${row.slug}/articles.json`,
+  );
+  assert.equal(row.articlesJsonUrl, row.articlesUrl, `row ${i} articlesJsonUrl must equal the back-compat articlesUrl`);
   // feedUrl points at the category's JSON Feed (/wiki/category/<slug>/feed.json),
   // so a feed-reader or programmatic consumer can subscribe to a category
   // straight from the index without reconstructing the route. Same absolute-URL

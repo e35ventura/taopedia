@@ -26,6 +26,13 @@ export const GET: APIRoute = async ({ site }) => {
         articles: topic.count,
         url: `${origin}/wiki/category/${topic.slug}/`,
         articlesUrl: `${origin}/wiki/category/${topic.slug}/articles.json`,
+        // articlesJsonUrl is the same article-list link under the consistent
+        // <name>JsonUrl key every other JSON companion uses (infoJsonUrl,
+        // historyJsonUrl, backlinksJsonUrl, citeJsonUrl) and the category page
+        // envelope itself exposes as articlesJsonUrl. articlesUrl was the lone
+        // outlier naming it without the Json suffix; it is kept for backwards
+        // compatibility and articlesJsonUrl is the consistent name.
+        articlesJsonUrl: `${origin}/wiki/category/${topic.slug}/articles.json`,
         feedUrl: `${origin}/wiki/category/${topic.slug}/feed.json`,
         atomUrl: `${origin}/wiki/category/${topic.slug}/atom.xml`,
         rssUrl: `${origin}/wiki/category/${topic.slug}/rss.xml`,
