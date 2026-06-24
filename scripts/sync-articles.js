@@ -702,6 +702,19 @@ const nonSpaceDelimitedTdThHeadersAttrPattern = /<\s*(?:td|th)\b[^>]*[/"'`]heade
 const thScopeAbbrAttrPattern = /<\s*th\b[^>]*\s(?:scope|abbr)\s*=/i;
 const nonSpaceDelimitedThScopeAbbrAttrPattern = /<\s*th\b[^>]*[/"'`](?:scope|abbr)\s*=/i;
 
+// aria-sort= on <th> announces a fake ascending/descending order to screen
+// readers, while aria-rowcount=/aria-colcount= on <table> and
+// aria-rowindex=/aria-colindex= on table rows/cells announce fake table size
+// and cell position metadata. That lets article-body tables present different
+// ranking/order semantics to assistive tech than to sighted readers, the same
+// AT-only table-spoof family as the merged headers=/scope=/abbr= block.
+const thAriaSortAttrPattern = /<\s*th\b[^>]*\saria-sort\s*=/i;
+const nonSpaceDelimitedThAriaSortAttrPattern = /<\s*th\b[^>]*[/"'`]aria-sort\s*=/i;
+const tableAriaCountAttrPattern = /<\s*table\b[^>]*\saria-(?:rowcount|colcount)\s*=/i;
+const nonSpaceDelimitedTableAriaCountAttrPattern = /<\s*table\b[^>]*[/"'`]aria-(?:rowcount|colcount)\s*=/i;
+const trTdThAriaIndexAttrPattern = /<\s*(?:tr|td|th)\b[^>]*\saria-(?:rowindex|colindex)\s*=/i;
+const nonSpaceDelimitedTrTdThAriaIndexAttrPattern = /<\s*(?:tr|td|th)\b[^>]*[/"'`]aria-(?:rowindex|colindex)\s*=/i;
+
 // srcset=/sizes= on an allowed <img> steer responsive image loading to attacker-chosen
 // URLs — the gap left after merged #411 blocked <picture>/<source> but not plain
 // <img srcset>/<img sizes>. Tag-scoped, emptyQuotedAttributeValues(), ["'`] only.
@@ -1470,6 +1483,19 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": headers, scope, and abbr attributes are not allowed on table cells`,
+    );
+  }
+
+  if (
+    thAriaSortAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedThAriaSortAttrPattern.test(emptiedAttributeContent)
+    || tableAriaCountAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedTableAriaCountAttrPattern.test(emptiedAttributeContent)
+    || trTdThAriaIndexAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedTrTdThAriaIndexAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": aria-sort, aria-rowcount, aria-colcount, aria-rowindex, and aria-colindex attributes are not allowed on table elements`,
     );
   }
 
