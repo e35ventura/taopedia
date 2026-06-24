@@ -82,6 +82,8 @@ const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.js
         summary: 'two',
         categories: ['Subnets', 'Economics'],
         backlinks: 0,
+        revisionCount: 0,
+        firstEdited: null,
         lastEdited: null,
         url: `${ORIGIN}/wiki/subnet_2/`,
         infoUrl: `${ORIGIN}/wiki/subnet_2/info/`,
@@ -105,6 +107,8 @@ const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.js
         summary: null,
         categories: [],
         backlinks: 0,
+        revisionCount: 0,
+        firstEdited: null,
         lastEdited: null,
         url: `${ORIGIN}/wiki/subnet_9/`,
         infoUrl: `${ORIGIN}/wiki/subnet_9/info/`,
@@ -128,6 +132,8 @@ const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.js
         summary: null,
         categories: [],
         backlinks: 0,
+        revisionCount: 0,
+        firstEdited: null,
         lastEdited: null,
         url: `${ORIGIN}/wiki/subnet_10/`,
         infoUrl: `${ORIGIN}/wiki/subnet_10/info/`,
@@ -165,17 +171,22 @@ const titleBySlug = Object.fromEntries(Object.entries(slugMap).map(([slug, entry
 // built doc field-for-field. lastEdited is re-derived from the raw history file
 // (the same source historyForSlug reads), so it is independent ground truth.
 const historyDir = path.join(projectRoot, 'public', 'history');
-const lastEditedOf = (slug) => {
+const revisionStatsOf = (slug) => {
   const file = path.join(historyDir, `${slug}.json`);
-  if (!fs.existsSync(file)) return null;
+  if (!fs.existsSync(file)) return { revisionCount: 0, firstEdited: null, lastEdited: null };
   const history = JSON.parse(fs.readFileSync(file, 'utf8')).history || [];
-  return typeof history[0]?.date === 'string' ? history[0].date : null;
+  const arr = Array.isArray(history) ? history : [];
+  return {
+    revisionCount: arr.length,
+    firstEdited: arr.length > 0 ? arr[arr.length - 1].date : null,
+    lastEdited: arr.length > 0 ? arr[0].date : null,
+  };
 };
 const withBacklinks = (list) =>
   list.map((a) => ({
     ...a,
     backlinks: publishedInboundLinkCount(backlinksData, a.slug, titleBySlug),
-    lastEdited: lastEditedOf(a.slug),
+    ...revisionStatsOf(a.slug),
   }));
 
 const dirToOriginal = new Map();
