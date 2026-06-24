@@ -292,6 +292,29 @@ data.subnets.forEach((row, i) => {
       `row ${i} wordCount must agree with the sibling info.json envelope for ${row.slug}`,
     );
   }
+  // readingMinutes is the subnet article's estimated reading time — the same
+  // ~200 wpm ceil figure info.json exposes (via buildArticleInfo) and the
+  // article-page footer renders. Validate its shape (a positive integer, since
+  // the formula floors at 1) and that it is the deterministic function of this
+  // row's own wordCount, then cross-check it against the sibling info.json
+  // envelope so the registry and the per-article surface can't disagree.
+  assert.ok(
+    Number.isInteger(row.readingMinutes) && row.readingMinutes >= 1,
+    `row ${i} readingMinutes must be a positive integer (got ${JSON.stringify(row.readingMinutes)})`,
+  );
+  assert.equal(
+    row.readingMinutes,
+    Math.max(1, Math.ceil((row.wordCount ?? 0) / 200)),
+    `row ${i} readingMinutes must be the ~200 wpm ceil of its own wordCount for ${row.slug}`,
+  );
+  if (fs.existsSync(snWordInfoJsonFile)) {
+    const readingInfoDoc = JSON.parse(fs.readFileSync(snWordInfoJsonFile, 'utf8'));
+    assert.equal(
+      row.readingMinutes,
+      readingInfoDoc.readingMinutes,
+      `row ${i} readingMinutes must agree with the sibling info.json envelope for ${row.slug}`,
+    );
+  }
   // lastEdited is the subnet article's last-revision date — the same figure
   // info.json / history.json expose per article and allpages.json /
   // mostlinkedpages.json expose per directory entry. Cross-check it against the
