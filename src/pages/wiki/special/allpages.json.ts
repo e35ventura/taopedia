@@ -1,7 +1,8 @@
 import type { APIRoute } from 'astro';
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
 import { getArticleReferences } from '../../../lib/article-references.js';
+import { getArticleToc } from '../../../lib/article-toc.js';
 import { buildAllPages } from '../../../../scripts/allpages.js';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
 
@@ -34,10 +35,17 @@ export const GET: APIRoute = async ({ site }) => {
   // the raw markdown body so a directory consumer can sort or filter the
   // directory by article length without an N-fetch sweep.
   const wordCountBySlug: Record<string, number> = {};
+  // sectionCount is the article's table-of-contents section count — the same
+  // figure toc.json exposes as `count` and info.json / history.json expose on
+  // their envelopes, derived from the shared getArticleToc helper so a directory
+  // consumer can sort or filter by article depth without an N-fetch sweep.
+  const sectionCountBySlug: Record<string, number> = {};
   for (const page of pages) {
     const slug = getPageSlug(page);
     titleBySlug[slug] = page.data.title;
     wordCountBySlug[slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
+    const { headings } = await render(page);
+    sectionCountBySlug[slug] = getArticleToc(headings).length;
   }
 
   const articles = buildAllPages({ pages, getPageSlug, origin });
@@ -83,6 +91,9 @@ export const GET: APIRoute = async ({ site }) => {
           // The article body's word count — the same figure info.json exposes —
           // so the directory can be sorted or filtered by article length.
           wordCount: wordCountBySlug[article.slug] ?? 0,
+          // The article's table-of-contents section count — the same figure
+          // toc.json exposes as `count` and info.json exposes on its envelope.
+          sectionCount: sectionCountBySlug[article.slug] ?? 0,
         };
       }),
     },
