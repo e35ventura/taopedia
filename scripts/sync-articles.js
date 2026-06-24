@@ -781,11 +781,19 @@ const nonSpaceDelimitedAnchorTargetAttrPattern = /<\s*a\b[^>]*[/"'`]target\s*=/i
 // merged ping=/referrerpolicy= blocks. Markdown articles never need to control
 // attribution sources, so block both the value and boolean forms on the two
 // elements that support it. Scan emptied quoted values so benign href/src query
-// strings containing `attributionsrc=` are not false positives.
+// strings containing `attributionsrc=` are not false positives. parse5 also
+// treats `<a/attributionsrc>`, `<a /attributionsrc>`, `<a class="x"/attributionsrc>`
+// and the equivalent `<img ...>` forms as real bare attributionsrc attributes,
+// so those slash-boundary variants must be blocked too. Do NOT widen this to
+// every `/attributionsrc` substring: `<a class=x/attributionsrc ...>` remains a
+// class value.
 const attributionSrcAttrPattern = /<\s*(?:a|img)\b[^>]*\sattributionsrc\s*=/i;
 const nonSpaceDelimitedAttributionSrcAttrPattern = /<\s*(?:a|img)\b[^>]*[/"'`]attributionsrc\s*=/i;
 const bareAttributionSrcAttrPattern = /<\s*(?:a|img)\b[^>]*\sattributionsrc(?=[\s>/=])/i;
 const quoteAbuttedBareAttributionSrcAttrPattern = /<\s*(?:a|img)\b[^>]*["'`]attributionsrc(?=[\s>/=])/i;
+const tagNameSlashDelimitedBareAttributionSrcAttrPattern = /<\s*(?:a|img)\/attributionsrc(?=[\s>/=])/i;
+const whitespaceSlashDelimitedBareAttributionSrcAttrPattern = /<\s*(?:a|img)\b[^>]*\s\/attributionsrc(?=[\s>/=])/i;
+const quoteSlashDelimitedBareAttributionSrcAttrPattern = /<\s*(?:a|img)\b[^>]*["'`]\/attributionsrc(?=[\s>/=])/i;
 
 function emptyQuotedAttributeValues(content) {
   return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
@@ -1431,6 +1439,9 @@ export function validateArticleContent(slug, content) {
     || nonSpaceDelimitedAttributionSrcAttrPattern.test(emptiedAttributeContent)
     || bareAttributionSrcAttrPattern.test(emptiedAttributeContent)
     || quoteAbuttedBareAttributionSrcAttrPattern.test(emptiedAttributeContent)
+    || tagNameSlashDelimitedBareAttributionSrcAttrPattern.test(emptiedAttributeContent)
+    || whitespaceSlashDelimitedBareAttributionSrcAttrPattern.test(emptiedAttributeContent)
+    || quoteSlashDelimitedBareAttributionSrcAttrPattern.test(emptiedAttributeContent)
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": attributionsrc attributes are not allowed on anchor or img elements`,
