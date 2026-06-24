@@ -45,6 +45,8 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.bibtexUrl, `${ORIGIN}/wiki/recycling/cite.bib`, 'builder: bibtexUrl');
   assert.equal(result.referencesUrl, `${ORIGIN}/wiki/recycling/references.json`, 'builder: referencesUrl');
   assert.equal(result.relatedUrl, `${ORIGIN}/wiki/recycling/related.json`, 'builder: relatedUrl');
+  assert.equal(result.referencesJsonUrl, `${ORIGIN}/wiki/recycling/references.json`, 'builder: referencesJsonUrl alias');
+  assert.equal(result.relatedJsonUrl, `${ORIGIN}/wiki/recycling/related.json`, 'builder: relatedJsonUrl alias');
   assert.equal(result.tocJsonUrl, `${ORIGIN}/wiki/recycling/toc.json`, 'builder: tocJsonUrl');
   assert.equal(result.imageUrl, `${ORIGIN}/og/recycling.png`, 'builder: imageUrl');
   assert.deepEqual(result.categories, ['Consensus'], 'builder: categories');
@@ -182,6 +184,12 @@ for (const slug of articleSlugs) {
   // related.json already expose history siblings.
   assert.equal(doc.referencesUrl, `${ORIGIN}/wiki/${slug}/references.json`, `${slug}: history.json referencesUrl must point to the references.json hub`);
   assert.equal(doc.relatedUrl, `${ORIGIN}/wiki/${slug}/related.json`, `${slug}: history.json relatedUrl must point to the related.json hub`);
+  // referencesJsonUrl / relatedJsonUrl are the consistently-named *JsonUrl aliases
+  // for referencesUrl / relatedUrl; each must equal the canonical .json URL and its counterpart.
+  assert.equal(doc.referencesJsonUrl, `${ORIGIN}/wiki/${slug}/references.json`, `${slug}: history.json referencesJsonUrl must point to the references.json hub`);
+  assert.equal(doc.referencesJsonUrl, doc.referencesUrl, `${slug}: history.json referencesJsonUrl must equal referencesUrl`);
+  assert.equal(doc.relatedJsonUrl, `${ORIGIN}/wiki/${slug}/related.json`, `${slug}: history.json relatedJsonUrl must point to the related.json hub`);
+  assert.equal(doc.relatedJsonUrl, doc.relatedUrl, `${slug}: history.json relatedJsonUrl must equal relatedUrl`);
   // tocJsonUrl links the article's machine-readable table-of-contents endpoint,
   // letting consumers navigate from revision history to heading structure.
   assert.equal(doc.tocJsonUrl, `${ORIGIN}/wiki/${slug}/toc.json`, `${slug}: history.json tocJsonUrl must point to the article's table-of-contents endpoint`);
