@@ -99,6 +99,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(doc.lastEdited, '2024-06-01T00:00:00.000Z', 'builder: lastEdited field');
   assert.equal(doc.referencesCount, 4, 'builder: referencesCount field');
   assert.equal(doc.wordCount, 812, 'builder: wordCount field');
+  assert.equal(doc.readingMinutes, 5, 'builder: readingMinutes from wordCount (ceil(812/200))');
   assert.equal(doc.count, 3, 'builder: count field');
   assert.deepEqual(
     doc.sections,
@@ -118,6 +119,10 @@ const ORIGIN = 'https://taopedia.org';
 
   const empty = buildArticleToc({ slug: 'x', title: 'X', origin: ORIGIN });
   assert.equal(empty.wordCount, 0, 'builder: default wordCount is 0');
+  assert.equal(empty.readingMinutes, 1, 'builder: default readingMinutes is 1 (ceil(0/200))');
+
+  const badReading = buildArticleToc({ slug: 'x', title: 'X', origin: ORIGIN, wordCount: NaN });
+  assert.equal(badReading.readingMinutes, 1, 'builder: non-finite wordCount yields readingMinutes 1');
 }
 
 // ---- 2) Built-output checks -----------------------------------------------
@@ -314,6 +319,26 @@ for (const slug of articleSlugs) {
       doc.wordCount,
       Number(wordCountAttr[1]),
       `${slug}: toc.json wordCount must match the article footer's rendered data-word-count`,
+    );
+  }
+  // readingMinutes is the ~200 wpm ceil estimate the article footer renders and
+  // info.json exposes; it must be a positive integer derived from wordCount and
+  // agree with the sibling info.json envelope.
+  assert.ok(
+    Number.isInteger(doc.readingMinutes) && doc.readingMinutes >= 1,
+    `${slug}: toc.json readingMinutes must be a positive integer (got ${JSON.stringify(doc.readingMinutes)})`,
+  );
+  assert.equal(
+    doc.readingMinutes,
+    Math.max(1, Math.ceil(doc.wordCount / 200)),
+    `${slug}: toc.json readingMinutes must equal ceil(wordCount / 200)`,
+  );
+  if (fs.existsSync(infoJsonFile)) {
+    const infoDoc = JSON.parse(fs.readFileSync(infoJsonFile, 'utf8'));
+    assert.equal(
+      doc.readingMinutes,
+      infoDoc.readingMinutes,
+      `${slug}: toc.json readingMinutes must agree with the sibling info.json envelope`,
     );
   }
   const historyJsonFile = path.join(wikiDir, slug, 'history.json');
