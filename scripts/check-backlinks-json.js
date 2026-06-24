@@ -104,11 +104,13 @@ const revisionStatsOf = (slug) => {
   assert.equal(result.backlinks[0].imageUrl, `${ORIGIN}/og/neuron.png`, 'builder: backlinks[0].imageUrl');
   assert.equal(result.backlinks[0].referencesCount, 5, 'builder: backlinks[0].referencesCount threaded verbatim');
   assert.equal(result.backlinks[0].wordCount, 200, 'builder: backlinks[0].wordCount threaded verbatim');
+  assert.equal(result.backlinks[0].readingMinutes, 1, 'builder: backlinks[0].readingMinutes = ceil(200/200)');
   assert.equal(result.backlinks[0].revisionCount, 3, 'builder: backlinks[0].revisionCount threaded verbatim');
   assert.equal(result.backlinks[0].firstEdited, '2024-02-01T00:00:00.000Z', 'builder: backlinks[0].firstEdited threaded verbatim');
   assert.equal(result.backlinks[0].lastEdited, '2024-03-02T00:00:00.000Z', 'builder: backlinks[0].lastEdited threaded verbatim');
   assert.equal(result.backlinks[1].referencesCount, 0, 'builder: backlinks[1].referencesCount defaults to 0 when omitted');
   assert.equal(result.backlinks[1].wordCount, 0, 'builder: backlinks[1].wordCount defaults to 0 when omitted');
+  assert.equal(result.backlinks[1].readingMinutes, 1, 'builder: backlinks[1].readingMinutes = ceil(0/200) min 1');
   assert.equal(result.backlinks[1].revisionCount, 0, 'builder: backlinks[1].revisionCount defaults to 0 when omitted');
   assert.equal(result.backlinks[1].firstEdited, null, 'builder: backlinks[1].firstEdited defaults to null when omitted');
   assert.equal(result.backlinks[1].lastEdited, null, 'builder: backlinks[1].lastEdited defaults to null when omitted');
@@ -413,6 +415,12 @@ for (const slug of articleSlugs) {
         entry.wordCount,
         entryInfoDoc.wordCount,
         `${slug}: backlink entry ${entry.slug} wordCount must agree with its sibling info.json envelope`,
+      );
+      // readingMinutes is the ~200-wpm estimate derived from the entry's wordCount.
+      assert.equal(
+        entry.readingMinutes,
+        Math.max(1, Math.ceil(entry.wordCount / 200)),
+        `${slug}: backlink entry ${entry.slug} readingMinutes must equal ceil(wordCount/200) (min 1)`,
       );
     }
     // infoUrl / infoJsonUrl point at the linking article's Page-information hub

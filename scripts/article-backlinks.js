@@ -58,6 +58,9 @@ export const buildArticleBacklinks = ({ slug, title, origin, summary = '', categ
     // The linking article's body word count — the same figure info.json /
     // history.json expose and allpages.json / subnets.json expose per entry.
     wordCount: Number.isFinite(link.wordCount) ? link.wordCount : 0,
+    // The linking article's ~200-wpm reading-time estimate derived from wordCount —
+    // the same figure info.json / allpages.json / subnets.json expose.
+    readingMinutes: Math.max(1, Math.ceil((Number.isFinite(link.wordCount) ? link.wordCount : 0) / 200)),
     // The linking article's revision-history summary — the same trio info.json
     // and history.json expose per article, so a consumer scanning the backlink
     // list can gauge each linking page's age and edit activity without a fetch.
