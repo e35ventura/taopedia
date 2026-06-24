@@ -33,17 +33,32 @@ export async function getStaticPaths() {
   const wordCountBySlug = Object.fromEntries(
     pages.map((page) => [getPageSlug(page), (page.body ?? '').trim().split(/\s+/).filter(Boolean).length]),
   );
+  // Per-slug revision history, published inbound-link count, and outbound
+  // reference count — the three stats each reference entry (and the envelope)
+  // carries. They depend only on the target slug, but the same target recurs
+  // across many articles' reference lists, so computing them inside the entry
+  // map below recomputes each target's stats once per referencing article
+  // (O(articles × references)) — and getArticleReferences is a full link-graph
+  // join. Precompute them once over the page collection, the same way
+  // subnets.json / mostlinkedpages.json precompute their historyBySlug map.
+  const historyBySlug = Object.fromEntries(pages.map((page) => [getPageSlug(page), historyForSlug(getPageSlug(page))]));
+  const inboundBySlug = Object.fromEntries(
+    pages.map((page) => [getPageSlug(page), publishedInboundLinkCount(backlinksData, getPageSlug(page), titleBySlug)]),
+  );
+  const referencesCountBySlug = Object.fromEntries(
+    pages.map((page) => [getPageSlug(page), getArticleReferences({ slug: getPageSlug(page), linkGraph: linkgraphData, titleBySlug }).length]),
+  );
 
   return Promise.all(pages.map(async (page) => {
     const slug = getPageSlug(page);
     const references = getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).map((ref) => {
-      const history = historyForSlug(ref.slug);
+      const history = historyBySlug[ref.slug] ?? [];
       return {
         ...ref,
         summary: summaryBySlug[ref.slug] ?? '',
         categories: categoriesBySlug[ref.slug] ?? [],
-        backlinks: publishedInboundLinkCount(backlinksData, ref.slug, titleBySlug),
-        referencesCount: getArticleReferences({ slug: ref.slug, linkGraph: linkgraphData, titleBySlug }).length,
+        backlinks: inboundBySlug[ref.slug] ?? 0,
+        referencesCount: referencesCountBySlug[ref.slug] ?? 0,
         sectionCount: sectionCountBySlug[ref.slug] ?? 0,
         wordCount: wordCountBySlug[ref.slug] ?? 0,
         revisionCount: history.length,
@@ -54,7 +69,7 @@ export async function getStaticPaths() {
     // History is newest-first, so [0] is the latest revision and the last entry
     // is the original publication — the same firstEdited/lastEdited pair the
     // info.json and history.json envelopes expose.
-    const history = historyForSlug(slug);
+    const history = historyBySlug[slug] ?? [];
     return {
       params: { slug },
       props: {
@@ -62,7 +77,7 @@ export async function getStaticPaths() {
         title: page.data.title,
         summary: page.data.summary ?? '',
         categories: page.data.categories ?? [],
-        incomingLinks: publishedInboundLinkCount(backlinksData, slug, titleBySlug),
+        incomingLinks: inboundBySlug[slug] ?? 0,
         revisionCount: history.length,
         firstEdited: history[history.length - 1]?.date ?? null,
         lastEdited: history[0]?.date ?? null,
