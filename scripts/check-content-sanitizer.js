@@ -974,6 +974,15 @@ rejects('<img src="/wiki/fig.png"fetchpriority="high">', 'quote-abutted img fetc
 accepts('<img src=/wiki/fetchpriority-demo.png alt=diagram>', 'benign unquoted img src path containing fetchpriority substring');
 accepts('Fetch priority hints improve performance and are described here only as prose.', 'benign fetchpriority prose');
 
+// decoding= on <img> forces synchronous decode of an attacker URL (main-thread
+// stall / reading DoS) — same img-scoped rendering-control family as loading #462
+// and fetchpriority. Markdown never emits decoding=.
+rejects('Intro.\n\n<img src="https://evil.example/huge.png" decoding="sync" alt="x">', 'plain img decoding attribute');
+rejects('Intro.\n\n<  img   src="/wiki/fig.png"   decoding = "sync">', 'spaced img decoding attribute');
+rejects('<img src="/wiki/fig.png"decoding="sync">', 'quote-abutted img decoding attribute');
+accepts('<img src=/wiki/decoding-demo.png alt=diagram>', 'benign unquoted img src path containing decoding substring');
+accepts('Image decoding strategies are described here only as prose.', 'benign decoding prose');
+
 // attributionsrc on <a> or <img> opts the element into the Attribution Reporting
 // API, causing extra browser reporting requests on click/view without script.
 rejects('Intro.\n\n<a href="https://evil.example/" attributionsrc="https://evil.example/register-source">go</a>', 'plain anchor attributionsrc attribute');
