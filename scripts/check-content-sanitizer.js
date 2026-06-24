@@ -980,13 +980,21 @@ rejects('Intro.\n\n<a href="https://evil.example/" attributionsrc="https://evil.
 rejects('Intro.\n\n<  a   href="/wiki/foo/"   attributionsrc = "https://evil.example/register-source">go</a>', 'spaced anchor attributionsrc attribute');
 rejects('<a href="/wiki/foo/"attributionsrc="https://evil.example/register-source">go</a>', 'quote-abutted anchor attributionsrc attribute');
 rejects('Intro.\n\n<a href="https://evil.example/" attributionsrc>go</a>', 'bare anchor attributionsrc attribute');
+rejects('Intro.\n\n<a/attributionsrc href="https://evil.example/">go</a>', 'slash-delimited bare anchor attributionsrc after tag name');
+rejects('Intro.\n\n<a /attributionsrc href="https://evil.example/">go</a>', 'slash-delimited bare anchor attributionsrc after whitespace');
+rejects('<a class="x"/attributionsrc href="/wiki/foo/">go</a>', 'quote-plus-slash-delimited bare anchor attributionsrc attribute');
 rejects('Intro.\n\n<img src="https://evil.example/pixel.gif" attributionsrc="https://evil.example/register-source" alt="x">', 'plain img attributionsrc attribute');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   attributionsrc = "https://evil.example/register-source">', 'spaced img attributionsrc attribute');
 rejects('<img src="/wiki/fig.png"attributionsrc="https://evil.example/register-source">', 'quote-abutted img attributionsrc attribute');
 rejects('Intro.\n\n<img src="/wiki/fig.png" attributionsrc alt="x">', 'bare img attributionsrc attribute');
+rejects('Intro.\n\n<img/attributionsrc src="/wiki/fig.png" alt="x">', 'slash-delimited bare img attributionsrc after tag name');
+rejects('Intro.\n\n<img /attributionsrc src="/wiki/fig.png" alt="x">', 'slash-delimited bare img attributionsrc after whitespace');
+rejects('Intro.\n\n<img class="x"/attributionsrc src="/wiki/fig.png" alt="x">', 'quote-plus-slash-delimited bare img attributionsrc attribute');
 accepts('See <a href="/wiki/stake?attributionsrc=doc">stake docs</a> for details.', 'benign attributionsrc= inside quoted href');
 accepts('<img src="/wiki/attributionsrc-demo.png" alt="diagram">', 'benign img src containing attributionsrc substring');
 accepts('The attributionsrc attribute is described here only as prose.', 'benign attributionsrc prose');
+accepts('<a class=x/attributionsrc href="/wiki/foo/">not an attributionsrc attribute</a>', 'benign slash inside unquoted class value before bare anchor attributionsrc word');
+accepts('<img class=x/attributionsrc src="/wiki/fig.png" alt="diagram">', 'benign slash inside unquoted class value before bare img attributionsrc word');
 
 // ismap on <img> is the server-side image-map primitive (counterpart to the
 // already-blocked client-side <map>/<area>/usemap= in #411). When the <img> sits
