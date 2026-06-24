@@ -21,19 +21,26 @@ const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
   const titleBySlug = Object.fromEntries(pages.map((page) => [getPageSlug(page), page.data.title]));
+  // Per-slug table-of-contents section count — the same sectionCount info.json /
+  // history.json expose (and the toc.json `count`). Built once from the content
+  // collection so both this article's envelope and each backlink entry (a
+  // different article) can carry it without re-rendering.
+  const sectionCountBySlug: Record<string, number> = Object.fromEntries(
+    await Promise.all(pages.map(async (page) => [getPageSlug(page), getArticleToc((await render(page)).headings).length])),
+  );
 
   return Promise.all(
     pages.map(async (page) => {
       const slug = getPageSlug(page);
       const history = historyForSlug(slug);
-      const { headings } = await render(page);
       return {
         params: { slug },
         props: {
           page,
           slug,
+          sectionCountBySlug,
           incomingLinks: publishedInboundLinkCount(backlinksData, slug, titleBySlug),
-          sectionCount: getArticleToc(headings).length,
+          sectionCount: sectionCountBySlug[slug] ?? 0,
           // The article body's word count — the same figure info.json / history.json
           // expose and the article-page footer (mw-article-meta data-word-count) renders.
           wordCount: (page.body ?? '').trim().split(/\s+/).filter(Boolean).length,
@@ -50,11 +57,12 @@ export async function getStaticPaths() {
 // published-only join and compareTitles sort as backlinks.astro so the two
 // surfaces never drift.
 export const GET: APIRoute = async ({ props, site }) => {
-  const { page, slug, incomingLinks, sectionCount, wordCount, revisionCount, firstEdited, lastEdited } = props as {
+  const { page, slug, incomingLinks, sectionCount, sectionCountBySlug, wordCount, revisionCount, firstEdited, lastEdited } = props as {
     page: { data: { title: string; summary?: string; categories?: string[] } };
     slug: string;
     incomingLinks: number;
     sectionCount: number;
+    sectionCountBySlug: Record<string, number>;
     wordCount: number;
     revisionCount: number;
     firstEdited: string | null;
@@ -91,6 +99,7 @@ export const GET: APIRoute = async ({ props, site }) => {
         categories: categoriesBySlug[entry.from] ?? [],
         backlinks: publishedInboundLinkCount(backlinksData, entry.from, titleBySlug),
         referencesCount: getArticleReferences({ slug: entry.from, linkGraph: linkgraphData, titleBySlug }).length,
+        sectionCount: sectionCountBySlug[entry.from] ?? 0,
         wordCount: wordCountBySlug[entry.from] ?? 0,
         revisionCount: history.length,
         firstEdited: history[history.length - 1]?.date ?? null,
