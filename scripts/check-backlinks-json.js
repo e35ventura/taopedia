@@ -45,6 +45,7 @@ const revisionStatsOf = (slug) => {
     categories: ['Consensus'],
     incomingLinks: 2,
     referencesCount: 6,
+    sectionCount: 4,
     revisionCount: 8,
     firstEdited: '2024-01-01T00:00:00.000Z',
     lastEdited: '2024-06-01T00:00:00.000Z',
@@ -73,6 +74,7 @@ const revisionStatsOf = (slug) => {
   assert.deepEqual(result.categories, ['Consensus'], 'builder: categories field');
   assert.equal(result.incomingLinks, 2, 'builder: incomingLinks field');
   assert.equal(result.referencesCount, 6, 'builder: referencesCount field threaded verbatim');
+  assert.equal(result.sectionCount, 4, 'builder: sectionCount field threaded verbatim');
   assert.equal(result.revisionCount, 8, 'builder: revisionCount field threaded verbatim');
   assert.equal(result.firstEdited, '2024-01-01T00:00:00.000Z', 'builder: firstEdited field threaded verbatim');
   assert.equal(result.lastEdited, '2024-06-01T00:00:00.000Z', 'builder: lastEdited field threaded verbatim');
@@ -128,6 +130,7 @@ const revisionStatsOf = (slug) => {
   assert.equal(empty.summary, null, 'builder: default summary is null');
   assert.equal(empty.incomingLinks, 0, 'builder: default incomingLinks is 0');
   assert.equal(empty.referencesCount, 0, 'builder: default referencesCount is 0');
+  assert.equal(empty.sectionCount, 0, 'builder: default sectionCount is 0');
   assert.equal(empty.revisionCount, 0, 'builder: default revisionCount is 0');
   assert.equal(empty.firstEdited, null, 'builder: default firstEdited is null');
   assert.equal(empty.lastEdited, null, 'builder: default lastEdited is null');
@@ -241,6 +244,21 @@ for (const slug of articleSlugs) {
     outboundCountFor(slug),
     `${slug}: backlinks.json referencesCount must equal the published outbound-reference count`,
   );
+  // sectionCount is the article's table-of-contents section count — the same
+  // figure toc.json exposes as `count`, derived from the shared getArticleToc helper.
+  assert.ok(
+    Number.isInteger(doc.sectionCount) && doc.sectionCount >= 0,
+    `${slug}: backlinks.json sectionCount must be a non-negative integer (got ${JSON.stringify(doc.sectionCount)})`,
+  );
+  const blTocJsonFile = path.join(wikiDir, slug, 'toc.json');
+  if (fs.existsSync(blTocJsonFile)) {
+    const tocDoc = JSON.parse(fs.readFileSync(blTocJsonFile, 'utf8'));
+    assert.equal(
+      doc.sectionCount,
+      tocDoc.count,
+      `${slug}: backlinks.json sectionCount must agree with the sibling toc.json envelope`,
+    );
+  }
   // revisionCount is the article's revision count (its commit-history length) —
   // the same figure info.json / history.json / cite.json expose on their
   // envelopes. Cross-check it against the sibling info.json (independent source).
