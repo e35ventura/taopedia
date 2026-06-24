@@ -61,7 +61,21 @@ const revisionStatsOf = (slug) => {
     'helper must exclude self/missing targets, dedupe repeated targets, and sort numerically by title',
   );
 
-  const doc = buildArticleReferences({ slug: 'source', title: 'Source', origin: ORIGIN, summary: 'The source article.', categories: ['Consensus', 'Security'], incomingLinks: 5, revisionCount: 12, firstEdited: '2024-01-01T00:00:00.000Z', lastEdited: '2024-06-01T00:00:00.000Z', references });
+  const doc = buildArticleReferences({
+    slug: 'source',
+    title: 'Source',
+    origin: ORIGIN,
+    summary: 'The source article.',
+    categories: ['Consensus', 'Security'],
+    incomingLinks: 5,
+    revisionCount: 12,
+    firstEdited: '2024-01-01T00:00:00.000Z',
+    lastEdited: '2024-06-01T00:00:00.000Z',
+    references: references.map((entry, index) => ({
+      ...entry,
+      referencesCount: index + 1,
+    })),
+  });
   assert.equal(doc.slug, 'source', 'builder: slug field');
   assert.equal(doc.title, 'Source', 'builder: title field');
   assert.equal(doc.summary, 'The source article.', 'builder: summary field');
@@ -94,6 +108,7 @@ const revisionStatsOf = (slug) => {
         summary: null,
         categories: [],
         backlinks: 0,
+        referencesCount: 1,
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
@@ -118,6 +133,7 @@ const revisionStatsOf = (slug) => {
         summary: null,
         categories: [],
         backlinks: 0,
+        referencesCount: 2,
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
@@ -142,6 +158,7 @@ const revisionStatsOf = (slug) => {
         summary: null,
         categories: [],
         backlinks: 0,
+        referencesCount: 3,
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
@@ -166,6 +183,7 @@ const revisionStatsOf = (slug) => {
         summary: null,
         categories: [],
         backlinks: 0,
+        referencesCount: 4,
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
@@ -366,6 +384,20 @@ for (const slug of articleSlugs) {
     // same figure allpages.json / subnets.json / related.json expose per row.
     assert.equal(entry.backlinks, publishedInboundLinkCount(backlinksData, entry.slug, titleBySlug), `${slug}: every reference entry backlinks must match the published inbound-link count`);
     assert.ok(Number.isInteger(entry.backlinks) && entry.backlinks >= 0, `${slug}: every reference entry backlinks must be a non-negative integer`);
+    // referencesCount is the referenced article's own published outbound-link
+    // count — the same figure its references.json / info.json / history.json /
+    // cite.json envelope exposes — so a consumer can compare the referenced
+    // article's inbound and outbound link totals without another fetch.
+    const expectedEntryReferences = expectedReferencesFor(entry.slug);
+    assert.ok(
+      Number.isInteger(entry.referencesCount) && entry.referencesCount >= 0,
+      `${slug}: every reference entry referencesCount must be a non-negative integer (got ${JSON.stringify(entry.referencesCount)})`,
+    );
+    assert.equal(
+      entry.referencesCount,
+      expectedEntryReferences.length,
+      `${slug}: every reference entry referencesCount must equal the referenced article's published outbound-reference count`,
+    );
     // revisionCount / firstEdited / lastEdited mirror the referenced article's
     // revision-history summary, so consumers can sort or filter references by
     // age and edit activity without a second fetch.
@@ -392,6 +424,14 @@ for (const slug of articleSlugs) {
     const entryInfoJsonFile = path.join(wikiDir, entry.slug, 'info.json');
     assert.ok(fs.existsSync(entryInfoJsonFile), `${slug}: every reference entry must have a sibling info.json for cross-surface stat parity`);
     const entryInfoDoc = JSON.parse(fs.readFileSync(entryInfoJsonFile, 'utf8'));
+    const entryReferencesJsonFile = path.join(wikiDir, entry.slug, 'references.json');
+    assert.ok(fs.existsSync(entryReferencesJsonFile), `${slug}: every reference entry must have a sibling references.json for outbound-count parity`);
+    const entryReferencesDoc = JSON.parse(fs.readFileSync(entryReferencesJsonFile, 'utf8'));
+    assert.equal(
+      entry.referencesCount,
+      entryReferencesDoc.count,
+      `${slug}: every reference entry referencesCount must agree with its sibling references.json envelope`,
+    );
     assert.equal(
       entry.revisionCount,
       entryInfoDoc.revisionCount,
