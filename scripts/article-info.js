@@ -27,6 +27,9 @@ export const buildArticleInfo = ({
   // The article body's word count — the same figure the article-page footer
   // (mw-article-meta data-word-count) renders, computed identically.
   wordCount: Number.isFinite(wordCount) ? wordCount : 0,
+  // Estimated reading time in minutes — the same ~200 wpm ceil formula the
+  // article-page footer ("N min read") renders from wordCount.
+  readingMinutes: Math.max(1, Math.ceil((Number.isFinite(wordCount) ? wordCount : 0) / 200)),
   backlinksUrl: `${origin}/wiki/${slug}/backlinks/`,
   backlinksJsonUrl: `${origin}/wiki/${slug}/backlinks.json`,
   citeUrl: `${origin}/wiki/${slug}/cite/`,
