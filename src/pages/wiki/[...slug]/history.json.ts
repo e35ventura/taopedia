@@ -41,6 +41,9 @@ export async function getStaticPaths() {
           incomingLinks: publishedInboundLinkCount(backlinksData, slug, titleBySlug),
           referencesCount: getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length,
           sectionCount: getArticleToc(headings).length,
+          // The article body's word count — the same figure info.json exposes and
+          // the article-page footer (mw-article-meta data-word-count) renders.
+          wordCount: (page.body ?? '').trim().split(/\s+/).filter(Boolean).length,
         },
       };
     }),
@@ -54,12 +57,13 @@ export async function getStaticPaths() {
 // `count`, plus sectionCount (the toc.json `count` figure), but does not break
 // out per-revision.
 export const GET: APIRoute = async ({ props, site }) => {
-  const { page, slug, incomingLinks, referencesCount, sectionCount } = props as {
+  const { page, slug, incomingLinks, referencesCount, sectionCount, wordCount } = props as {
     page: { data: { title: string; summary?: string; categories?: string[] } };
     slug: string;
     incomingLinks: number;
     referencesCount: number;
     sectionCount: number;
+    wordCount: number;
   };
   const origin = (site ?? new URL('https://taopedia.org')).origin;
 
@@ -76,6 +80,7 @@ export const GET: APIRoute = async ({ props, site }) => {
       incomingLinks,
       referencesCount,
       sectionCount,
+      wordCount,
       revisions,
     }),
     null,
