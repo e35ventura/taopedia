@@ -46,6 +46,7 @@ const revisionStatsOf = (slug) => {
     incomingLinks: 2,
     referencesCount: 6,
     sectionCount: 4,
+    wordCount: 789,
     revisionCount: 8,
     firstEdited: '2024-01-01T00:00:00.000Z',
     lastEdited: '2024-06-01T00:00:00.000Z',
@@ -75,6 +76,7 @@ const revisionStatsOf = (slug) => {
   assert.equal(result.incomingLinks, 2, 'builder: incomingLinks field');
   assert.equal(result.referencesCount, 6, 'builder: referencesCount field threaded verbatim');
   assert.equal(result.sectionCount, 4, 'builder: sectionCount field threaded verbatim');
+  assert.equal(result.wordCount, 789, 'builder: wordCount field threaded verbatim');
   assert.equal(result.revisionCount, 8, 'builder: revisionCount field threaded verbatim');
   assert.equal(result.firstEdited, '2024-01-01T00:00:00.000Z', 'builder: firstEdited field threaded verbatim');
   assert.equal(result.lastEdited, '2024-06-01T00:00:00.000Z', 'builder: lastEdited field threaded verbatim');
@@ -131,6 +133,7 @@ const revisionStatsOf = (slug) => {
   assert.equal(empty.incomingLinks, 0, 'builder: default incomingLinks is 0');
   assert.equal(empty.referencesCount, 0, 'builder: default referencesCount is 0');
   assert.equal(empty.sectionCount, 0, 'builder: default sectionCount is 0');
+  assert.equal(empty.wordCount, 0, 'builder: default wordCount is 0');
   assert.equal(empty.revisionCount, 0, 'builder: default revisionCount is 0');
   assert.equal(empty.firstEdited, null, 'builder: default firstEdited is null');
   assert.equal(empty.lastEdited, null, 'builder: default lastEdited is null');
@@ -286,6 +289,18 @@ for (const slug of articleSlugs) {
       doc.lastEdited,
       infoDoc.lastEdited,
       `${slug}: backlinks.json lastEdited must agree with the sibling info.json envelope`,
+    );
+    // wordCount is the article body's word count — the same figure info.json /
+    // history.json expose and the article footer renders. Cross-check against the
+    // sibling info.json (independent source).
+    assert.ok(
+      Number.isInteger(doc.wordCount) && doc.wordCount >= 0,
+      `${slug}: backlinks.json wordCount must be a non-negative integer (got ${JSON.stringify(doc.wordCount)})`,
+    );
+    assert.equal(
+      doc.wordCount,
+      infoDoc.wordCount,
+      `${slug}: backlinks.json wordCount must agree with the sibling info.json envelope`,
     );
   }
   assert.equal(typeof doc.count, 'number', `${slug}: backlinks.json count must be a number`);
