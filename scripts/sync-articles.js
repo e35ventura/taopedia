@@ -754,6 +754,19 @@ const nonSpaceDelimitedHrColorSizeAttrPattern = /<\s*hr\b[^>]*[/"'`](?:color|siz
 const anchorTargetAttrPattern = /<\s*a\b[^>]*\starget\s*=/i;
 const nonSpaceDelimitedAnchorTargetAttrPattern = /<\s*a\b[^>]*[/"'`]target\s*=/i;
 
+// attributionsrc on allowed <a> or <img> opt an element into the browser's
+// Attribution Reporting API. A click or view on attacker-authored markup can
+// trigger extra network requests to attacker-chosen reporting endpoints even
+// without script, which is the same privacy / tracking-beacon class as the
+// merged ping=/referrerpolicy= blocks. Markdown articles never need to control
+// attribution sources, so block both the value and boolean forms on the two
+// elements that support it. Scan emptied quoted values so benign href/src query
+// strings containing `attributionsrc=` are not false positives.
+const attributionSrcAttrPattern = /<\s*(?:a|img)\b[^>]*\sattributionsrc\s*=/i;
+const nonSpaceDelimitedAttributionSrcAttrPattern = /<\s*(?:a|img)\b[^>]*[/"'`]attributionsrc\s*=/i;
+const bareAttributionSrcAttrPattern = /<\s*(?:a|img)\b[^>]*\sattributionsrc(?=[\s>/=])/i;
+const quoteAbuttedBareAttributionSrcAttrPattern = /<\s*(?:a|img)\b[^>]*["'`]attributionsrc(?=[\s>/=])/i;
+
 function emptyQuotedAttributeValues(content) {
   return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
 }
@@ -1382,6 +1395,17 @@ export function validateArticleContent(slug, content) {
     || nonSpaceDelimitedAnchorTargetAttrPattern.test(emptiedAttributeContent)
   ) {
     throw new Error(`Unsafe article content in "${slug}": target attributes are not allowed on anchor elements`);
+  }
+
+  if (
+    attributionSrcAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAttributionSrcAttrPattern.test(emptiedAttributeContent)
+    || bareAttributionSrcAttrPattern.test(emptiedAttributeContent)
+    || quoteAbuttedBareAttributionSrcAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": attributionsrc attributes are not allowed on anchor or img elements`,
+    );
   }
 
   const decoded = decodeForSchemeScan(content);
