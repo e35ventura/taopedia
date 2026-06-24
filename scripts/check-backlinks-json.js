@@ -20,7 +20,20 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
 const wikiDir = path.join(projectRoot, 'dist', 'wiki');
 const backlinksFile = path.join(projectRoot, 'public', 'data', 'backlinks.json');
+const historyDir = path.join(projectRoot, 'public', 'history');
 const ORIGIN = 'https://taopedia.org';
+const revisionStatsOf = (slug) => {
+  const file = path.join(historyDir, `${slug}.json`);
+  if (!fs.existsSync(file)) {
+    return { revisionCount: 0, firstEdited: null, lastEdited: null };
+  }
+  const history = JSON.parse(fs.readFileSync(file, 'utf8')).history || [];
+  return {
+    revisionCount: Array.isArray(history) ? history.length : 0,
+    firstEdited: Array.isArray(history) && history.length > 0 ? history[history.length - 1].date : null,
+    lastEdited: Array.isArray(history) && history.length > 0 ? history[0].date : null,
+  };
+};
 
 // ---- 1) Unit: builder produces the correct JSON shape ----------------------
 {
@@ -36,7 +49,7 @@ const ORIGIN = 'https://taopedia.org';
     firstEdited: '2024-01-01T00:00:00.000Z',
     lastEdited: '2024-06-01T00:00:00.000Z',
     backlinks: [
-      { slug: 'neuron', title: 'Neuron', summary: 'A node in the network.', categories: ['Mechanism'], lastEdited: '2024-03-02T00:00:00.000Z' },
+      { slug: 'neuron', title: 'Neuron', summary: 'A node in the network.', categories: ['Mechanism'], revisionCount: 3, firstEdited: '2024-02-01T00:00:00.000Z', lastEdited: '2024-03-02T00:00:00.000Z' },
       { slug: 'subnet_1', title: 'Subnet 1', summary: '' },
     ],
   });
@@ -84,7 +97,11 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.backlinks[0].relatedUrl, `${ORIGIN}/wiki/neuron/related.json`, 'builder: backlinks[0].relatedUrl');
   assert.equal(result.backlinks[0].tocJsonUrl, `${ORIGIN}/wiki/neuron/toc.json`, 'builder: backlinks[0].tocJsonUrl');
   assert.equal(result.backlinks[0].imageUrl, `${ORIGIN}/og/neuron.png`, 'builder: backlinks[0].imageUrl');
+  assert.equal(result.backlinks[0].revisionCount, 3, 'builder: backlinks[0].revisionCount threaded verbatim');
+  assert.equal(result.backlinks[0].firstEdited, '2024-02-01T00:00:00.000Z', 'builder: backlinks[0].firstEdited threaded verbatim');
   assert.equal(result.backlinks[0].lastEdited, '2024-03-02T00:00:00.000Z', 'builder: backlinks[0].lastEdited threaded verbatim');
+  assert.equal(result.backlinks[1].revisionCount, 0, 'builder: backlinks[1].revisionCount defaults to 0 when omitted');
+  assert.equal(result.backlinks[1].firstEdited, null, 'builder: backlinks[1].firstEdited defaults to null when omitted');
   assert.equal(result.backlinks[1].lastEdited, null, 'builder: backlinks[1].lastEdited defaults to null when omitted');
   assert.equal(result.backlinks[1].slug, 'subnet_1', 'builder: backlinks[1].slug');
   assert.equal(result.backlinks[1].title, 'Subnet 1', 'builder: backlinks[1].title');
@@ -283,10 +300,24 @@ for (const slug of articleSlugs) {
       `${slug}: every backlink entry backlinks must match the published inbound-link count`,
     );
     assert.ok(Number.isInteger(entry.backlinks) && entry.backlinks >= 0, `${slug}: every backlink entry backlinks must be a non-negative integer`);
-    // lastEdited is the linking article's last-revision date — the same figure
-    // info.json exposes per article. Cross-check it against the linking article's
-    // own built info.json (independent source) so the backlink list and the
-    // per-article surfaces can't disagree on each linking page's recency.
+    const stats = revisionStatsOf(entry.slug);
+    assert.ok(
+      Number.isInteger(entry.revisionCount) && entry.revisionCount >= 0,
+      `${slug}: every backlink entry revisionCount must be a non-negative integer (got ${JSON.stringify(entry.revisionCount)})`,
+    );
+    assert.equal(
+      entry.revisionCount,
+      stats.revisionCount,
+      `${slug}: every backlink entry revisionCount must equal the linking article's commit-history length`,
+    );
+    assert.equal(
+      entry.firstEdited,
+      stats.firstEdited,
+      `${slug}: every backlink entry firstEdited must equal the linking article's oldest revision date (or null)`,
+    );
+    // lastEdited is the linking article's latest revision date. Cross-check the
+    // full revision-stats trio against raw history and the linking article's own
+    // info.json so the surfaces cannot disagree.
     assert.ok(
       entry.lastEdited === null || typeof entry.lastEdited === 'string',
       `${slug}: every backlink entry lastEdited must be a string date or null (got ${JSON.stringify(entry.lastEdited)})`,
@@ -294,6 +325,16 @@ for (const slug of articleSlugs) {
     const entryInfoJsonFile = path.join(wikiDir, entry.slug, 'info.json');
     if (fs.existsSync(entryInfoJsonFile)) {
       const entryInfoDoc = JSON.parse(fs.readFileSync(entryInfoJsonFile, 'utf8'));
+      assert.equal(
+        entry.revisionCount,
+        entryInfoDoc.revisionCount,
+        `${slug}: backlink entry ${entry.slug} revisionCount must agree with its sibling info.json envelope`,
+      );
+      assert.equal(
+        entry.firstEdited,
+        entryInfoDoc.firstEdited,
+        `${slug}: backlink entry ${entry.slug} firstEdited must agree with its sibling info.json envelope`,
+      );
       assert.equal(
         entry.lastEdited,
         entryInfoDoc.lastEdited,

@@ -73,14 +73,19 @@ export const GET: APIRoute = async ({ props, site }) => {
 
   const backlinks = (backlinksData[slug] ?? [])
     .filter((entry) => titleBySlug[entry.from])
-    .map((entry) => ({
-      slug: entry.from,
-      title: titleBySlug[entry.from],
-      summary: summaryBySlug[entry.from] ?? '',
-      categories: categoriesBySlug[entry.from] ?? [],
-      backlinks: publishedInboundLinkCount(backlinksData, entry.from, titleBySlug),
-      lastEdited: historyForSlug(entry.from)[0]?.date ?? null,
-    }))
+    .map((entry) => {
+      const history = historyForSlug(entry.from);
+      return {
+        slug: entry.from,
+        title: titleBySlug[entry.from],
+        summary: summaryBySlug[entry.from] ?? '',
+        categories: categoriesBySlug[entry.from] ?? [],
+        backlinks: publishedInboundLinkCount(backlinksData, entry.from, titleBySlug),
+        revisionCount: history.length,
+        firstEdited: history[history.length - 1]?.date ?? null,
+        lastEdited: history[0]?.date ?? null,
+      };
+    })
     .sort((a, b) => compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug));
 
   const body = JSON.stringify(
