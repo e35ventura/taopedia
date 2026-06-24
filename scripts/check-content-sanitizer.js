@@ -215,6 +215,8 @@ accepts('A redirect sends the browser to another URL.', 'benign redirect substri
 // contenteditable / tabindex / draggable / popover / accesskey blocks.
 rejects('Intro.\n\n<a href="https://evil.example/" inert>click me</a>', 'plain inert attribute');
 rejects('Intro.\n\n<  a   href = "/wiki/foo/"   inert  >link</a>', 'spaced inert attribute');
+rejects('Intro.\n\n<a href="x" in&#101;rt>go</a>', 'entity-obfuscated inert attribute');
+rejects('Intro.\n\n<a href="x" i&#110;ert>go</a>', 'decimal-entity inert attribute');
 rejects('Intro.\n\n<form inert action="https://evil.example/collect">go</form>', 'plain inert on form');
 rejects('<a href="x"inert>go</a>', 'quote-abutted inert attribute');
 rejects('Intro.\n\n<button inert type="button">Send</button>', 'plain inert on button');

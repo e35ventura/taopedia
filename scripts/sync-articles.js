@@ -943,6 +943,7 @@ export function validateArticleContent(slug, content) {
   }
 
   const emptiedAttributeContent = emptyQuotedAttributeValues(content);
+  const decodedEmptied = emptyQuotedAttributeValues(decodedForAttributes);
 
   if (nonSpaceDelimitedHandlerPattern.test(emptiedAttributeContent)) {
     throw new Error(`Unsafe article content in "${slug}": inline event handlers are not allowed in article content`);
@@ -1034,6 +1035,8 @@ export function validateArticleContent(slug, content) {
   if (
     inertAttrPattern.test(emptiedAttributeContent)
     || quoteAbuttedInertAttrPattern.test(emptiedAttributeContent)
+    || inertAttrPattern.test(decodedEmptied)
+    || quoteAbuttedInertAttrPattern.test(decodedEmptied)
   ) {
     throw new Error(`Unsafe article content in "${slug}": inert attributes are not allowed in article content`);
   }
