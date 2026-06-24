@@ -50,6 +50,9 @@ export const buildArticleToc = ({ slug, title, origin, summary = '', categories 
   // Estimated reading time in minutes — the same ~200 wpm ceil formula the
   // article-page footer ("N min read") and info.json expose from wordCount.
   readingMinutes: Math.max(1, Math.ceil((Number.isFinite(wordCount) ? wordCount : 0) / 200)),
+  // The article's table-of-contents section count — the same figure info.json
+  // and history.json expose as sectionCount (here also available as `count`).
+  sectionCount: sections.length,
   count: sections.length,
   sections: sections.map((section) => ({
     number: section.number,

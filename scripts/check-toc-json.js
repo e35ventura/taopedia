@@ -100,6 +100,8 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(doc.referencesCount, 4, 'builder: referencesCount field');
   assert.equal(doc.wordCount, 812, 'builder: wordCount field');
   assert.equal(doc.readingMinutes, 5, 'builder: readingMinutes from wordCount (ceil(812/200))');
+  assert.equal(doc.sectionCount, 3, 'builder: sectionCount equals sections.length');
+  assert.equal(doc.count, doc.sectionCount, 'builder: count and sectionCount must agree');
   assert.equal(doc.count, 3, 'builder: count field');
   assert.deepEqual(
     doc.sections,
@@ -360,6 +362,28 @@ for (const slug of articleSlugs) {
   assert.equal(typeof doc.count, 'number', `${slug}: toc.json count must be a number`);
   assert.ok(Array.isArray(doc.sections), `${slug}: toc.json sections must be an array`);
   assert.equal(doc.count, doc.sections.length, `${slug}: toc.json count must equal sections.length`);
+  // sectionCount mirrors info.json / history.json — the same figure as `count`.
+  assert.ok(
+    Number.isInteger(doc.sectionCount) && doc.sectionCount >= 0,
+    `${slug}: toc.json sectionCount must be a non-negative integer`,
+  );
+  assert.equal(doc.sectionCount, doc.count, `${slug}: toc.json sectionCount must equal count`);
+  if (fs.existsSync(infoJsonFile)) {
+    const infoDoc = JSON.parse(fs.readFileSync(infoJsonFile, 'utf8'));
+    assert.equal(
+      doc.sectionCount,
+      infoDoc.sectionCount,
+      `${slug}: toc.json sectionCount must agree with the sibling info.json envelope`,
+    );
+  }
+  if (fs.existsSync(historyJsonFile)) {
+    const historyDoc = JSON.parse(fs.readFileSync(historyJsonFile, 'utf8'));
+    assert.equal(
+      doc.sectionCount,
+      historyDoc.sectionCount,
+      `${slug}: toc.json sectionCount must agree with the sibling history.json envelope`,
+    );
+  }
 
   const normalizedHtmlSections = htmlSections.map((section) => ({
     number: section.number,
