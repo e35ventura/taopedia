@@ -4,6 +4,7 @@ import { getPageSlug, historyForSlug } from '../../../lib/article-history';
 import { buildArticleInfo } from '../../../../scripts/article-info.js';
 import { getArticleReferences } from '../../../lib/article-references.js';
 import { getArticleToc } from '../../../lib/article-toc.js';
+import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
 
 const backlinksModules = import.meta.glob('../../../../public/data/backlinks.json', { eager: true }) as Record<
   string,
@@ -19,10 +20,32 @@ const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
-  return pages.map((page) => {
-    const slug = getPageSlug(page);
-    return { params: { slug }, props: { page, slug } };
-  });
+  const titleBySlug = Object.fromEntries(pages.map((page) => [getPageSlug(page), page.data.title]));
+
+  return Promise.all(
+    pages.map(async (page) => {
+      const slug = getPageSlug(page);
+      const history = historyForSlug(slug);
+      const { headings } = await render(page);
+      return {
+        params: { slug },
+        props: {
+          page,
+          slug,
+          // Precomputed once per route in getStaticPaths — the same figures the
+          // GET handler used to re-derive on every info.json build by calling
+          // getCollection + render again. Matches history.json / cite.json.
+          incomingLinks: publishedInboundLinkCount(backlinksData, slug, titleBySlug),
+          referencesCount: getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length,
+          sectionCount: getArticleToc(headings).length,
+          wordCount: (page.body ?? '').trim().split(/\s+/).filter(Boolean).length,
+          revisionCount: history.length,
+          firstEdited: history[history.length - 1]?.date ?? null,
+          lastEdited: history[0]?.date ?? null,
+        },
+      };
+    }),
+  );
 }
 
 // Machine-readable companion to /wiki/<slug>/info/. It mirrors the existing
@@ -31,38 +54,19 @@ export async function getStaticPaths() {
 // No new pipeline is introduced, and only data already exposed in the UI is
 // serialized.
 export const GET: APIRoute = async ({ props, site }) => {
-  const { page, slug } = props as {
-    page: { data: { title: string; summary?: string; categories?: string[] }; body?: string };
+  const { page, slug, incomingLinks, referencesCount, sectionCount, wordCount, revisionCount, firstEdited, lastEdited } = props as {
+    page: { data: { title: string; summary?: string; categories?: string[] } };
     slug: string;
+    incomingLinks: number;
+    referencesCount: number;
+    sectionCount: number;
+    wordCount: number;
+    revisionCount: number;
+    firstEdited: string | null;
+    lastEdited: string | null;
   };
 
   const origin = (site ?? new URL('https://taopedia.org')).origin;
-  const history = historyForSlug(slug);
-
-  // Count only inbound links from published articles, using the same content
-  // collection the HTML info page (info.astro) and Special:WhatLinksHere
-  // (backlinks.astro) join against — not slugmap.json, a separately generated
-  // artifact that can drift from the published set. This keeps info.json's
-  // incomingLinks identical to the figure rendered on /wiki/<slug>/info/.
-  const pages = await getCollection('pages');
-  const publishedSlugs = new Set(pages.map((p) => getPageSlug(p)));
-  const incomingLinks = (backlinksData[slug] ?? []).filter((entry) => publishedSlugs.has(entry.from)).length;
-
-  // referencesCount: the article's published OUTBOUND reference count — the
-  // complement of incomingLinks — using the same getArticleReferences helper
-  // (published-only join) that references.json / cite.json / history.json use,
-  // so the figure agrees across every endpoint that exposes it.
-  const titleBySlug: Record<string, string> = {};
-  for (const p of pages) titleBySlug[getPageSlug(p)] = p.data.title;
-  const referencesCount = getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length;
-  const { headings } = await render(page);
-  const sectionCount = getArticleToc(headings).length;
-
-  // wordCount: the article body's word count — the same figure the article-page
-  // footer (mw-article-meta data-word-count) renders, computed identically
-  // (whitespace-split of the raw body). Exposing it on the info hub lets a
-  // consumer show length / estimate reading time without scraping the HTML.
-  const wordCount = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
 
   const body = JSON.stringify(
     buildArticleInfo({
@@ -75,9 +79,9 @@ export const GET: APIRoute = async ({ props, site }) => {
       referencesCount,
       sectionCount,
       wordCount,
-      revisionCount: history.length,
-      firstEdited: history[history.length - 1]?.date ?? null,
-      lastEdited: history[0]?.date ?? null,
+      revisionCount,
+      firstEdited,
+      lastEdited,
     }),
     null,
     2,
