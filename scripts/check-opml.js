@@ -67,6 +67,17 @@ const hasOutlineWithUrls = (opml, { xmlUrl, htmlUrl }) => {
   assert.match(opml, /xmlUrl="https:\/\/taopedia\.org\/atom\.xml"/, 'must list the site-wide Atom feed');
   assert.match(opml, /xmlUrl="https:\/\/taopedia\.org\/feed\.json"/, 'must list the site-wide JSON Feed feed');
 
+  // OPML 2.0 defines only type="rss" for a feed-subscription outline; type="atom"
+  // and type="json" are not valid OPML 2.0 outline types (the actual format is
+  // conveyed by xmlUrl), so every feed outline must use type="rss" and no outline
+  // may carry the non-spec atom/json types.
+  assert.doesNotMatch(opml, /type="(?:atom|json)"/, 'feed outlines must use OPML-2.0 type="rss", not type="atom"/"json"');
+  const rssTypedFeedOutlines = (opml.match(/<outline\s+type="rss"[^>]*\bxmlUrl="/g) || []).length;
+  assert.ok(
+    rssTypedFeedOutlines >= 3,
+    `every feed-subscription outline must use type="rss"; found ${rssTypedFeedOutlines}`,
+  );
+
   // Recent changes has its own scoped RSS/Atom/JSON feed family. OPML imports
   // should surface those page-scoped feeds too, using the Special:RecentChanges
   // page as the htmlUrl for each format entry.
