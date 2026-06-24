@@ -1017,6 +1017,25 @@ const tagNameSlashDelimitedLangAttrPattern = /<\s*[a-z][\w:-]*\/(?:xml:)?lang\s*
 const whitespaceSlashDelimitedLangAttrPattern = /<[^>]*\s\/(?:xml:)?lang\s*=/i;
 const quoteSlashDelimitedLangAttrPattern = /<[^>]*["'`]\/(?:xml:)?lang\s*=/i;
 
+// translate= on any allowed element is the remaining member of the locale/
+// translation-control family already blocked as dir= (bidi Trojan-Source) and
+// lang=/xml:lang= (AT-pronunciation / :lang() spoof). translate="no" is a current
+// living-standard global attribute honored by browser auto-translation (Chrome
+// page translation, Google Translate) to exclude a subtree from machine
+// translation: an injected `<span translate="no">send 5 TAO to 5Fake…</span>`
+// keeps the attacker's literal text untranslated while the surrounding article
+// translates, a no-script content-spoof against translation users. Article prose
+// is single-language and the build emits no element-level translate=, so block it.
+// Scanned over emptyQuotedAttributeValues(); the patterns require whitespace, a
+// quote, or the tag name immediately before `translate`, so a `class="translate"`,
+// unquoted `class=translate`, `data-translate=`, or a URL containing "translate"
+// is NOT flagged.
+const translateAttrPattern = /<[^>]*\stranslate\s*=/i;
+const quoteAbuttedTranslateAttrPattern = /<[^>]*["'`]translate\s*=/i;
+const tagNameSlashDelimitedTranslateAttrPattern = /<\s*[a-z][\w:-]*\/translate\s*=/i;
+const whitespaceSlashDelimitedTranslateAttrPattern = /<[^>]*\s\/translate\s*=/i;
+const quoteSlashDelimitedTranslateAttrPattern = /<[^>]*["'`]\/translate\s*=/i;
+
 function emptyQuotedAttributeValues(content) {
   return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
 }
@@ -1827,6 +1846,18 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": lang attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    translateAttrPattern.test(emptiedAttributeContent)
+    || quoteAbuttedTranslateAttrPattern.test(emptiedAttributeContent)
+    || tagNameSlashDelimitedTranslateAttrPattern.test(emptiedAttributeContent)
+    || whitespaceSlashDelimitedTranslateAttrPattern.test(emptiedAttributeContent)
+    || quoteSlashDelimitedTranslateAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": translate attributes are not allowed in article content`,
     );
   }
 

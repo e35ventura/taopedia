@@ -1242,6 +1242,25 @@ accepts('See <a href="/wiki/x?lang=en">stake</a> for details.', 'benign lang= in
 accepts('<a href=/wiki/x?lang=en>link</a>', 'benign unquoted href query string containing lang=');
 accepts('The lang attribute is described here only as prose.', 'benign lang prose');
 
+// translate= completes the locale family (dir=/lang=): translate="no" is honored by
+// browser auto-translation to exclude a subtree, so an injected translate="no" keeps
+// an attacker's literal scam line untranslated while the article translates — a
+// no-script content-spoof against translation users. Build emits no translate=. Every
+// delimiter is covered; class="translate"/data-translate=/URLs with "translate" pass.
+rejects('Intro.\n\n<span translate="no">send 5 TAO to 5Fake</span>', 'plain translate attribute');
+rejects("Intro.\n\n<  span   translate = 'no'>y</span>", 'spaced translate single-quoted value');
+rejects('<a href="/wiki/x/"translate="no">x</a>', 'double-quote-abutted translate attribute');
+rejects("<a href='/wiki/x/'translate=\"no\">x</a>", 'single-quote-abutted translate attribute');
+rejects('<a href=`/wiki/x/`translate="no">x</a>', 'backtick-abutted translate attribute');
+rejects('Intro.\n\n<div/translate="no">x</div>', 'slash-delimited translate after tag name');
+rejects('<a href="/wiki/x/"/translate="no">x</a>', 'quote-plus-slash translate attribute');
+rejects('Intro.\n\n<p class="x" /translate="no">z</p>', 'whitespace-slash-delimited translate attribute');
+accepts('<div class="translate">x</div>', 'benign quoted class value "translate" is not the attribute');
+accepts('<div class=translate>x</div>', 'benign unquoted class value translate is not the attribute');
+accepts('<div data-translate="x">y</div>', 'benign data-translate attribute is not translate');
+accepts('See <a href="/wiki/translate-guide">the translate guide</a>.', 'benign URL containing translate substring');
+accepts('The translate attribute is described here only as prose.', 'benign translate prose');
+
 // ismap on <img> is the server-side image-map primitive (counterpart to the
 // already-blocked client-side <map>/<area>/usemap= in #411). When the <img> sits
 // inside an <a href="...">, clicking the image appends ?x,y coordinates to the
