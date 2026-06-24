@@ -49,6 +49,10 @@ export const GET: APIRoute = async ({ site }) => {
   }
 
   const articles = buildAllPages({ pages, getPageSlug, origin });
+  const historyBySlug: Record<string, ReturnType<typeof historyForSlug>> = {};
+  for (const article of articles) {
+    historyBySlug[article.slug] = historyForSlug(article.slug);
+  }
 
   const body = JSON.stringify(
     {
@@ -56,7 +60,7 @@ export const GET: APIRoute = async ({ site }) => {
       allpagesJsonUrl: `${origin}/wiki/special/allpages.json`,
       count: articles.length,
       articles: articles.map((article) => {
-        const history = historyForSlug(article.slug);
+        const history = historyBySlug[article.slug] ?? [];
         const inboundLinks = publishedInboundLinkCount(backlinksData, article.slug, titleBySlug);
         return {
           slug: article.slug,
