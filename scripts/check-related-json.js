@@ -24,6 +24,14 @@ const historyOf = (slug) => {
   return Array.isArray(history) ? history : [];
 };
 const lastEditedOf = (slug) => historyOf(slug)[0]?.date ?? null;
+// Each entry's wordCount mirrors the related article's own info.json.wordCount
+// (itself cross-checked against the article footer's data-word-count).
+const wordCountOf = (slug) => {
+  const file = path.join(wikiDir, slug, 'info.json');
+  if (!fs.existsSync(file)) return 0;
+  const info = JSON.parse(fs.readFileSync(file, 'utf8'));
+  return Number.isInteger(info.wordCount) ? info.wordCount : 0;
+};
 
 // ---- 1) Unit: helper + builder behavior -----------------------------------
 {
@@ -120,6 +128,7 @@ const lastEditedOf = (slug) => historyOf(slug)[0]?.date ?? null;
         categories: [],
         backlinks: 0,
         referencesCount: 0,
+        wordCount: 0,
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
@@ -146,6 +155,7 @@ const lastEditedOf = (slug) => historyOf(slug)[0]?.date ?? null;
         categories: [],
         backlinks: 0,
         referencesCount: 0,
+        wordCount: 0,
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
@@ -172,6 +182,7 @@ const lastEditedOf = (slug) => historyOf(slug)[0]?.date ?? null;
         categories: [],
         backlinks: 0,
         referencesCount: 0,
+        wordCount: 0,
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
@@ -270,6 +281,7 @@ for (const slug of articleSlugs) {
       categories: slugMap[entry.slug]?.categories ?? [],
       backlinks: publishedInboundLinkCount(backlinksData, entry.slug, titleBySlug),
       referencesCount: getArticleReferences({ slug: entry.slug, linkGraph: linkgraphData, titleBySlug }).length,
+      wordCount: wordCountOf(entry.slug),
       revisionCount: entryHistory.length,
       firstEdited: entryHistory[entryHistory.length - 1]?.date ?? null,
       lastEdited: entryHistory[0]?.date ?? null,
