@@ -559,10 +559,17 @@ const nonSpaceDelimitedAriaOwnsAttrPattern = /<[^>]*[/"'`](?:aria-owns)\s*=/i;
 // data via the JSON-LD graph in src/components/StructuredData.astro, so prose
 // must not emit its own microdata. Same dual-pattern shape (whitespace +
 // quote/slash-abutted) as the merged aria-name / contenteditable / style
-// blocks. itemscope is boolean and uses the [\s>/=] lookahead.
+// blocks. itemscope is boolean and uses the [\s>/=] lookahead. parse5 also
+// treats `<div/itemscope>`, `<div /itemscope>`, and `<div class="x"/itemscope>`
+// as a real bare itemscope attribute, so those slash-boundary forms must be
+// blocked too. Do NOT widen this to every `/itemscope` substring:
+// `<div class=x/itemscope>` remains a class value.
 const microdataAttrPattern = /<[^>]*\s(?:itemscope|itemtype|itemprop|itemref|itemid)(?=[\s>/=])/i;
 const nonSpaceDelimitedMicrodataAttrPattern = /<[^>]*[/"'`](?:itemtype|itemprop|itemref|itemid)\s*=/i;
 const quoteAbuttedItemscopePattern = /<[^>]*["'`]itemscope(?=[\s>/=])/i;
+const tagNameSlashDelimitedItemscopePattern = /<\s*[a-z][\w:-]*\/itemscope(?=[\s>/=])/i;
+const whitespaceSlashDelimitedItemscopePattern = /<[^>]*\s\/itemscope(?=[\s>/=])/i;
+const quoteSlashDelimitedItemscopePattern = /<[^>]*["'`]\/itemscope(?=[\s>/=])/i;
 
 // aria-busy= marks a region as updating in assistive technology — e.g.
 // aria-busy="true" makes screen readers announce "loading" for injected prose
@@ -615,9 +622,15 @@ const nonSpaceDelimitedAriaPopupStateAttrPattern =
 // dimension blocks). Article tables in a glossary never set nowrap themselves —
 // the stylesheet handles wrapping via .mw-subnets / infobox classes. Tag-scoped
 // to td|th with the [\s>/=] boolean lookahead the merged autofocus/hidden rules
-// use, so benign prose and class values pass.
+// use. parse5 also treats `<td/nowrap>`, `<td /nowrap>`, and
+// `<td class="x"/nowrap>` as a real bare nowrap attribute, so those
+// slash-boundary forms must be blocked too. Do NOT widen this to every
+// `/nowrap` substring: `<td class=x/nowrap>` remains a class value.
 const tdThNowrapAttrPattern = /<\s*(?:td|th)\b[^>]*\snowrap(?=[\s>/=])/i;
 const quoteAbuttedTdThNowrapAttrPattern = /<\s*(?:td|th)\b[^>]*["'`]nowrap(?=[\s>/=])/i;
+const tagNameSlashDelimitedTdThNowrapAttrPattern = /<\s*(?:td|th)\/nowrap(?=[\s>/=])/i;
+const whitespaceSlashDelimitedTdThNowrapAttrPattern = /<\s*(?:td|th)\b[^>]*\s\/nowrap(?=[\s>/=])/i;
+const quoteSlashDelimitedTdThNowrapAttrPattern = /<\s*(?:td|th)\b[^>]*["'`]\/nowrap(?=[\s>/=])/i;
 
 // colspan=/rowspan= on allowed <td>/<th> merge or split table cells without the
 // blocked inline style= attribute — e.g. colspan="99" makes one injected cell
@@ -666,8 +679,15 @@ const nonSpaceDelimitedListTypeAttrPattern = /<\s*(?:ol|ul|li)\b[^>]*[/"'`]type\
 // reversed on allowed <ol> flips the marker sequence without CSS: a list authored
 // as Step 1, Step 2, Step 3 can render as 3, 2, 1, changing procedural meaning in
 // wallet/security walkthroughs. Same ordered-list spoof family as start=/value=.
+// parse5 also treats `<ol/reversed>`, `<ol /reversed>`, and
+// `<ol class="x"/reversed>` as a real bare reversed attribute, so those
+// slash-boundary forms must be blocked too. Do NOT widen this to every
+// `/reversed` substring: `<ol class=x/reversed>` remains a class value.
 const olReversedAttrPattern = /<\s*ol\b[^>]*\sreversed(?=[\s>/=])/i;
 const quoteAbuttedOlReversedAttrPattern = /<\s*ol\b[^>]*["'`]reversed(?=[\s>/=])/i;
+const tagNameSlashDelimitedOlReversedAttrPattern = /<\s*ol\/reversed(?=[\s>/=])/i;
+const whitespaceSlashDelimitedOlReversedAttrPattern = /<\s*ol\b[^>]*\s\/reversed(?=[\s>/=])/i;
+const quoteSlashDelimitedOlReversedAttrPattern = /<\s*ol\b[^>]*["'`]\/reversed(?=[\s>/=])/i;
 
 // fetchpriority= on an allowed <img> bumps subresource fetch priority for attacker-chosen
 // URLs ahead of legitimate page assets (same img-scoped family as loading #462).
@@ -1244,6 +1264,9 @@ export function validateArticleContent(slug, content) {
     microdataAttrPattern.test(emptiedAttributeContent)
     || nonSpaceDelimitedMicrodataAttrPattern.test(emptiedAttributeContent)
     || quoteAbuttedItemscopePattern.test(emptiedAttributeContent)
+    || tagNameSlashDelimitedItemscopePattern.test(emptiedAttributeContent)
+    || whitespaceSlashDelimitedItemscopePattern.test(emptiedAttributeContent)
+    || quoteSlashDelimitedItemscopePattern.test(emptiedAttributeContent)
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": itemscope, itemtype, itemprop, itemref, and itemid microdata attributes are not allowed in article content`,
@@ -1289,6 +1312,9 @@ export function validateArticleContent(slug, content) {
   if (
     tdThNowrapAttrPattern.test(emptiedAttributeContent)
     || quoteAbuttedTdThNowrapAttrPattern.test(emptiedAttributeContent)
+    || tagNameSlashDelimitedTdThNowrapAttrPattern.test(emptiedAttributeContent)
+    || whitespaceSlashDelimitedTdThNowrapAttrPattern.test(emptiedAttributeContent)
+    || quoteSlashDelimitedTdThNowrapAttrPattern.test(emptiedAttributeContent)
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": nowrap attributes are not allowed on td or th elements`,
@@ -1354,6 +1380,9 @@ export function validateArticleContent(slug, content) {
   if (
     olReversedAttrPattern.test(emptiedAttributeContent)
     || quoteAbuttedOlReversedAttrPattern.test(emptiedAttributeContent)
+    || tagNameSlashDelimitedOlReversedAttrPattern.test(emptiedAttributeContent)
+    || whitespaceSlashDelimitedOlReversedAttrPattern.test(emptiedAttributeContent)
+    || quoteSlashDelimitedOlReversedAttrPattern.test(emptiedAttributeContent)
   ) {
     throw new Error(`Unsafe article content in "${slug}": reversed attributes are not allowed on ol elements`);
   }
