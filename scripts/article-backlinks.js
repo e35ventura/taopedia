@@ -41,6 +41,10 @@ export const buildArticleBacklinks = ({ slug, title, origin, summary = '', categ
     summary: link.summary || null,
     categories: Array.isArray(link.categories) ? link.categories : [],
     backlinks: Number.isFinite(link.backlinks) ? link.backlinks : 0,
+    // The linking article's published OUTBOUND reference count — the inbound
+    // complement of backlinks, the same per-entry referencesCount allpages.json
+    // and subnets.json expose for each directory entry.
+    referencesCount: Number.isFinite(link.referencesCount) ? link.referencesCount : 0,
     // The linking article's revision-history summary — the same trio info.json
     // and history.json expose per article, so a consumer scanning the backlink
     // list can gauge each linking page's age and edit activity without a fetch.
