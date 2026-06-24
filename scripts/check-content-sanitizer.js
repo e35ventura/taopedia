@@ -987,6 +987,20 @@ accepts('<a href="/wiki/aria-description=demo">aria-description docs</a>', 'beni
 accepts('ARIA description is an accessibility concept described here only as prose.', 'benign aria-description prose');
 accepts('<span class=x/aria-details-demo>not an aria-details attribute</span>', 'benign aria-details substring in class value');
 
+// aria-braillelabel/aria-brailleroledescription= override the braille-display
+// accessible name/role — the braille channel twins of the merged #501
+// (aria-label) and #561 (aria-roledescription) name/role spoofs.
+rejects('Intro.\n\n<a href="https://evil.example/" aria-braillelabel="Official Bittensor wallet">Continue</a>', 'plain aria-braillelabel attribute on anchor');
+rejects('Intro.\n\n<div aria-brailleroledescription="Security Alert">x</div>', 'plain aria-brailleroledescription attribute');
+rejects('Intro.\n\n<  div   aria-braillelabel = "trusted">x</div>', 'spaced aria-braillelabel attribute');
+rejects('<a href="x"aria-braillelabel="trusted">go</a>', 'quote-abutted aria-braillelabel attribute');
+rejects('<div class=x/aria-brailleroledescription="Alert">x</div>', 'slash-delimited aria-brailleroledescription attribute');
+rejects("<p class='x'aria-braillelabel='trusted'>x</p>", 'single-quote-abutted aria-braillelabel attribute');
+
+accepts('<a href="/wiki/aria-braillelabel=demo">aria-braillelabel docs</a>', 'benign aria-braillelabel substring in quoted href');
+accepts('ARIA braillelabel is an accessibility concept described here only as prose.', 'benign aria-braillelabel prose');
+accepts('<span class=x/aria-braillelabel-demo>not an aria-braillelabel attribute</span>', 'benign aria-braillelabel substring in class value');
+
 // srcset=/sizes= on <img> steer responsive loading — gap after #411 blocked picture/source.
 rejects('Intro.\n\n<img src="/wiki/fig.png" srcset="https://evil.example/x 1x" alt="x">', 'plain img srcset attribute');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   srcset = "https://evil.example/x 2x">', 'spaced img srcset attribute');

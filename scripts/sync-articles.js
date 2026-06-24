@@ -668,6 +668,19 @@ const ariaDescriptionAttrPattern = /<[^>]*\saria-(?:description|details)\s*=/i;
 const nonSpaceDelimitedAriaDescriptionAttrPattern =
   /<[^>]*[/"'`](?:aria-(?:description|details))\s*=/i;
 
+// aria-braillelabel=/aria-brailleroledescription= are the braille-display
+// equivalents of the already-blocked aria-label (#501) and aria-roledescription
+// (#561): they override, for braille output specifically, the accessible name
+// and role description a refreshable braille display renders. An injected
+// aria-braillelabel="Official Bittensor wallet" or
+// aria-brailleroledescription="Security Alert" feeds a braille reader a
+// fabricated name/role for plain prose — the same accessibility-name/role spoof
+// as the merged aria-label/aria-roledescription blocks, just on the braille
+// channel. Glossary articles never set their own ARIA braille overrides.
+const ariaBrailleAttrPattern = /<[^>]*\saria-braille(?:label|roledescription)\s*=/i;
+const nonSpaceDelimitedAriaBrailleAttrPattern =
+  /<[^>]*[/"'`](?:aria-braille(?:label|roledescription))\s*=/i;
+
 // nowrap on allowed <td>/<th> disables text wrapping in the cell — an injected
 // long URL, fake wallet address, or padded phishing line breaks out of the
 // column, reflowing the real article text off-screen (a layout-defacement /
@@ -1438,6 +1451,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": aria-description and aria-details attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    ariaBrailleAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAriaBrailleAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": aria-braillelabel and aria-brailleroledescription attributes are not allowed in article content`,
     );
   }
 
