@@ -316,6 +316,22 @@ for (let i = 0; i < data.changes.length; i++) {
       infoDoc.wordCount,
       `change ${i} wordCount must agree with the sibling info.json envelope for ${change.slug}`,
     );
+    assert.ok(
+      Number.isInteger(change.readingMinutes) && change.readingMinutes >= 1,
+      `change ${i} readingMinutes must be a positive integer (got ${JSON.stringify(change.readingMinutes)})`,
+    );
+    assert.equal(
+      change.readingMinutes,
+      Math.max(1, Math.ceil(change.wordCount / 200)),
+      `change ${i} readingMinutes must equal ceil(wordCount/200)`,
+    );
+    if ('readingMinutes' in infoDoc) {
+      assert.equal(
+        change.readingMinutes,
+        infoDoc.readingMinutes,
+        `change ${i} readingMinutes must agree with the sibling info.json envelope for ${change.slug}`,
+      );
+    }
   }
   assert.equal(change.authorName, expected.authorName, `change ${i} authorName must match the revision history`);
   assert.equal(change.sha, expected.sha, `change ${i} sha must match the revision history`);

@@ -110,6 +110,7 @@ export const GET: APIRoute = async ({ site }) => {
         referencesCount: getArticleReferences({ slug: change.slug, linkGraph: linkgraphData, titleBySlug }).length,
         sectionCount: sectionCountBySlug[change.slug] ?? 0,
         wordCount: wordCountBySlug[change.slug] ?? 0,
+        readingMinutes: Math.max(1, Math.ceil((wordCountBySlug[change.slug] ?? 0) / 200)),
         date: change.date,
         authorName: change.authorName,
         sha: change.sha,
