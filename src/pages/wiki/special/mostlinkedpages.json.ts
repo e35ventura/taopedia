@@ -1,7 +1,8 @@
 import type { APIRoute } from 'astro';
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
 import { getArticleReferences } from '../../../lib/article-references.js';
+import { getArticleToc } from '../../../lib/article-toc.js';
 import { buildMostLinkedPages } from '../../../../scripts/most-linked.js';
 
 // Machine-readable inbound-link ranking at /wiki/special/mostlinkedpages.json.
@@ -27,14 +28,29 @@ export const GET: APIRoute = async ({ site }) => {
   const titleBySlug: Record<string, string> = {};
   const categoriesBySlug: Record<string, string[]> = {};
   const summaryBySlug: Record<string, string> = {};
+  const pageBySlug: Record<string, (typeof pages)[number]> = {};
   for (const page of pages) {
     const slug = getPageSlug(page);
     titleBySlug[slug] = page.data.title;
     categoriesBySlug[slug] = page.data.categories ?? [];
     summaryBySlug[slug] = page.data.summary ?? '';
+    pageBySlug[slug] = page;
   }
 
   const ranked = buildMostLinkedPages({ backlinks: backlinksData, titleBySlug });
+
+  // sectionCount is the article's table-of-contents section count — the same
+  // figure toc.json exposes as `count` and info.json / history.json expose on
+  // their envelopes, derived from the shared getArticleToc helper. Rendered only
+  // for the ranked pages so a consumer can gauge each top page's depth (how many
+  // sections it has) alongside its link popularity without a second fetch.
+  const sectionCountBySlug: Record<string, number> = {};
+  for (const entry of ranked) {
+    const page = pageBySlug[entry.slug];
+    if (!page) continue;
+    const { headings } = await render(page);
+    sectionCountBySlug[entry.slug] = getArticleToc(headings).length;
+  }
 
   const body = JSON.stringify(
     {
@@ -67,6 +83,7 @@ export const GET: APIRoute = async ({ site }) => {
         // cite.json / info.json use, so a consumer of the ranking can see both
         // directions of each top page's link degree without a second fetch.
         referencesCount: getArticleReferences({ slug: entry.slug, linkGraph: linkgraphData, titleBySlug }).length,
+        sectionCount: sectionCountBySlug[entry.slug] ?? 0,
         // The article's revision stats (history is newest-first) — the same
         // revisionCount / firstEdited / lastEdited trio info.json / history.json
         // expose per article and allpages.json exposes per directory entry — so a
