@@ -345,6 +345,23 @@ data.articles.forEach((row, i) => {
       `row ${i} wordCount must agree with the sibling info.json envelope for ${row.slug}`,
     );
   }
+  // readingMinutes is the ~200 wpm ceil reading-time estimate info.json exposes
+  // and the article footer renders. Validate its shape, its derivation from the
+  // row's own wordCount, and its agreement with the sibling info.json envelope.
+  assert.equal(
+    row.readingMinutes,
+    Math.max(1, Math.ceil((Number.isFinite(row.wordCount) ? row.wordCount : 0) / 200)),
+    `row ${i} readingMinutes must be the ~200 wpm ceil estimate of its own wordCount for ${row.slug}`,
+  );
+  const apReadInfoJsonFile = path.join(projectRoot, 'dist', 'wiki', row.slug, 'info.json');
+  if (fs.existsSync(apReadInfoJsonFile)) {
+    const readInfoDoc = JSON.parse(fs.readFileSync(apReadInfoJsonFile, 'utf8'));
+    assert.equal(
+      row.readingMinutes,
+      readInfoDoc.readingMinutes,
+      `row ${i} readingMinutes must agree with the sibling info.json envelope for ${row.slug}`,
+    );
+  }
   // sectionCount is the article's table-of-contents section count — the same
   // figure toc.json exposes as `count` and info.json exposes on its envelope.
   // Cross-check it against the sibling built toc.json and info.json so the
