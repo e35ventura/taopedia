@@ -29,12 +29,18 @@ export const GET: APIRoute = async ({ site }) => {
   const categoriesBySlug: Record<string, string[]> = {};
   const summaryBySlug: Record<string, string> = {};
   const pageBySlug: Record<string, (typeof pages)[number]> = {};
+  // The article body's word count — the same figure info.json exposes and the
+  // article-page footer (mw-article-meta data-word-count) renders, computed from
+  // the raw markdown body so a consumer of the ranking can gauge each top page's
+  // article length without a second fetch.
+  const wordCountBySlug: Record<string, number> = {};
   for (const page of pages) {
     const slug = getPageSlug(page);
     titleBySlug[slug] = page.data.title;
     categoriesBySlug[slug] = page.data.categories ?? [];
     summaryBySlug[slug] = page.data.summary ?? '';
     pageBySlug[slug] = page;
+    wordCountBySlug[slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
   }
 
   const ranked = buildMostLinkedPages({ backlinks: backlinksData, titleBySlug });
@@ -84,6 +90,7 @@ export const GET: APIRoute = async ({ site }) => {
         // directions of each top page's link degree without a second fetch.
         referencesCount: getArticleReferences({ slug: entry.slug, linkGraph: linkgraphData, titleBySlug }).length,
         sectionCount: sectionCountBySlug[entry.slug] ?? 0,
+        wordCount: wordCountBySlug[entry.slug] ?? 0,
         // The article's revision stats (history is newest-first) — the same
         // revisionCount / firstEdited / lastEdited trio info.json / history.json
         // expose per article and allpages.json exposes per directory entry — so a
