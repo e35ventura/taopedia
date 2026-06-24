@@ -16,7 +16,7 @@ export const getArticleReferences = ({ slug, linkGraph = {}, titleBySlug = {} })
   return references.sort((a, b) => compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug));
 };
 
-export const buildArticleReferences = ({ slug, title, origin, summary = '', categories = [], incomingLinks = 0, revisionCount = 0, firstEdited = null, lastEdited = null, sectionCount = 0, references = [] }) => ({
+export const buildArticleReferences = ({ slug, title, origin, summary = '', categories = [], incomingLinks = 0, revisionCount = 0, firstEdited = null, lastEdited = null, sectionCount = 0, wordCount = 0, references = [] }) => ({
   slug,
   title,
   summary: summary || null,
@@ -48,6 +48,9 @@ export const buildArticleReferences = ({ slug, title, origin, summary = '', cate
   // The article's rendered table-of-contents section total — the same count
   // toc.json exposes for this article.
   sectionCount: Number.isFinite(sectionCount) ? sectionCount : 0,
+  // The article body's word count — the same figure info.json / history.json
+  // expose and the article-page footer (mw-article-meta data-word-count) renders.
+  wordCount: Number.isFinite(wordCount) ? wordCount : 0,
   count: references.length,
   references: references.map((link) => ({
     slug: link.slug,

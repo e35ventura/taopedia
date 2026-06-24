@@ -72,6 +72,7 @@ const revisionStatsOf = (slug) => {
     firstEdited: '2024-01-01T00:00:00.000Z',
     lastEdited: '2024-06-01T00:00:00.000Z',
     sectionCount: 7,
+    wordCount: 654,
     references: references.map((entry, index) => ({
       ...entry,
       referencesCount: index + 1,
@@ -100,6 +101,7 @@ const revisionStatsOf = (slug) => {
   assert.equal(doc.firstEdited, '2024-01-01T00:00:00.000Z', 'builder: firstEdited field threaded verbatim');
   assert.equal(doc.lastEdited, '2024-06-01T00:00:00.000Z', 'builder: lastEdited field threaded verbatim');
   assert.equal(doc.sectionCount, 7, 'builder: sectionCount field threaded verbatim');
+  assert.equal(doc.wordCount, 654, 'builder: wordCount field threaded verbatim');
   assert.equal(doc.count, 4, 'builder: count field');
   assert.deepEqual(
     doc.references,
@@ -216,6 +218,7 @@ const revisionStatsOf = (slug) => {
   assert.equal(empty.firstEdited, null, 'builder: default firstEdited is null');
   assert.equal(empty.lastEdited, null, 'builder: default lastEdited is null');
   assert.equal(empty.sectionCount, 0, 'builder: default sectionCount is 0');
+  assert.equal(empty.wordCount, 0, 'builder: default wordCount is 0');
   assert.equal(empty.count, 0, 'builder: empty count is 0');
   assert.deepEqual(empty.references, [], 'builder: empty references is []');
 }
@@ -368,6 +371,18 @@ for (const slug of articleSlugs) {
       doc.lastEdited,
       infoDoc.lastEdited,
       `${slug}: references.json lastEdited must agree with the sibling info.json envelope`,
+    );
+    // wordCount is the article body's word count — the same figure info.json /
+    // history.json expose and the article footer renders. Cross-check against the
+    // sibling info.json (independent source).
+    assert.ok(
+      Number.isInteger(doc.wordCount) && doc.wordCount >= 0,
+      `${slug}: references.json wordCount must be a non-negative integer (got ${JSON.stringify(doc.wordCount)})`,
+    );
+    assert.equal(
+      doc.wordCount,
+      infoDoc.wordCount,
+      `${slug}: references.json wordCount must agree with the sibling info.json envelope`,
     );
   }
   assert.equal(typeof doc.count, 'number', `${slug}: references.json count must be a number`);
