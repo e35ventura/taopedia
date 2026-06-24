@@ -6,6 +6,7 @@ export const buildArticleInfo = ({
   categories = [],
   incomingLinks = 0,
   referencesCount = 0,
+  sectionCount = 0,
   revisionCount = 0,
   firstEdited = null,
   lastEdited = null,
@@ -19,6 +20,9 @@ export const buildArticleInfo = ({
   // The article's published outbound-reference count — the complement of
   // incomingLinks, the same figure history.json / cite.json expose.
   referencesCount,
+  // The article's table-of-contents section count — the same figure toc.json
+  // exposes as `count` (via the shared getArticleToc helper).
+  sectionCount: Number.isFinite(sectionCount) ? sectionCount : 0,
   backlinksUrl: `${origin}/wiki/${slug}/backlinks/`,
   backlinksJsonUrl: `${origin}/wiki/${slug}/backlinks.json`,
   citeUrl: `${origin}/wiki/${slug}/cite/`,

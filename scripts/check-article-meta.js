@@ -109,6 +109,8 @@ for (const { file, slug } of articlePages) {
   const infoJsonFile = path.join(wikiDir, slug, 'info.json');
   assert.ok(fs.existsSync(infoJsonFile), `${where}: missing companion /wiki/${slug}/info.json endpoint`);
   const infoDoc = JSON.parse(fs.readFileSync(infoJsonFile, 'utf8'));
+  const tocJsonFile = path.join(wikiDir, slug, 'toc.json');
+  const sectionCount = fs.existsSync(tocJsonFile) ? JSON.parse(fs.readFileSync(tocJsonFile, 'utf8')).count : 0;
   const expectedInfo = buildArticleInfo({
     title,
     slug,
@@ -117,6 +119,7 @@ for (const { file, slug } of articlePages) {
     categories: slugmap[slug]?.categories ?? [],
     incomingLinks: inboundCountFor(slug),
     referencesCount: outboundCountFor(slug),
+    sectionCount,
     revisionCount: history.length,
     firstEdited: history[history.length - 1]?.date ?? null,
     lastEdited: history[0]?.date ?? null,
