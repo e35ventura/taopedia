@@ -370,6 +370,29 @@ data.articles.forEach((row, i) => {
       `row ${i} sectionCount must agree with the sibling info.json envelope for ${row.slug}`,
     );
   }
+  // readingMinutes is the article's estimated reading time — the same ~200 wpm
+  // ceil figure info.json exposes (via buildArticleInfo) and the article-page
+  // footer renders. Validate its shape (a positive integer, since the formula
+  // floors at 1) and that it is the deterministic function of this row's own
+  // wordCount, then cross-check it against the sibling info.json envelope so the
+  // directory and the per-article metadata surface can't disagree on reading time.
+  assert.ok(
+    Number.isInteger(row.readingMinutes) && row.readingMinutes >= 1,
+    `row ${i} readingMinutes must be a positive integer (got ${JSON.stringify(row.readingMinutes)})`,
+  );
+  assert.equal(
+    row.readingMinutes,
+    Math.max(1, Math.ceil((row.wordCount ?? 0) / 200)),
+    `row ${i} readingMinutes must be the ~200 wpm ceil of its own wordCount for ${row.slug}`,
+  );
+  if (fs.existsSync(apWordInfoJsonFile)) {
+    const infoDoc = JSON.parse(fs.readFileSync(apWordInfoJsonFile, 'utf8'));
+    assert.equal(
+      row.readingMinutes,
+      infoDoc.readingMinutes,
+      `row ${i} readingMinutes must agree with the sibling info.json envelope for ${row.slug}`,
+    );
+  }
   // historyUrl points at the article's revision-history page — the same
   // companion subnets.json / mostlinkedpages.json expose — so a consumer of the
   // directory can reach each article's edit history without rebuilding the route.

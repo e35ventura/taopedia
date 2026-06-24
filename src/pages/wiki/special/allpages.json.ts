@@ -94,6 +94,12 @@ export const GET: APIRoute = async ({ site }) => {
           // The article's table-of-contents section count — the same figure
           // toc.json exposes as `count` and info.json exposes on its envelope.
           sectionCount: sectionCountBySlug[article.slug] ?? 0,
+          // Estimated reading time in minutes — the same ~200 wpm ceil formula
+          // info.json exposes (via buildArticleInfo) and the article-page footer
+          // ("N min read") renders from wordCount — so the directory can be
+          // sorted or filtered by reading time without an N-fetch sweep of every
+          // article's info.json.
+          readingMinutes: Math.max(1, Math.ceil((wordCountBySlug[article.slug] ?? 0) / 200)),
         };
       }),
     },
