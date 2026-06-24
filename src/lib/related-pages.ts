@@ -90,6 +90,7 @@ export interface ArticleRelatedPagesDocument {
   citeJsonUrl: string;
   bibtexUrl: string;
   referencesUrl: string;
+  referencesJsonUrl: string;
   imageUrl: string;
   count: number;
   related: Array<{
@@ -275,6 +276,12 @@ export function buildArticleRelatedPages({
     citeJsonUrl: `${origin}/wiki/${slug}/cite.json`,
     bibtexUrl: `${origin}/wiki/${slug}/cite.bib`,
     referencesUrl: `${origin}/wiki/${slug}/references.json`,
+    // referencesJsonUrl is the same references.json cross-link under the consistent
+    // <name>JsonUrl key every other JSON companion uses on this envelope
+    // (infoJsonUrl, historyJsonUrl, backlinksJsonUrl, citeJsonUrl, relatedJsonUrl).
+    // referencesUrl was the last cross-link lacking the Json suffix; it is kept
+    // for backwards compatibility.
+    referencesJsonUrl: `${origin}/wiki/${slug}/references.json`,
     imageUrl: `${origin}/og/${slug}.png`,
     count: relatedPages.length,
     related: relatedPages.map((entry) => ({
