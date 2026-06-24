@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { orderGeneratedData } from './build-linkgraph.js';
 
-const projectRoot = path.resolve(new URL('..', import.meta.url).pathname);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const projectRoot = path.resolve(__dirname, '..');
 const dataDir = path.join(projectRoot, 'public', 'data');
 const compareKeys = (a, b) => String(a).localeCompare(String(b), 'en', { numeric: true });
 

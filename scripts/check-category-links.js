@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const projectRoot = path.resolve(new URL('..', import.meta.url).pathname);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const projectRoot = path.resolve(__dirname, '..');
 const sourceFiles = [
   path.join(projectRoot, 'src', 'pages', 'index.astro'),
   path.join(projectRoot, 'src', 'pages', 'wiki', '[...slug].astro'),

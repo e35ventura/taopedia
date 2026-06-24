@@ -1,12 +1,14 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // Non-content routes must declare noindex in the shared <head> so crawlers that
 // discover them via inbound links do not index thin or error pages. /search is
 // already Disallow'd in robots.txt; the 404 page is omitted from the sitemap.
 // robots.txt alone is not a reliable noindex signal, so the HTML must say so too.
-const projectRoot = path.resolve(new URL('..', import.meta.url).pathname);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const projectRoot = path.resolve(__dirname, '..');
 const seo = fs.readFileSync(path.join(projectRoot, 'src', 'components', 'Seo.astro'), 'utf8');
 const layout = fs.readFileSync(path.join(projectRoot, 'src', 'layouts', 'WikiLayout.astro'), 'utf8');
 const notFoundPage = fs.readFileSync(path.join(projectRoot, 'src', 'pages', '404.astro'), 'utf8');

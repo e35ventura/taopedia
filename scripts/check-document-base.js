@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // Every Taopedia page renders through one of two <html>-emitting surfaces:
 //   - src/layouts/WikiLayout.astro — the shared layout used by article pages,
@@ -25,7 +26,8 @@ import path from 'node:path';
 // at full width, but each is a silent a11y/encoding/mobile regression. This
 // guards them in both surfaces so a refactor or deletion fails fast.
 
-const projectRoot = path.resolve(new URL('..', import.meta.url).pathname);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const projectRoot = path.resolve(__dirname, '..');
 
 const surfaces = [
   {

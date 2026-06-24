@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // The site ships a category-scoped RSS feed at
 // /wiki/category/<category>/rss.xml (src/pages/wiki/category/[category]/rss.xml.ts).
@@ -12,7 +13,8 @@ import path from 'node:path';
 // every category feed, which the builder check would not catch. This guard locks
 // the endpoint's invariants down so a refactor or deletion fails fast.
 
-const projectRoot = path.resolve(new URL('..', import.meta.url).pathname);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const projectRoot = path.resolve(__dirname, '..');
 const endpointPath = path.join(
   projectRoot,
   'src',
