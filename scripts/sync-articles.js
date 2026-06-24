@@ -948,6 +948,28 @@ const tagNameSlashDelimitedBareAttributionSrcAttrPattern = /<\s*(?:a|img)\/attri
 const whitespaceSlashDelimitedBareAttributionSrcAttrPattern = /<\s*(?:a|img)\b[^>]*\s\/attributionsrc(?=[\s>/=])/i;
 const quoteSlashDelimitedBareAttributionSrcAttrPattern = /<\s*(?:a|img)\b[^>]*["'`]\/attributionsrc(?=[\s>/=])/i;
 
+// id=/name= on any allowed element are DOM-clobbering primitives: a browser
+// exposes id'd and named elements as properties on `document` and `window`
+// (named access) and on sibling form/collection objects, so an injected
+// `<a id="cookie">` / `<img name="body">` / `<div id="config">` shadows the
+// matching `document.cookie` / `document.body` / `window.config` global and can
+// break or hijack the site's own scripts — the canonical no-script DOM-clobbering
+// / sanitizer-confusion vector. Same DOM-structure-integrity class the merged
+// <template> block (its comment cites "named elements ... shadow document.<name>
+// globals") and the microdata block already guard. The build emits no id=/name=
+// (no rehype-slug, so no heading anchors) and article prose never sets them.
+//
+// Scanned over emptyQuotedAttributeValues() so a quoted URL query string like
+// href="/wiki/x?id=5" passes. The slash forms are tag-name-scoped or quote-/
+// whitespace-anchored (NOT a bare `/id=`) so an UNQUOTED URL such as
+// href=/wiki/x?id=5 or href=/wiki/id=5 — where `id=` follows a `?`/path char,
+// not whitespace, a quote, or the tag name — is not flagged.
+const idNameAttrPattern = /<[^>]*\s(?:id|name)\s*=/i;
+const quoteAbuttedIdNameAttrPattern = /<[^>]*["'`](?:id|name)\s*=/i;
+const tagNameSlashDelimitedIdNameAttrPattern = /<\s*[a-z][\w:-]*\/(?:id|name)\s*=/i;
+const whitespaceSlashDelimitedIdNameAttrPattern = /<[^>]*\s\/(?:id|name)\s*=/i;
+const quoteSlashDelimitedIdNameAttrPattern = /<[^>]*["'`]\/(?:id|name)\s*=/i;
+
 function emptyQuotedAttributeValues(content) {
   return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
 }
@@ -1716,6 +1738,18 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": attributionsrc attributes are not allowed on anchor or img elements`,
+    );
+  }
+
+  if (
+    idNameAttrPattern.test(emptiedAttributeContent)
+    || quoteAbuttedIdNameAttrPattern.test(emptiedAttributeContent)
+    || tagNameSlashDelimitedIdNameAttrPattern.test(emptiedAttributeContent)
+    || whitespaceSlashDelimitedIdNameAttrPattern.test(emptiedAttributeContent)
+    || quoteSlashDelimitedIdNameAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": id and name attributes are not allowed in article content`,
     );
   }
 
