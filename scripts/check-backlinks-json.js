@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { compareTitles } from '../src/lib/title-sort.js';
 import { buildArticleBacklinks } from './article-backlinks.js';
 import { publishedInboundLinkCount } from './most-linked.js';
+import { getArticleReferences } from '../src/lib/article-references.js';
 
 // Load-bearing check for /wiki/<slug>/backlinks.json: the machine-readable
 // companion to the What-links-here HTML page. It (1) unit-tests the builder,
@@ -30,6 +31,7 @@ const ORIGIN = 'https://taopedia.org';
     summary: 'Reclaiming emitted TAO.',
     categories: ['Consensus'],
     incomingLinks: 2,
+    referencesCount: 6,
     revisionCount: 8,
     firstEdited: '2024-01-01T00:00:00.000Z',
     lastEdited: '2024-06-01T00:00:00.000Z',
@@ -57,6 +59,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.imageUrl, `${ORIGIN}/og/recycling.png`, 'builder: imageUrl field');
   assert.deepEqual(result.categories, ['Consensus'], 'builder: categories field');
   assert.equal(result.incomingLinks, 2, 'builder: incomingLinks field');
+  assert.equal(result.referencesCount, 6, 'builder: referencesCount field threaded verbatim');
   assert.equal(result.revisionCount, 8, 'builder: revisionCount field threaded verbatim');
   assert.equal(result.firstEdited, '2024-01-01T00:00:00.000Z', 'builder: firstEdited field threaded verbatim');
   assert.equal(result.lastEdited, '2024-06-01T00:00:00.000Z', 'builder: lastEdited field threaded verbatim');
@@ -105,6 +108,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.deepEqual(empty.categories, [], 'builder: default categories is []');
   assert.equal(empty.summary, null, 'builder: default summary is null');
   assert.equal(empty.incomingLinks, 0, 'builder: default incomingLinks is 0');
+  assert.equal(empty.referencesCount, 0, 'builder: default referencesCount is 0');
   assert.equal(empty.revisionCount, 0, 'builder: default revisionCount is 0');
   assert.equal(empty.firstEdited, null, 'builder: default firstEdited is null');
   assert.equal(empty.lastEdited, null, 'builder: default lastEdited is null');
@@ -117,11 +121,18 @@ assert.ok(fs.existsSync(backlinksFile), 'public/data/backlinks.json not found; r
 const slugmapFile = path.join(projectRoot, 'public', 'data', 'slugmap.json');
 assert.ok(fs.existsSync(slugmapFile), 'public/data/slugmap.json not found; run the build first');
 
+const linkgraphFile = path.join(projectRoot, 'public', 'data', 'linkgraph.json');
+assert.ok(fs.existsSync(linkgraphFile), 'public/data/linkgraph.json not found; run the build first');
+
 const backlinksData = JSON.parse(fs.readFileSync(backlinksFile, 'utf8'));
 const slugmap = JSON.parse(fs.readFileSync(slugmapFile, 'utf8'));
+const linkgraphData = JSON.parse(fs.readFileSync(linkgraphFile, 'utf8'));
 const titleBySlug = Object.fromEntries(
   Object.entries(slugmap).map(([slug, meta]) => [slug, typeof meta?.title === 'string' ? meta.title : slug]),
 );
+// referencesCount = the article's published outbound-reference count, re-derived
+// with the same getArticleReferences helper the endpoint uses (published-only join).
+const outboundCountFor = (slug) => getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length;
 
 const articleSlugs = [];
 const walk = (dir) => {
@@ -203,6 +214,14 @@ for (const slug of articleSlugs) {
     `${slug}: backlinks.json incomingLinks must equal the published inbound-link count`,
   );
   assert.equal(doc.incomingLinks, doc.count, `${slug}: backlinks.json incomingLinks must equal count`);
+  // referencesCount is the article's published OUTBOUND reference count (the
+  // complement of incomingLinks) — the same figure info.json / history.json /
+  // cite.json / related.json expose — derived from the same getArticleReferences join.
+  assert.equal(
+    doc.referencesCount,
+    outboundCountFor(slug),
+    `${slug}: backlinks.json referencesCount must equal the published outbound-reference count`,
+  );
   // revisionCount is the article's revision count (its commit-history length) —
   // the same figure info.json / history.json / cite.json expose on their
   // envelopes. Cross-check it against the sibling info.json (independent source).

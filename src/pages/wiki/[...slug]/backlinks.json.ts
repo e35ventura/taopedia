@@ -4,12 +4,18 @@ import { getPageSlug, historyForSlug } from '../../../lib/article-history';
 import { compareTitles } from '../../../lib/title-sort.js';
 import { buildArticleBacklinks } from '../../../../scripts/article-backlinks.js';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
+import { getArticleReferences } from '../../../lib/article-references.js';
 
 const backlinksModules = import.meta.glob('../../../../public/data/backlinks.json', { eager: true }) as Record<
   string,
   { default?: Record<string, Array<{ from: string }>> }
 >;
+const linkgraphModules = import.meta.glob('../../../../public/data/linkgraph.json', { eager: true }) as Record<
+  string,
+  { default?: Record<string, Array<{ target?: string }>> }
+>;
 const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
+const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
@@ -60,6 +66,11 @@ export const GET: APIRoute = async ({ props, site }) => {
     categoriesBySlug[pSlug] = p.data.categories ?? [];
   }
 
+  // The article's published OUTBOUND reference count — the complement of
+  // incomingLinks — using the same getArticleReferences helper (published-only
+  // join) that info.json / history.json / cite.json / related.json use.
+  const referencesCount = getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length;
+
   const backlinks = (backlinksData[slug] ?? [])
     .filter((entry) => titleBySlug[entry.from])
     .map((entry) => ({
@@ -80,6 +91,7 @@ export const GET: APIRoute = async ({ props, site }) => {
       summary: page.data.summary ?? '',
       categories: page.data.categories ?? [],
       incomingLinks,
+      referencesCount,
       revisionCount,
       firstEdited,
       lastEdited,
