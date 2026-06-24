@@ -156,7 +156,9 @@ const sectionCountOf = (slug) => {
         citeJsonUrl: `${ORIGIN}/wiki/alpha/cite.json`,
         bibtexUrl: `${ORIGIN}/wiki/alpha/cite.bib`,
         referencesUrl: `${ORIGIN}/wiki/alpha/references.json`,
+        referencesJsonUrl: `${ORIGIN}/wiki/alpha/references.json`,
         relatedUrl: `${ORIGIN}/wiki/alpha/related.json`,
+        relatedJsonUrl: `${ORIGIN}/wiki/alpha/related.json`,
         infoJsonUrl: `${ORIGIN}/wiki/alpha/info.json`,
         tocJsonUrl: `${ORIGIN}/wiki/alpha/toc.json`,
         imageUrl: `${ORIGIN}/og/alpha.png`,
@@ -186,7 +188,9 @@ const sectionCountOf = (slug) => {
         citeJsonUrl: `${ORIGIN}/wiki/gamma/cite.json`,
         bibtexUrl: `${ORIGIN}/wiki/gamma/cite.bib`,
         referencesUrl: `${ORIGIN}/wiki/gamma/references.json`,
+        referencesJsonUrl: `${ORIGIN}/wiki/gamma/references.json`,
         relatedUrl: `${ORIGIN}/wiki/gamma/related.json`,
+        relatedJsonUrl: `${ORIGIN}/wiki/gamma/related.json`,
         infoJsonUrl: `${ORIGIN}/wiki/gamma/info.json`,
         tocJsonUrl: `${ORIGIN}/wiki/gamma/toc.json`,
         imageUrl: `${ORIGIN}/og/gamma.png`,
@@ -216,7 +220,9 @@ const sectionCountOf = (slug) => {
         citeJsonUrl: `${ORIGIN}/wiki/delta/cite.json`,
         bibtexUrl: `${ORIGIN}/wiki/delta/cite.bib`,
         referencesUrl: `${ORIGIN}/wiki/delta/references.json`,
+        referencesJsonUrl: `${ORIGIN}/wiki/delta/references.json`,
         relatedUrl: `${ORIGIN}/wiki/delta/related.json`,
+        relatedJsonUrl: `${ORIGIN}/wiki/delta/related.json`,
         infoJsonUrl: `${ORIGIN}/wiki/delta/info.json`,
         tocJsonUrl: `${ORIGIN}/wiki/delta/toc.json`,
         imageUrl: `${ORIGIN}/og/delta.png`,
@@ -535,6 +541,10 @@ for (const slug of articleSlugs) {
     assert.equal(entry.bibtexUrl, `${ORIGIN}/wiki/${entry.slug}/cite.bib`, `${slug}: every related entry bibtexUrl must be canonical`);
     assert.equal(entry.referencesUrl, `${ORIGIN}/wiki/${entry.slug}/references.json`, `${slug}: every related entry referencesUrl must be canonical`);
     assert.equal(entry.relatedUrl, `${ORIGIN}/wiki/${entry.slug}/related.json`, `${slug}: every related entry relatedUrl must be canonical`);
+    assert.equal(entry.referencesJsonUrl, `${ORIGIN}/wiki/${entry.slug}/references.json`, `${slug}: every related entry referencesJsonUrl must be canonical`);
+    assert.equal(entry.referencesJsonUrl, entry.referencesUrl, `${slug}: every related entry referencesJsonUrl must equal the back-compat referencesUrl`);
+    assert.equal(entry.relatedJsonUrl, `${ORIGIN}/wiki/${entry.slug}/related.json`, `${slug}: every related entry relatedJsonUrl must be canonical`);
+    assert.equal(entry.relatedJsonUrl, entry.relatedUrl, `${slug}: every related entry relatedJsonUrl must equal the back-compat relatedUrl`);
     assert.equal(entry.infoJsonUrl, `${ORIGIN}/wiki/${entry.slug}/info.json`, `${slug}: every related entry infoJsonUrl must be canonical`);
     assert.equal(entry.tocJsonUrl, `${ORIGIN}/wiki/${entry.slug}/toc.json`, `${slug}: every related entry tocJsonUrl must be canonical`);
     assert.equal(entry.imageUrl, `${ORIGIN}/og/${entry.slug}.png`, `${slug}: every related entry imageUrl must be the related article's OG share-card URL`);
