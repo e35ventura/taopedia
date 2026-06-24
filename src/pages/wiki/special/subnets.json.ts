@@ -92,6 +92,11 @@ export const GET: APIRoute = async ({ site }) => {
         imageUrl: `${origin}/og/${subnet.slug}.png`,
         categories: subnet.categories,
         backlinks: publishedInboundLinkCount(backlinksData, subnet.slug, titleBySlug),
+        // incomingLinks is the same published-only inbound-link count exposed
+        // under `backlinks`, aliased to the key name info.json / references.json /
+        // backlinks.json use ("incomingLinks"), so a consumer can read it under the
+        // consistent cross-endpoint name. `backlinks` is kept for back-compat.
+        incomingLinks: publishedInboundLinkCount(backlinksData, subnet.slug, titleBySlug),
         // referencesCount is the subnet article's published OUTBOUND reference
         // count — the complement of backlinks (its inbound count) — using the same
         // getArticleReferences helper (published-only join) that references.json /
