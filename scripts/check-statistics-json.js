@@ -196,6 +196,18 @@ assert.equal(
   `${data.site}/wiki/category/${data.largestTopic.name.replace(/ /g, '_')}/articles.json`,
   "largestTopic.articlesUrl must be the canonical absolute category articles.json URL",
 );
+// articlesJsonUrl is the same article-list link under the consistent <name>JsonUrl
+// key the rest of the API uses; it must equal articlesUrl (kept for back-compat).
+assert.equal(
+  data.largestTopic.articlesJsonUrl,
+  `${data.site}/wiki/category/${data.largestTopic.name.replace(/ /g, '_')}/articles.json`,
+  "largestTopic.articlesJsonUrl must be the canonical absolute category articles.json URL",
+);
+assert.equal(
+  data.largestTopic.articlesJsonUrl,
+  data.largestTopic.articlesUrl,
+  'largestTopic.articlesJsonUrl must equal the back-compat articlesUrl',
+);
 assert.equal(
   data.largestTopic.feedUrl,
   `${data.site}/wiki/category/${data.largestTopic.name.replace(/ /g, '_')}/feed.json`,
@@ -238,6 +250,18 @@ for (const topic of data.topics) {
     topic.articlesUrl,
     `${data.site}/wiki/category/${topic.name.replace(/ /g, '_')}/articles.json`,
     `topic "${topic.name}" articlesUrl must be the canonical absolute category articles.json URL`,
+  );
+  // articlesJsonUrl is the same link under the consistent <name>JsonUrl key the
+  // rest of the API and the category page envelope use; equals articlesUrl.
+  assert.equal(
+    topic.articlesJsonUrl,
+    `${data.site}/wiki/category/${topic.name.replace(/ /g, '_')}/articles.json`,
+    `topic "${topic.name}" articlesJsonUrl must be the canonical absolute category articles.json URL`,
+  );
+  assert.equal(
+    topic.articlesJsonUrl,
+    topic.articlesUrl,
+    `topic "${topic.name}" articlesJsonUrl must equal the back-compat articlesUrl`,
   );
   // feedUrl points at the topic's JSON Feed, the syndication companion
   // categories.json also exposes, for feed-reader/programmatic subscription.
