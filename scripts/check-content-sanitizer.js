@@ -962,6 +962,20 @@ accepts('<a href="/wiki/aria-colindex=demo">aria-colindex docs</a>', 'benign ari
 accepts('ARIA rowcount is an accessibility concept described here only as prose.', 'benign aria-rowcount prose');
 accepts('<span class=x/aria-colspan-demo>not an aria-colspan attribute</span>', 'benign aria-colspan substring in class value');
 
+// aria-orientation/multiselectable= fake composite-widget semantics — same
+// accessibility-widget spoof family as merged aria-value, the grid block, and
+// #583 (toggle state); read-only prose never exposes composite-widget ARIA.
+rejects('Intro.\n\n<ul aria-orientation="horizontal"><li>x</li></ul>', 'plain aria-orientation attribute');
+rejects('Intro.\n\n<ul aria-multiselectable="true"><li>x</li></ul>', 'plain aria-multiselectable attribute');
+rejects('Intro.\n\n<  ul   aria-orientation = "vertical">x</ul>', 'spaced aria-orientation attribute');
+rejects('<div href="x"aria-orientation="horizontal">go</div>', 'quote-abutted aria-orientation attribute');
+rejects('<div class=x/aria-multiselectable="true">x</div>', 'slash-delimited aria-multiselectable attribute');
+rejects("<ul class='x'aria-orientation='vertical'>x</ul>", 'single-quote-abutted aria-orientation attribute');
+
+accepts('<a href="/wiki/aria-orientation=demo">aria-orientation docs</a>', 'benign aria-orientation substring in quoted href');
+accepts('ARIA orientation is an accessibility concept described here only as prose.', 'benign aria-orientation prose');
+accepts('<span class=x/aria-multiselectable-demo>not an aria-multiselectable attribute</span>', 'benign aria-multiselectable substring in class value');
+
 // aria-pressed=/aria-checked=/aria-selected= fake toggle and option state —
 // same family as merged #582 (aria-busy), #568 (aria-current), and #559
 // (aria-expanded).

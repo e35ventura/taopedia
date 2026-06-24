@@ -634,6 +634,18 @@ const ariaGridAttrPattern = /<[^>]*\saria-(?:col|row)(?:index(?:text)?|count|spa
 const nonSpaceDelimitedAriaGridAttrPattern =
   /<[^>]*[/"'`](?:aria-(?:col|row)(?:index(?:text)?|count|span))\s*=/i;
 
+// aria-orientation=/aria-multiselectable= fake composite-widget semantics for
+// assistive technology on static prose. aria-orientation announces a fabricated
+// horizontal/vertical axis for a list/menu/toolbar, and aria-multiselectable
+// announces that a list/grid accepts multiple selections — making read-only
+// glossary content sound like an interactive control a non-visual reader can
+// operate. Same accessibility-widget spoof family as the merged aria-value range
+// attributes, the grid-position block, and the toggle/selection state block
+// (#583). Glossary articles never expose composite-widget ARIA on static prose.
+const ariaWidgetAttrPattern = /<[^>]*\saria-(?:orientation|multiselectable)\s*=/i;
+const nonSpaceDelimitedAriaWidgetAttrPattern =
+  /<[^>]*[/"'`](?:aria-(?:orientation|multiselectable))\s*=/i;
+
 // aria-pressed=/aria-checked=/aria-selected= fake toggle and option state in
 // assistive technology — e.g. aria-pressed="true" makes a link sound pressed,
 // aria-selected="true" marks a list item as the chosen procedure step, and
@@ -1492,6 +1504,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": aria-colindex, aria-colcount, aria-colspan, aria-rowindex, aria-rowcount, and aria-rowspan attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    ariaWidgetAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAriaWidgetAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": aria-orientation and aria-multiselectable attributes are not allowed in article content`,
     );
   }
 
