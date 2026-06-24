@@ -1036,6 +1036,20 @@ const tagNameSlashDelimitedTranslateAttrPattern = /<\s*[a-z][\w:-]*\/translate\s
 const whitespaceSlashDelimitedTranslateAttrPattern = /<[^>]*\s\/translate\s*=/i;
 const quoteSlashDelimitedTranslateAttrPattern = /<[^>]*["'`]\/translate\s*=/i;
 
+// spellcheck=/autocapitalize=/autocorrect=/writingsuggestions= are text-editing
+// affordance hints that only apply to editable content. The editable surfaces
+// they configure — contenteditable and the form fields input/textarea — are
+// already blocked, so on read-only glossary prose these attributes are the
+// matching gap in that same editing-surface family. Article content is static
+// prose the build never marks editable, and Markdown emits none of these, so
+// block them like the merged contenteditable/tabindex/draggable interaction
+// attributes. Scanned over emptyQuotedAttributeValues(); the patterns require
+// whitespace, a quote, or the tag name immediately before the attribute, so a
+// class/data-* value or a URL containing the word is NOT flagged.
+const textEditHintAttrPattern = /<[^>]*\s(?:spellcheck|autocapitalize|autocorrect|writingsuggestions)\s*=/i;
+const nonSpaceDelimitedTextEditHintAttrPattern =
+  /<[^>]*[/"'`](?:spellcheck|autocapitalize|autocorrect|writingsuggestions)\s*=/i;
+
 function emptyQuotedAttributeValues(content) {
   return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
 }
@@ -1858,6 +1872,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": translate attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    textEditHintAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedTextEditHintAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": spellcheck, autocapitalize, autocorrect, and writingsuggestions attributes are not allowed in article content`,
     );
   }
 

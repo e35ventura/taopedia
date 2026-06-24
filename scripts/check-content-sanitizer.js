@@ -1261,6 +1261,22 @@ accepts('<div data-translate="x">y</div>', 'benign data-translate attribute is n
 accepts('See <a href="/wiki/translate-guide">the translate guide</a>.', 'benign URL containing translate substring');
 accepts('The translate attribute is described here only as prose.', 'benign translate prose');
 
+// spellcheck/autocapitalize/autocorrect/writingsuggestions are text-editing
+// affordance hints that only apply to editable content; the editable surfaces
+// they configure (contenteditable, input/textarea) are already blocked, so block
+// the matching gap. Every delimiter is covered; class/data-* values and URLs pass.
+rejects('Intro.\n\n<div spellcheck="true">x</div>', 'plain spellcheck attribute');
+rejects('Intro.\n\n<div autocapitalize="characters">x</div>', 'plain autocapitalize attribute');
+rejects('Intro.\n\n<div autocorrect="on">x</div>', 'plain autocorrect attribute');
+rejects('Intro.\n\n<div writingsuggestions="false">x</div>', 'plain writingsuggestions attribute');
+rejects("Intro.\n\n<  div   spellcheck = 'true'>y</div>", 'spaced spellcheck single-quoted value');
+rejects('<a href="/wiki/x/"spellcheck="true">x</a>', 'quote-abutted spellcheck attribute');
+rejects('<div class=x/autocapitalize="words">x</div>', 'slash-delimited autocapitalize attribute');
+accepts('<div class="spellcheck">x</div>', 'benign quoted class value "spellcheck" is not the attribute');
+accepts('<div data-spellcheck="x">y</div>', 'benign data-spellcheck attribute is not spellcheck');
+accepts('See <a href="/wiki/spellcheck-guide">the spellcheck guide</a>.', 'benign URL containing spellcheck substring');
+accepts('The autocorrect attribute is described here only as prose.', 'benign autocorrect prose');
+
 // ismap on <img> is the server-side image-map primitive (counterpart to the
 // already-blocked client-side <map>/<area>/usemap= in #411). When the <img> sits
 // inside an <a href="...">, clicking the image appends ?x,y coordinates to the
