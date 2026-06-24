@@ -55,6 +55,9 @@ export const buildArticleBacklinks = ({ slug, title, origin, summary = '', categ
     // complement of backlinks, the same per-entry referencesCount allpages.json
     // and subnets.json expose for each directory entry.
     referencesCount: Number.isFinite(link.referencesCount) ? link.referencesCount : 0,
+    // The linking article's table-of-contents section count — the same figure
+    // its own toc.json (count) / info.json envelope exposes.
+    sectionCount: Number.isFinite(link.sectionCount) ? link.sectionCount : 0,
     // The linking article's body word count — the same figure info.json /
     // history.json expose and allpages.json / subnets.json expose per entry.
     wordCount: Number.isFinite(link.wordCount) ? link.wordCount : 0,

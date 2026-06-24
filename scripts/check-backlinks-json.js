@@ -51,7 +51,7 @@ const revisionStatsOf = (slug) => {
     firstEdited: '2024-01-01T00:00:00.000Z',
     lastEdited: '2024-06-01T00:00:00.000Z',
     backlinks: [
-      { slug: 'neuron', title: 'Neuron', summary: 'A node in the network.', categories: ['Mechanism'], referencesCount: 5, wordCount: 200, revisionCount: 3, firstEdited: '2024-02-01T00:00:00.000Z', lastEdited: '2024-03-02T00:00:00.000Z' },
+      { slug: 'neuron', title: 'Neuron', summary: 'A node in the network.', categories: ['Mechanism'], referencesCount: 5, sectionCount: 6, wordCount: 200, revisionCount: 3, firstEdited: '2024-02-01T00:00:00.000Z', lastEdited: '2024-03-02T00:00:00.000Z' },
       { slug: 'subnet_1', title: 'Subnet 1', summary: '' },
     ],
   });
@@ -103,12 +103,14 @@ const revisionStatsOf = (slug) => {
   assert.equal(result.backlinks[0].tocJsonUrl, `${ORIGIN}/wiki/neuron/toc.json`, 'builder: backlinks[0].tocJsonUrl');
   assert.equal(result.backlinks[0].imageUrl, `${ORIGIN}/og/neuron.png`, 'builder: backlinks[0].imageUrl');
   assert.equal(result.backlinks[0].referencesCount, 5, 'builder: backlinks[0].referencesCount threaded verbatim');
+  assert.equal(result.backlinks[0].sectionCount, 6, 'builder: backlinks[0].sectionCount threaded verbatim');
   assert.equal(result.backlinks[0].wordCount, 200, 'builder: backlinks[0].wordCount threaded verbatim');
   assert.equal(result.backlinks[0].readingMinutes, 1, 'builder: backlinks[0].readingMinutes = ceil(200/200)');
   assert.equal(result.backlinks[0].revisionCount, 3, 'builder: backlinks[0].revisionCount threaded verbatim');
   assert.equal(result.backlinks[0].firstEdited, '2024-02-01T00:00:00.000Z', 'builder: backlinks[0].firstEdited threaded verbatim');
   assert.equal(result.backlinks[0].lastEdited, '2024-03-02T00:00:00.000Z', 'builder: backlinks[0].lastEdited threaded verbatim');
   assert.equal(result.backlinks[1].referencesCount, 0, 'builder: backlinks[1].referencesCount defaults to 0 when omitted');
+  assert.equal(result.backlinks[1].sectionCount, 0, 'builder: backlinks[1].sectionCount defaults to 0 when omitted');
   assert.equal(result.backlinks[1].wordCount, 0, 'builder: backlinks[1].wordCount defaults to 0 when omitted');
   assert.equal(result.backlinks[1].readingMinutes, 1, 'builder: backlinks[1].readingMinutes = ceil(0/200) min 1');
   assert.equal(result.backlinks[1].revisionCount, 0, 'builder: backlinks[1].revisionCount defaults to 0 when omitted');
@@ -421,6 +423,17 @@ for (const slug of articleSlugs) {
         entry.readingMinutes,
         Math.max(1, Math.ceil(entry.wordCount / 200)),
         `${slug}: backlink entry ${entry.slug} readingMinutes must equal ceil(wordCount/200) (min 1)`,
+      );
+      // sectionCount is the linking article's table-of-contents section count —
+      // the same figure its own toc.json (count) / info.json envelope exposes.
+      assert.ok(
+        Number.isInteger(entry.sectionCount) && entry.sectionCount >= 0,
+        `${slug}: backlink entry ${entry.slug} sectionCount must be a non-negative integer (got ${JSON.stringify(entry.sectionCount)})`,
+      );
+      assert.equal(
+        entry.sectionCount,
+        entryInfoDoc.sectionCount,
+        `${slug}: backlink entry ${entry.slug} sectionCount must agree with its sibling info.json envelope`,
       );
     }
     // infoUrl / infoJsonUrl point at the linking article's Page-information hub
