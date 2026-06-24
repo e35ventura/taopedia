@@ -57,6 +57,10 @@ export const GET: APIRoute = async ({ site }) => {
     const { headings } = await render(page);
     sectionCountBySlug[entry.slug] = getArticleToc(headings).length;
   }
+  const historyBySlug: Record<string, ReturnType<typeof historyForSlug>> = {};
+  for (const entry of ranked) {
+    historyBySlug[entry.slug] = historyForSlug(entry.slug);
+  }
 
   const body = JSON.stringify(
     {
@@ -113,9 +117,9 @@ export const GET: APIRoute = async ({ site }) => {
         // expose per article and allpages.json exposes per directory entry — so a
         // consumer of the ranking can see each top page's age and recency without
         // a second fetch.
-        revisionCount: historyForSlug(entry.slug).length,
-        firstEdited: historyForSlug(entry.slug).at(-1)?.date ?? null,
-        lastEdited: historyForSlug(entry.slug)[0]?.date ?? null,
+        revisionCount: historyBySlug[entry.slug]?.length ?? 0,
+        firstEdited: historyBySlug[entry.slug]?.at(-1)?.date ?? null,
+        lastEdited: historyBySlug[entry.slug]?.[0]?.date ?? null,
       })),
     },
     null,
