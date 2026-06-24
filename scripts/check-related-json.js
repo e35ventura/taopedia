@@ -32,6 +32,14 @@ const wordCountOf = (slug) => {
   const info = JSON.parse(fs.readFileSync(file, 'utf8'));
   return Number.isInteger(info.wordCount) ? info.wordCount : 0;
 };
+// Each entry's sectionCount mirrors the related article's own info.json.sectionCount
+// (itself the toc.json `count`).
+const sectionCountOf = (slug) => {
+  const file = path.join(wikiDir, slug, 'info.json');
+  if (!fs.existsSync(file)) return 0;
+  const info = JSON.parse(fs.readFileSync(file, 'utf8'));
+  return Number.isInteger(info.sectionCount) ? info.sectionCount : 0;
+};
 
 // ---- 1) Unit: helper + builder behavior -----------------------------------
 {
@@ -128,6 +136,7 @@ const wordCountOf = (slug) => {
         categories: [],
         backlinks: 0,
         referencesCount: 0,
+        sectionCount: 0,
         wordCount: 0,
         revisionCount: 0,
         firstEdited: null,
@@ -155,6 +164,7 @@ const wordCountOf = (slug) => {
         categories: [],
         backlinks: 0,
         referencesCount: 0,
+        sectionCount: 0,
         wordCount: 0,
         revisionCount: 0,
         firstEdited: null,
@@ -182,6 +192,7 @@ const wordCountOf = (slug) => {
         categories: [],
         backlinks: 0,
         referencesCount: 0,
+        sectionCount: 0,
         wordCount: 0,
         revisionCount: 0,
         firstEdited: null,
@@ -281,6 +292,7 @@ for (const slug of articleSlugs) {
       categories: slugMap[entry.slug]?.categories ?? [],
       backlinks: publishedInboundLinkCount(backlinksData, entry.slug, titleBySlug),
       referencesCount: getArticleReferences({ slug: entry.slug, linkGraph: linkgraphData, titleBySlug }).length,
+      sectionCount: sectionCountOf(entry.slug),
       wordCount: wordCountOf(entry.slug),
       revisionCount: entryHistory.length,
       firstEdited: entryHistory[entryHistory.length - 1]?.date ?? null,

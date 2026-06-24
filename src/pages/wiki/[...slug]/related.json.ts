@@ -38,12 +38,17 @@ export async function getStaticPaths() {
   const wordCountBySlug = Object.fromEntries(
     pages.map((page) => [getPageSlug(page), (page.body ?? '').trim().split(/\s+/).filter(Boolean).length]),
   );
+  // Per-slug table-of-contents section count — the same sectionCount info.json /
+  // history.json expose (and the toc.json `count`). Built once from the content
+  // collection so both the envelope and each related entry can carry it.
+  const sectionCountBySlug = Object.fromEntries(
+    await Promise.all(pages.map(async (page) => [getPageSlug(page), getArticleToc((await render(page)).headings).length])),
+  );
 
   return Promise.all(
     pages.map(async (page) => {
       const slug = getPageSlug(page);
       const history = historyForSlug(slug);
-      const { headings } = await render(page);
       return {
         params: { slug },
         props: {
@@ -53,7 +58,7 @@ export async function getStaticPaths() {
           categories: page.data.categories ?? [],
           incomingLinks: publishedInboundLinkCount(backlinksData, slug, titleBySlug),
           referencesCount: getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length,
-          sectionCount: getArticleToc(headings).length,
+          sectionCount: sectionCountBySlug[slug] ?? 0,
           // The article body's word count — the same figure info.json / history.json
           // expose and the article-page footer (mw-article-meta data-word-count) renders.
           wordCount: (page.body ?? '').trim().split(/\s+/).filter(Boolean).length,
@@ -75,6 +80,7 @@ export async function getStaticPaths() {
               categories: slugMap[entry.slug]?.categories ?? [],
               backlinks: publishedInboundLinkCount(backlinksData, entry.slug, titleBySlug),
               referencesCount: getArticleReferences({ slug: entry.slug, linkGraph: linkgraphData, titleBySlug }).length,
+              sectionCount: sectionCountBySlug[entry.slug] ?? 0,
               wordCount: wordCountBySlug[entry.slug] ?? 0,
               revisionCount: entryHistory.length,
               firstEdited: entryHistory[entryHistory.length - 1]?.date ?? null,
@@ -104,7 +110,7 @@ export const GET: APIRoute = async ({ props, site }) => {
     revisionCount: number;
     firstEdited: string | null;
     lastEdited: string | null;
-    relatedPages: Array<{ slug: string; title: string; summary: string; tags: string[]; categories: string[]; backlinks: number; referencesCount: number; wordCount: number; revisionCount: number; firstEdited: string | null; lastEdited: string | null }>;
+    relatedPages: Array<{ slug: string; title: string; summary: string; tags: string[]; categories: string[]; backlinks: number; referencesCount: number; sectionCount: number; wordCount: number; revisionCount: number; firstEdited: string | null; lastEdited: string | null }>;
   };
   const origin = (site ?? new URL('https://taopedia.org')).origin;
 
