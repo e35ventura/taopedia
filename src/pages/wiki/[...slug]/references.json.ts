@@ -55,6 +55,9 @@ export async function getStaticPaths() {
         firstEdited: history[history.length - 1]?.date ?? null,
         lastEdited: history[0]?.date ?? null,
         sectionCount: getArticleToc(headings).length,
+        // The article body's word count — the same figure info.json / history.json
+        // expose and the article-page footer (mw-article-meta data-word-count) renders.
+        wordCount: (page.body ?? '').trim().split(/\s+/).filter(Boolean).length,
         references,
       },
     };
@@ -66,7 +69,7 @@ export async function getStaticPaths() {
 // graph that powers backlinks.json, without advertising an HTML subpage that
 // does not exist.
 export const GET: APIRoute = async ({ props, site }) => {
-  const { slug, title, summary, categories, incomingLinks, revisionCount, firstEdited, lastEdited, sectionCount, references } = props as {
+  const { slug, title, summary, categories, incomingLinks, revisionCount, firstEdited, lastEdited, sectionCount, wordCount, references } = props as {
     slug: string;
     title: string;
     summary: string;
@@ -76,6 +79,7 @@ export const GET: APIRoute = async ({ props, site }) => {
     firstEdited: string | null;
     lastEdited: string | null;
     sectionCount: number;
+    wordCount: number;
     references: Array<{
       slug: string;
       title: string;
@@ -91,7 +95,7 @@ export const GET: APIRoute = async ({ props, site }) => {
   const origin = (site ?? new URL('https://taopedia.org')).origin;
 
   const body = JSON.stringify(
-    buildArticleReferences({ slug, title, origin, summary, categories, incomingLinks, revisionCount, firstEdited, lastEdited, sectionCount, references }),
+    buildArticleReferences({ slug, title, origin, summary, categories, incomingLinks, revisionCount, firstEdited, lastEdited, sectionCount, wordCount, references }),
     null,
     2,
   );
