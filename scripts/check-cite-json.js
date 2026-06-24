@@ -269,6 +269,17 @@ for (const slug of articleSlugs) {
   // history.json expose and the article footer renders. Cross-check against the
   // sibling info.json envelope (independent source).
   assert.ok(Number.isInteger(doc.wordCount) && doc.wordCount >= 0, `cite.json wordCount must be a non-negative integer for ${slug}`);
+  // readingMinutes is the ~200 wpm ceil estimate info.json exposes and the
+  // article-page footer ("N min read") renders from wordCount.
+  assert.ok(
+    Number.isInteger(doc.readingMinutes) && doc.readingMinutes >= 1,
+    `cite.json readingMinutes must be a positive integer for ${slug}`,
+  );
+  assert.equal(
+    doc.readingMinutes,
+    Math.max(1, Math.ceil(doc.wordCount / 200)),
+    `cite.json readingMinutes must equal ceil(wordCount/200) for ${slug}`,
+  );
   const citeInfoJsonFile = path.join(wikiDir, slug, 'info.json');
   if (fs.existsSync(citeInfoJsonFile)) {
     const infoDoc = JSON.parse(fs.readFileSync(citeInfoJsonFile, 'utf8'));
@@ -276,6 +287,11 @@ for (const slug of articleSlugs) {
       doc.wordCount,
       infoDoc.wordCount,
       `cite.json wordCount must agree with the sibling info.json envelope for ${slug}`,
+    );
+    assert.equal(
+      doc.readingMinutes,
+      infoDoc.readingMinutes,
+      `cite.json readingMinutes must agree with the sibling info.json envelope for ${slug}`,
     );
   }
   const historyJsonFile = path.join(wikiDir, slug, 'history.json');
