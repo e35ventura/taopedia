@@ -76,6 +76,7 @@ const revisionStatsOf = (slug) => {
     references: references.map((entry, index) => ({
       ...entry,
       referencesCount: index + 1,
+      sectionCount: (index + 1) * 10,
     })),
   });
   assert.equal(doc.slug, 'source', 'builder: slug field');
@@ -113,6 +114,7 @@ const revisionStatsOf = (slug) => {
         categories: [],
         backlinks: 0,
         referencesCount: 1,
+        sectionCount: 10,
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
@@ -138,6 +140,7 @@ const revisionStatsOf = (slug) => {
         categories: [],
         backlinks: 0,
         referencesCount: 2,
+        sectionCount: 20,
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
@@ -163,6 +166,7 @@ const revisionStatsOf = (slug) => {
         categories: [],
         backlinks: 0,
         referencesCount: 3,
+        sectionCount: 30,
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
@@ -188,6 +192,7 @@ const revisionStatsOf = (slug) => {
         categories: [],
         backlinks: 0,
         referencesCount: 4,
+        sectionCount: 40,
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
@@ -477,6 +482,17 @@ for (const slug of articleSlugs) {
       entry.lastEdited,
       entryInfoDoc.lastEdited,
       `${slug}: every reference entry lastEdited must agree with its sibling info.json envelope`,
+    );
+    // sectionCount is the referenced article's table-of-contents section count —
+    // the same figure its own toc.json (count) / info.json envelope exposes.
+    assert.ok(
+      Number.isInteger(entry.sectionCount) && entry.sectionCount >= 0,
+      `${slug}: every reference entry sectionCount must be a non-negative integer (got ${JSON.stringify(entry.sectionCount)})`,
+    );
+    assert.equal(
+      entry.sectionCount,
+      entryInfoDoc.sectionCount,
+      `${slug}: every reference entry sectionCount must agree with its sibling info.json envelope`,
     );
     assert.equal(
       entry.infoUrl,
