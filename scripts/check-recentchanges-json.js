@@ -284,6 +284,23 @@ for (let i = 0; i < data.changes.length; i++) {
     outboundCountFor(change.slug),
     `change ${i} referencesCount must equal the published outbound-reference count for ${change.slug}`,
   );
+  // sectionCount is the changed article's table-of-contents section count — the
+  // same figure toc.json exposes as `count` and info.json / history.json expose
+  // on their envelopes. Cross-check it against the sibling built toc.json (the
+  // independent source of truth the endpoint renders) so they can't disagree.
+  assert.ok(
+    Number.isInteger(change.sectionCount) && change.sectionCount >= 0,
+    `change ${i} sectionCount must be a non-negative integer (got ${JSON.stringify(change.sectionCount)})`,
+  );
+  const rcTocJsonFile = path.join(wikiDir, change.slug, 'toc.json');
+  if (fs.existsSync(rcTocJsonFile)) {
+    const tocDoc = JSON.parse(fs.readFileSync(rcTocJsonFile, 'utf8'));
+    assert.equal(
+      change.sectionCount,
+      tocDoc.count,
+      `change ${i} sectionCount must agree with the sibling toc.json count for ${change.slug}`,
+    );
+  }
   assert.equal(change.authorName, expected.authorName, `change ${i} authorName must match the revision history`);
   assert.equal(change.sha, expected.sha, `change ${i} sha must match the revision history`);
   assert.ok(typeof change.sha === 'string' && change.sha.length > 0, `change ${i} sha must be a non-empty string`);
