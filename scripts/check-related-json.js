@@ -107,6 +107,7 @@ const sectionCountOf = (slug) => {
   assert.equal(doc.referencesCount, 11, 'builder: referencesCount field threaded verbatim');
   assert.equal(doc.sectionCount, 6, 'builder: sectionCount field threaded verbatim');
   assert.equal(doc.wordCount, 432, 'builder: wordCount field threaded verbatim');
+  assert.equal(doc.readingMinutes, 3, 'builder: readingMinutes = ceil(432/200)');
   assert.equal(doc.revisionCount, 14, 'builder: revisionCount field threaded verbatim');
   assert.equal(doc.firstEdited, '2024-01-01T00:00:00.000Z', 'builder: firstEdited field threaded verbatim');
   assert.equal(doc.lastEdited, '2024-06-01T00:00:00.000Z', 'builder: lastEdited field threaded verbatim');
@@ -400,6 +401,18 @@ for (const slug of articleSlugs) {
       doc.wordCount,
       infoDoc.wordCount,
       `${slug}: related.json wordCount must agree with the sibling info.json envelope`,
+    );
+    // readingMinutes is the ~200-wpm estimate derived from wordCount — the same
+    // figure info.json / history.json / cite.json / toc.json expose.
+    assert.equal(
+      doc.readingMinutes,
+      Math.max(1, Math.ceil(doc.wordCount / 200)),
+      `${slug}: related.json readingMinutes must equal ceil(wordCount/200) (min 1)`,
+    );
+    assert.equal(
+      doc.readingMinutes,
+      infoDoc.readingMinutes,
+      `${slug}: related.json readingMinutes must agree with the sibling info.json envelope`,
     );
   }
   assert.equal(doc.url, `${ORIGIN}/wiki/${slug}/`, `${slug}: related.json url must be the canonical article URL`);

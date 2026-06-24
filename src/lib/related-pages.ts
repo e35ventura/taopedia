@@ -72,6 +72,7 @@ export interface ArticleRelatedPagesDocument {
   referencesCount: number;
   sectionCount: number;
   wordCount: number;
+  readingMinutes: number;
   revisionCount: number;
   firstEdited: string | null;
   lastEdited: string | null;
@@ -238,6 +239,10 @@ export function buildArticleRelatedPages({
     // The article body's word count — the same figure info.json / history.json
     // expose and the article-page footer (mw-article-meta data-word-count) renders.
     wordCount: Number.isFinite(wordCount) ? wordCount : 0,
+    // The ~200-wpm reading-time estimate derived from wordCount — the same figure
+    // info.json / history.json / cite.json / toc.json expose and the article-page
+    // footer ("N min read") renders.
+    readingMinutes: Math.max(1, Math.ceil((Number.isFinite(wordCount) ? wordCount : 0) / 200)),
     // The article's revision count (its commit-history length) — the same figure
     // info.json / history.json / cite.json expose on their envelopes.
     revisionCount: Number.isFinite(revisionCount) ? revisionCount : 0,
