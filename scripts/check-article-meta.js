@@ -126,6 +126,11 @@ for (const { file, slug } of articlePages) {
     lastEdited: history[0]?.date ?? null,
   });
   assert.deepEqual(infoDoc, expectedInfo, `${where}: info.json must match the page-information build data exactly`);
+  assert.equal(
+    infoDoc.readingMinutes,
+    expectedReadingTime,
+    `${where}: info.json readingMinutes must match the article footer's rendered reading time`,
+  );
   assert.ok(!('authorEmail' in infoDoc), `${where}: info.json must not expose authorEmail`);
 
   const infoHtmlFile = path.join(wikiDir, slug, 'info', 'index.html');
