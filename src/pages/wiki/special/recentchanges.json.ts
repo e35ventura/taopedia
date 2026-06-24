@@ -93,6 +93,12 @@ export const GET: APIRoute = async ({ site }) => {
       site: origin,
       recentchangesJsonUrl: `${origin}/wiki/special/recentchanges.json`,
       feedUrl: `${origin}/wiki/special/recentchanges/feed.json`,
+      // feedJsonUrl is the same JSON Feed link under the consistent <name>JsonUrl
+      // key every other JSON companion uses (recentchangesJsonUrl, articlesJsonUrl,
+      // infoJsonUrl, historyJsonUrl). feedUrl was the lone outlier naming it without
+      // the Json suffix; it is kept for backwards compatibility and feedJsonUrl is
+      // the consistent name.
+      feedJsonUrl: `${origin}/wiki/special/recentchanges/feed.json`,
       atomUrl: `${origin}/wiki/special/recentchanges/atom.xml`,
       rssUrl: `${origin}/wiki/special/recentchanges/rss.xml`,
       limit: RECENT_LIMIT,
