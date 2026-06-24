@@ -75,6 +75,12 @@ export const GET: APIRoute = async ({ site, props }) => {
       tocJsonUrl: new URL(`/wiki/${slug}/toc.json`, site ?? new URL('https://taopedia.org')).toString(),
       referencesUrl: new URL(`/wiki/${slug}/references.json`, site ?? new URL('https://taopedia.org')).toString(),
       relatedUrl: new URL(`/wiki/${slug}/related.json`, site ?? new URL('https://taopedia.org')).toString(),
+      // referencesJsonUrl / relatedJsonUrl are the consistently-named `*JsonUrl`
+      // aliases for referencesUrl / relatedUrl, matching the infoJsonUrl /
+      // historyJsonUrl / backlinksJsonUrl / citeJsonUrl / tocJsonUrl companions
+      // this envelope already exposes. referencesUrl / relatedUrl kept for back-compat.
+      referencesJsonUrl: new URL(`/wiki/${slug}/references.json`, site ?? new URL('https://taopedia.org')).toString(),
+      relatedJsonUrl: new URL(`/wiki/${slug}/related.json`, site ?? new URL('https://taopedia.org')).toString(),
       imageUrl: new URL(`/og/${slug}.png`, site ?? new URL('https://taopedia.org')).toString(),
       categories: page.data.categories ?? [],
       incomingLinks: Number.isFinite(incomingLinks) ? incomingLinks : 0,
