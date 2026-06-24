@@ -52,6 +52,10 @@ export const buildArticleReferences = ({ slug, title, origin, summary = '', cate
     summary: link.summary || null,
     categories: Array.isArray(link.categories) ? link.categories : [],
     backlinks: Number.isFinite(link.backlinks) ? link.backlinks : 0,
+    // The referenced article's revision-history summary — the same trio
+    // info.json and history.json expose per article.
+    revisionCount: Number.isFinite(link.revisionCount) ? link.revisionCount : 0,
+    firstEdited: link.firstEdited ?? null,
     lastEdited: link.lastEdited ?? null,
     url: `${origin}/wiki/${link.slug}/`,
     infoUrl: `${origin}/wiki/${link.slug}/info/`,
