@@ -655,6 +655,19 @@ const nonSpaceDelimitedAriaPopupStateAttrPattern =
 const ariaInvalidStateAttrPattern = /<[^>]*\saria-invalid\s*=/i;
 const nonSpaceDelimitedAriaInvalidStateAttrPattern = /<[^>]*[/"'`]aria-invalid\s*=/i;
 
+// aria-description=/aria-details= override or extend the accessible description
+// announced for an element with attacker-controlled text — the freeform-text
+// twin of the already-blocked aria-describedby (#553) and aria-label (#501).
+// aria-description="Verified by Bittensor Foundation" makes a screen reader
+// announce a fabricated trust claim for plain prose, and aria-details points AT
+// users to attacker-chosen extended content. Same accessibility-name/description
+// spoof family as the merged aria-label/aria-describedby/aria-roledescription
+// blocks. Glossary articles never set their own ARIA descriptions on static
+// prose — the site's components provide accessible names via standard HTML.
+const ariaDescriptionAttrPattern = /<[^>]*\saria-(?:description|details)\s*=/i;
+const nonSpaceDelimitedAriaDescriptionAttrPattern =
+  /<[^>]*[/"'`](?:aria-(?:description|details))\s*=/i;
+
 // nowrap on allowed <td>/<th> disables text wrapping in the cell — an injected
 // long URL, fake wallet address, or padded phishing line breaks out of the
 // column, reflowing the real article text off-screen (a layout-defacement /
@@ -1416,6 +1429,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": aria-invalid attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    ariaDescriptionAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAriaDescriptionAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": aria-description and aria-details attributes are not allowed in article content`,
     );
   }
 
