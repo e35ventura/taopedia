@@ -63,6 +63,10 @@ export const buildArticleReferences = ({ slug, title, origin, summary = '', cate
     // envelope exposes, so consumers can compare both inbound and outbound link
     // totals across the referenced set without a second fetch.
     referencesCount: Number.isFinite(link.referencesCount) ? link.referencesCount : 0,
+    // The referenced article's table-of-contents section count — the same figure
+    // its own toc.json / info.json expose and allpages.json / subnets.json
+    // expose per directory entry.
+    sectionCount: Number.isFinite(link.sectionCount) ? link.sectionCount : 0,
     // The referenced article's revision-history summary — the same trio
     // info.json and history.json expose per article.
     revisionCount: Number.isFinite(link.revisionCount) ? link.revisionCount : 0,

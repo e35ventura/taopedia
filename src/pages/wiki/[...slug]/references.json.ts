@@ -22,10 +22,15 @@ export async function getStaticPaths() {
   const titleBySlug = Object.fromEntries(pages.map((page) => [getPageSlug(page), page.data.title]));
   const summaryBySlug = Object.fromEntries(pages.map((page) => [getPageSlug(page), page.data.summary ?? '']));
   const categoriesBySlug = Object.fromEntries(pages.map((page) => [getPageSlug(page), page.data.categories ?? []]));
+  // Per-slug table-of-contents section count — the same sectionCount info.json /
+  // history.json expose (and the toc.json `count`). Built once from the content
+  // collection so both the envelope and each reference entry can carry it.
+  const sectionCountBySlug = Object.fromEntries(
+    await Promise.all(pages.map(async (page) => [getPageSlug(page), getArticleToc((await render(page)).headings).length])),
+  );
 
   return Promise.all(pages.map(async (page) => {
     const slug = getPageSlug(page);
-    const { headings } = await render(page);
     const references = getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).map((ref) => {
       const history = historyForSlug(ref.slug);
       return {
@@ -34,6 +39,7 @@ export async function getStaticPaths() {
         categories: categoriesBySlug[ref.slug] ?? [],
         backlinks: publishedInboundLinkCount(backlinksData, ref.slug, titleBySlug),
         referencesCount: getArticleReferences({ slug: ref.slug, linkGraph: linkgraphData, titleBySlug }).length,
+        sectionCount: sectionCountBySlug[ref.slug] ?? 0,
         revisionCount: history.length,
         firstEdited: history[history.length - 1]?.date ?? null,
         lastEdited: history[0]?.date ?? null,
@@ -54,7 +60,7 @@ export async function getStaticPaths() {
         revisionCount: history.length,
         firstEdited: history[history.length - 1]?.date ?? null,
         lastEdited: history[0]?.date ?? null,
-        sectionCount: getArticleToc(headings).length,
+        sectionCount: sectionCountBySlug[slug] ?? 0,
         // The article body's word count — the same figure info.json / history.json
         // expose and the article-page footer (mw-article-meta data-word-count) renders.
         wordCount: (page.body ?? '').trim().split(/\s+/).filter(Boolean).length,
@@ -87,6 +93,7 @@ export const GET: APIRoute = async ({ props, site }) => {
       categories: string[];
       backlinks: number;
       referencesCount: number;
+      sectionCount: number;
       revisionCount: number;
       firstEdited: string | null;
       lastEdited: string | null;
