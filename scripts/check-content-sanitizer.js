@@ -501,6 +501,13 @@ rejects('Intro.\n\n<portal src="https://evil.example/"></portal>', 'plain <porta
 rejects('Intro.\n\n<  portal  >x</portal>', 'spaced <portal>');
 accepts('A portal is a page-embedding primitive described here only as prose.', 'benign portal prose');
 
+// <applet> embeds and runs a legacy Java applet — the same active-content /
+// code-execution / embedding threat as the already-blocked <object> / <embed> /
+// <iframe>, so it belongs in the active-embedding family the sanitizer blocks.
+rejects('Intro.\n\n<applet code="Evil.class" archive="evil.jar"></applet>', 'plain <applet>');
+rejects('Intro.\n\n<  applet  >x</applet>', 'spaced <applet>');
+accepts('A Java applet is a legacy embedding primitive described here only as prose.', 'benign applet prose');
+
 // <video>/<audio> render native media UI with no script; CSP media-src 'none' does not
 // stop the elements from appearing. Block them like dialog and fencedframe.
 rejects('Intro.\n\n<video src="/evil.mp4" controls></video>', 'plain <video>');
