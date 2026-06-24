@@ -91,6 +91,11 @@ export const GET: APIRoute = async ({ site }) => {
         referencesCount: getArticleReferences({ slug: entry.slug, linkGraph: linkgraphData, titleBySlug }).length,
         sectionCount: sectionCountBySlug[entry.slug] ?? 0,
         wordCount: wordCountBySlug[entry.slug] ?? 0,
+        // Estimated reading time in minutes — the same ~200 wpm ceil formula
+        // info.json exposes (via buildArticleInfo) and the article-page footer
+        // ("N min read") renders from wordCount — so a consumer of the ranking can
+        // show each top page's reading time without a second fetch of info.json.
+        readingMinutes: Math.max(1, Math.ceil((wordCountBySlug[entry.slug] ?? 0) / 200)),
         // The article's revision stats (history is newest-first) — the same
         // revisionCount / firstEdited / lastEdited trio info.json / history.json
         // expose per article and allpages.json exposes per directory entry — so a
