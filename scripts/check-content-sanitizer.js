@@ -1062,6 +1062,19 @@ accepts('<a href="/wiki/aria-placeholder=demo">aria-placeholder docs</a>', 'beni
 accepts('ARIA placeholder is an accessibility concept described here only as prose.', 'benign aria-placeholder prose');
 accepts('<span class=x/aria-multiline-demo>not an aria-multiline attribute</span>', 'benign aria-multiline substring in class value');
 
+// aria-activedescendant= fakes the virtually-focused child of a composite widget
+// — same composite-widget spoof family as merged aria-orientation/multiselectable,
+// the grid block, and #583 (toggle state); static prose never manages ARIA focus.
+rejects('Intro.\n\n<ul aria-activedescendant="evil-link"><li id="evil-link">x</li></ul>', 'plain aria-activedescendant attribute');
+rejects('Intro.\n\n<  div   aria-activedescendant = "node-2">x</div>', 'spaced aria-activedescendant attribute');
+rejects('<div href="x"aria-activedescendant="node-2">go</div>', 'quote-abutted aria-activedescendant attribute');
+rejects('<div class=x/aria-activedescendant="node-2">x</div>', 'slash-delimited aria-activedescendant attribute');
+rejects("<ul class='x'aria-activedescendant='node-2'>x</ul>", 'single-quote-abutted aria-activedescendant attribute');
+
+accepts('<a href="/wiki/aria-activedescendant=demo">aria-activedescendant docs</a>', 'benign aria-activedescendant substring in quoted href');
+accepts('ARIA activedescendant is an accessibility concept described here only as prose.', 'benign aria-activedescendant prose');
+accepts('<span class=x/aria-activedescendant-demo>not an aria-activedescendant attribute</span>', 'benign aria-activedescendant substring in class value');
+
 // srcset=/sizes= on <img> steer responsive loading — gap after #411 blocked picture/source.
 rejects('Intro.\n\n<img src="/wiki/fig.png" srcset="https://evil.example/x 1x" alt="x">', 'plain img srcset attribute');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   srcset = "https://evil.example/x 2x">', 'spaced img srcset attribute');
