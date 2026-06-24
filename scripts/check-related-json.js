@@ -136,6 +136,7 @@ const sectionCountOf = (slug) => {
         tags: ['Security'],
         categories: [],
         backlinks: 0,
+        incomingLinks: 0,
         referencesCount: 0,
         sectionCount: 0,
         wordCount: 0,
@@ -165,6 +166,7 @@ const sectionCountOf = (slug) => {
         tags: ['Security'],
         categories: [],
         backlinks: 0,
+        incomingLinks: 0,
         referencesCount: 0,
         sectionCount: 0,
         wordCount: 0,
@@ -194,6 +196,7 @@ const sectionCountOf = (slug) => {
         tags: ['Consensus'],
         categories: [],
         backlinks: 0,
+        incomingLinks: 0,
         referencesCount: 0,
         sectionCount: 0,
         wordCount: 0,
@@ -527,6 +530,23 @@ for (const slug of articleSlugs) {
     assert.equal(entry.imageUrl, `${ORIGIN}/og/${entry.slug}.png`, `${slug}: every related entry imageUrl must be the related article's OG share-card URL`);
     assert.ok(Array.isArray(entry.tags), `${slug}: every related entry must expose tags as an array`);
     assert.ok(entry.tags.length <= 2, `${slug}: related entry ${entry.slug} must expose at most two tags`);
+    // incomingLinks is the related article's published inbound-link count — the
+    // same figure info.json names and backlinks exposes as `backlinks` per row.
+    assert.equal(
+      entry.incomingLinks,
+      publishedInboundLinkCount(backlinksData, entry.slug, titleBySlug),
+      `${slug}: every related entry incomingLinks must match the published inbound-link count`,
+    );
+    assert.equal(entry.incomingLinks, entry.backlinks, `${slug}: every related entry incomingLinks must equal backlinks`);
+    const entryInfoJson = path.join(wikiDir, entry.slug, 'info.json');
+    if (fs.existsSync(entryInfoJson)) {
+      const entryInfo = JSON.parse(fs.readFileSync(entryInfoJson, 'utf8'));
+      assert.equal(
+        entry.incomingLinks,
+        entryInfo.incomingLinks,
+        `${slug}: related entry ${entry.slug} incomingLinks must agree with sibling info.json`,
+      );
+    }
   }
 
   const html = fs.readFileSync(htmlFile, 'utf8');

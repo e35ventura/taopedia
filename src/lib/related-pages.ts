@@ -98,6 +98,7 @@ export interface ArticleRelatedPagesDocument {
     tags: string[];
     categories: string[];
     backlinks: number;
+    incomingLinks: number;
     referencesCount: number;
     sectionCount: number;
     wordCount: number;
@@ -273,6 +274,9 @@ export function buildArticleRelatedPages({
       tags: entry.tags,
       categories: Array.isArray(entry.categories) ? entry.categories : [],
       backlinks: Number.isFinite(entry.backlinks) ? entry.backlinks : 0,
+      // info.json names this figure incomingLinks; keep backlinks for the field
+      // name the HTML listing endpoints (allpages/subnets/category) expose.
+      incomingLinks: Number.isFinite(entry.backlinks) ? entry.backlinks : 0,
       referencesCount: Number.isFinite(entry.referencesCount) ? entry.referencesCount : 0,
       sectionCount: Number.isFinite(entry.sectionCount) ? entry.sectionCount : 0,
       wordCount: Number.isFinite(entry.wordCount) ? entry.wordCount : 0,
