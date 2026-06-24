@@ -358,26 +358,39 @@ const nonSpaceDelimitedColDimensionAttrPattern = /<\s*(?:col|colgroup)\b[^>]*[/"
 
 // autofocus steals keyboard focus on page load — a focus-theft primitive on allowed
 // elements with no script. Tag-boundary lookahead catches autofocus before another
-// attribute (<div autofocus class="x">). Quote-abutted only — no slash delimiter,
-// because class=x/autofocus is a class value, not an autofocus attribute (parse5).
+// attribute (<div autofocus class="x">). parse5 also treats `<div/autofocus>`,
+// `<div /autofocus>`, and `<div class="x"/autofocus>` as a real bare autofocus
+// attribute, so those slash-boundary forms must be blocked too. Do NOT widen this
+// to every `/autofocus` substring: `<div class=x/autofocus>` remains a class value.
 const autofocusAttrPattern = /<[^>]*\sautofocus(?=[\s>/=])/i;
 const quoteAbuttedAutofocusAttrPattern = /<[^>]*["'`]autofocus(?=[\s>/=])/i;
+const tagNameSlashDelimitedAutofocusAttrPattern = /<\s*[a-z][\w:-]*\/autofocus(?=[\s>/=])/i;
+const whitespaceSlashDelimitedAutofocusAttrPattern = /<[^>]*\s\/autofocus(?=[\s>/=])/i;
+const quoteSlashDelimitedAutofocusAttrPattern = /<[^>]*["'`]\/autofocus(?=[\s>/=])/i;
 
 // hidden on allowed elements removes content from layout but keeps it in the DOM —
 // an injected <a hidden href="…"> is still a navigable link with no script.
-// Same tag-boundary / quote-abutted detection as autofocus (merged #453).
+// Same tag-boundary / quote-abutted detection as autofocus, plus the parser-backed
+// slash-boundary forms (`<div/hidden>`, `<div /hidden>`, `<div class="x"/hidden>`).
 const hiddenAttrPattern = /<[^>]*\shidden(?=[\s>/=])/i;
 const quoteAbuttedHiddenAttrPattern = /<[^>]*["'`]hidden(?=[\s>/=])/i;
+const tagNameSlashDelimitedHiddenAttrPattern = /<\s*[a-z][\w:-]*\/hidden(?=[\s>/=])/i;
+const whitespaceSlashDelimitedHiddenAttrPattern = /<[^>]*\s\/hidden(?=[\s>/=])/i;
+const quoteSlashDelimitedHiddenAttrPattern = /<[^>]*["'`]\/hidden(?=[\s>/=])/i;
 
 // download on an allowed <a> turns a normal-looking link into a drive-by file
 // download even without a value (`<a download href="...">`). The existing
 // interaction-surface scan above already blocks the value form (`download=` and
 // quote-/slash-abutted variants); these boolean patterns close the remaining
-// presence-only form using the same tag-boundary / quote-abutted detection as
-// autofocus/hidden so benign class or href text containing `/download` does not
-// false-positive.
+// presence-only form. parse5 also treats `<a/download>`, `<a /download>`, and
+// `<a class="x"/download>` as a real bare download attribute, so slash-boundary
+// forms must be blocked too. Do NOT widen this to every `/download` substring:
+// `<a class=x/download href="...">` remains a class value.
 const downloadAttrPattern = /<[^>]*\sdownload(?=[\s>/=])/i;
 const quoteAbuttedDownloadAttrPattern = /<[^>]*["'`]download(?=[\s>/=])/i;
+const tagNameSlashDelimitedDownloadAttrPattern = /<\s*[a-z][\w:-]*\/download(?=[\s>/=])/i;
+const whitespaceSlashDelimitedDownloadAttrPattern = /<[^>]*\s\/download(?=[\s>/=])/i;
+const quoteSlashDelimitedDownloadAttrPattern = /<[^>]*["'`]\/download(?=[\s>/=])/i;
 
 // popover on an allowed element renders a native top-layer overlay even when
 // omitted its explicit value (`<div popover>...</div>` parses as the auto
@@ -400,10 +413,15 @@ const quoteSlashDelimitedPopoverAttrPattern = /<[^>]*["'`]\/popover(?=[\s>/=])/i
 // — a no-script content-spoofing primitive. inert is a boolean attribute, so the
 // lookahead is the same `(?=[\s>/=])` shape autofocus/hidden use. Same interaction-
 // surface family as the merged contenteditable/tabindex/draggable/popover/accesskey
-// blocks; same tag-boundary / quote-abutted detection so a benign class value like
-// `class="x/inert"` does not false-positive.
+// blocks. parse5 also treats `<div/inert>`, `<div /inert>`, and
+// `<div class="x"/inert>` as a real bare inert attribute, so slash-boundary forms
+// must be blocked too. Do NOT widen this to every `/inert` substring:
+// `class="x/inert"` remains a class value.
 const inertAttrPattern = /<[^>]*\sinert(?=[\s>/=])/i;
 const quoteAbuttedInertAttrPattern = /<[^>]*["'`]inert(?=[\s>/=])/i;
+const tagNameSlashDelimitedInertAttrPattern = /<\s*[a-z][\w:-]*\/inert(?=[\s>/=])/i;
+const whitespaceSlashDelimitedInertAttrPattern = /<[^>]*\s\/inert(?=[\s>/=])/i;
+const quoteSlashDelimitedInertAttrPattern = /<[^>]*["'`]\/inert(?=[\s>/=])/i;
 
 // aria-label=/aria-labelledby= override an allowed element's accessible name.
 // On links and images this can make screen-reader output differ from the visible
@@ -661,13 +679,17 @@ const imgFetchpriorityQuoteAbuttedPattern = /<\s*img\b[^>]*["'`]fetchpriority\s*
 // <img> nested in an <a href="...">, the browser appends the click coordinates
 // (e.g. ?37,128) to the link URL — a click beacon with no script, handler, or
 // flagged scheme. Tag-scoped to <img> and scanned on emptyQuotedAttributeValues()
-// so alt text containing the literal word "ismap" passes. Delimiter is whitespace,
-// quote, or backtick (NOT /); including / as a delimiter triggers the #449 false
-// positive Codex flagged on unquoted URLs containing "/ismap." (e.g.
-// /wiki/ismap-demo.png), and slash-delimited boolean attributes are not a realistic
-// Markdown injection surface — same tradeoff as the merged autofocus/hidden rules.
+// so alt text containing the literal word "ismap" passes. parse5 also treats
+// `<img/ismap>`, `<img /ismap>`, and `<img class="x"/ismap>` as a real bare ismap
+// attribute, so those slash-boundary forms must be blocked too. Do NOT widen this
+// to every `/ismap` substring: the earlier #449 false positive on unquoted URLs
+// like `/wiki/ismap-demo.png` still applies, and `<img class=x/ismap ...>` remains
+// a class value rather than an attribute.
 const imgIsmapAttrPattern = /<\s*img\b[^>]*\sismap(?=[\s>/=])/i;
 const quoteAbuttedImgIsmapAttrPattern = /<\s*img\b[^>]*["'`]ismap(?=[\s>/=])/i;
+const tagNameSlashDelimitedImgIsmapAttrPattern = /<\s*img\/ismap(?=[\s>/=])/i;
+const whitespaceSlashDelimitedImgIsmapAttrPattern = /<\s*img\b[^>]*\s\/ismap(?=[\s>/=])/i;
+const quoteSlashDelimitedImgIsmapAttrPattern = /<\s*img\b[^>]*["'`]\/ismap(?=[\s>/=])/i;
 
 // frame=/rules=/summary= on an allowed <table> set the obsolete presentational
 // table-border attributes without the blocked inline style= attribute — same
@@ -1060,6 +1082,9 @@ export function validateArticleContent(slug, content) {
   if (
     autofocusAttrPattern.test(emptiedAttributeContent)
     || quoteAbuttedAutofocusAttrPattern.test(emptiedAttributeContent)
+    || tagNameSlashDelimitedAutofocusAttrPattern.test(emptiedAttributeContent)
+    || whitespaceSlashDelimitedAutofocusAttrPattern.test(emptiedAttributeContent)
+    || quoteSlashDelimitedAutofocusAttrPattern.test(emptiedAttributeContent)
   ) {
     throw new Error(`Unsafe article content in "${slug}": autofocus attributes are not allowed in article content`);
   }
@@ -1067,6 +1092,9 @@ export function validateArticleContent(slug, content) {
   if (
     hiddenAttrPattern.test(emptiedAttributeContent)
     || quoteAbuttedHiddenAttrPattern.test(emptiedAttributeContent)
+    || tagNameSlashDelimitedHiddenAttrPattern.test(emptiedAttributeContent)
+    || whitespaceSlashDelimitedHiddenAttrPattern.test(emptiedAttributeContent)
+    || quoteSlashDelimitedHiddenAttrPattern.test(emptiedAttributeContent)
   ) {
     throw new Error(`Unsafe article content in "${slug}": hidden attributes are not allowed in article content`);
   }
@@ -1074,6 +1102,9 @@ export function validateArticleContent(slug, content) {
   if (
     downloadAttrPattern.test(emptiedAttributeContent)
     || quoteAbuttedDownloadAttrPattern.test(emptiedAttributeContent)
+    || tagNameSlashDelimitedDownloadAttrPattern.test(emptiedAttributeContent)
+    || whitespaceSlashDelimitedDownloadAttrPattern.test(emptiedAttributeContent)
+    || quoteSlashDelimitedDownloadAttrPattern.test(emptiedAttributeContent)
   ) {
     throw new Error(`Unsafe article content in "${slug}": download attributes are not allowed in article content`);
   }
@@ -1091,6 +1122,9 @@ export function validateArticleContent(slug, content) {
   if (
     inertAttrPattern.test(emptiedAttributeContent)
     || quoteAbuttedInertAttrPattern.test(emptiedAttributeContent)
+    || tagNameSlashDelimitedInertAttrPattern.test(emptiedAttributeContent)
+    || whitespaceSlashDelimitedInertAttrPattern.test(emptiedAttributeContent)
+    || quoteSlashDelimitedInertAttrPattern.test(emptiedAttributeContent)
   ) {
     throw new Error(`Unsafe article content in "${slug}": inert attributes are not allowed in article content`);
   }
@@ -1336,6 +1370,9 @@ export function validateArticleContent(slug, content) {
   if (
     imgIsmapAttrPattern.test(emptiedAttributeContent)
     || quoteAbuttedImgIsmapAttrPattern.test(emptiedAttributeContent)
+    || tagNameSlashDelimitedImgIsmapAttrPattern.test(emptiedAttributeContent)
+    || whitespaceSlashDelimitedImgIsmapAttrPattern.test(emptiedAttributeContent)
+    || quoteSlashDelimitedImgIsmapAttrPattern.test(emptiedAttributeContent)
   ) {
     throw new Error(`Unsafe article content in "${slug}": ismap attributes are not allowed in article content`);
   }

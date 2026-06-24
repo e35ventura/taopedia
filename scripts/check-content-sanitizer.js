@@ -99,12 +99,15 @@ rejects('Intro.\n\n<  a   href="/wiki/foo/"   download = "payload.bin">link</a>'
 rejects('Intro.\n\n<div popover>overlay menu</div>', 'bare popover attribute on div');
 rejects('Intro.\n\n<div popover="auto">overlay menu</div>', 'plain popover attribute on div');
 rejects('Intro.\n\n<  p   popover = "manual">hidden panel</p>', 'spaced popover attribute');
+rejects('Intro.\n\n<a/download href="/evil.bin">grab</a>', 'slash-delimited bare download after tag name');
+rejects('Intro.\n\n<a /download href="/evil.bin">grab</a>', 'slash-delimited bare download after whitespace');
 rejects('Intro.\n\n<div/popover>overlay menu</div>', 'slash-delimited bare popover after tag name');
 rejects('Intro.\n\n<div /popover>overlay menu</div>', 'slash-delimited bare popover after whitespace');
 
 // Non-space-delimited spellings must be caught too (same contract as on* handlers).
 rejects('<a href="x"download>grab</a>', 'quote-abutted bare download attribute');
 rejects('<a href="x"download="evil.zip">grab</a>', 'quote-abutted download attribute');
+rejects('<a class="x"/download href="/evil.bin">grab</a>', 'quote-plus-slash-delimited bare download attribute');
 rejects('<div class="x"popover>overlay</div>', 'quote-abutted bare popover attribute');
 rejects('<div class="x"/popover>overlay</div>', 'quote-plus-slash-delimited bare popover attribute');
 rejects('<div class=x/popover="auto">overlay</div>', 'slash-delimited popover attribute');
@@ -112,6 +115,7 @@ rejects('<div class=x/popover="auto">overlay</div>', 'slash-delimited popover at
 // Prose that discusses these attributes without an assignment must still pass.
 accepts('A download manager fetches files unrelated to the download attribute.', 'benign download prose');
 accepts('Popover overlays are a native UI primitive described here only as prose.', 'benign popover prose');
+accepts('<a class=x/download href="/wiki/foo/">not a download attribute</a>', 'benign slash inside unquoted class value before bare download word');
 accepts('<div class=x/popover>not a popover attribute</div>', 'benign slash inside unquoted class value before bare popover word');
 
 // accesskey= binds a keyboard shortcut to an element, so an injected accesskey on
@@ -226,9 +230,13 @@ rejects('Intro.\n\n<  a   href = "/wiki/foo/"   inert  >link</a>', 'spaced inert
 rejects('Intro.\n\n<form inert action="https://evil.example/collect">go</form>', 'plain inert on form');
 rejects('<a href="x"inert>go</a>', 'quote-abutted inert attribute');
 rejects('Intro.\n\n<button inert type="button">Send</button>', 'plain inert on button');
+rejects('Intro.\n\n<div/inert>blocked</div>', 'slash-delimited bare inert after tag name');
+rejects('Intro.\n\n<div /inert>blocked</div>', 'slash-delimited bare inert after whitespace');
+rejects('<div class="x"/inert>blocked</div>', 'quote-plus-slash-delimited bare inert attribute');
 // Prose that mentions "inert" without an attribute assignment still passes.
 accepts('A deactivated control is functionally inert in the DOM.', 'benign inert prose');
 accepts('The inert attribute removes an element from the tab order.', 'benign inert attribute prose');
+accepts('<div class=x/inert>not an inert attribute</div>', 'benign slash inside unquoted class value before bare inert word');
 
 // Plain dangerous URL schemes remain blocked.
 rejects('See [x](javascript:alert(1)).', 'plain javascript:');
@@ -633,6 +641,9 @@ rejects('Intro.\n\n<div autofocus class="x">trap</div>', 'autofocus before anoth
 rejects('Intro.\n\n<p autofocus id="main">trap</p>', 'autofocus mid-tag on paragraph');
 rejects('Intro.\n\n<a href="/wiki/foo/" autofocus>link</a>', 'autofocus on allowed anchor');
 rejects('<a href="x"autofocus>go</a>', 'quote-abutted autofocus attribute');
+rejects('Intro.\n\n<div/autofocus>trap</div>', 'slash-delimited bare autofocus after tag name');
+rejects('Intro.\n\n<div /autofocus>trap</div>', 'slash-delimited bare autofocus after whitespace');
+rejects('<div class="x"/autofocus>trap</div>', 'quote-plus-slash-delimited bare autofocus attribute');
 accepts('<div class=x/autofocus>not an autofocus attribute</div>', 'benign slash inside unquoted class value');
 accepts('Autofocus the search field before the reader starts typing.', 'benign autofocus prose at sentence start');
 accepts('Use autofocus carefully when designing keyboard flows.', 'benign autofocus prose mid-sentence');
@@ -669,6 +680,9 @@ rejects('Intro.\n\n<div hidden>panel</div>', 'bare hidden attribute');
 rejects('Intro.\n\n<div hidden class="x">panel</div>', 'hidden before another attribute');
 rejects('Intro.\n\n<  p   hidden = "until-found">x</p>', 'spaced hidden attribute with value');
 rejects('<a href="x"hidden>go</a>', 'quote-abutted hidden attribute');
+rejects('Intro.\n\n<div/hidden>panel</div>', 'slash-delimited bare hidden after tag name');
+rejects('Intro.\n\n<div /hidden>panel</div>', 'slash-delimited bare hidden after whitespace');
+rejects('<div class="x"/hidden>panel</div>', 'quote-plus-slash-delimited bare hidden attribute');
 accepts('<div class=x/hidden>not a hidden attribute</div>', 'benign slash inside unquoted class value');
 accepts('Hidden text and hidden sections are described here only as prose.', 'benign hidden prose');
 accepts('<img src="/wiki/fig.png" alt="a hidden treasure map">', 'benign hidden word inside img alt');
@@ -959,6 +973,9 @@ rejects('Intro.\n\n<img src="/wiki/fig.png"   ismap   alt="x">', 'spaced img ism
 rejects('Intro.\n\n<img ismap  =  "x" src="/wiki/fig.png" alt="x">', 'spaced equals img ismap attribute');
 rejects('Intro.\n\n<img ismap=true src="/wiki/fig.png" alt="x">', 'unquoted img ismap attribute value');
 rejects('Intro.\n\n<img src="/wiki/fig.png"ismap alt="x">', 'quote-abutted img ismap attribute');
+rejects('Intro.\n\n<img/ismap src="/wiki/fig.png" alt="x">', 'slash-delimited bare img ismap after tag name');
+rejects('Intro.\n\n<img /ismap src="/wiki/fig.png" alt="x">', 'slash-delimited bare img ismap after whitespace');
+rejects('Intro.\n\n<img class="x"/ismap src="/wiki/fig.png" alt="x">', 'quote-plus-slash-delimited bare img ismap attribute');
 
 // Prose that mentions the literal word "ismap" without an attribute assignment,
 // and alt text that contains the word, must still pass — guards the new pattern
@@ -967,6 +984,7 @@ rejects('Intro.\n\n<img src="/wiki/fig.png"ismap alt="x">', 'quote-abutted img i
 accepts('The ismap attribute is obsolete on server-side image maps.', 'benign ismap prose');
 accepts('HTML authors discussed the ismap attribute in earlier drafts.', 'benign ismap prose mid-sentence');
 accepts('<img src="/wiki/fig.png" alt="the ismap attribute is obsolete">', 'benign ismap word inside img alt');
+accepts('<img class=x/ismap src="/wiki/fig.png" alt="diagram">', 'benign slash inside unquoted class value before bare img ismap word');
 accepts('<img src=/wiki/ismap-demo.png alt=diagram>', 'benign unquoted img src path containing ismap substring');
 accepts('<img src=/wiki/ismap.png alt=diagram>', 'benign unquoted img src path with ismap followed by extension dot');
 
