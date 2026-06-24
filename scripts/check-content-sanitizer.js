@@ -93,12 +93,14 @@ accepts('Drag-and-drop UIs mark elements with the draggable attribute.', 'benign
 
 // download= on an allowed <a> is a drive-by file download primitive; popover= on
 // allowed elements renders a native overlay with no script or flagged scheme.
+rejects('Intro.\n\n<a href="/evil.bin" download>grab</a>', 'bare download attribute');
 rejects('Intro.\n\n<a href="/evil.bin" download="wallet.zip">grab</a>', 'plain download attribute');
 rejects('Intro.\n\n<  a   href="/wiki/foo/"   download = "payload.bin">link</a>', 'spaced download attribute');
 rejects('Intro.\n\n<div popover="auto">overlay menu</div>', 'plain popover attribute on div');
 rejects('Intro.\n\n<  p   popover = "manual">hidden panel</p>', 'spaced popover attribute');
 
 // Non-space-delimited spellings must be caught too (same contract as on* handlers).
+rejects('<a href="x"download>grab</a>', 'quote-abutted bare download attribute');
 rejects('<a href="x"download="evil.zip">grab</a>', 'quote-abutted download attribute');
 rejects('<div class=x/popover="auto">overlay</div>', 'slash-delimited popover attribute');
 

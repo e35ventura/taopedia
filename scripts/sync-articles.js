@@ -366,6 +366,16 @@ const quoteAbuttedAutofocusAttrPattern = /<[^>]*["'`]autofocus(?=[\s>/=])/i;
 const hiddenAttrPattern = /<[^>]*\shidden(?=[\s>/=])/i;
 const quoteAbuttedHiddenAttrPattern = /<[^>]*["'`]hidden(?=[\s>/=])/i;
 
+// download on an allowed <a> turns a normal-looking link into a drive-by file
+// download even without a value (`<a download href="...">`). The existing
+// interaction-surface scan above already blocks the value form (`download=` and
+// quote-/slash-abutted variants); these boolean patterns close the remaining
+// presence-only form using the same tag-boundary / quote-abutted detection as
+// autofocus/hidden so benign class or href text containing `/download` does not
+// false-positive.
+const downloadAttrPattern = /<[^>]*\sdownload(?=[\s>/=])/i;
+const quoteAbuttedDownloadAttrPattern = /<[^>]*["'`]download(?=[\s>/=])/i;
+
 // inert= on an allowed element is a clickjacking / focus-hijack surface: it removes
 // the element from the tab order and pointer events, so an injected <a inert
 // href="https://evil/"> or <form inert>…</form> renders as visible "disabled-looking"
@@ -1042,6 +1052,13 @@ export function validateArticleContent(slug, content) {
     || quoteAbuttedHiddenAttrPattern.test(emptiedAttributeContent)
   ) {
     throw new Error(`Unsafe article content in "${slug}": hidden attributes are not allowed in article content`);
+  }
+
+  if (
+    downloadAttrPattern.test(emptiedAttributeContent)
+    || quoteAbuttedDownloadAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(`Unsafe article content in "${slug}": download attributes are not allowed in article content`);
   }
 
   if (
