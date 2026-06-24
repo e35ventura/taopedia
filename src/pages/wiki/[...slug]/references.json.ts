@@ -92,8 +92,11 @@ export async function getStaticPaths() {
         lastEdited: history[0]?.date ?? null,
         sectionCount: sectionCountBySlug[slug] ?? 0,
         // The article body's word count — the same figure info.json / history.json
-        // expose and the article-page footer (mw-article-meta data-word-count) renders.
-        wordCount: (page.body ?? '').trim().split(/\s+/).filter(Boolean).length,
+        // expose and the article-page footer (mw-article-meta data-word-count)
+        // renders. Read from the wordCountBySlug map already built above (it
+        // covers every page, including this one) instead of recomputing the
+        // split/filter pass a second time for the same page.
+        wordCount: wordCountBySlug[slug] ?? 0,
         references,
       },
     };
