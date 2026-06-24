@@ -201,6 +201,21 @@ for (const slug of articleSlugs) {
     `${ORIGIN}/wiki/${slug}/related.json`,
     `cite.json relatedUrl must point at the sibling related.json endpoint for ${slug}`,
   );
+  // referencesJsonUrl / relatedJsonUrl are the consistently-named *JsonUrl aliases
+  // for referencesUrl / relatedUrl; each must equal the canonical .json URL and
+  // its non-JsonUrl-named counterpart.
+  assert.equal(
+    doc.referencesJsonUrl,
+    `${ORIGIN}/wiki/${slug}/references.json`,
+    `cite.json referencesJsonUrl must point at the sibling references.json endpoint for ${slug}`,
+  );
+  assert.equal(doc.referencesJsonUrl, doc.referencesUrl, `cite.json referencesJsonUrl must equal referencesUrl for ${slug}`);
+  assert.equal(
+    doc.relatedJsonUrl,
+    `${ORIGIN}/wiki/${slug}/related.json`,
+    `cite.json relatedJsonUrl must point at the sibling related.json endpoint for ${slug}`,
+  );
+  assert.equal(doc.relatedJsonUrl, doc.relatedUrl, `cite.json relatedJsonUrl must equal relatedUrl for ${slug}`);
   // imageUrl is the article's own OG share-card (/og/<slug>.png), the same
   // companion the info/history/toc/references/backlinks/related envelopes expose.
   assert.equal(
