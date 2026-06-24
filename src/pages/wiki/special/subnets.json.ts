@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
+import { getArticleReferences } from '../../../lib/article-references.js';
 import { buildSubnets } from '../../../../scripts/subnets.js';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
 
@@ -18,6 +19,11 @@ const backlinksModules = import.meta.glob('../../../../public/data/backlinks.jso
   { default?: Record<string, Array<{ from: string }>> }
 >;
 const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
+const linkgraphModules = import.meta.glob('../../../../public/data/linkgraph.json', { eager: true }) as Record<
+  string,
+  { default?: Record<string, string[]> }
+>;
+const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
 
 export const GET: APIRoute = async ({ site }) => {
   const origin = (site ?? new URL('https://taopedia.org')).origin;
@@ -63,6 +69,12 @@ export const GET: APIRoute = async ({ site }) => {
         imageUrl: `${origin}/og/${subnet.slug}.png`,
         categories: subnet.categories,
         backlinks: publishedInboundLinkCount(backlinksData, subnet.slug, titleBySlug),
+        // referencesCount is the subnet article's published OUTBOUND reference
+        // count — the complement of backlinks (its inbound count) — using the same
+        // getArticleReferences helper (published-only join) that references.json /
+        // cite.json / info.json use, so a subnet dashboard can see both directions
+        // of each subnet's link degree without a second fetch.
+        referencesCount: getArticleReferences({ slug: subnet.slug, linkGraph: linkgraphData, titleBySlug }).length,
         // The subnet article's revision stats (history is newest-first) — the same
         // revisionCount / firstEdited / lastEdited trio info.json / history.json
         // expose per article and allpages.json / mostlinkedpages.json expose per

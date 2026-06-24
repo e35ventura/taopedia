@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildSubnets } from './subnets.js';
 import { publishedInboundLinkCount } from './most-linked.js';
+import { getArticleReferences } from '../src/lib/article-references.js';
 
 // /wiki/special/subnets.json exposes the by-netuid subnet registry as
 // structured JSON for programmatic consumers. The contract is load-bearing: a
@@ -123,6 +124,12 @@ const data = JSON.parse(fs.readFileSync(distFile, 'utf8'));
 const slugmap = JSON.parse(fs.readFileSync(slugmapFile, 'utf8'));
 const backlinks = JSON.parse(fs.readFileSync(backlinksFile, 'utf8'));
 const titleBySlug = Object.fromEntries(Object.entries(slugmap).map(([slug, entry]) => [slug, entry.title]));
+// linkgraph drives referencesCount (the published OUTBOUND reference count),
+// re-derived with the same getArticleReferences helper the endpoint uses.
+const linkgraphFile = path.join(projectRoot, 'public', 'data', 'linkgraph.json');
+assert.ok(fs.existsSync(linkgraphFile), 'public/data/linkgraph.json not found; run the build first');
+const linkgraphData = JSON.parse(fs.readFileSync(linkgraphFile, 'utf8'));
+const outboundCountFor = (slug) => getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length;
 
 // site — non-empty URL/origin string.
 assert.ok(
@@ -237,6 +244,19 @@ data.subnets.forEach((row, i) => {
   assert.ok(
     Number.isInteger(row.backlinks) && row.backlinks >= 0,
     `row ${i} backlinks must be a non-negative integer (got ${row.backlinks})`,
+  );
+  // referencesCount is the subnet article's published OUTBOUND reference count —
+  // the complement of backlinks — re-derived with the same getArticleReferences
+  // helper the endpoint uses (published-only join), so the registry and
+  // references.json / cite.json / info.json can't disagree on outbound degree.
+  assert.equal(
+    row.referencesCount,
+    outboundCountFor(row.slug),
+    `row ${i} referencesCount must equal the published outbound-reference count for ${row.slug}`,
+  );
+  assert.ok(
+    Number.isInteger(row.referencesCount) && row.referencesCount >= 0,
+    `row ${i} referencesCount must be a non-negative integer (got ${row.referencesCount})`,
   );
   // lastEdited is the subnet article's last-revision date — the same figure
   // info.json / history.json expose per article and allpages.json /
