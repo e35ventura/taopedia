@@ -48,6 +48,9 @@ export const buildArticleToc = ({ slug, title, origin, summary = '', categories 
   // cite.json expose and the article footer renders (data-word-count).
   wordCount: Number.isFinite(wordCount) ? wordCount : 0,
   count: sections.length,
+  // Explicit alias for `count` — the same figure info.json / history.json /
+  // related.json expose as `sectionCount` (via the shared getArticleToc helper).
+  sectionCount: sections.length,
   sections: sections.map((section) => ({
     number: section.number,
     depth: section.depth,

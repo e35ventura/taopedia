@@ -100,6 +100,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(doc.referencesCount, 4, 'builder: referencesCount field');
   assert.equal(doc.wordCount, 812, 'builder: wordCount field');
   assert.equal(doc.count, 3, 'builder: count field');
+  assert.equal(doc.sectionCount, 3, 'builder: sectionCount aliases count');
   assert.deepEqual(
     doc.sections,
     [
@@ -118,6 +119,8 @@ const ORIGIN = 'https://taopedia.org';
 
   const empty = buildArticleToc({ slug: 'x', title: 'X', origin: ORIGIN });
   assert.equal(empty.wordCount, 0, 'builder: default wordCount is 0');
+  assert.equal(empty.count, 0, 'builder: default count is 0');
+  assert.equal(empty.sectionCount, 0, 'builder: default sectionCount is 0');
 }
 
 // ---- 2) Built-output checks -----------------------------------------------
@@ -314,6 +317,21 @@ for (const slug of articleSlugs) {
       doc.wordCount,
       Number(wordCountAttr[1]),
       `${slug}: toc.json wordCount must match the article footer's rendered data-word-count`,
+    );
+  }
+  // sectionCount is an explicit alias for `count` — the same figure info.json
+  // exposes on its envelope. Cross-check both siblings so they can't disagree.
+  assert.ok(
+    Number.isInteger(doc.sectionCount) && doc.sectionCount >= 0,
+    `${slug}: toc.json sectionCount must be a non-negative integer (got ${JSON.stringify(doc.sectionCount)})`,
+  );
+  assert.equal(doc.sectionCount, doc.count, `${slug}: toc.json sectionCount must equal count`);
+  if (fs.existsSync(infoJsonFile)) {
+    const infoDoc = JSON.parse(fs.readFileSync(infoJsonFile, 'utf8'));
+    assert.equal(
+      doc.sectionCount,
+      infoDoc.sectionCount,
+      `${slug}: toc.json sectionCount must agree with the sibling info.json envelope`,
     );
   }
   const historyJsonFile = path.join(wikiDir, slug, 'history.json');
