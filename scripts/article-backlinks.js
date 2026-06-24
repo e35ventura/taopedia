@@ -85,7 +85,14 @@ export const buildArticleBacklinks = ({ slug, title, origin, summary = '', categ
     citeJsonUrl: `${origin}/wiki/${link.slug}/cite.json`,
     bibtexUrl: `${origin}/wiki/${link.slug}/cite.bib`,
     referencesUrl: `${origin}/wiki/${link.slug}/references.json`,
+    // referencesJsonUrl / relatedJsonUrl are the same companion links under the
+    // consistent <name>JsonUrl key every other JSON companion uses here
+    // (infoJsonUrl, historyJsonUrl, backlinksJsonUrl, citeJsonUrl, tocJsonUrl).
+    // referencesUrl / relatedUrl were the only two companions lacking the Json
+    // suffix; they are kept for backwards compatibility.
+    referencesJsonUrl: `${origin}/wiki/${link.slug}/references.json`,
     relatedUrl: `${origin}/wiki/${link.slug}/related.json`,
+    relatedJsonUrl: `${origin}/wiki/${link.slug}/related.json`,
     tocJsonUrl: `${origin}/wiki/${link.slug}/toc.json`,
     imageUrl: `${origin}/og/${link.slug}.png`,
   })),
