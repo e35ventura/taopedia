@@ -277,6 +277,27 @@ for (const slug of articleSlugs) {
       infoDoc.wordCount,
       `cite.json wordCount must agree with the sibling info.json envelope for ${slug}`,
     );
+    assert.ok(
+      Number.isInteger(doc.readingMinutes) && doc.readingMinutes >= 1,
+      `cite.json readingMinutes must be a positive integer for ${slug}`,
+    );
+    assert.equal(
+      doc.readingMinutes,
+      infoDoc.readingMinutes,
+      `cite.json readingMinutes must agree with the sibling info.json envelope for ${slug}`,
+    );
+  }
+  const citeArticleHtmlFile = path.join(wikiDir, slug, 'index.html');
+  if (fs.existsSync(citeArticleHtmlFile)) {
+    const articleHtml = fs.readFileSync(citeArticleHtmlFile, 'utf8');
+    const readingMatch = articleHtml.match(/(\d+) min read/);
+    if (readingMatch) {
+      assert.equal(
+        doc.readingMinutes,
+        Number(readingMatch[1]),
+        `cite.json readingMinutes must match the article footer's rendered reading time for ${slug}`,
+      );
+    }
   }
   const historyJsonFile = path.join(wikiDir, slug, 'history.json');
   if (fs.existsSync(historyJsonFile)) {
