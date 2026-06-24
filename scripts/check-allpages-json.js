@@ -257,6 +257,13 @@ data.articles.forEach((row, i) => {
     publishedInboundLinkCount(backlinks, row.slug, titleBySlug),
     `row ${i} backlinks must match the published inbound-link count for ${row.slug}`,
   );
+  // incomingLinks is the info.json-named alias of the same inbound count, the
+  // per-entry field related.json / references.json / category articles.json carry.
+  assert.equal(
+    row.incomingLinks,
+    row.backlinks,
+    `row ${i} incomingLinks must equal its backlinks (the published inbound-link count) for ${row.slug}`,
+  );
   assert.ok(
     Number.isInteger(row.backlinks) && row.backlinks >= 0,
     `row ${i} backlinks must be a non-negative integer (got ${row.backlinks})`,
