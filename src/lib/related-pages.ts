@@ -57,6 +57,10 @@ export interface RelatedPage {
   // The candidate article's body word count (optional; the endpoint enriches
   // each entry with the same per-entry wordCount allpages.json / subnets.json expose).
   wordCount?: number;
+  // The candidate article's table-of-contents section count (optional; the
+  // endpoint enriches each entry with the same per-entry sectionCount
+  // allpages.json / subnets.json expose).
+  sectionCount?: number;
 }
 
 export interface ArticleRelatedPagesDocument {
@@ -94,6 +98,7 @@ export interface ArticleRelatedPagesDocument {
     categories: string[];
     backlinks: number;
     referencesCount: number;
+    sectionCount: number;
     wordCount: number;
     revisionCount: number;
     firstEdited: string | null;
@@ -263,6 +268,7 @@ export function buildArticleRelatedPages({
       categories: Array.isArray(entry.categories) ? entry.categories : [],
       backlinks: Number.isFinite(entry.backlinks) ? entry.backlinks : 0,
       referencesCount: Number.isFinite(entry.referencesCount) ? entry.referencesCount : 0,
+      sectionCount: Number.isFinite(entry.sectionCount) ? entry.sectionCount : 0,
       wordCount: Number.isFinite(entry.wordCount) ? entry.wordCount : 0,
       revisionCount: Number.isFinite(entry.revisionCount) ? entry.revisionCount : 0,
       firstEdited: entry.firstEdited ?? null,
