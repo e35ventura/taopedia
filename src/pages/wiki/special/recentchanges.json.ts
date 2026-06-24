@@ -36,12 +36,18 @@ export const GET: APIRoute = async ({ site }) => {
   const categoriesBySlug: Record<string, string[]> = {};
   const summaryBySlug: Record<string, string> = {};
   const pageBySlug: Record<string, (typeof pages)[number]> = {};
+  // wordCount is the changed article's body word count — the same figure
+  // info.json exposes and the article-page footer (mw-article-meta
+  // data-word-count) renders, computed from the raw markdown body so a change-
+  // feed consumer can gauge each article's length without a second fetch.
+  const wordCountBySlug: Record<string, number> = {};
   for (const page of pages) {
     const slug = getPageSlug(page);
     titleBySlug[slug] = page.data.title;
     categoriesBySlug[slug] = page.data.categories ?? [];
     summaryBySlug[slug] = page.data.summary ?? '';
     pageBySlug[slug] = page;
+    wordCountBySlug[slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
   }
 
   const changes = allRecentChanges(titleBySlug, RECENT_LIMIT);
@@ -103,6 +109,7 @@ export const GET: APIRoute = async ({ site }) => {
         // each changed article's link degree without a second fetch.
         referencesCount: getArticleReferences({ slug: change.slug, linkGraph: linkgraphData, titleBySlug }).length,
         sectionCount: sectionCountBySlug[change.slug] ?? 0,
+        wordCount: wordCountBySlug[change.slug] ?? 0,
         date: change.date,
         authorName: change.authorName,
         sha: change.sha,

@@ -301,6 +301,22 @@ for (let i = 0; i < data.changes.length; i++) {
       `change ${i} sectionCount must agree with the sibling toc.json count for ${change.slug}`,
     );
   }
+  // wordCount is the changed article's body word count — the same figure
+  // info.json exposes on its envelope. Cross-check it against the sibling
+  // built info.json so the feed and per-article metadata can't disagree.
+  assert.ok(
+    Number.isInteger(change.wordCount) && change.wordCount >= 0,
+    `change ${i} wordCount must be a non-negative integer (got ${JSON.stringify(change.wordCount)})`,
+  );
+  const rcInfoJsonFile = path.join(wikiDir, change.slug, 'info.json');
+  if (fs.existsSync(rcInfoJsonFile)) {
+    const infoDoc = JSON.parse(fs.readFileSync(rcInfoJsonFile, 'utf8'));
+    assert.equal(
+      change.wordCount,
+      infoDoc.wordCount,
+      `change ${i} wordCount must agree with the sibling info.json envelope for ${change.slug}`,
+    );
+  }
   assert.equal(change.authorName, expected.authorName, `change ${i} authorName must match the revision history`);
   assert.equal(change.sha, expected.sha, `change ${i} sha must match the revision history`);
   assert.ok(typeof change.sha === 'string' && change.sha.length > 0, `change ${i} sha must be a non-empty string`);
