@@ -110,6 +110,11 @@ export const GET: APIRoute = async ({ site }) => {
         referencesCount: getArticleReferences({ slug: change.slug, linkGraph: linkgraphData, titleBySlug }).length,
         sectionCount: sectionCountBySlug[change.slug] ?? 0,
         wordCount: wordCountBySlug[change.slug] ?? 0,
+        // readingMinutes is the changed article's estimated reading time — the
+        // same ~200 wpm ceil formula the article-page footer ("N min read") and
+        // info.json / toc.json / history.json expose from wordCount, so a change-
+        // feed consumer can gauge each article's reading time without a second fetch.
+        readingMinutes: Math.max(1, Math.ceil((wordCountBySlug[change.slug] ?? 0) / 200)),
         date: change.date,
         authorName: change.authorName,
         sha: change.sha,
