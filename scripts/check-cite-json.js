@@ -253,6 +253,18 @@ for (const slug of articleSlugs) {
     `cite.json referencesCount must match the published outbound-reference count for ${slug}`,
   );
   assert.ok(Number.isInteger(doc.referencesCount) && doc.referencesCount >= 0, `cite.json referencesCount must be a non-negative integer for ${slug}`);
+  // sectionCount is the article's table-of-contents section count — the same
+  // figure toc.json exposes as `count`, derived from the shared getArticleToc helper.
+  assert.ok(Number.isInteger(doc.sectionCount) && doc.sectionCount >= 0, `cite.json sectionCount must be a non-negative integer for ${slug}`);
+  const tocJsonFile = path.join(wikiDir, slug, 'toc.json');
+  if (fs.existsSync(tocJsonFile)) {
+    const tocDoc = JSON.parse(fs.readFileSync(tocJsonFile, 'utf8'));
+    assert.equal(
+      doc.sectionCount,
+      tocDoc.count,
+      `cite.json sectionCount must agree with the sibling toc.json envelope for ${slug}`,
+    );
+  }
   const historyJsonFile = path.join(wikiDir, slug, 'history.json');
   if (fs.existsSync(historyJsonFile)) {
     const historyDoc = JSON.parse(fs.readFileSync(historyJsonFile, 'utf8'));
