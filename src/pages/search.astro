@@ -149,6 +149,55 @@ import WikiLayout from '../layouts/WikiLayout.astro';
       return `Load ${nextCount} more result${nextCount === 1 ? '' : 's'} (${remainingCount} remaining)`;
     }
 
+    // A bare "No results" line is a dead end. When a query matches nothing, offer
+    // concrete next steps — search tips plus links back into the knowledge base —
+    // so the reader is never stuck. Built with textContent/createElement only
+    // (no innerHTML), consistent with the rest of this page.
+    function renderNoResults(host, query) {
+      const panel = document.createElement('div');
+      panel.className = 'search-no-results';
+
+      const tipsLabel = document.createElement('p');
+      tipsLabel.className = 'search-no-results-label';
+      tipsLabel.textContent = `Nothing matched "${query}". Try:`;
+      panel.appendChild(tipsLabel);
+
+      const tips = document.createElement('ul');
+      tips.className = 'search-no-results-tips';
+      [
+        'Check the spelling of your search terms.',
+        'Use fewer or more general words.',
+        'Search a related concept, then follow links from that article.',
+      ].forEach((text) => {
+        const li = document.createElement('li');
+        li.textContent = text;
+        tips.appendChild(li);
+      });
+      panel.appendChild(tips);
+
+      const linksLabel = document.createElement('p');
+      linksLabel.className = 'search-no-results-label';
+      linksLabel.textContent = 'Or browse instead:';
+      panel.appendChild(linksLabel);
+
+      const links = document.createElement('div');
+      links.className = 'search-no-results-links';
+      [
+        { href: '/wiki/special/allpages/', label: 'All articles' },
+        { href: '/wiki/special/categories/', label: 'Topics' },
+        { href: '/wiki/special/random/', label: 'Random article' },
+      ].forEach((target) => {
+        const link = document.createElement('a');
+        link.className = 'search-no-results-link';
+        link.href = target.href;
+        link.textContent = target.label;
+        links.appendChild(link);
+      });
+      panel.appendChild(links);
+
+      host.appendChild(panel);
+    }
+
     function loadMetadataEntries() {
       if (!metadataEntriesPromise) {
         metadataEntriesPromise = fetch('/search-data.json')
@@ -241,6 +290,10 @@ import WikiLayout from '../layouts/WikiLayout.astro';
         // toggled.
         statusEl.textContent = countLabel(query, matches.length);
         list.textContent = '';
+        if (matches.length === 0) {
+          renderNoResults(list, query);
+          return;
+        }
         filtered.forEach((entry) => list.appendChild(renderMetadataResult(entry)));
       }
 
@@ -324,6 +377,10 @@ import WikiLayout from '../layouts/WikiLayout.astro';
         }
 
         await loadNextBatch();
+
+        if (baseSearch.results.length === 0) {
+          renderNoResults(list, query);
+        }
 
         if (renderedCount < totalCount) {
           loadMoreButton = document.createElement('button');
@@ -501,6 +558,50 @@ import WikiLayout from '../layouts/WikiLayout.astro';
     :global(.search-load-more:disabled) {
       color: var(--color-base-subtle);
       cursor: default;
+    }
+
+    :global(.search-no-results) {
+      margin-top: 18px;
+      padding: 16px;
+      border: 1px solid var(--border-color-subtle);
+      background: var(--background-color-interactive);
+    }
+
+    :global(.search-no-results-label) {
+      margin: 0 0 8px;
+      color: var(--color-base);
+      font-weight: 600;
+    }
+
+    :global(.search-no-results-tips) {
+      margin: 0 0 14px;
+      padding-left: 20px;
+      color: var(--color-base-subtle);
+      line-height: 1.5;
+    }
+
+    :global(.search-no-results-links) {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    :global(.search-no-results-link) {
+      padding: 4px 10px;
+      border: 1px solid var(--border-color-subtle);
+      background: var(--background-color-base);
+      color: var(--color-link);
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    :global(.search-no-results-link:hover) {
+      border-color: var(--color-link);
+    }
+
+    :global(.search-no-results-link:focus-visible) {
+      outline: 2px solid var(--color-link);
+      outline-offset: 1px;
     }
   </style>
 </WikiLayout>
