@@ -78,7 +78,14 @@ export const GET: APIRoute = async ({ site }) => {
         citeJsonUrl: `${origin}/wiki/${entry.slug}/cite.json`,
         bibtexUrl: `${origin}/wiki/${entry.slug}/cite.bib`,
         referencesUrl: `${origin}/wiki/${entry.slug}/references.json`,
+        // referencesJsonUrl / relatedJsonUrl are the same companion links under the
+        // consistent <name>JsonUrl key every other JSON companion uses here
+        // (infoJsonUrl, historyJsonUrl, backlinksJsonUrl, citeJsonUrl, tocJsonUrl).
+        // referencesUrl / relatedUrl were the only two companions lacking the Json
+        // suffix; they are kept for backwards compatibility.
+        referencesJsonUrl: `${origin}/wiki/${entry.slug}/references.json`,
         relatedUrl: `${origin}/wiki/${entry.slug}/related.json`,
+        relatedJsonUrl: `${origin}/wiki/${entry.slug}/related.json`,
         tocJsonUrl: `${origin}/wiki/${entry.slug}/toc.json`,
         imageUrl: `${origin}/og/${entry.slug}.png`,
         categories: categoriesBySlug[entry.slug] ?? [],
