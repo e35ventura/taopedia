@@ -997,6 +997,26 @@ const tagNameSlashDelimitedIdNameAttrPattern = /<\s*[a-z][\w:-]*\/(?:id|name)\s*
 const whitespaceSlashDelimitedIdNameAttrPattern = /<[^>]*\s\/(?:id|name)\s*=/i;
 const quoteSlashDelimitedIdNameAttrPattern = /<[^>]*["'`]\/(?:id|name)\s*=/i;
 
+// lang=/xml:lang= on any allowed element are the locale sibling of the already-
+// blocked dir= attribute (Trojan-Source bidi spoof). lang changes locale-dependent
+// rendering and, crucially, the assistive-technology PRONUNCIATION of its text: an
+// injected `<span lang="ru">withdraw your TAO here</span>` makes a screen reader
+// announce English prose with another language's phonetics/voice, and drives
+// `:lang()` CSS — a no-script accessibility / content-spoof surface in the same
+// locale/accessibility-spoof class as the blocked dir= and the merged role / aria-*
+// family. Article prose is single-language and the build emits no element-level
+// lang=, so block it. Scanned over emptyQuotedAttributeValues(); the (?:xml:)?
+// group also catches xml:lang=. hreflang= (a different, link-language-hint
+// attribute) is NOT matched: the patterns require whitespace, a quote, or the tag
+// name immediately before `lang`, and in `hreflang` the `lang` is preceded by
+// `href`. An unquoted URL like href=/wiki/x?lang=en (where `lang` follows `?`/path,
+// not a boundary char) is likewise not flagged.
+const langAttrPattern = /<[^>]*\s(?:xml:)?lang\s*=/i;
+const quoteAbuttedLangAttrPattern = /<[^>]*["'`](?:xml:)?lang\s*=/i;
+const tagNameSlashDelimitedLangAttrPattern = /<\s*[a-z][\w:-]*\/(?:xml:)?lang\s*=/i;
+const whitespaceSlashDelimitedLangAttrPattern = /<[^>]*\s\/(?:xml:)?lang\s*=/i;
+const quoteSlashDelimitedLangAttrPattern = /<[^>]*["'`]\/(?:xml:)?lang\s*=/i;
+
 function emptyQuotedAttributeValues(content) {
   return content.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
 }
@@ -1795,6 +1815,18 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": id and name attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    langAttrPattern.test(emptiedAttributeContent)
+    || quoteAbuttedLangAttrPattern.test(emptiedAttributeContent)
+    || tagNameSlashDelimitedLangAttrPattern.test(emptiedAttributeContent)
+    || whitespaceSlashDelimitedLangAttrPattern.test(emptiedAttributeContent)
+    || quoteSlashDelimitedLangAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": lang attributes are not allowed in article content`,
     );
   }
 

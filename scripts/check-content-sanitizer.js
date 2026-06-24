@@ -1221,6 +1221,27 @@ accepts('<a href=/wiki/stake?id=5>link</a>', 'benign unquoted href query string 
 accepts('<a href=/wiki/page?name=foo>link</a>', 'benign unquoted href query string containing name=');
 accepts('The id and name attributes are described here only as prose.', 'benign id/name prose');
 
+// lang=/xml:lang= are the locale sibling of the blocked dir= attribute: lang changes
+// locale rendering and the assistive-tech PRONUNCIATION of prose (an injected
+// <span lang="ru"> makes a screen reader voice English text with Russian phonetics)
+// and drives :lang() CSS — same locale/accessibility-spoof class as dir= and the
+// merged role/aria-* family. Build emits no element-level lang=. Every delimiter the
+// patterns recognize is covered; hreflang= (a different attribute) and URL query
+// strings containing "lang" are NOT flagged.
+rejects('Intro.\n\n<span lang="ru">withdraw your TAO here</span>', 'plain lang attribute');
+rejects('Intro.\n\n<p xml:lang="ru">x</p>', 'xml:lang attribute');
+rejects("Intro.\n\n<  span   lang = 'ru'>y</span>", 'spaced lang single-quoted value');
+rejects('<a href="/wiki/x/"lang="ru">x</a>', 'double-quote-abutted lang attribute');
+rejects("<a href='/wiki/x/'lang=\"ru\">x</a>", 'single-quote-abutted lang attribute');
+rejects('<a href=`/wiki/x/`lang="ru">x</a>', 'backtick-abutted lang attribute');
+rejects('Intro.\n\n<div/lang="ru">x</div>', 'slash-delimited lang after tag name');
+rejects('<a href="/wiki/x/"/lang="ru">x</a>', 'quote-plus-slash lang attribute');
+rejects('Intro.\n\n<p class="x" /lang="ru">z</p>', 'whitespace-slash-delimited lang attribute');
+accepts('<a hreflang="en" href="/wiki/x/">link</a>', 'benign hreflang attribute is not lang');
+accepts('See <a href="/wiki/x?lang=en">stake</a> for details.', 'benign lang= inside quoted href query string');
+accepts('<a href=/wiki/x?lang=en>link</a>', 'benign unquoted href query string containing lang=');
+accepts('The lang attribute is described here only as prose.', 'benign lang prose');
+
 // ismap on <img> is the server-side image-map primitive (counterpart to the
 // already-blocked client-side <map>/<area>/usemap= in #411). When the <img> sits
 // inside an <a href="...">, clicking the image appends ?x,y coordinates to the
