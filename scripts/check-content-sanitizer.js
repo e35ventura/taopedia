@@ -900,6 +900,22 @@ rejects('<p class=x/aria-busy="true">x</p>', 'slash-delimited aria-busy attribut
 accepts('<a href="/wiki/aria-busy=demo">aria-busy docs</a>', 'benign aria-busy substring in quoted href');
 accepts('ARIA busy state is an accessibility concept described here only as prose.', 'benign aria-busy prose');
 
+// aria-valuenow/min/max/text= fake range-widget values — same accessibility-state
+// spoof family as merged #582 (aria-busy), #587 (aria-disabled/readonly/required),
+// and #583 (toggle state); the native meter/progress widgets are element-blocked.
+rejects('Intro.\n\n<div aria-valuenow="100">Wallet scan complete</div>', 'plain aria-valuenow attribute');
+rejects('Intro.\n\n<div aria-valuetext="100% verified">verified</div>', 'plain aria-valuetext attribute');
+rejects('Intro.\n\n<div aria-valuemin="0">x</div>', 'plain aria-valuemin attribute');
+rejects('Intro.\n\n<div aria-valuemax="100">x</div>', 'plain aria-valuemax attribute');
+rejects('Intro.\n\n<  div   aria-valuenow = "80">x</div>', 'spaced aria-valuenow attribute');
+rejects('<a href="x"aria-valuenow="80">go</a>', 'quote-abutted aria-valuenow attribute');
+rejects('<div class=x/aria-valuetext="done">x</div>', 'slash-delimited aria-valuetext attribute');
+rejects("<p class='x'aria-valuemax='100'>x</p>", 'single-quote-abutted aria-valuemax attribute');
+
+accepts('<a href="/wiki/aria-valuenow=demo">aria-valuenow docs</a>', 'benign aria-valuenow substring in quoted href');
+accepts('ARIA valuenow is an accessibility concept described here only as prose.', 'benign aria-valuenow prose');
+accepts('<span class=x/aria-valuetext-demo>not an aria-valuetext attribute</span>', 'benign aria-valuetext substring in class value');
+
 // aria-pressed=/aria-checked=/aria-selected= fake toggle and option state —
 // same family as merged #582 (aria-busy), #568 (aria-current), and #559
 // (aria-expanded).

@@ -595,6 +595,19 @@ const quoteSlashDelimitedItemscopePattern = /<[^>]*["'`]\/itemscope(?=[\s>/=])/i
 const ariaBusyAttrPattern = /<[^>]*\saria-busy\s*=/i;
 const nonSpaceDelimitedAriaBusyAttrPattern = /<[^>]*[/"'`](?:aria-busy)\s*=/i;
 
+// aria-valuenow=/aria-valuemin=/aria-valuemax=/aria-valuetext= fake range-widget
+// values for assistive technology — e.g. aria-valuenow="100" with
+// aria-valuetext="Wallet scan complete" announces a fake progress/slider reading
+// on static prose, lending false legitimacy to an injected "100% verified"
+// phishing block. The native <meter>/<progress> range widgets are already
+// element-blocked (#156); these are the ARIA-attribute path to the same fake
+// status/value readout. Same accessibility-attribute spoof family as merged
+// aria-busy (#582), aria-disabled/readonly/required (#587), and toggle state
+// (#583). Glossary articles never emit range-widget ARIA on static prose.
+const ariaValueStateAttrPattern = /<[^>]*\saria-value(?:now|min|max|text)\s*=/i;
+const nonSpaceDelimitedAriaValueStateAttrPattern =
+  /<[^>]*[/"'`](?:aria-value(?:now|min|max|text))\s*=/i;
+
 // aria-pressed=/aria-checked=/aria-selected= fake toggle and option state in
 // assistive technology — e.g. aria-pressed="true" makes a link sound pressed,
 // aria-selected="true" marks a list item as the chosen procedure step, and
@@ -1358,6 +1371,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": aria-busy attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    ariaValueStateAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAriaValueStateAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": aria-valuenow, aria-valuemin, aria-valuemax, and aria-valuetext attributes are not allowed in article content`,
     );
   }
 
