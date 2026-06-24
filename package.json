@@ -26,6 +26,8 @@
     "test:sync-frontmatter-images": "node scripts/check-sync-frontmatter-images.js",
     "test:article-image-assets": "node scripts/check-article-image-assets.js",
     "test:linkgraph-infobox": "node scripts/check-linkgraph-infobox-json.js",
+    "test:linkgraph-slug-collision": "node scripts/check-linkgraph-slug-collision.js",
+    "test:search-query-trim": "node scripts/check-search-query-trim.js",
     "test:linkgraph-data-order": "node scripts/check-linkgraph-data-order.js",
     "test:wiki-link-resolver": "node scripts/check-wiki-link-resolver.js",
     "test:wiki-links": "node scripts/check-wiki-links.js",
