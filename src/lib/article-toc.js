@@ -34,7 +34,14 @@ export const buildArticleToc = ({ slug, title, origin, summary = '', categories 
   citeJsonUrl: `${origin}/wiki/${slug}/cite.json`,
   bibtexUrl: `${origin}/wiki/${slug}/cite.bib`,
   referencesUrl: `${origin}/wiki/${slug}/references.json`,
+  // referencesJsonUrl / relatedJsonUrl are the same cross-links under the
+  // consistent <name>JsonUrl key every other JSON companion uses on this envelope
+  // (infoJsonUrl, historyJsonUrl, backlinksJsonUrl, citeJsonUrl, tocJsonUrl).
+  // referencesUrl / relatedUrl were the only two lacking the Json suffix; they
+  // are kept for backwards compatibility.
+  referencesJsonUrl: `${origin}/wiki/${slug}/references.json`,
   relatedUrl: `${origin}/wiki/${slug}/related.json`,
+  relatedJsonUrl: `${origin}/wiki/${slug}/related.json`,
   imageUrl: `${origin}/og/${slug}.png`,
   categories,
   incomingLinks: Number.isFinite(incomingLinks) ? incomingLinks : 0,
