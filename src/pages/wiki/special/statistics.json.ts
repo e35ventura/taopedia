@@ -52,6 +52,11 @@ export const GET: APIRoute = async ({ site }) => {
             // the Json suffix and is kept for backwards compatibility.
             articlesJsonUrl: topicArticlesUrl(stats.largestTopic.name),
             feedUrl: topicFeedUrl(stats.largestTopic.name),
+            // feedJsonUrl is the same JSON Feed link under the consistent
+            // <name>JsonUrl key every other JSON companion uses; feedUrl is the
+            // lone outlier naming it without the Json suffix and is kept for
+            // backwards compatibility.
+            feedJsonUrl: topicFeedUrl(stats.largestTopic.name),
             atomUrl: topicAtomUrl(stats.largestTopic.name),
             rssUrl: topicRssUrl(stats.largestTopic.name),
           }
@@ -66,6 +71,10 @@ export const GET: APIRoute = async ({ site }) => {
         // suffix) is the lone outlier, kept for backwards compatibility.
         articlesJsonUrl: topicArticlesUrl(t.name),
         feedUrl: topicFeedUrl(t.name),
+        // Same JSON Feed link under the consistent <name>JsonUrl key the rest of
+        // the API and the category page envelope use; feedUrl (no Json suffix)
+        // is the lone outlier, kept for backwards compatibility.
+        feedJsonUrl: topicFeedUrl(t.name),
         atomUrl: topicAtomUrl(t.name),
         rssUrl: topicRssUrl(t.name),
       })),
