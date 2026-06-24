@@ -1193,6 +1193,34 @@ accepts('The attributionsrc attribute is described here only as prose.', 'benign
 accepts('<a class=x/attributionsrc href="/wiki/foo/">not an attributionsrc attribute</a>', 'benign slash inside unquoted class value before bare anchor attributionsrc word');
 accepts('<img class=x/attributionsrc src="/wiki/fig.png" alt="diagram">', 'benign slash inside unquoted class value before bare img attributionsrc word');
 
+// id=/name= on any element are DOM-clobbering primitives: a browser exposes id'd
+// and named elements as properties on document/window, so an injected id/name
+// shadows the matching global and can break the site's own scripts. Same
+// DOM-structure-integrity class as the blocked <template> element and microdata
+// attributes. The build emits no id=/name= (no rehype-slug). Every delimiter the
+// patterns recognize is covered below: whitespace, double-/single-/backtick-quote
+// abutted, tag-name-slash, whitespace-slash, and quote-slash. Backtick matters
+// because emptyQuotedAttributeValues() does not strip backtick-delimited text, so
+// `<a href=`x`id=…>` is a real boundary. Unquoted/quoted URL query strings
+// containing id=/name= are NOT flagged.
+rejects('Intro.\n\n<a id="cookie" href="/wiki/x/">x</a>', 'plain a id attribute');
+rejects('Intro.\n\n<img name="body" src="/wiki/fig.png" alt="y">', 'plain img name attribute');
+rejects('Intro.\n\n<  span   id = "x">y</span>', 'spaced id attribute');
+rejects("Intro.\n\n<span name='body'>z</span>", 'single-quoted name value');
+rejects('<a href="/wiki/x/"id="cookie">x</a>', 'double-quote-abutted a id attribute');
+rejects("<a href='/wiki/x/'id=\"cookie\">x</a>", 'single-quote-abutted a id attribute');
+rejects('<a href=`/wiki/x/`id="cookie">x</a>', 'backtick-abutted a id attribute');
+rejects('<a href="/wiki/x/"name="body">x</a>', 'double-quote-abutted a name attribute');
+rejects('Intro.\n\n<div/id="cookie">x</div>', 'slash-delimited id after tag name');
+rejects('<a href="/wiki/x/"/id="cookie">x</a>', 'double-quote-plus-slash id attribute');
+rejects("<a href='/wiki/x/'/id=\"cookie\">x</a>", 'single-quote-plus-slash id attribute');
+rejects('<a href=`/wiki/x/`/id="cookie">x</a>', 'backtick-plus-slash id attribute');
+rejects('Intro.\n\n<p class="x" /name="y">z</p>', 'whitespace-slash-delimited name attribute');
+accepts('See <a href="/wiki/stake?id=5&name=foo">stake</a> for details.', 'benign id=/name= inside quoted href query string');
+accepts('<a href=/wiki/stake?id=5>link</a>', 'benign unquoted href query string containing id=');
+accepts('<a href=/wiki/page?name=foo>link</a>', 'benign unquoted href query string containing name=');
+accepts('The id and name attributes are described here only as prose.', 'benign id/name prose');
+
 // ismap on <img> is the server-side image-map primitive (counterpart to the
 // already-blocked client-side <map>/<area>/usemap= in #411). When the <img> sits
 // inside an <a href="...">, clicking the image appends ?x,y coordinates to the
