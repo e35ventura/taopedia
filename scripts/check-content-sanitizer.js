@@ -372,6 +372,8 @@ rejects(`Inject define:va${SOFT_HYPHEN}rs here.`, 'soft-hyphen define:vars');
 // Astro slot attributes on raw HTML must not appear in article bodies.
 rejects('Intro.\n\n<div slot="sidebar">evil</div>', 'plain slot attribute');
 rejects('Intro.\n\n<  div   slot="sidebar">', 'spaced slot attribute');
+rejects('Intro.\n\n<div sl&#111;t="sidebar">evil</div>', 'entity-obfuscated slot attribute');
+rejects('Intro.\n\n<div s&#108;ot="sidebar">evil</div>', 'decimal-entity slot attribute');
 
 // Inline style attributes are blocked: the <style> element is already blocked,
 // but a style="" attribute on an allowed element still lets injected CSS
