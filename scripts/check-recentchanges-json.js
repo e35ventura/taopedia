@@ -271,6 +271,15 @@ for (let i = 0; i < data.changes.length; i++) {
     publishedInboundLinkCount(backlinksGraph, change.slug, titleBySlug),
     `change ${i} backlinks must equal the published inbound-link count for ${change.slug}`,
   );
+  // incomingLinks is the same inbound-link count aliased to the key name info.json
+  // / references.json / backlinks.json use; it must equal the published inbound
+  // count and the back-compat `backlinks` field.
+  assert.equal(
+    change.incomingLinks,
+    publishedInboundLinkCount(backlinksGraph, change.slug, titleBySlug),
+    `change ${i} incomingLinks must equal the published inbound-link count for ${change.slug}`,
+  );
+  assert.equal(change.incomingLinks, change.backlinks, `change ${i} incomingLinks must equal the back-compat backlinks field for ${change.slug}`);
   // referencesCount is the changed article's published OUTBOUND reference count —
   // the complement of backlinks — re-derived with the same getArticleReferences
   // helper the endpoint uses (published-only join), so the feed and references.json
