@@ -275,6 +275,23 @@ data.subnets.forEach((row, i) => {
       `row ${i} sectionCount must agree with the sibling toc.json count for ${row.slug}`,
     );
   }
+  // wordCount is the subnet article body's word count — the same figure info.json
+  // exposes on its envelope. Validate its shape and cross-check it against the
+  // sibling built info.json (the independent source) so the registry and the
+  // per-article metadata surface can't disagree on article length.
+  assert.ok(
+    Number.isInteger(row.wordCount) && row.wordCount >= 0,
+    `row ${i} wordCount must be a non-negative integer (got ${JSON.stringify(row.wordCount)})`,
+  );
+  const snInfoJsonFile = path.join(projectRoot, 'dist', 'wiki', row.slug, 'info.json');
+  if (fs.existsSync(snInfoJsonFile)) {
+    const infoDoc = JSON.parse(fs.readFileSync(snInfoJsonFile, 'utf8'));
+    assert.equal(
+      row.wordCount,
+      infoDoc.wordCount,
+      `row ${i} wordCount must agree with the sibling info.json envelope for ${row.slug}`,
+    );
+  }
   // lastEdited is the subnet article's last-revision date — the same figure
   // info.json / history.json expose per article and allpages.json /
   // mostlinkedpages.json expose per directory entry. Cross-check it against the
