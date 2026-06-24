@@ -6,6 +6,7 @@ import ReadingProgress from '../../components/ReadingProgress.astro';
 import { resolveArticleImageSource } from '../../lib/article-image-assets.js';
 import { buildSlugAliases, parseWikiLinkTokens, resolveTargetSlug } from '../../../scripts/wiki-link-resolver.js';
 import { getPageSlug } from '../../lib/article-history';
+import { getArticleBreadcrumbTrail } from '../../lib/article-breadcrumb.js';
 import { getArticleToc } from '../../lib/article-toc.js';
 import { getRelatedPages } from '../../lib/related-pages';
 
@@ -117,12 +118,10 @@ const backlinksUrl = `/wiki/${slug}/backlinks/`;
 const citeUrl = `/wiki/${slug}/cite/`;
 const infoUrl = `/wiki/${slug}/info/`;
 
-// Breadcrumb: Home › primary topic › this article. The primary topic is the
-// article's first category (frontmatter order), matching the Schema.org
-// BreadcrumbList emitted in the page head. Articles with no category degrade to
-// Home › this article.
-const primaryTopic = page.data.categories?.[0];
-const primaryTopicUrl = primaryTopic ? `/wiki/category/${primaryTopic.replace(/ /g, '_')}/` : undefined;
+const breadcrumbTrail = getArticleBreadcrumbTrail({
+  title: page.data.title,
+  categories: page.data.categories ?? [],
+});
 const serializedValidSlugs = JSON.stringify(validSlugs).replace(/</g, '\\u003c');
 
 // Article metadata footer: the last-modified date (newest-first revision from
@@ -197,11 +196,15 @@ const readingMinutes = Math.max(1, Math.ceil(wordCount / 200));
   <div class="mw-body-content" data-pagefind-body>
     <nav class="mw-breadcrumb" aria-label="Breadcrumb" data-pagefind-ignore>
       <ol>
-        <li><a href="/">Home</a></li>
-        {primaryTopic && (
-          <li><a href={primaryTopicUrl}>{primaryTopic}</a></li>
-        )}
-        <li><span aria-current="page">{page.data.title}</span></li>
+        {breadcrumbTrail.items.map((item) => (
+          <li>
+            {item.current ? (
+              <span aria-current="page">{item.name}</span>
+            ) : (
+              <a href={item.href}>{item.name}</a>
+            )}
+          </li>
+        ))}
       </ol>
     </nav>
     <h1 class="firstHeading" data-pagefind-meta="title">{page.data.title}</h1>
