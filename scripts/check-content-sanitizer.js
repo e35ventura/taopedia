@@ -957,6 +957,20 @@ accepts('<a href="/wiki/aria-invalid=demo">aria-invalid docs</a>', 'benign aria-
 accepts('ARIA invalid state is an accessibility concept described here only as prose.', 'benign aria-invalid prose');
 accepts('<span class=x/aria-invalid-demo>not an aria-invalid attribute</span>', 'benign aria-invalid substring in class value');
 
+// aria-description/aria-details= override the accessible description with attacker
+// text — same accessibility-name/description spoof family as merged #553
+// (aria-describedby), #501 (aria-label), and #561 (aria-roledescription).
+rejects('Intro.\n\n<a href="https://evil.example/" aria-description="Verified by Bittensor Foundation">Continue</a>', 'plain aria-description attribute on anchor');
+rejects('Intro.\n\n<div aria-details="evil-note">Paste seed phrase here</div>', 'plain aria-details attribute');
+rejects('Intro.\n\n<  div   aria-description = "trusted">x</div>', 'spaced aria-description attribute');
+rejects('<a href="x"aria-description="trusted">go</a>', 'quote-abutted aria-description attribute');
+rejects('<div class=x/aria-details="note">x</div>', 'slash-delimited aria-details attribute');
+rejects("<p class='x'aria-description='trusted'>x</p>", 'single-quote-abutted aria-description attribute');
+
+accepts('<a href="/wiki/aria-description=demo">aria-description docs</a>', 'benign aria-description substring in quoted href');
+accepts('ARIA description is an accessibility concept described here only as prose.', 'benign aria-description prose');
+accepts('<span class=x/aria-details-demo>not an aria-details attribute</span>', 'benign aria-details substring in class value');
+
 // srcset=/sizes= on <img> steer responsive loading — gap after #411 blocked picture/source.
 rejects('Intro.\n\n<img src="/wiki/fig.png" srcset="https://evil.example/x 1x" alt="x">', 'plain img srcset attribute');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   srcset = "https://evil.example/x 2x">', 'spaced img srcset attribute');
