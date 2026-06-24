@@ -87,11 +87,18 @@ function main() {
   const backlinks = {};
   const slugMap = {};
   const categoryIndex = {};
+  const slugSources = new Map();
 
   // First pass: build slug map and extract links
   markdownFiles.forEach(filePath => {
     const relativePath = path.relative(contentDir, filePath);
     const slug = slugFromContentPath(relativePath);
+    if (slugSources.has(slug)) {
+      throw new Error(
+        `Duplicate article slug "${slug}" from ${relativePath} and ${slugSources.get(slug)}`,
+      );
+    }
+    slugSources.set(slug, relativePath);
     const content = fs.readFileSync(filePath, 'utf-8');
     const { data, content: body } = matter(content);
 
