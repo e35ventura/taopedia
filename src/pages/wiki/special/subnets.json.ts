@@ -1,7 +1,8 @@
 import type { APIRoute } from 'astro';
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
 import { getArticleReferences } from '../../../lib/article-references.js';
+import { getArticleToc } from '../../../lib/article-toc.js';
 import { buildSubnets } from '../../../../scripts/subnets.js';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
 
@@ -29,11 +30,27 @@ export const GET: APIRoute = async ({ site }) => {
   const origin = (site ?? new URL('https://taopedia.org')).origin;
   const pages = await getCollection('pages');
   const titleBySlug: Record<string, string> = {};
+  const pageBySlug: Record<string, (typeof pages)[number]> = {};
   for (const page of pages) {
-    titleBySlug[getPageSlug(page)] = page.data.title;
+    const slug = getPageSlug(page);
+    titleBySlug[slug] = page.data.title;
+    pageBySlug[slug] = page;
   }
 
   const subnets = buildSubnets({ pages, getPageSlug });
+
+  // sectionCount is the subnet article's table-of-contents section count — the
+  // same figure toc.json exposes as `count` and info.json / history.json expose
+  // on their envelopes, derived from the shared getArticleToc helper. Rendered
+  // only for the registry's subnet articles so a subnet dashboard can gauge each
+  // subnet's depth (how many sections it documents) without a second fetch.
+  const sectionCountBySlug: Record<string, number> = {};
+  for (const subnet of subnets) {
+    const page = pageBySlug[subnet.slug];
+    if (!page) continue;
+    const { headings } = await render(page);
+    sectionCountBySlug[subnet.slug] = getArticleToc(headings).length;
+  }
 
   const body = JSON.stringify(
     {
@@ -75,6 +92,7 @@ export const GET: APIRoute = async ({ site }) => {
         // cite.json / info.json use, so a subnet dashboard can see both directions
         // of each subnet's link degree without a second fetch.
         referencesCount: getArticleReferences({ slug: subnet.slug, linkGraph: linkgraphData, titleBySlug }).length,
+        sectionCount: sectionCountBySlug[subnet.slug] ?? 0,
         // The subnet article's revision stats (history is newest-first) — the same
         // revisionCount / firstEdited / lastEdited trio info.json / history.json
         // expose per article and allpages.json / mostlinkedpages.json expose per
