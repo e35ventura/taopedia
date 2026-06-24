@@ -41,6 +41,14 @@ function categorySlug(name) {
   return String(name ?? '').replace(/ /g, '_');
 }
 
+// OPML 2.0 (http://opml.org/spec2.opml) defines only type="rss" for a feed
+// subscription outline ("link" and "include" are the other defined types, for
+// non-feed outlines); it has no type="atom" or type="json". A subscription
+// outline's actual feed format is conveyed by the document at xmlUrl, which the
+// reader fetches and sniffs — that is how spec-compliant exporters list Atom and
+// JSON feeds. So every feed outline here uses type="rss" and keeps the
+// human-readable format in text/title (e.g. "Taopedia (Atom)"); a strict OPML 2.0
+// importer would otherwise skip the undefined-type outlines.
 function feedOutline({ label, type, xmlUrl, htmlUrl, indent }) {
   return `${indent}<outline type="${escapeXml(type)}" text="${escapeXml(label)}" title="${escapeXml(label)}" xmlUrl="${escapeXml(xmlUrl)}" htmlUrl="${escapeXml(htmlUrl)}" />`;
 }
@@ -67,8 +75,8 @@ export function buildOpml({
   // <head>, and they carry the full article corpus.
   const siteFeedDefs = [
     { type: 'rss', label: `${siteName} (RSS)`, xmlUrl: `${root}/rss.xml` },
-    { type: 'atom', label: `${siteName} (Atom)`, xmlUrl: `${root}/atom.xml` },
-    { type: 'json', label: `${siteName} (JSON Feed)`, xmlUrl: `${root}/feed.json` },
+    { type: 'rss', label: `${siteName} (Atom)`, xmlUrl: `${root}/atom.xml` },
+    { type: 'rss', label: `${siteName} (JSON Feed)`, xmlUrl: `${root}/feed.json` },
   ];
   const siteOutlines = siteFeedDefs
     .map((f) =>
@@ -88,8 +96,8 @@ export function buildOpml({
   const recentChangesHub = `${root}/wiki/special/recentchanges/`;
   const recentChangesBlock = `      <outline text="Recent changes" title="Recent changes">\n${[
     { type: 'rss', label: 'Recent changes (RSS)', xmlUrl: `${root}/wiki/special/recentchanges/rss.xml` },
-    { type: 'atom', label: 'Recent changes (Atom)', xmlUrl: `${root}/wiki/special/recentchanges/atom.xml` },
-    { type: 'json', label: 'Recent changes (JSON Feed)', xmlUrl: `${root}/wiki/special/recentchanges/feed.json` },
+    { type: 'rss', label: 'Recent changes (Atom)', xmlUrl: `${root}/wiki/special/recentchanges/atom.xml` },
+    { type: 'rss', label: 'Recent changes (JSON Feed)', xmlUrl: `${root}/wiki/special/recentchanges/feed.json` },
   ]
     .map((f) =>
       feedOutline({
@@ -113,8 +121,8 @@ export function buildOpml({
         const hub = `${root}/wiki/category/${catPath}/`;
         const entries = [
           { type: 'rss', label: `${name} (RSS)`, xmlUrl: `${root}/wiki/category/${catPath}/rss.xml` },
-          { type: 'atom', label: `${name} (Atom)`, xmlUrl: `${root}/wiki/category/${catPath}/atom.xml` },
-          { type: 'json', label: `${name} (JSON Feed)`, xmlUrl: `${root}/wiki/category/${catPath}/feed.json` },
+          { type: 'rss', label: `${name} (Atom)`, xmlUrl: `${root}/wiki/category/${catPath}/atom.xml` },
+          { type: 'rss', label: `${name} (JSON Feed)`, xmlUrl: `${root}/wiki/category/${catPath}/feed.json` },
         ]
           .map((f) =>
             feedOutline({ label: f.label, type: f.type, xmlUrl: f.xmlUrl, htmlUrl: hub, indent: '          ' }),
