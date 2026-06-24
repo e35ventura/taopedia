@@ -225,6 +225,7 @@ const revisionStatsOf = (slug) => {
   assert.equal(empty.lastEdited, null, 'builder: default lastEdited is null');
   assert.equal(empty.sectionCount, 0, 'builder: default sectionCount is 0');
   assert.equal(empty.wordCount, 0, 'builder: default wordCount is 0');
+  assert.equal(empty.readingMinutes, 1, 'builder: default readingMinutes is 1 (ceil(0/200))');
   assert.equal(empty.count, 0, 'builder: empty count is 0');
   assert.deepEqual(empty.references, [], 'builder: empty references is []');
 }
@@ -390,12 +391,16 @@ for (const slug of articleSlugs) {
       infoDoc.wordCount,
       `${slug}: references.json wordCount must agree with the sibling info.json envelope`,
     );
-    // readingMinutes is the ~200-wpm estimate derived from wordCount — the same
-    // figure info.json / history.json / cite.json / toc.json expose.
+    // readingMinutes is the ~200 wpm ceil estimate info.json exposes and the
+    // article-page footer ("N min read") renders from wordCount.
+    assert.ok(
+      Number.isInteger(doc.readingMinutes) && doc.readingMinutes >= 1,
+      `${slug}: references.json readingMinutes must be a positive integer`,
+    );
     assert.equal(
       doc.readingMinutes,
       Math.max(1, Math.ceil(doc.wordCount / 200)),
-      `${slug}: references.json readingMinutes must equal ceil(wordCount/200) (min 1)`,
+      `${slug}: references.json readingMinutes must equal ceil(wordCount/200)`,
     );
     assert.equal(
       doc.readingMinutes,
