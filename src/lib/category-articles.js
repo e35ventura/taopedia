@@ -47,6 +47,10 @@ export const buildCategoryArticlesDocument = ({ origin, categoryName, categoryPa
     summary: article.summary || null,
     categories: article.categories ?? [],
     backlinks: Number.isFinite(article.backlinks) ? article.backlinks : 0,
+    // info.json names this same published inbound-link figure incomingLinks; keep
+    // backlinks for field-name compatibility and expose incomingLinks too, the
+    // per-entry alias related.json / allpages.json / subnets.json carry.
+    incomingLinks: Number.isFinite(article.backlinks) ? article.backlinks : 0,
     // The article's published OUTBOUND reference count — the complement of
     // backlinks (its inbound count) — the same figure references.json / cite.json
     // / info.json expose and allpages.json / subnets.json expose per directory entry.
