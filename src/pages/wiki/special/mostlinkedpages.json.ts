@@ -83,6 +83,11 @@ export const GET: APIRoute = async ({ site }) => {
         imageUrl: `${origin}/og/${entry.slug}.png`,
         categories: categoriesBySlug[entry.slug] ?? [],
         backlinks: entry.count,
+        // info.json names this figure incomingLinks; keep backlinks for the field
+        // name the HTML listing endpoints (allpages/subnets/category) expose. Same
+        // dual-naming references.json / related.json / backlinks.json already
+        // expose per entry.
+        incomingLinks: entry.count,
         // referencesCount is the article's published OUTBOUND reference count —
         // the complement of backlinks (its inbound count) — using the same
         // getArticleReferences helper (published-only join) that references.json /

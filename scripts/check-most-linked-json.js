@@ -138,6 +138,20 @@ data.pages.forEach((row, i) => {
     `row ${i} summary must be the slug-map summary (null when blank) for ${row.slug}`,
   );
   assert.ok(Number.isInteger(row.backlinks) && row.backlinks > 0, `row ${i} backlinks must be a positive integer`);
+  // incomingLinks is the same figure as backlinks above, under the name
+  // info.json uses for it — the same dual-naming references.json / related.json
+  // / backlinks.json already expose per entry.
+  assert.equal(row.incomingLinks, expected[i].count, `row ${i} incomingLinks count must match the link graph`);
+  assert.equal(row.incomingLinks, row.backlinks, `row ${i} incomingLinks must equal backlinks`);
+  const rowIncomingLinksInfoJson = path.join(projectRoot, 'dist', 'wiki', row.slug, 'info.json');
+  if (fs.existsSync(rowIncomingLinksInfoJson)) {
+    const rowInfo = JSON.parse(fs.readFileSync(rowIncomingLinksInfoJson, 'utf8'));
+    assert.equal(
+      row.incomingLinks,
+      rowInfo.incomingLinks,
+      `row ${i} incomingLinks must agree with sibling info.json for ${row.slug}`,
+    );
+  }
   // referencesCount is the article's published OUTBOUND reference count — the
   // complement of backlinks — re-derived with the same getArticleReferences
   // helper the endpoint uses (published-only join), so the ranking and
