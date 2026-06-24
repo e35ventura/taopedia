@@ -378,7 +378,17 @@ for (const slug of articleSlugs) {
 }
 
 assert.ok(withToc > 0, 'expected at least one article with a rendered contents sidebar');
-assert.ok(withEmpty > 0, 'expected at least one article without a rendered contents sidebar');
+// The helper's empty-TOC contract is unit-tested above (getArticleToc with a
+// single visible heading). At integration time, a growing catalog may reach a
+// state where every published article has 2+ visible headings and therefore
+// renders a contents sidebar — that must not fail the build.
+if (withEmpty === 0) {
+  assert.equal(
+    withToc,
+    articleSlugs.length,
+    'when every article renders a contents sidebar, toc.json must be built for all of them',
+  );
+}
 
 console.log(
   `TOC JSON check passed (${articleSlugs.length} articles: ${withToc} with a contents sidebar, ${withEmpty} without; shared-runtime parity verified)`,
