@@ -32,6 +32,12 @@ export async function getStaticPaths() {
   const pages = await getCollection('pages');
   const titleBySlug = Object.fromEntries(pages.map((page) => [getPageSlug(page), page.data.title]));
   const publishedSlugs = new Set(Object.keys(titleBySlug));
+  // Per-entry wordCount: each related article's body word count — the same
+  // figure info.json / history.json expose and allpages.json / subnets.json
+  // expose per directory entry. Built once from the content collection.
+  const wordCountBySlug = Object.fromEntries(
+    pages.map((page) => [getPageSlug(page), (page.body ?? '').trim().split(/\s+/).filter(Boolean).length]),
+  );
 
   return Promise.all(
     pages.map(async (page) => {
@@ -69,6 +75,7 @@ export async function getStaticPaths() {
               categories: slugMap[entry.slug]?.categories ?? [],
               backlinks: publishedInboundLinkCount(backlinksData, entry.slug, titleBySlug),
               referencesCount: getArticleReferences({ slug: entry.slug, linkGraph: linkgraphData, titleBySlug }).length,
+              wordCount: wordCountBySlug[entry.slug] ?? 0,
               revisionCount: entryHistory.length,
               firstEdited: entryHistory[entryHistory.length - 1]?.date ?? null,
               lastEdited: entryHistory[0]?.date ?? null,
@@ -97,7 +104,7 @@ export const GET: APIRoute = async ({ props, site }) => {
     revisionCount: number;
     firstEdited: string | null;
     lastEdited: string | null;
-    relatedPages: Array<{ slug: string; title: string; summary: string; tags: string[]; categories: string[]; backlinks: number; referencesCount: number; revisionCount: number; firstEdited: string | null; lastEdited: string | null }>;
+    relatedPages: Array<{ slug: string; title: string; summary: string; tags: string[]; categories: string[]; backlinks: number; referencesCount: number; wordCount: number; revisionCount: number; firstEdited: string | null; lastEdited: string | null }>;
   };
   const origin = (site ?? new URL('https://taopedia.org')).origin;
 
