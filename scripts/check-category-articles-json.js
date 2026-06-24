@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildCategoryArticlesDocument, getCategoryArticles } from '../src/lib/category-articles.js';
 import { publishedInboundLinkCount } from './most-linked.js';
+import { getArticleReferences } from '../src/lib/article-references.js';
 
 const ORIGIN = 'https://taopedia.org';
 
@@ -13,6 +14,7 @@ const categoryDir = path.join(projectRoot, 'dist', 'wiki', 'category');
 const categoriesJsonPath = path.join(projectRoot, 'public', 'data', 'categories.json');
 const slugmapJsonPath = path.join(projectRoot, 'public', 'data', 'slugmap.json');
 const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.json');
+const linkgraphJsonPath = path.join(projectRoot, 'public', 'data', 'linkgraph.json');
 
 // ---- 1) Unit: helper and builder behavior ---------------------------------
 {
@@ -82,6 +84,7 @@ const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.js
         summary: 'two',
         categories: ['Subnets', 'Economics'],
         backlinks: 0,
+        referencesCount: 0,
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
@@ -107,6 +110,7 @@ const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.js
         summary: null,
         categories: [],
         backlinks: 0,
+        referencesCount: 0,
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
@@ -132,6 +136,7 @@ const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.js
         summary: null,
         categories: [],
         backlinks: 0,
+        referencesCount: 0,
         revisionCount: 0,
         firstEdited: null,
         lastEdited: null,
@@ -165,7 +170,10 @@ const categoriesIndex = JSON.parse(fs.readFileSync(categoriesJsonPath, 'utf8'));
 const slugMap = JSON.parse(fs.readFileSync(slugmapJsonPath, 'utf8'));
 assert.ok(fs.existsSync(backlinksJsonPath), 'public/data/backlinks.json not found; run the build first');
 const backlinksData = JSON.parse(fs.readFileSync(backlinksJsonPath, 'utf8'));
+assert.ok(fs.existsSync(linkgraphJsonPath), 'public/data/linkgraph.json not found; run the build first');
+const linkgraphData = JSON.parse(fs.readFileSync(linkgraphJsonPath, 'utf8'));
 const titleBySlug = Object.fromEntries(Object.entries(slugMap).map(([slug, entry]) => [slug, entry?.title ?? slug]));
+const outboundCountFor = (slug) => getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length;
 // Mirror the endpoint's enrichment: each article carries its published-only
 // inbound-link count and its last-revision date, so the expected doc matches the
 // built doc field-for-field. lastEdited is re-derived from the raw history file
@@ -186,6 +194,7 @@ const withBacklinks = (list) =>
   list.map((a) => ({
     ...a,
     backlinks: publishedInboundLinkCount(backlinksData, a.slug, titleBySlug),
+    referencesCount: outboundCountFor(a.slug),
     ...revisionStatsOf(a.slug),
   }));
 
