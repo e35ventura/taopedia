@@ -55,6 +55,9 @@ export const buildArticleBacklinks = ({ slug, title, origin, summary = '', categ
     // complement of backlinks, the same per-entry referencesCount allpages.json
     // and subnets.json expose for each directory entry.
     referencesCount: Number.isFinite(link.referencesCount) ? link.referencesCount : 0,
+    // The linking article's body word count — the same figure info.json /
+    // history.json expose and allpages.json / subnets.json expose per entry.
+    wordCount: Number.isFinite(link.wordCount) ? link.wordCount : 0,
     // The linking article's revision-history summary — the same trio info.json
     // and history.json expose per article, so a consumer scanning the backlink
     // list can gauge each linking page's age and edit activity without a fetch.
