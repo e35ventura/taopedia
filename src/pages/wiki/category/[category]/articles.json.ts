@@ -73,6 +73,7 @@ export async function getStaticPaths() {
             lastEdited: history[0]?.date ?? null,
             wordCount: wordCountBySlug[article.slug] ?? 0,
             sectionCount: sectionCountBySlug[article.slug] ?? 0,
+            readingMinutes: Math.max(1, Math.ceil((wordCountBySlug[article.slug] ?? 0) / 200)),
           };
         }),
       },
@@ -87,7 +88,7 @@ export const GET: APIRoute = async ({ props, site }) => {
   const { categoryName, categoryPath, articles } = props as {
     categoryName: string;
     categoryPath: string;
-    articles: Array<{ slug: string; title: string; summary: string; backlinks: number; referencesCount: number; revisionCount: number; firstEdited: string | null; lastEdited: string | null; wordCount: number; sectionCount: number }>;
+    articles: Array<{ slug: string; title: string; summary: string; backlinks: number; referencesCount: number; revisionCount: number; firstEdited: string | null; lastEdited: string | null; wordCount: number; sectionCount: number; readingMinutes: number }>;
   };
   const origin = (site ?? new URL('https://taopedia.org')).origin;
 
