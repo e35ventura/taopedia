@@ -501,6 +501,13 @@ rejects('Intro.\n\n<portal src="https://evil.example/"></portal>', 'plain <porta
 rejects('Intro.\n\n<  portal  >x</portal>', 'spaced <portal>');
 accepts('A portal is a page-embedding primitive described here only as prose.', 'benign portal prose');
 
+// <keygen> is a deprecated form-associated control (submits a generated key with
+// the form) — the same form-injection / credential-harvesting surface as the
+// already-blocked <form> / <input> / <button> / <select>, so it is blocked too.
+rejects('Intro.\n\n<keygen name="key" challenge="x">', 'plain <keygen>');
+rejects('Intro.\n\n<  keygen   name="key">', 'spaced <keygen>');
+accepts('A keygen control is a deprecated form element described here only as prose.', 'benign keygen prose');
+
 // <video>/<audio> render native media UI with no script; CSP media-src 'none' does not
 // stop the elements from appearing. Block them like dialog and fencedframe.
 rejects('Intro.\n\n<video src="/evil.mp4" controls></video>', 'plain <video>');

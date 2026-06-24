@@ -59,7 +59,11 @@ const unsafeContentPatterns = [
   { pattern: /^\s*export\s/m, reason: 'MDX exports are not allowed in article content' },
   { pattern: /<\s*script[\s>]/i, reason: 'script tags are not allowed in article content' },
   { pattern: /<\s*\/\s*script\s*>/i, reason: 'script tags are not allowed in article content' },
-  { pattern: /<\s*(base|frame|frameset|iframe|object|embed|link|meta|style|form|input|button|textarea|select|option|fieldset|legend|datalist|output)\b/i, reason: 'active HTML elements are not allowed in article content' },
+  // <keygen> is a (deprecated) form-associated control that submits a generated
+  // key with the form — the same form-injection / credential-harvesting surface
+  // as the already-blocked <form> / <input> / <button> / <select> / <textarea>,
+  // so it is grouped with the active form-control family.
+  { pattern: /<\s*(base|frame|frameset|iframe|object|embed|link|meta|style|form|input|button|textarea|select|keygen|option|fieldset|legend|datalist|output)\b/i, reason: 'active HTML elements are not allowed in article content' },
   // <dialog open> renders in the browser top layer -- above all page content, with
   // a backdrop -- with no script and no inline style. That makes a raw <dialog> a
   // clickjacking/phishing overlay primitive (e.g. a fake "wallet compromised" modal
