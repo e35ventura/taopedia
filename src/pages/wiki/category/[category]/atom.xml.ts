@@ -13,37 +13,47 @@ export async function getStaticPaths() {
     for (const category of page.data.categories ?? []) categories.add(category);
   }
 
-  return [...categories].sort().map((categoryName) => ({
-    params: { category: categorySlug(categoryName) },
-    props: { categoryName },
-  }));
+  return [...categories].sort().map((categoryName) => {
+    const categoryPath = categorySlug(categoryName);
+    // Precomputed once per route in getStaticPaths — GET used to call
+    // getCollection('pages') again for every category Atom feed (38 redundant
+    // full collection reads per build). Matches category/articles.json and #1121.
+    const items = pages
+      .filter((page) => page.data.categories?.includes(categoryName))
+      .map((page) => {
+        const slug = getPageSlug(page);
+        const history = historyForSlug(slug);
+        return {
+          slug,
+          title: page.data.title,
+          summary: page.data.summary ?? '',
+          categories: page.data.categories ?? [],
+          datePublished: history[history.length - 1]?.date ?? '',
+          dateModified: history[0]?.date ?? '',
+        };
+      });
+
+    return {
+      params: { category: categoryPath },
+      props: { categoryName, categoryPath, items },
+    };
+  });
 }
 
 export const GET: APIRoute = async ({ site, props }) => {
-  const { categoryName } = props as { categoryName: string };
-  const categoryPath = categorySlug(categoryName);
-  const base = site ?? new URL('https://taopedia.org');
-  const origin = base.origin;
-  const pages = await getCollection('pages');
-
-  // Each category Atom feed mirrors the existing category RSS/JSON hub
-  // membership while keeping the same canonical article URL/date derivation as
-  // the site-wide Atom and JSON feeds.
-  const items = pages
-    .filter((page) => page.data.categories?.includes(categoryName))
-    .map((page) => {
-      const slug = getPageSlug(page);
-      const history = historyForSlug(slug);
-      return {
-        title: page.data.title,
-        url: `${origin}/wiki/${slug}/`,
-        image: `${origin}/og/${slug}.png`,
-        description: page.data.summary ?? '',
-        categories: page.data.categories ?? [],
-        datePublished: history[history.length - 1]?.date ?? '',
-        dateModified: history[0]?.date ?? '',
-      };
-    });
+  const { categoryName, categoryPath, items } = props as {
+    categoryName: string;
+    categoryPath: string;
+    items: Array<{
+      slug: string;
+      title: string;
+      summary: string;
+      categories: string[];
+      datePublished: string;
+      dateModified: string;
+    }>;
+  };
+  const origin = (site ?? new URL('https://taopedia.org')).origin;
 
   const body = buildAtomFeed({
     siteUrl: `${origin}/`,
@@ -51,7 +61,15 @@ export const GET: APIRoute = async ({ site, props }) => {
     homePageUrl: `${origin}/wiki/category/${categoryPath}/`,
     title: `Taopedia - ${categoryName} articles`,
     description: `Recently updated Taopedia articles in the ${categoryName} topic.`,
-    items,
+    items: items.map((item) => ({
+      title: item.title,
+      url: `${origin}/wiki/${item.slug}/`,
+      image: `${origin}/og/${item.slug}.png`,
+      description: item.summary,
+      categories: item.categories,
+      datePublished: item.datePublished,
+      dateModified: item.dateModified,
+    })),
   });
 
   return new Response(body, {
