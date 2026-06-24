@@ -1,7 +1,8 @@
 import type { APIRoute } from 'astro';
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
 import { getArticleReferences } from '../../../lib/article-references.js';
+import { getArticleToc } from '../../../lib/article-toc.js';
 import { buildCitations, CITATION_META } from '../../../../scripts/citations.js';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
 
@@ -21,26 +22,31 @@ export async function getStaticPaths() {
   const pages = await getCollection('pages');
   const titleBySlug = Object.fromEntries(pages.map((page) => [getPageSlug(page), page.data.title]));
 
-  return pages.map((page) => {
-    const slug = getPageSlug(page);
-    return {
-      params: { slug },
-      props: {
-        page,
-        slug,
-        incomingLinks: publishedInboundLinkCount(backlinksData, slug, titleBySlug),
-        referencesCount: getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length,
-      },
-    };
-  });
+  return Promise.all(
+    pages.map(async (page) => {
+      const slug = getPageSlug(page);
+      const { headings } = await render(page);
+      return {
+        params: { slug },
+        props: {
+          page,
+          slug,
+          incomingLinks: publishedInboundLinkCount(backlinksData, slug, titleBySlug),
+          referencesCount: getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length,
+          sectionCount: getArticleToc(headings).length,
+        },
+      };
+    }),
+  );
 }
 
 export const GET: APIRoute = async ({ site, props }) => {
-  const { page, slug, incomingLinks, referencesCount } = props as {
+  const { page, slug, incomingLinks, referencesCount, sectionCount } = props as {
     page: { data: { title: string; summary?: string; categories?: string[] } };
     slug: string;
     incomingLinks: number;
     referencesCount: number;
+    sectionCount: number;
   };
   const url = new URL(`/wiki/${slug}/`, site ?? new URL('https://taopedia.org')).toString();
   const history = historyForSlug(slug);
@@ -84,6 +90,11 @@ export const GET: APIRoute = async ({ site, props }) => {
       // so a consumer citing the article can record how many wiki pages it links
       // to without a second fetch.
       referencesCount: Number.isFinite(referencesCount) ? referencesCount : 0,
+      // sectionCount is the article's table-of-contents section count — the
+      // same figure toc.json exposes as `count` (via the shared getArticleToc
+      // helper), so a consumer citing the article can see its outline size
+      // without a second fetch.
+      sectionCount: Number.isFinite(sectionCount) ? sectionCount : 0,
       ...(date ? { date } : {}),
       ...CITATION_META,
       citations,
