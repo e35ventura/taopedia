@@ -29,7 +29,7 @@ const ORIGIN = 'https://taopedia.org';
     { sha: 'abc1234def5678', date: '2026-06-01T12:00:00.000Z', authorName: 'alice', message: 'initial commit' },
     { sha: '000aaabbbccc11', date: '2025-01-10T08:00:00.000Z', authorName: 'bob', message: 'update' },
   ];
-  const result = buildArticleHistory({ slug: 'recycling', title: 'Recycling', origin: ORIGIN, summary: 'Reclaiming emitted TAO.', categories: ['Consensus'], incomingLinks: 5, referencesCount: 3, sectionCount: 4, revisions: revs });
+  const result = buildArticleHistory({ slug: 'recycling', title: 'Recycling', origin: ORIGIN, summary: 'Reclaiming emitted TAO.', categories: ['Consensus'], incomingLinks: 5, referencesCount: 3, sectionCount: 4, wordCount: 812, revisions: revs });
   assert.equal(result.slug, 'recycling', 'builder: slug');
   assert.equal(result.title, 'Recycling', 'builder: title');
   assert.equal(result.summary, 'Reclaiming emitted TAO.', 'builder: summary');
@@ -51,6 +51,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.incomingLinks, 5, 'builder: incomingLinks');
   assert.equal(result.referencesCount, 3, 'builder: referencesCount');
   assert.equal(result.sectionCount, 4, 'builder: sectionCount');
+  assert.equal(result.wordCount, 812, 'builder: wordCount');
   assert.equal(result.revisionCount, 2, 'builder: revisionCount');
   assert.equal(result.lastEdited, '2026-06-01T12:00:00.000Z', 'builder: lastEdited is revisions[0].date');
   assert.equal(result.firstEdited, '2025-01-10T08:00:00.000Z', 'builder: firstEdited is revisions[last].date');
@@ -74,9 +75,13 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(empty.incomingLinks, 0, 'builder: default incomingLinks is 0');
   assert.equal(empty.referencesCount, 0, 'builder: default referencesCount is 0');
   assert.equal(empty.sectionCount, 0, 'builder: default sectionCount is 0');
+  assert.equal(empty.wordCount, 0, 'builder: default wordCount is 0');
 
   const badSection = buildArticleHistory({ slug: 'x', title: 'X', origin: ORIGIN, sectionCount: NaN });
   assert.equal(badSection.sectionCount, 0, 'builder: non-finite sectionCount defaults to 0');
+
+  const badWords = buildArticleHistory({ slug: 'x', title: 'X', origin: ORIGIN, wordCount: NaN });
+  assert.equal(badWords.wordCount, 0, 'builder: non-finite wordCount defaults to 0');
 
   const badCount = buildArticleHistory({ slug: 'x', title: 'X', origin: ORIGIN, referencesCount: NaN });
   assert.equal(badCount.referencesCount, 0, 'builder: non-finite referencesCount defaults to 0');
@@ -127,6 +132,11 @@ assert.ok(articleSlugs.length > 0, 'no built article pages found to verify');
 // Parse the 7-char short SHAs from a rendered history HTML page.
 const htmlShortShas = (html) =>
   [...html.matchAll(/<code[^>]*>[\s\S]*?([0-9a-f]{7})[\s\S]*?<\/code>/g)].map(([, sha]) => sha);
+
+const footerWordCount = (html) => {
+  const match = html.match(/<div class="mw-article-meta"[^>]*data-word-count="(\d+)"/);
+  return match ? Number(match[1]) : null;
+};
 
 let withHistory = 0;
 let withEmpty = 0;
@@ -214,6 +224,19 @@ for (const slug of articleSlugs) {
       doc.sectionCount,
       tocDoc.count,
       `${slug}: history.json sectionCount must agree with the sibling toc.json envelope`,
+    );
+  }
+  // wordCount is the article's word count — the same figure the article footer
+  // exposes as data-word-count on the canonical article page.
+  assert.ok(Number.isInteger(doc.wordCount) && doc.wordCount >= 0, `${slug}: history.json wordCount must be a non-negative integer`);
+  const articleHtmlFile = path.join(wikiDir, slug, 'index.html');
+  if (fs.existsSync(articleHtmlFile)) {
+    const articleHtml = fs.readFileSync(articleHtmlFile, 'utf8');
+    const expectedWordCount = footerWordCount(articleHtml);
+    assert.equal(
+      doc.wordCount,
+      expectedWordCount,
+      `${slug}: history.json wordCount must match the article footer's data-word-count`,
     );
   }
   const infoJsonFile = path.join(wikiDir, slug, 'info.json');

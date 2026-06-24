@@ -41,6 +41,7 @@ export async function getStaticPaths() {
           incomingLinks: publishedInboundLinkCount(backlinksData, slug, titleBySlug),
           referencesCount: getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length,
           sectionCount: getArticleToc(headings).length,
+          wordCount: (page.body ?? '').trim().split(/\s+/).filter(Boolean).length,
         },
       };
     }),
@@ -51,15 +52,16 @@ export async function getStaticPaths() {
 // per-commit revision list (sha, date, authorName, message) that history.astro
 // renders, plus computed summary fields (revisionCount, firstEdited, lastEdited,
 // referencesCount) that info.json summarises or that references.json exposes as
-// `count`, plus sectionCount (the toc.json `count` figure), but does not break
-// out per-revision.
+// `count`, plus sectionCount (the toc.json `count` figure) and wordCount (the
+// article footer's data-word-count), but does not break out per-revision.
 export const GET: APIRoute = async ({ props, site }) => {
-  const { page, slug, incomingLinks, referencesCount, sectionCount } = props as {
+  const { page, slug, incomingLinks, referencesCount, sectionCount, wordCount } = props as {
     page: { data: { title: string; summary?: string; categories?: string[] } };
     slug: string;
     incomingLinks: number;
     referencesCount: number;
     sectionCount: number;
+    wordCount: number;
   };
   const origin = (site ?? new URL('https://taopedia.org')).origin;
 
@@ -76,6 +78,7 @@ export const GET: APIRoute = async ({ props, site }) => {
       incomingLinks,
       referencesCount,
       sectionCount,
+      wordCount,
       revisions,
     }),
     null,
