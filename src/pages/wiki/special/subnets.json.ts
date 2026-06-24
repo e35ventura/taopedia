@@ -71,7 +71,9 @@ export const GET: APIRoute = async ({ site }) => {
       // backwards compatibility; subnetsJsonUrl is the consistent name.
       subnetsJsonUrl: `${origin}/wiki/special/subnets.json`,
       count: subnets.length,
-      subnets: subnets.map((subnet) => ({
+      subnets: subnets.map((subnet) => {
+        const inboundLinks = publishedInboundLinkCount(backlinksData, subnet.slug, titleBySlug);
+        return {
         netuid: subnet.netuid,
         name: subnet.name,
         slug: subnet.slug,
@@ -91,7 +93,10 @@ export const GET: APIRoute = async ({ site }) => {
         tocJsonUrl: `${origin}/wiki/${subnet.slug}/toc.json`,
         imageUrl: `${origin}/og/${subnet.slug}.png`,
         categories: subnet.categories,
-        backlinks: publishedInboundLinkCount(backlinksData, subnet.slug, titleBySlug),
+        backlinks: inboundLinks,
+        // info.json names this figure incomingLinks; keep backlinks for the
+        // field name the HTML listing endpoints (allpages/mostlinked) expose.
+        incomingLinks: inboundLinks,
         // referencesCount is the subnet article's published OUTBOUND reference
         // count — the complement of backlinks (its inbound count) — using the same
         // getArticleReferences helper (published-only join) that references.json /

@@ -245,6 +245,14 @@ data.subnets.forEach((row, i) => {
     Number.isInteger(row.backlinks) && row.backlinks >= 0,
     `row ${i} backlinks must be a non-negative integer (got ${row.backlinks})`,
   );
+  // incomingLinks is the published-only inbound-link count — the same figure
+  // info.json names and listing endpoints expose as `backlinks` per row.
+  assert.equal(
+    row.incomingLinks,
+    publishedInboundLinkCount(backlinks, row.slug, titleBySlug),
+    `row ${i} incomingLinks must match the published inbound-link count for ${row.slug}`,
+  );
+  assert.equal(row.incomingLinks, row.backlinks, `row ${i} incomingLinks must equal backlinks`);
   // referencesCount is the subnet article's published OUTBOUND reference count —
   // the complement of backlinks — re-derived with the same getArticleReferences
   // helper the endpoint uses (published-only join), so the registry and
