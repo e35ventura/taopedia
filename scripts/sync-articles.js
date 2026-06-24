@@ -163,6 +163,15 @@ const unsafeContentPatterns = [
   // it is the scripting-companion drawing element a static glossary never needs.
   // Block it like the other non-prose rendered elements.
   { pattern: /<\s*canvas\b/i, reason: 'canvas elements are not allowed in article content' },
+  // <ruby>/<rt>/<rp> (and <rtc>/<rb>) render interlinear annotation text — small
+  // type positioned directly above (or beside) the base text. An injected
+  // `<ruby>5Fake…address<rt>✓ official</rt></ruby>` overlays an attacker-chosen
+  // micro-label like "✓ official" on top of a scam address with no script, inline
+  // style, or flagged scheme — a content-spoof / fake-trust-mark primitive in the
+  // same class as the merged marquee/bdo/<font> rendered-element blocks. Bittensor
+  // glossary prose is single-script English and never uses ruby annotations, so
+  // block the whole ruby element family.
+  { pattern: /<\s*(ruby|rt|rp|rtc|rb)\b/i, reason: 'ruby annotation elements are not allowed in article content' },
   { pattern: /\sslot\s*=/i, reason: 'slot attributes are not allowed in article content' },
   // The <style> element is already blocked above, but an inline `style=`
   // attribute on any allowed element is the matching gap: it lets injected CSS
