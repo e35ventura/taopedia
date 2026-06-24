@@ -680,6 +680,22 @@ rejects('<th class=x/rowspan="99">', 'slash-delimited th rowspan attribute');
 accepts('<table><tr><td>x</td></tr></table>', 'plain td without colspan/rowspan');
 accepts('Column span and row span are described here only as prose.', 'benign colspan/rowspan prose');
 
+// headers=/scope=/abbr= on allowed table cells remap which labels screen readers
+// announce for headers/data cells without changing the visible table text.
+rejects('Intro.\n\n<table><tr><th id="wallet">Wallet</th><td headers="wallet">evil</td></tr></table>', 'plain td headers attribute');
+rejects('Intro.\n\n<table><tr><th scope="row">Wallet</th><td>x</td></tr></table>', 'plain th scope attribute');
+rejects('Intro.\n\n<table><tr><th abbr="Official support">Support</th><td>x</td></tr></table>', 'plain th abbr attribute');
+rejects('<table><tr><td class="x"headers="wallet">evil</td></tr></table>', 'quote-abutted td headers attribute');
+rejects('<table><tr><td class=x/headers="wallet">evil</td></tr></table>', 'slash-delimited td headers attribute');
+rejects('<table><tr><th class="x"scope="row">Wallet</th><td>x</td></tr></table>', 'quote-abutted th scope attribute');
+rejects('<table><tr><th class=x/scope="row">Wallet</th><td>x</td></tr></table>', 'slash-delimited th scope attribute');
+rejects('<table><tr><th class="x"abbr="Official">Support</th><td>x</td></tr></table>', 'quote-abutted th abbr attribute');
+rejects('<table><tr><th class=x/abbr="Official">Support</th><td>x</td></tr></table>', 'slash-delimited th abbr attribute');
+
+accepts('<table><tr><td>x</td></tr></table>', 'plain table without headers/scope/abbr');
+accepts('Table headers, scope rules, and abbreviations are described here only as prose.', 'benign headers/scope/abbr prose');
+accepts('<table><tr><td class="headers-demo">x</td></tr></table>', 'benign headers word inside class value');
+
 rejects('Intro.\n\n<div hidden>panel</div>', 'bare hidden attribute');
 rejects('Intro.\n\n<div hidden class="x">panel</div>', 'hidden before another attribute');
 rejects('Intro.\n\n<  p   hidden = "until-found">x</p>', 'spaced hidden attribute with value');
