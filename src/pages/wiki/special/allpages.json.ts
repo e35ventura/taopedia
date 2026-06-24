@@ -91,6 +91,10 @@ export const GET: APIRoute = async ({ site }) => {
           // The article body's word count — the same figure info.json exposes —
           // so the directory can be sorted or filtered by article length.
           wordCount: wordCountBySlug[article.slug] ?? 0,
+          // The article's estimated reading time in minutes — the same ~200 wpm
+          // ceil estimate info.json exposes and the article-page footer renders
+          // from wordCount — so the directory can be sorted or filtered by it.
+          readingMinutes: Math.max(1, Math.ceil((wordCountBySlug[article.slug] ?? 0) / 200)),
           // The article's table-of-contents section count — the same figure
           // toc.json exposes as `count` and info.json exposes on its envelope.
           sectionCount: sectionCountBySlug[article.slug] ?? 0,
