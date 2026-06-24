@@ -265,6 +265,19 @@ for (const slug of articleSlugs) {
       `cite.json sectionCount must agree with the sibling toc.json envelope for ${slug}`,
     );
   }
+  // wordCount is the article body's word count — the same figure info.json /
+  // history.json expose and the article footer renders. Cross-check against the
+  // sibling info.json envelope (independent source).
+  assert.ok(Number.isInteger(doc.wordCount) && doc.wordCount >= 0, `cite.json wordCount must be a non-negative integer for ${slug}`);
+  const citeInfoJsonFile = path.join(wikiDir, slug, 'info.json');
+  if (fs.existsSync(citeInfoJsonFile)) {
+    const infoDoc = JSON.parse(fs.readFileSync(citeInfoJsonFile, 'utf8'));
+    assert.equal(
+      doc.wordCount,
+      infoDoc.wordCount,
+      `cite.json wordCount must agree with the sibling info.json envelope for ${slug}`,
+    );
+  }
   const historyJsonFile = path.join(wikiDir, slug, 'history.json');
   if (fs.existsSync(historyJsonFile)) {
     const historyDoc = JSON.parse(fs.readFileSync(historyJsonFile, 'utf8'));
