@@ -2,13 +2,19 @@ import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
 import { buildArticleInfo } from '../../../../scripts/article-info.js';
+import { getArticleReferences } from '../../../lib/article-references.js';
 
 const backlinksModules = import.meta.glob('../../../../public/data/backlinks.json', { eager: true }) as Record<
   string,
   { default?: Record<string, Array<{ from: string }>> }
 >;
+const linkgraphModules = import.meta.glob('../../../../public/data/linkgraph.json', { eager: true }) as Record<
+  string,
+  { default?: Record<string, Array<{ target?: string }>> }
+>;
 
 const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
+const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
@@ -41,6 +47,14 @@ export const GET: APIRoute = async ({ props, site }) => {
   const publishedSlugs = new Set(pages.map((p) => getPageSlug(p)));
   const incomingLinks = (backlinksData[slug] ?? []).filter((entry) => publishedSlugs.has(entry.from)).length;
 
+  // referencesCount: the article's published OUTBOUND reference count — the
+  // complement of incomingLinks — using the same getArticleReferences helper
+  // (published-only join) that references.json / cite.json / history.json use,
+  // so the figure agrees across every endpoint that exposes it.
+  const titleBySlug: Record<string, string> = {};
+  for (const p of pages) titleBySlug[getPageSlug(p)] = p.data.title;
+  const referencesCount = getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length;
+
   const body = JSON.stringify(
     buildArticleInfo({
       title: page.data.title,
@@ -49,6 +63,7 @@ export const GET: APIRoute = async ({ props, site }) => {
       summary: page.data.summary ?? '',
       categories: page.data.categories ?? [],
       incomingLinks,
+      referencesCount,
       revisionCount: history.length,
       firstEdited: history[history.length - 1]?.date ?? null,
       lastEdited: history[0]?.date ?? null,

@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildArticleInfo } from './article-info.js';
+import { getArticleReferences } from '../src/lib/article-references.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
@@ -10,14 +11,21 @@ const wikiDir = path.join(path.resolve(__dirname, '..'), 'dist', 'wiki');
 const historyDir = path.join(projectRoot, 'public', 'history');
 const slugmapFile = path.join(projectRoot, 'public', 'data', 'slugmap.json');
 const backlinksFile = path.join(projectRoot, 'public', 'data', 'backlinks.json');
+const linkgraphFile = path.join(projectRoot, 'public', 'data', 'linkgraph.json');
 const ORIGIN = 'https://taopedia.org';
 
 assert.ok(fs.existsSync(wikiDir), 'dist/wiki not found; run the build first');
 assert.ok(fs.existsSync(slugmapFile), 'public/data/slugmap.json not found; run the build first');
 assert.ok(fs.existsSync(backlinksFile), 'public/data/backlinks.json not found; run the build first');
+assert.ok(fs.existsSync(linkgraphFile), 'public/data/linkgraph.json not found; run the build first');
 
 const slugmap = JSON.parse(fs.readFileSync(slugmapFile, 'utf8'));
 const backlinksData = JSON.parse(fs.readFileSync(backlinksFile, 'utf8'));
+const linkgraphData = JSON.parse(fs.readFileSync(linkgraphFile, 'utf8'));
+// referencesCount = the article's published outbound-reference count, re-derived
+// with the same getArticleReferences helper info.json uses (published-only join).
+const titleBySlug = Object.fromEntries(Object.entries(slugmap).map(([slug, entry]) => [slug, entry?.title ?? slug]));
+const outboundCountFor = (slug) => getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length;
 const decode = (s) =>
   s
     .replace(/&lt;/g, '<')
@@ -108,6 +116,7 @@ for (const { file, slug } of articlePages) {
     summary: slugmap[slug]?.summary ?? '',
     categories: slugmap[slug]?.categories ?? [],
     incomingLinks: inboundCountFor(slug),
+    referencesCount: outboundCountFor(slug),
     revisionCount: history.length,
     firstEdited: history[history.length - 1]?.date ?? null,
     lastEdited: history[0]?.date ?? null,

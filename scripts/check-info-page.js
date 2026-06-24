@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildArticleInfo } from './article-info.js';
+import { getArticleReferences } from '../src/lib/article-references.js';
 
 // Load-bearing regression check for the per-article "Page information"
 // (action=info) pages at /wiki/<slug>/info/ and their machine-readable companion
@@ -29,6 +30,7 @@ const ORIGIN = 'https://taopedia.org';
     summary: 'Recycling is a consensus mechanism.',
     categories: ['Consensus'],
     incomingLinks: 5,
+    referencesCount: 7,
     revisionCount: 3,
     firstEdited: '2024-01-01T00:00:00.000Z',
     lastEdited: '2024-06-01T00:00:00.000Z',
@@ -50,10 +52,12 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.imageUrl, `${ORIGIN}/og/recycling.png`, 'builder: imageUrl');
   assert.deepEqual(result.categories, ['Consensus'], 'builder: categories');
   assert.equal(result.incomingLinks, 5, 'builder: incomingLinks');
+  assert.equal(result.referencesCount, 7, 'builder: referencesCount');
   assert.equal(result.revisionCount, 3, 'builder: revisionCount');
 
   const empty = buildArticleInfo({ title: 'X', slug: 'x', origin: ORIGIN });
   assert.equal(empty.incomingLinks, 0, 'builder: default incomingLinks is 0');
+  assert.equal(empty.referencesCount, 0, 'builder: default referencesCount is 0');
   assert.equal(empty.revisionCount, 0, 'builder: default revisionCount is 0');
   assert.equal(empty.firstEdited, null, 'builder: default firstEdited is null');
   assert.equal(empty.lastEdited, null, 'builder: default lastEdited is null');
@@ -74,13 +78,21 @@ const ORIGIN = 'https://taopedia.org';
 const historyDir = path.join(projectRoot, 'public', 'history');
 const slugmapFile = path.join(projectRoot, 'public', 'data', 'slugmap.json');
 const backlinksFile = path.join(projectRoot, 'public', 'data', 'backlinks.json');
+const linkgraphFile = path.join(projectRoot, 'public', 'data', 'linkgraph.json');
 
 assert.ok(fs.existsSync(wikiDir), 'dist/wiki not found; run the build first');
 assert.ok(fs.existsSync(slugmapFile), 'public/data/slugmap.json not found; run the build first');
 assert.ok(fs.existsSync(backlinksFile), 'public/data/backlinks.json not found; run the build first');
+assert.ok(fs.existsSync(linkgraphFile), 'public/data/linkgraph.json not found; run the build first');
 
 const slugmap = JSON.parse(fs.readFileSync(slugmapFile, 'utf8'));
 const backlinksData = JSON.parse(fs.readFileSync(backlinksFile, 'utf8'));
+const linkgraphData = JSON.parse(fs.readFileSync(linkgraphFile, 'utf8'));
+// referencesCount = the article's published outbound-reference count, re-derived
+// with the same getArticleReferences helper the endpoint uses (published-only
+// join), so the JSON figure can't drift from the link graph.
+const titleBySlug = Object.fromEntries(Object.entries(slugmap).map(([slug, entry]) => [slug, entry?.title ?? slug]));
+const outboundCountFor = (slug) => getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length;
 
 const decode = (s) =>
   s
@@ -204,6 +216,14 @@ for (const slug of articleSlugs) {
     infoJson.incomingLinks,
     inboundCountFor(slug),
     `/wiki/${slug}/info.json incomingLinks must match the published inbound-link count shown on the HTML info page`,
+  );
+  // referencesCount is the published OUTBOUND reference count (the complement of
+  // incomingLinks) — the same figure history.json / cite.json expose — derived
+  // from the same getArticleReferences join so the surfaces cannot drift.
+  assert.equal(
+    infoJson.referencesCount,
+    outboundCountFor(slug),
+    `/wiki/${slug}/info.json referencesCount must match the published outbound-reference count`,
   );
   // Extract the origin from the article URL so the companion-URL checks are
   // independent of the configured site value.
