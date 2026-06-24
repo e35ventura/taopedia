@@ -344,6 +344,22 @@ data.articles.forEach((row, i) => {
       infoDoc.wordCount,
       `row ${i} wordCount must agree with the sibling info.json envelope for ${row.slug}`,
     );
+    assert.ok(
+      Number.isInteger(row.readingMinutes) && row.readingMinutes >= 1,
+      `row ${i} readingMinutes must be a positive integer (got ${JSON.stringify(row.readingMinutes)})`,
+    );
+    assert.equal(
+      row.readingMinutes,
+      Math.max(1, Math.ceil(row.wordCount / 200)),
+      `row ${i} readingMinutes must equal ceil(wordCount/200)`,
+    );
+    if ('readingMinutes' in infoDoc) {
+      assert.equal(
+        row.readingMinutes,
+        infoDoc.readingMinutes,
+        `row ${i} readingMinutes must agree with the sibling info.json envelope for ${row.slug}`,
+      );
+    }
   }
   // sectionCount is the article's table-of-contents section count — the same
   // figure toc.json exposes as `count` and info.json exposes on its envelope.
