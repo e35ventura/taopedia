@@ -389,6 +389,21 @@ data.subnets.forEach((row, i) => {
     `${data.site}/wiki/${expected[i].slug}/related.json`,
     `row ${i} relatedUrl must equal ${data.site}/wiki/${expected[i].slug}/related.json`,
   );
+  // referencesJsonUrl / relatedJsonUrl are the consistently-named *JsonUrl aliases
+  // for referencesUrl / relatedUrl, matching the infoJsonUrl / tocJsonUrl siblings;
+  // each must equal the canonical .json URL (and its non-JsonUrl-named counterpart).
+  assert.equal(
+    row.referencesJsonUrl,
+    `${data.site}/wiki/${expected[i].slug}/references.json`,
+    `row ${i} referencesJsonUrl must equal ${data.site}/wiki/${expected[i].slug}/references.json`,
+  );
+  assert.equal(row.referencesJsonUrl, row.referencesUrl, `row ${i} referencesJsonUrl must equal the referencesUrl companion for ${expected[i].slug}`);
+  assert.equal(
+    row.relatedJsonUrl,
+    `${data.site}/wiki/${expected[i].slug}/related.json`,
+    `row ${i} relatedJsonUrl must equal ${data.site}/wiki/${expected[i].slug}/related.json`,
+  );
+  assert.equal(row.relatedJsonUrl, row.relatedUrl, `row ${i} relatedJsonUrl must equal the relatedUrl companion for ${expected[i].slug}`);
   // tocJsonUrl is the machine-readable table-of-contents companion:
   // /wiki/<slug>/toc.json already exists per article, and other article-list
   // JSON surfaces expose it, so the subnet registry should expose the same

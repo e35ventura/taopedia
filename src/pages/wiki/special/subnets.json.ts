@@ -88,6 +88,14 @@ export const GET: APIRoute = async ({ site }) => {
         bibtexUrl: `${origin}/wiki/${subnet.slug}/cite.bib`,
         referencesUrl: `${origin}/wiki/${subnet.slug}/references.json`,
         relatedUrl: `${origin}/wiki/${subnet.slug}/related.json`,
+        // referencesJsonUrl / relatedJsonUrl are the consistently-named `*JsonUrl`
+        // aliases for referencesUrl / relatedUrl, matching the infoJsonUrl /
+        // backlinksJsonUrl / citeJsonUrl / tocJsonUrl companions this same entry
+        // already exposes (references.json and related.json have no HTML page, so
+        // referencesUrl / relatedUrl already point at the .json — these add the
+        // sibling-consistent name). `backlinks` etc. style: keep both.
+        referencesJsonUrl: `${origin}/wiki/${subnet.slug}/references.json`,
+        relatedJsonUrl: `${origin}/wiki/${subnet.slug}/related.json`,
         tocJsonUrl: `${origin}/wiki/${subnet.slug}/toc.json`,
         imageUrl: `${origin}/og/${subnet.slug}.png`,
         categories: subnet.categories,
