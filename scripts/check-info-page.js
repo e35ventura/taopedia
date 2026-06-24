@@ -32,6 +32,7 @@ const ORIGIN = 'https://taopedia.org';
     incomingLinks: 5,
     referencesCount: 7,
     sectionCount: 5,
+    wordCount: 1234,
     revisionCount: 3,
     firstEdited: '2024-01-01T00:00:00.000Z',
     lastEdited: '2024-06-01T00:00:00.000Z',
@@ -55,12 +56,14 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.incomingLinks, 5, 'builder: incomingLinks');
   assert.equal(result.referencesCount, 7, 'builder: referencesCount');
   assert.equal(result.sectionCount, 5, 'builder: sectionCount');
+  assert.equal(result.wordCount, 1234, 'builder: wordCount');
   assert.equal(result.revisionCount, 3, 'builder: revisionCount');
 
   const empty = buildArticleInfo({ title: 'X', slug: 'x', origin: ORIGIN });
   assert.equal(empty.incomingLinks, 0, 'builder: default incomingLinks is 0');
   assert.equal(empty.referencesCount, 0, 'builder: default referencesCount is 0');
   assert.equal(empty.sectionCount, 0, 'builder: default sectionCount is 0');
+  assert.equal(empty.wordCount, 0, 'builder: default wordCount is 0');
   assert.equal(empty.revisionCount, 0, 'builder: default revisionCount is 0');
   assert.equal(empty.firstEdited, null, 'builder: default firstEdited is null');
   assert.equal(empty.lastEdited, null, 'builder: default lastEdited is null');
@@ -241,6 +244,21 @@ for (const slug of articleSlugs) {
       infoJson.sectionCount,
       tocDoc.count,
       `/wiki/${slug}/info.json sectionCount must agree with the sibling toc.json envelope`,
+    );
+  }
+  // wordCount is the article body's word count — the same figure the article-page
+  // footer renders as data-word-count. Cross-check against that rendered value
+  // (independent source) so info.json and the footer can never disagree.
+  assert.ok(
+    Number.isInteger(infoJson.wordCount) && infoJson.wordCount >= 0,
+    `/wiki/${slug}/info.json wordCount must be a non-negative integer`,
+  );
+  const wordCountAttr = articleHtml.match(/data-word-count="(\d+)"/);
+  if (wordCountAttr) {
+    assert.equal(
+      infoJson.wordCount,
+      Number(wordCountAttr[1]),
+      `/wiki/${slug}/info.json wordCount must match the article footer's rendered data-word-count`,
     );
   }
   // Extract the origin from the article URL so the companion-URL checks are

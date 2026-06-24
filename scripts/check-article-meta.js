@@ -120,6 +120,7 @@ for (const { file, slug } of articlePages) {
     incomingLinks: inboundCountFor(slug),
     referencesCount: outboundCountFor(slug),
     sectionCount,
+    wordCount,
     revisionCount: history.length,
     firstEdited: history[history.length - 1]?.date ?? null,
     lastEdited: history[0]?.date ?? null,
