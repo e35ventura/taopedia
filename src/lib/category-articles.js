@@ -60,6 +60,9 @@ export const buildCategoryArticlesDocument = ({ origin, categoryName, categoryPa
     // The article body's word count — the same figure info.json exposes and
     // allpages.json / subnets.json / mostlinkedpages.json expose per directory entry.
     wordCount: Number.isFinite(article.wordCount) ? article.wordCount : 0,
+    // The ~200-wpm reading-time estimate derived from wordCount — the same figure
+    // info.json / allpages.json / subnets.json expose.
+    readingMinutes: Math.max(1, Math.ceil((Number.isFinite(article.wordCount) ? article.wordCount : 0) / 200)),
     // The article's table-of-contents section count — the same figure toc.json
     // exposes as `count` and info.json / history.json expose, and subnets.json /
     // mostlinkedpages.json expose per directory entry.

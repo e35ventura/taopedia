@@ -88,6 +88,7 @@ const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.js
         firstEdited: null,
         lastEdited: null,
         wordCount: 0,
+        readingMinutes: 1,
         sectionCount: 0,
         url: `${ORIGIN}/wiki/subnet_2/`,
         infoUrl: `${ORIGIN}/wiki/subnet_2/info/`,
@@ -116,6 +117,7 @@ const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.js
         firstEdited: null,
         lastEdited: null,
         wordCount: 0,
+        readingMinutes: 1,
         sectionCount: 0,
         url: `${ORIGIN}/wiki/subnet_9/`,
         infoUrl: `${ORIGIN}/wiki/subnet_9/info/`,
@@ -144,6 +146,7 @@ const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.js
         firstEdited: null,
         lastEdited: null,
         wordCount: 0,
+        readingMinutes: 1,
         sectionCount: 0,
         url: `${ORIGIN}/wiki/subnet_10/`,
         infoUrl: `${ORIGIN}/wiki/subnet_10/info/`,
@@ -223,6 +226,7 @@ const withBacklinks = (list) =>
     referencesCount: outboundCountFor(a.slug),
     ...revisionStatsOf(a.slug),
     wordCount: infoWordCountOf(a.slug),
+    readingMinutes: Math.max(1, Math.ceil(infoWordCountOf(a.slug) / 200)),
     sectionCount: tocSectionCountOf(a.slug),
   }));
 
