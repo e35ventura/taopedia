@@ -51,6 +51,21 @@ export async function getStaticPaths() {
       pages.map(async (page) => [getPageSlug(page), getArticleToc((await render(page)).headings).length]),
     ),
   );
+  // Per-slug revision history, published inbound-link count, and outbound
+  // reference count carried on each article entry. They depend only on the
+  // article slug, but getStaticPaths iterates every category and an article in
+  // N categories is visited N times, so computing them inside the per-category
+  // article loop recomputes each article's stats once per category membership —
+  // and getArticleReferences is a full link-graph join. Precompute them once
+  // over the page collection, the same way this function already precomputes
+  // wordCountBySlug / sectionCountBySlug.
+  const historyBySlug = Object.fromEntries(pages.map((page) => [getPageSlug(page), historyForSlug(getPageSlug(page))]));
+  const inboundBySlug = Object.fromEntries(
+    pages.map((page) => [getPageSlug(page), publishedInboundLinkCount(backlinksData, getPageSlug(page), titleBySlug)]),
+  );
+  const referencesCountBySlug = Object.fromEntries(
+    pages.map((page) => [getPageSlug(page), getArticleReferences({ slug: getPageSlug(page), linkGraph: linkgraphData, titleBySlug }).length]),
+  );
   return Object.keys(categoriesIndex)
     .sort()
     .map((categoryName) => ({
@@ -63,11 +78,11 @@ export async function getStaticPaths() {
           // entry is the original publication — the same revisionCount /
           // firstEdited / lastEdited per-entry stats references.json and
           // allpages.json expose for each entry.
-          const history = historyForSlug(article.slug);
+          const history = historyBySlug[article.slug] ?? [];
           return {
             ...article,
-            backlinks: publishedInboundLinkCount(backlinksData, article.slug, titleBySlug),
-            referencesCount: getArticleReferences({ slug: article.slug, linkGraph: linkgraphData, titleBySlug }).length,
+            backlinks: inboundBySlug[article.slug] ?? 0,
+            referencesCount: referencesCountBySlug[article.slug] ?? 0,
             revisionCount: history.length,
             firstEdited: history[history.length - 1]?.date ?? null,
             lastEdited: history[0]?.date ?? null,
