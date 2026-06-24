@@ -77,6 +77,26 @@ const known = JSON.parse(fs.readFileSync(categoriesJsonPath, 'utf8'));
 
 assert.ok(typeof data.site === 'string' && /^https?:\/\//.test(data.site), `site must be a URL string (got ${JSON.stringify(data.site)})`);
 assert.equal(data.categoriesJsonUrl, `${data.site}/wiki/special/categories.json`, 'categoriesJsonUrl must be the document\'s own canonical URL');
+// statisticsJsonUrl cross-links to the site statistics endpoint — the sibling
+// special-listing JSON hub that summarizes this topic index.
+assert.equal(
+  data.statisticsJsonUrl,
+  `${data.site}/wiki/special/statistics.json`,
+  'statisticsJsonUrl must be the canonical absolute statistics.json URL',
+);
+const distStatisticsFile = path.join(projectRoot, 'dist', 'wiki', 'special', 'statistics.json');
+assert.ok(fs.existsSync(distStatisticsFile), 'dist/wiki/special/statistics.json not found; run the build first');
+const statisticsDoc = JSON.parse(fs.readFileSync(distStatisticsFile, 'utf8'));
+assert.equal(
+  data.statisticsJsonUrl,
+  statisticsDoc.statisticsJsonUrl,
+  'categories.json statisticsJsonUrl must agree with the sibling statistics.json envelope',
+);
+assert.equal(
+  statisticsDoc.categoriesJsonUrl,
+  data.categoriesJsonUrl,
+  'statistics.json categoriesJsonUrl must agree with the sibling categories.json envelope',
+);
 assert.ok(Array.isArray(data.categories), 'categories must be an array');
 assert.equal(data.count, data.categories.length, 'count must equal categories.length');
 assert.ok(data.categories.length > 0, 'categories.json must list at least one topic');

@@ -112,6 +112,26 @@ assert.equal(
   `${data.site}/wiki/special/statistics.json`,
   `statisticsJsonUrl must be the canonical absolute URL of the endpoint itself (got ${JSON.stringify(data.statisticsJsonUrl)})`,
 );
+// categoriesJsonUrl cross-links to the topic index endpoint — the sibling
+// special-listing JSON hub whose per-topic rows this document summarizes.
+assert.equal(
+  data.categoriesJsonUrl,
+  `${data.site}/wiki/special/categories.json`,
+  `categoriesJsonUrl must be the canonical absolute categories.json URL (got ${JSON.stringify(data.categoriesJsonUrl)})`,
+);
+const distCategoriesFile = path.join(projectRoot, 'dist', 'wiki', 'special', 'categories.json');
+assert.ok(fs.existsSync(distCategoriesFile), 'dist/wiki/special/categories.json not found; run the build first');
+const categoriesDoc = JSON.parse(fs.readFileSync(distCategoriesFile, 'utf8'));
+assert.equal(
+  data.categoriesJsonUrl,
+  categoriesDoc.categoriesJsonUrl,
+  'statistics.json categoriesJsonUrl must agree with the sibling categories.json envelope',
+);
+assert.equal(
+  categoriesDoc.statisticsJsonUrl,
+  data.statisticsJsonUrl,
+  'categories.json statisticsJsonUrl must agree with the sibling statistics.json envelope',
+);
 
 // Core numeric fields.
 assert.ok(typeof data.totalArticles === 'number' && data.totalArticles > 0, 'totalArticles must be a positive number');

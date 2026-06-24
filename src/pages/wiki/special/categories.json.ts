@@ -19,6 +19,11 @@ export const GET: APIRoute = async ({ site }) => {
     {
       site: origin,
       categoriesJsonUrl: `${origin}/wiki/special/categories.json`,
+      // statisticsJsonUrl cross-links to the site statistics endpoint — the
+      // sibling special-listing JSON hub that summarizes the same topic index
+      // this document enumerates, so a consumer of the category index can reach
+      // aggregate figures without reconstructing the route.
+      statisticsJsonUrl: `${origin}/wiki/special/statistics.json`,
       count: topics.length,
       categories: topics.map((topic) => ({
         name: topic.name,
