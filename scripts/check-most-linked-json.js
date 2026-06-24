@@ -332,6 +332,21 @@ data.pages.forEach((row, i) => {
     `${data.site}/wiki/${row.slug}/related.json`,
     `row ${i} relatedUrl must equal ${data.site}/wiki/${row.slug}/related.json`,
   );
+  // referencesJsonUrl / relatedJsonUrl are the same companion links under the
+  // consistent <name>JsonUrl key the rest of the API uses; each equals its
+  // back-compat un-suffixed twin.
+  assert.equal(
+    row.referencesJsonUrl,
+    `${data.site}/wiki/${row.slug}/references.json`,
+    `row ${i} referencesJsonUrl must equal ${data.site}/wiki/${row.slug}/references.json`,
+  );
+  assert.equal(row.referencesJsonUrl, row.referencesUrl, `row ${i} referencesJsonUrl must equal the back-compat referencesUrl`);
+  assert.equal(
+    row.relatedJsonUrl,
+    `${data.site}/wiki/${row.slug}/related.json`,
+    `row ${i} relatedJsonUrl must equal ${data.site}/wiki/${row.slug}/related.json`,
+  );
+  assert.equal(row.relatedJsonUrl, row.relatedUrl, `row ${i} relatedJsonUrl must equal the back-compat relatedUrl`);
   // tocJsonUrl is the machine-readable table-of-contents companion: the
   // per-article TOC endpoint (/wiki/<slug>/toc.json) shipped in #615, so a
   // consumer can fetch any top-ranked page's section outline directly.
