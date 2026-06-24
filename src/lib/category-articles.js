@@ -81,7 +81,14 @@ export const buildCategoryArticlesDocument = ({ origin, categoryName, categoryPa
     citeJsonUrl: `${origin}/wiki/${article.slug}/cite.json`,
     bibtexUrl: `${origin}/wiki/${article.slug}/cite.bib`,
     referencesUrl: `${origin}/wiki/${article.slug}/references.json`,
+    // referencesJsonUrl / relatedJsonUrl are the same companion links under the
+    // consistent <name>JsonUrl key every other JSON companion uses here
+    // (infoJsonUrl, historyJsonUrl, backlinksJsonUrl, citeJsonUrl, tocJsonUrl).
+    // referencesUrl / relatedUrl were the only two companions lacking the Json
+    // suffix; they are kept for backwards compatibility.
+    referencesJsonUrl: `${origin}/wiki/${article.slug}/references.json`,
     relatedUrl: `${origin}/wiki/${article.slug}/related.json`,
+    relatedJsonUrl: `${origin}/wiki/${article.slug}/related.json`,
     tocJsonUrl: `${origin}/wiki/${article.slug}/toc.json`,
     imageUrl: `${origin}/og/${article.slug}.png`,
   })),

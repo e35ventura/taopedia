@@ -103,7 +103,9 @@ const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.js
         citeJsonUrl: `${ORIGIN}/wiki/subnet_2/cite.json`,
         bibtexUrl: `${ORIGIN}/wiki/subnet_2/cite.bib`,
         referencesUrl: `${ORIGIN}/wiki/subnet_2/references.json`,
+        referencesJsonUrl: `${ORIGIN}/wiki/subnet_2/references.json`,
         relatedUrl: `${ORIGIN}/wiki/subnet_2/related.json`,
+        relatedJsonUrl: `${ORIGIN}/wiki/subnet_2/related.json`,
         infoJsonUrl: `${ORIGIN}/wiki/subnet_2/info.json`,
         tocJsonUrl: `${ORIGIN}/wiki/subnet_2/toc.json`,
         imageUrl: `${ORIGIN}/og/subnet_2.png`,
@@ -133,7 +135,9 @@ const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.js
         citeJsonUrl: `${ORIGIN}/wiki/subnet_9/cite.json`,
         bibtexUrl: `${ORIGIN}/wiki/subnet_9/cite.bib`,
         referencesUrl: `${ORIGIN}/wiki/subnet_9/references.json`,
+        referencesJsonUrl: `${ORIGIN}/wiki/subnet_9/references.json`,
         relatedUrl: `${ORIGIN}/wiki/subnet_9/related.json`,
+        relatedJsonUrl: `${ORIGIN}/wiki/subnet_9/related.json`,
         infoJsonUrl: `${ORIGIN}/wiki/subnet_9/info.json`,
         tocJsonUrl: `${ORIGIN}/wiki/subnet_9/toc.json`,
         imageUrl: `${ORIGIN}/og/subnet_9.png`,
@@ -163,7 +167,9 @@ const backlinksJsonPath = path.join(projectRoot, 'public', 'data', 'backlinks.js
         citeJsonUrl: `${ORIGIN}/wiki/subnet_10/cite.json`,
         bibtexUrl: `${ORIGIN}/wiki/subnet_10/cite.bib`,
         referencesUrl: `${ORIGIN}/wiki/subnet_10/references.json`,
+        referencesJsonUrl: `${ORIGIN}/wiki/subnet_10/references.json`,
         relatedUrl: `${ORIGIN}/wiki/subnet_10/related.json`,
+        relatedJsonUrl: `${ORIGIN}/wiki/subnet_10/related.json`,
         infoJsonUrl: `${ORIGIN}/wiki/subnet_10/info.json`,
         tocJsonUrl: `${ORIGIN}/wiki/subnet_10/toc.json`,
         imageUrl: `${ORIGIN}/og/subnet_10.png`,
@@ -391,6 +397,21 @@ for (const category of categories) {
       `${ORIGIN}/wiki/${article.slug}/related.json`,
       `${category}: article ${article.slug} relatedUrl must be the canonical related.json URL`,
     );
+    // referencesJsonUrl / relatedJsonUrl are the same companion links under the
+    // consistent <name>JsonUrl key the rest of the API uses; each equals its
+    // back-compat un-suffixed twin.
+    assert.equal(
+      article.referencesJsonUrl,
+      `${ORIGIN}/wiki/${article.slug}/references.json`,
+      `${category}: article ${article.slug} referencesJsonUrl must be the canonical references.json URL`,
+    );
+    assert.equal(article.referencesJsonUrl, article.referencesUrl, `${category}: article ${article.slug} referencesJsonUrl must equal the back-compat referencesUrl`);
+    assert.equal(
+      article.relatedJsonUrl,
+      `${ORIGIN}/wiki/${article.slug}/related.json`,
+      `${category}: article ${article.slug} relatedJsonUrl must be the canonical related.json URL`,
+    );
+    assert.equal(article.relatedJsonUrl, article.relatedUrl, `${category}: article ${article.slug} relatedJsonUrl must equal the back-compat relatedUrl`);
     // infoJsonUrl pairs the HTML info page with its machine-readable form, and
     // tocJsonUrl links the article's table-of-contents endpoint — the same
     // companions every other per-article surface now exposes.
