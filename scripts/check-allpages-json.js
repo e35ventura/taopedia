@@ -345,6 +345,31 @@ data.articles.forEach((row, i) => {
       `row ${i} wordCount must agree with the sibling info.json envelope for ${row.slug}`,
     );
   }
+  // sectionCount is the article's table-of-contents section count — the same
+  // figure toc.json exposes as `count` and info.json exposes on its envelope.
+  // Cross-check it against the sibling built toc.json and info.json so the
+  // directory and per-article metadata surfaces can't disagree on depth.
+  assert.ok(
+    Number.isInteger(row.sectionCount) && row.sectionCount >= 0,
+    `row ${i} sectionCount must be a non-negative integer (got ${JSON.stringify(row.sectionCount)})`,
+  );
+  const apTocJsonFile = path.join(projectRoot, 'dist', 'wiki', row.slug, 'toc.json');
+  if (fs.existsSync(apTocJsonFile)) {
+    const tocDoc = JSON.parse(fs.readFileSync(apTocJsonFile, 'utf8'));
+    assert.equal(
+      row.sectionCount,
+      tocDoc.count,
+      `row ${i} sectionCount must agree with the sibling toc.json count for ${row.slug}`,
+    );
+  }
+  if (fs.existsSync(apWordInfoJsonFile)) {
+    const infoDoc = JSON.parse(fs.readFileSync(apWordInfoJsonFile, 'utf8'));
+    assert.equal(
+      row.sectionCount,
+      infoDoc.sectionCount,
+      `row ${i} sectionCount must agree with the sibling info.json envelope for ${row.slug}`,
+    );
+  }
   // historyUrl points at the article's revision-history page — the same
   // companion subnets.json / mostlinkedpages.json expose — so a consumer of the
   // directory can reach each article's edit history without rebuilding the route.
