@@ -368,6 +368,21 @@ const tagNameSlashDelimitedAutofocusAttrPattern = /<\s*[a-z][\w:-]*\/autofocus(?
 const whitespaceSlashDelimitedAutofocusAttrPattern = /<[^>]*\s\/autofocus(?=[\s>/=])/i;
 const quoteSlashDelimitedAutofocusAttrPattern = /<[^>]*["'`]\/autofocus(?=[\s>/=])/i;
 
+// contenteditable's value forms (contenteditable="true") are blocked above, but the
+// BARE form `<p contenteditable>` is the editable ("true") state per the HTML spec
+// (empty string maps to true) with no value — so the `=`-anchored value scans miss
+// it, leaving a real in-article editing surface (content-spoofing / UI-redress).
+// parse5 also treats `<p/contenteditable>`, `<p /contenteditable>`, and
+// `<p class="x"/contenteditable>` as a real bare contenteditable attribute, so the
+// slash-boundary presence forms must be blocked too — the same presence-form
+// coverage already merged for autofocus/hidden/inert/itemscope. Do NOT widen to
+// every `/contenteditable` substring: `<p class=x/contenteditable>` stays a value.
+const contenteditableAttrPattern = /<[^>]*\scontenteditable(?=[\s>/=])/i;
+const quoteAbuttedContenteditableAttrPattern = /<[^>]*["'`]contenteditable(?=[\s>/=])/i;
+const tagNameSlashDelimitedContenteditableAttrPattern = /<\s*[a-z][\w:-]*\/contenteditable(?=[\s>/=])/i;
+const whitespaceSlashDelimitedContenteditableAttrPattern = /<[^>]*\s\/contenteditable(?=[\s>/=])/i;
+const quoteSlashDelimitedContenteditableAttrPattern = /<[^>]*["'`]\/contenteditable(?=[\s>/=])/i;
+
 // hidden on allowed elements removes content from layout but keeps it in the DOM —
 // an injected <a hidden href="…"> is still a navigable link with no script.
 // Same tag-boundary / quote-abutted detection as autofocus, plus the parser-backed
@@ -1064,6 +1079,18 @@ export function validateArticleContent(slug, content) {
   if (nonSpaceDelimitedInteractionSurfaceAttrPattern.test(emptiedAttributeContent)) {
     throw new Error(
       `Unsafe article content in "${slug}": contenteditable, tabindex, draggable, download, popover, usemap, accesskey, referrerpolicy, dir, and ping attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    contenteditableAttrPattern.test(emptiedAttributeContent)
+    || quoteAbuttedContenteditableAttrPattern.test(emptiedAttributeContent)
+    || tagNameSlashDelimitedContenteditableAttrPattern.test(emptiedAttributeContent)
+    || whitespaceSlashDelimitedContenteditableAttrPattern.test(emptiedAttributeContent)
+    || quoteSlashDelimitedContenteditableAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": bare contenteditable attributes are not allowed in article content`,
     );
   }
 

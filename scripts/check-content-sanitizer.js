@@ -83,8 +83,20 @@ rejects('<div href="x"contenteditable="true">edit</div>', 'quote-abutted content
 rejects('<p class=x/tabindex="0">trap</p>', 'slash-delimited tabindex attribute');
 rejects('<img src="/wiki/fig.png" draggable="true">', 'quote-abutted draggable attribute');
 
+// Bare (valueless) contenteditable is the editable "true" state per the HTML spec,
+// which the `=`-anchored value scans above miss. Block the presence form and its
+// slash-boundary variants (parse5 parses them as a real bare contenteditable
+// attribute), matching the merged autofocus/hidden/inert/itemscope presence blocks.
+rejects('Intro.\n\n<p contenteditable>edit me</p>', 'bare contenteditable presence form');
+rejects('Intro.\n\n<  div   contenteditable >edit</div>', 'spaced bare contenteditable');
+rejects('Intro.\n\n<p/contenteditable>edit</p>', 'tag-name slash-delimited bare contenteditable');
+rejects('Intro.\n\n<p /contenteditable>edit</p>', 'whitespace slash-delimited bare contenteditable');
+rejects('<div class="x"/contenteditable>edit</div>', 'quote slash-delimited bare contenteditable');
+
 // Benign URLs inside quoted attribute values must not trip the non-space scan.
 accepts('See <a href="/online=1">pricing</a> for details.', 'equals sign inside quoted href');
+// A class value that merely ends in "/contenteditable" is not a bare attribute.
+accepts('Intro.\n\n<p class=x/contenteditable>text</p>', 'class value ending in /contenteditable is not an attribute');
 
 // Prose that discusses these attributes without an assignment must still pass.
 accepts('Rich editors set contenteditable on a container element.', 'benign contenteditable prose');
