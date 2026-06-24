@@ -142,6 +142,14 @@ data.categories.forEach((row, i) => {
     `${data.site}/wiki/category/${row.slug}/feed.json`,
     `row ${i} feedUrl must equal ${data.site}/wiki/category/${row.slug}/feed.json`,
   );
+  // feedJsonUrl is the same JSON Feed link under the consistent <name>JsonUrl
+  // key every other JSON companion uses; it must equal feedUrl (kept for back-compat).
+  assert.equal(
+    row.feedJsonUrl,
+    `${data.site}/wiki/category/${row.slug}/feed.json`,
+    `row ${i} feedJsonUrl must equal ${data.site}/wiki/category/${row.slug}/feed.json`,
+  );
+  assert.equal(row.feedJsonUrl, row.feedUrl, `row ${i} feedJsonUrl must equal the back-compat feedUrl`);
   // atomUrl / rssUrl point at the category's Atom and RSS feeds
   // (/wiki/category/<slug>/atom.xml and /rss.xml), which exist alongside the
   // JSON feed. A feed reader that speaks Atom/RSS rather than JSON Feed needs

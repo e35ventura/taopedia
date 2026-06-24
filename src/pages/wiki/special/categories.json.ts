@@ -34,6 +34,12 @@ export const GET: APIRoute = async ({ site }) => {
         // compatibility and articlesJsonUrl is the consistent name.
         articlesJsonUrl: `${origin}/wiki/category/${topic.slug}/articles.json`,
         feedUrl: `${origin}/wiki/category/${topic.slug}/feed.json`,
+        // feedJsonUrl is the same JSON Feed link under the consistent
+        // <name>JsonUrl key every other JSON companion uses (articlesJsonUrl,
+        // infoJsonUrl, historyJsonUrl, backlinksJsonUrl, citeJsonUrl). feedUrl
+        // was the lone outlier naming it without the Json suffix; it is kept for
+        // backwards compatibility and feedJsonUrl is the consistent name.
+        feedJsonUrl: `${origin}/wiki/category/${topic.slug}/feed.json`,
         atomUrl: `${origin}/wiki/category/${topic.slug}/atom.xml`,
         rssUrl: `${origin}/wiki/category/${topic.slug}/rss.xml`,
       })),

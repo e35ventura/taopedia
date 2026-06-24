@@ -38,6 +38,12 @@ export const buildCategoryArticlesDocument = ({ origin, categoryName, categoryPa
   url: `${origin}/wiki/category/${categoryPath}/`,
   articlesJsonUrl: `${origin}/wiki/category/${categoryPath}/articles.json`,
   feedUrl: `${origin}/wiki/category/${categoryPath}/feed.json`,
+  // feedJsonUrl is the same JSON Feed link under the consistent <name>JsonUrl
+  // key every other JSON companion uses (articlesJsonUrl, infoJsonUrl,
+  // historyJsonUrl, backlinksJsonUrl, citeJsonUrl). feedUrl was the lone
+  // outlier naming it without the Json suffix; it is kept for backwards
+  // compatibility and feedJsonUrl is the consistent name.
+  feedJsonUrl: `${origin}/wiki/category/${categoryPath}/feed.json`,
   atomUrl: `${origin}/wiki/category/${categoryPath}/atom.xml`,
   rssUrl: `${origin}/wiki/category/${categoryPath}/rss.xml`,
   count: articles.length,

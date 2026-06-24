@@ -214,6 +214,16 @@ assert.equal(
   "largestTopic.feedUrl must be the canonical absolute category feed.json URL",
 );
 assert.equal(
+  data.largestTopic.feedJsonUrl,
+  `${data.site}/wiki/category/${data.largestTopic.name.replace(/ /g, '_')}/feed.json`,
+  "largestTopic.feedJsonUrl must be the canonical absolute category feed.json URL",
+);
+assert.equal(
+  data.largestTopic.feedJsonUrl,
+  data.largestTopic.feedUrl,
+  'largestTopic.feedJsonUrl must equal the back-compat feedUrl',
+);
+assert.equal(
   data.largestTopic.atomUrl,
   `${data.site}/wiki/category/${data.largestTopic.name.replace(/ /g, '_')}/atom.xml`,
   'largestTopic.atomUrl must be the canonical absolute category Atom feed URL',
@@ -269,6 +279,16 @@ for (const topic of data.topics) {
     topic.feedUrl,
     `${data.site}/wiki/category/${topic.name.replace(/ /g, '_')}/feed.json`,
     `topic "${topic.name}" feedUrl must be the canonical absolute category feed.json URL`,
+  );
+  assert.equal(
+    topic.feedJsonUrl,
+    `${data.site}/wiki/category/${topic.name.replace(/ /g, '_')}/feed.json`,
+    `topic "${topic.name}" feedJsonUrl must be the canonical absolute category feed.json URL`,
+  );
+  assert.equal(
+    topic.feedJsonUrl,
+    topic.feedUrl,
+    `topic "${topic.name}" feedJsonUrl must equal the back-compat feedUrl`,
   );
   // atomUrl / rssUrl point at the topic's Atom and RSS feeds, which exist for
   // every category alongside the JSON Feed. A feed reader that speaks Atom/RSS
