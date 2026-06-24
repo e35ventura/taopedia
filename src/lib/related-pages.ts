@@ -64,6 +64,7 @@ export interface ArticleRelatedPagesDocument {
   incomingLinks: number;
   referencesCount: number;
   sectionCount: number;
+  wordCount: number;
   revisionCount: number;
   firstEdited: string | null;
   lastEdited: string | null;
@@ -182,6 +183,7 @@ export function buildArticleRelatedPages({
   incomingLinks = 0,
   referencesCount = 0,
   sectionCount = 0,
+  wordCount = 0,
   revisionCount = 0,
   firstEdited = null,
   lastEdited = null,
@@ -195,6 +197,7 @@ export function buildArticleRelatedPages({
   incomingLinks?: number;
   referencesCount?: number;
   sectionCount?: number;
+  wordCount?: number;
   revisionCount?: number;
   firstEdited?: string | null;
   lastEdited?: string | null;
@@ -223,6 +226,9 @@ export function buildArticleRelatedPages({
     // The article's table-of-contents section count — the same figure toc.json
     // exposes as `count` (via the shared getArticleToc helper).
     sectionCount: Number.isFinite(sectionCount) ? sectionCount : 0,
+    // The article body's word count — the same figure info.json / history.json
+    // expose and the article-page footer (mw-article-meta data-word-count) renders.
+    wordCount: Number.isFinite(wordCount) ? wordCount : 0,
     // The article's revision count (its commit-history length) — the same figure
     // info.json / history.json / cite.json expose on their envelopes.
     revisionCount: Number.isFinite(revisionCount) ? revisionCount : 0,

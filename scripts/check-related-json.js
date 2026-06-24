@@ -75,6 +75,7 @@ const lastEditedOf = (slug) => historyOf(slug)[0]?.date ?? null;
     incomingLinks: 9,
     referencesCount: 11,
     sectionCount: 6,
+    wordCount: 432,
     revisionCount: 14,
     firstEdited: '2024-01-01T00:00:00.000Z',
     lastEdited: '2024-06-01T00:00:00.000Z',
@@ -89,6 +90,7 @@ const lastEditedOf = (slug) => historyOf(slug)[0]?.date ?? null;
   assert.equal(doc.incomingLinks, 9, 'builder: incomingLinks field');
   assert.equal(doc.referencesCount, 11, 'builder: referencesCount field threaded verbatim');
   assert.equal(doc.sectionCount, 6, 'builder: sectionCount field threaded verbatim');
+  assert.equal(doc.wordCount, 432, 'builder: wordCount field threaded verbatim');
   assert.equal(doc.revisionCount, 14, 'builder: revisionCount field threaded verbatim');
   assert.equal(doc.firstEdited, '2024-01-01T00:00:00.000Z', 'builder: firstEdited field threaded verbatim');
   assert.equal(doc.lastEdited, '2024-06-01T00:00:00.000Z', 'builder: lastEdited field threaded verbatim');
@@ -200,6 +202,7 @@ const lastEditedOf = (slug) => historyOf(slug)[0]?.date ?? null;
   assert.equal(empty.incomingLinks, 0, 'builder: incomingLinks defaults to 0 when omitted');
   assert.equal(empty.referencesCount, 0, 'builder: referencesCount defaults to 0 when omitted');
   assert.equal(empty.sectionCount, 0, 'builder: sectionCount defaults to 0 when omitted');
+  assert.equal(empty.wordCount, 0, 'builder: wordCount defaults to 0 when omitted');
   assert.equal(empty.revisionCount, 0, 'builder: revisionCount defaults to 0 when omitted');
   assert.equal(empty.firstEdited, null, 'builder: firstEdited defaults to null when omitted');
   assert.equal(empty.lastEdited, null, 'builder: lastEdited defaults to null when omitted');
@@ -361,6 +364,18 @@ for (const slug of articleSlugs) {
       doc.lastEdited,
       infoDoc.lastEdited,
       `${slug}: related.json lastEdited must agree with the sibling info.json envelope`,
+    );
+    // wordCount is the article body's word count — the same figure info.json /
+    // history.json expose and the article footer renders. Cross-check against the
+    // sibling info.json (independent source).
+    assert.ok(
+      Number.isInteger(doc.wordCount) && doc.wordCount >= 0,
+      `${slug}: related.json wordCount must be a non-negative integer (got ${JSON.stringify(doc.wordCount)})`,
+    );
+    assert.equal(
+      doc.wordCount,
+      infoDoc.wordCount,
+      `${slug}: related.json wordCount must agree with the sibling info.json envelope`,
     );
   }
   assert.equal(doc.url, `${ORIGIN}/wiki/${slug}/`, `${slug}: related.json url must be the canonical article URL`);
