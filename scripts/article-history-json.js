@@ -30,6 +30,9 @@ export const buildArticleHistory = ({ slug, title, origin, summary = '', categor
   // The article's word count — the same figure the article footer exposes as
   // data-word-count (whitespace-split of the raw page body).
   wordCount: Number.isFinite(wordCount) ? wordCount : 0,
+  // Estimated reading time in minutes — the same ~200 wpm ceil formula the
+  // article-page footer ("N min read") and info.json expose from wordCount.
+  readingMinutes: Math.max(1, Math.ceil((Number.isFinite(wordCount) ? wordCount : 0) / 200)),
   revisionCount: revisions.length,
   firstEdited: revisions.length > 0 ? revisions[revisions.length - 1].date : null,
   lastEdited: revisions.length > 0 ? revisions[0].date : null,

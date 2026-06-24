@@ -52,6 +52,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(result.referencesCount, 3, 'builder: referencesCount');
   assert.equal(result.sectionCount, 4, 'builder: sectionCount');
   assert.equal(result.wordCount, 812, 'builder: wordCount');
+  assert.equal(result.readingMinutes, 5, 'builder: readingMinutes from wordCount (ceil(812/200))');
   assert.equal(result.revisionCount, 2, 'builder: revisionCount');
   assert.equal(result.lastEdited, '2026-06-01T12:00:00.000Z', 'builder: lastEdited is revisions[0].date');
   assert.equal(result.firstEdited, '2025-01-10T08:00:00.000Z', 'builder: firstEdited is revisions[last].date');
@@ -76,6 +77,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(empty.referencesCount, 0, 'builder: default referencesCount is 0');
   assert.equal(empty.sectionCount, 0, 'builder: default sectionCount is 0');
   assert.equal(empty.wordCount, 0, 'builder: default wordCount is 0');
+  assert.equal(empty.readingMinutes, 1, 'builder: default readingMinutes is 1 (ceil(0/200))');
 
   const badSection = buildArticleHistory({ slug: 'x', title: 'X', origin: ORIGIN, sectionCount: NaN });
   assert.equal(badSection.sectionCount, 0, 'builder: non-finite sectionCount defaults to 0');
@@ -135,6 +137,11 @@ const htmlShortShas = (html) =>
 
 const footerWordCount = (html) => {
   const match = html.match(/<div class="mw-article-meta"[^>]*data-word-count="(\d+)"/);
+  return match ? Number(match[1]) : null;
+};
+
+const footerReadingMinutes = (html) => {
+  const match = html.match(/(\d+) min read/);
   return match ? Number(match[1]) : null;
 };
 
@@ -238,7 +245,19 @@ for (const slug of articleSlugs) {
       expectedWordCount,
       `${slug}: history.json wordCount must match the article footer's data-word-count`,
     );
+    const expectedReadingMinutes = footerReadingMinutes(articleHtml);
+    if (expectedReadingMinutes !== null) {
+      assert.equal(
+        doc.readingMinutes,
+        expectedReadingMinutes,
+        `${slug}: history.json readingMinutes must match the article footer's rendered reading time`,
+      );
+    }
   }
+  assert.ok(
+    Number.isInteger(doc.readingMinutes) && doc.readingMinutes >= 1,
+    `${slug}: history.json readingMinutes must be a positive integer`,
+  );
   const infoJsonFile = path.join(wikiDir, slug, 'info.json');
   if (fs.existsSync(infoJsonFile)) {
     const infoDoc = JSON.parse(fs.readFileSync(infoJsonFile, 'utf8'));
@@ -246,6 +265,11 @@ for (const slug of articleSlugs) {
       doc.incomingLinks,
       infoDoc.incomingLinks,
       `${slug}: history.json incomingLinks must agree with the sibling info.json envelope`,
+    );
+    assert.equal(
+      doc.readingMinutes,
+      infoDoc.readingMinutes,
+      `${slug}: history.json readingMinutes must agree with the sibling info.json envelope`,
     );
   }
   assert.equal(typeof doc.revisionCount, 'number', `${slug}: history.json revisionCount must be a number`);
