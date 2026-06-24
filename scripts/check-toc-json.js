@@ -378,7 +378,16 @@ for (const slug of articleSlugs) {
 }
 
 assert.ok(withToc > 0, 'expected at least one article with a rendered contents sidebar');
-assert.ok(withEmpty > 0, 'expected at least one article without a rendered contents sidebar');
+// The empty-TOC branch (an article whose headings collapse to no multi-entry
+// contents block) is pinned by the unit section above — see "helper must return
+// an empty TOC when the article would not render a multi-entry contents block".
+// We therefore only *observe* the built-output empty count rather than asserting
+// it: requiring the published corpus to always contain a stub article hard-fails
+// the build the moment every published article happens to carry a contents
+// sidebar, which is a legitimate state, not a regression.
+if (withEmpty === 0) {
+  console.log('TOC JSON note: every built article rendered a contents sidebar (empty-TOC path covered by the unit section).');
+}
 
 console.log(
   `TOC JSON check passed (${articleSlugs.length} articles: ${withToc} with a contents sidebar, ${withEmpty} without; shared-runtime parity verified)`,
