@@ -34,6 +34,9 @@ export async function getStaticPaths() {
           incomingLinks: publishedInboundLinkCount(backlinksData, slug, titleBySlug),
           referencesCount: getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length,
           sectionCount: getArticleToc(headings).length,
+          // The article body's word count — the same figure info.json / history.json
+          // expose and the article-page footer (mw-article-meta data-word-count) renders.
+          wordCount: (page.body ?? '').trim().split(/\s+/).filter(Boolean).length,
         },
       };
     }),
@@ -41,12 +44,13 @@ export async function getStaticPaths() {
 }
 
 export const GET: APIRoute = async ({ site, props }) => {
-  const { page, slug, incomingLinks, referencesCount, sectionCount } = props as {
+  const { page, slug, incomingLinks, referencesCount, sectionCount, wordCount } = props as {
     page: { data: { title: string; summary?: string; categories?: string[] } };
     slug: string;
     incomingLinks: number;
     referencesCount: number;
     sectionCount: number;
+    wordCount: number;
   };
   const url = new URL(`/wiki/${slug}/`, site ?? new URL('https://taopedia.org')).toString();
   const history = historyForSlug(slug);
@@ -100,6 +104,10 @@ export const GET: APIRoute = async ({ site, props }) => {
       // helper), so a consumer citing the article can see its outline size
       // without a second fetch.
       sectionCount: Number.isFinite(sectionCount) ? sectionCount : 0,
+      // wordCount is the article body's word count — the same figure info.json /
+      // history.json expose and the article-page footer renders, so a consumer
+      // citing the article can record its length without a second fetch.
+      wordCount: Number.isFinite(wordCount) ? wordCount : 0,
       ...(date ? { date } : {}),
       ...CITATION_META,
       citations,
