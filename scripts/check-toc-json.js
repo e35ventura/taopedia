@@ -72,6 +72,7 @@ const ORIGIN = 'https://taopedia.org';
     firstEdited: '2024-01-01T00:00:00.000Z',
     lastEdited: '2024-06-01T00:00:00.000Z',
     referencesCount: 4,
+    wordCount: 812,
     sections,
   });
   assert.equal(doc.slug, 'source', 'builder: slug field');
@@ -97,6 +98,7 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(doc.firstEdited, '2024-01-01T00:00:00.000Z', 'builder: firstEdited field');
   assert.equal(doc.lastEdited, '2024-06-01T00:00:00.000Z', 'builder: lastEdited field');
   assert.equal(doc.referencesCount, 4, 'builder: referencesCount field');
+  assert.equal(doc.wordCount, 812, 'builder: wordCount field');
   assert.equal(doc.count, 3, 'builder: count field');
   assert.deepEqual(
     doc.sections,
@@ -110,6 +112,12 @@ const ORIGIN = 'https://taopedia.org';
 
   const badCount = buildArticleToc({ slug: 'x', title: 'X', origin: ORIGIN, referencesCount: NaN });
   assert.equal(badCount.referencesCount, 0, 'builder: non-finite referencesCount defaults to 0');
+
+  const badWords = buildArticleToc({ slug: 'x', title: 'X', origin: ORIGIN, wordCount: NaN });
+  assert.equal(badWords.wordCount, 0, 'builder: non-finite wordCount defaults to 0');
+
+  const empty = buildArticleToc({ slug: 'x', title: 'X', origin: ORIGIN });
+  assert.equal(empty.wordCount, 0, 'builder: default wordCount is 0');
 }
 
 // ---- 2) Built-output checks -----------------------------------------------
@@ -285,6 +293,29 @@ for (const slug of articleSlugs) {
     `${slug}: toc.json referencesCount must match the published outbound-reference count`,
   );
   assert.ok(Number.isInteger(doc.referencesCount) && doc.referencesCount >= 0, `${slug}: toc.json referencesCount must be a non-negative integer`);
+  // wordCount is the article body's word count — the same figure info.json /
+  // history.json / cite.json expose and the article footer renders. Cross-check
+  // against the sibling info.json envelope (independent source).
+  assert.ok(
+    Number.isInteger(doc.wordCount) && doc.wordCount >= 0,
+    `${slug}: toc.json wordCount must be a non-negative integer (got ${JSON.stringify(doc.wordCount)})`,
+  );
+  if (fs.existsSync(infoJsonFile)) {
+    const infoDoc = JSON.parse(fs.readFileSync(infoJsonFile, 'utf8'));
+    assert.equal(
+      doc.wordCount,
+      infoDoc.wordCount,
+      `${slug}: toc.json wordCount must agree with the sibling info.json envelope`,
+    );
+  }
+  const wordCountAttr = html.match(/data-word-count="(\d+)"/);
+  if (wordCountAttr) {
+    assert.equal(
+      doc.wordCount,
+      Number(wordCountAttr[1]),
+      `${slug}: toc.json wordCount must match the article footer's rendered data-word-count`,
+    );
+  }
   const historyJsonFile = path.join(wikiDir, slug, 'history.json');
   if (fs.existsSync(historyJsonFile)) {
     const historyDoc = JSON.parse(fs.readFileSync(historyJsonFile, 'utf8'));
