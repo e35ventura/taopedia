@@ -317,6 +317,29 @@ for (let i = 0; i < data.changes.length; i++) {
       `change ${i} wordCount must agree with the sibling info.json envelope for ${change.slug}`,
     );
   }
+  // readingMinutes is the changed article's estimated reading time — the same
+  // ~200 wpm ceil figure info.json exposes (via buildArticleInfo) and the
+  // article-page footer renders. Validate its shape (a positive integer, since
+  // the formula floors at 1) and that it is the deterministic function of this
+  // change's own wordCount, then cross-check it against the sibling info.json
+  // envelope so the feed and the per-article surface can't disagree.
+  assert.ok(
+    Number.isInteger(change.readingMinutes) && change.readingMinutes >= 1,
+    `change ${i} readingMinutes must be a positive integer (got ${JSON.stringify(change.readingMinutes)})`,
+  );
+  assert.equal(
+    change.readingMinutes,
+    Math.max(1, Math.ceil((change.wordCount ?? 0) / 200)),
+    `change ${i} readingMinutes must be the ~200 wpm ceil of its own wordCount for ${change.slug}`,
+  );
+  if (fs.existsSync(rcInfoJsonFile)) {
+    const readingInfoDoc = JSON.parse(fs.readFileSync(rcInfoJsonFile, 'utf8'));
+    assert.equal(
+      change.readingMinutes,
+      readingInfoDoc.readingMinutes,
+      `change ${i} readingMinutes must agree with the sibling info.json envelope for ${change.slug}`,
+    );
+  }
   assert.equal(change.authorName, expected.authorName, `change ${i} authorName must match the revision history`);
   assert.equal(change.sha, expected.sha, `change ${i} sha must match the revision history`);
   assert.ok(typeof change.sha === 'string' && change.sha.length > 0, `change ${i} sha must be a non-empty string`);
