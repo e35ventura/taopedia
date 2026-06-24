@@ -2,9 +2,13 @@ import type { APIRoute } from 'astro';
 import { getCollection, render } from 'astro:content';
 import { getPageSlug, allRecentChanges, historyForSlug } from '../../../lib/article-history';
 import { RECENT_LIMIT } from '../../../lib/recent-changes.js';
-import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
-import { getArticleReferences } from '../../../lib/article-references.js';
 import { getArticleToc } from '../../../lib/article-toc.js';
+import {
+  articleListingMetricsForSlug,
+  buildRecentChangesDocument,
+  formatArticleListingEntry,
+} from '../../../../scripts/article-listing.js';
+import { getListingArticleSlugMetadata } from '../../../../scripts/listing-metadata-cache.js';
 
 // The inbound-link graph is the same public/data/backlinks.json the HTML
 // "What links here" page, allpages.json, mostlinkedpages.json, subnets.json and
@@ -31,135 +35,45 @@ const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
 export const GET: APIRoute = async ({ site }) => {
   const origin = (site ?? new URL('https://taopedia.org')).origin;
   const pages = await getCollection('pages');
-
-  const titleBySlug: Record<string, string> = {};
-  const categoriesBySlug: Record<string, string[]> = {};
-  const summaryBySlug: Record<string, string> = {};
-  const pageBySlug: Record<string, (typeof pages)[number]> = {};
-  // wordCount is the changed article's body word count — the same figure
-  // info.json exposes and the article-page footer (mw-article-meta
-  // data-word-count) renders, computed from the raw markdown body so a change-
-  // feed consumer can gauge each article's length without a second fetch.
-  const wordCountBySlug: Record<string, number> = {};
-  for (const page of pages) {
-    const slug = getPageSlug(page);
-    titleBySlug[slug] = page.data.title;
-    categoriesBySlug[slug] = page.data.categories ?? [];
-    summaryBySlug[slug] = page.data.summary ?? '';
-    pageBySlug[slug] = page;
-    wordCountBySlug[slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
-  }
-
-  const changes = allRecentChanges(titleBySlug, RECENT_LIMIT);
-
-  // sectionCount is the changed article's table-of-contents section count — the
-  // same figure toc.json exposes as `count` and info.json / history.json expose
-  // on their envelopes, derived from the shared getArticleToc helper. Rendered
-  // only for the changed articles in the feed so a change-feed consumer can gauge
-  // each article's depth without a second fetch. Cached per slug because an
-  // article can appear in multiple changes.
-  const sectionCountBySlug: Record<string, number> = {};
-  for (const change of changes) {
-    if (change.slug in sectionCountBySlug) continue;
-    const page = pageBySlug[change.slug];
-    if (!page) continue;
-    const { headings } = await render(page);
-    sectionCountBySlug[change.slug] = getArticleToc(headings).length;
-  }
-  // revisionCount/firstEdited/lastEdited are the changed article's own commit-
-  // history stats (history is newest-first) — the same trio info.json /
-  // allpages.json expose per article, and mostlinkedpages.json / subnets.json /
-  // category articles.json expose per directory entry — so a change-feed
-  // consumer can see the changed article's overall edit age/activity, not just
-  // this one change's date, without a second fetch. Cached per slug because an
-  // article can appear in multiple changes.
-  const revisionStatsBySlug: Record<string, { revisionCount: number; firstEdited: string | null; lastEdited: string | null }> = {};
-  for (const change of changes) {
-    if (change.slug in revisionStatsBySlug) continue;
-    const history = historyForSlug(change.slug);
-    revisionStatsBySlug[change.slug] = {
-      revisionCount: history.length,
-      firstEdited: history[history.length - 1]?.date ?? null,
-      lastEdited: history[0]?.date ?? null,
-    };
-  }
+  const metadata = await getListingArticleSlugMetadata({
+    pages,
+    getPageSlug,
+    historyForSlug,
+    renderPage: render,
+    getArticleToc,
+  });
+  const changes = allRecentChanges(metadata.titleBySlug, RECENT_LIMIT);
   const dateRange =
     changes.length > 0
       ? { newest: changes[0].date, oldest: changes[changes.length - 1].date }
       : { newest: '', oldest: '' };
 
   const body = JSON.stringify(
-    {
-      site: origin,
-      recentchangesJsonUrl: `${origin}/wiki/special/recentchanges.json`,
-      feedUrl: `${origin}/wiki/special/recentchanges/feed.json`,
-      // feedJsonUrl is the same JSON Feed link under the consistent <name>JsonUrl
-      // key every other JSON companion uses (recentchangesJsonUrl, articlesJsonUrl,
-      // infoJsonUrl, historyJsonUrl). feedUrl was the lone outlier naming it without
-      // the Json suffix; it is kept for backwards compatibility and feedJsonUrl is
-      // the consistent name.
-      feedJsonUrl: `${origin}/wiki/special/recentchanges/feed.json`,
-      atomUrl: `${origin}/wiki/special/recentchanges/atom.xml`,
-      rssUrl: `${origin}/wiki/special/recentchanges/rss.xml`,
+    buildRecentChangesDocument({
+      origin,
       limit: RECENT_LIMIT,
-      count: changes.length,
       dateRange,
       changes: changes.map((change) => ({
         id: `urn:taopedia:recentchanges:${change.slug}:${change.sha}`,
-        slug: change.slug,
-        title: change.title,
-        summary: summaryBySlug[change.slug] || null,
-        url: `${origin}/wiki/${change.slug}/`,
-        infoUrl: `${origin}/wiki/${change.slug}/info/`,
-        infoJsonUrl: `${origin}/wiki/${change.slug}/info.json`,
-        backlinksUrl: `${origin}/wiki/${change.slug}/backlinks/`,
-        backlinksJsonUrl: `${origin}/wiki/${change.slug}/backlinks.json`,
-        historyUrl: `${origin}/wiki/${change.slug}/history/`,
-        historyJsonUrl: `${origin}/wiki/${change.slug}/history.json`,
-        citeUrl: `${origin}/wiki/${change.slug}/cite/`,
-        citeJsonUrl: `${origin}/wiki/${change.slug}/cite.json`,
-        bibtexUrl: `${origin}/wiki/${change.slug}/cite.bib`,
-        referencesUrl: `${origin}/wiki/${change.slug}/references.json`,
-        relatedUrl: `${origin}/wiki/${change.slug}/related.json`,
-        // referencesJsonUrl / relatedJsonUrl are the consistently-named `*JsonUrl`
-        // aliases for referencesUrl / relatedUrl, matching the infoJsonUrl /
-        // backlinksJsonUrl / citeJsonUrl / tocJsonUrl companions this same change
-        // entry already exposes. references.json / related.json have no HTML page,
-        // so referencesUrl / relatedUrl already point at the .json — these add the
-        // sibling-consistent name. referencesUrl / relatedUrl are kept for back-compat.
-        referencesJsonUrl: `${origin}/wiki/${change.slug}/references.json`,
-        relatedJsonUrl: `${origin}/wiki/${change.slug}/related.json`,
-        tocJsonUrl: `${origin}/wiki/${change.slug}/toc.json`,
-        imageUrl: `${origin}/og/${change.slug}.png`,
-        categories: categoriesBySlug[change.slug] ?? [],
-        backlinks: publishedInboundLinkCount(backlinksData, change.slug, titleBySlug),
-        // incomingLinks is the same published-only inbound-link count exposed
-        // under `backlinks`, aliased to the key name info.json / references.json /
-        // backlinks.json use ("incomingLinks"), so a feed consumer can read it
-        // under the consistent cross-endpoint name. `backlinks` is kept for back-compat.
-        incomingLinks: publishedInboundLinkCount(backlinksData, change.slug, titleBySlug),
-        // referencesCount is the changed article's published OUTBOUND reference
-        // count — the complement of backlinks (its inbound count) — using the same
-        // getArticleReferences helper (published-only join) that references.json /
-        // cite.json / info.json use, so a feed consumer can see both directions of
-        // each changed article's link degree without a second fetch.
-        referencesCount: getArticleReferences({ slug: change.slug, linkGraph: linkgraphData, titleBySlug }).length,
-        sectionCount: sectionCountBySlug[change.slug] ?? 0,
-        wordCount: wordCountBySlug[change.slug] ?? 0,
-        // readingMinutes is the changed article's estimated reading time — the
-        // same ~200 wpm ceil formula the article-page footer ("N min read") and
-        // info.json / toc.json / history.json expose from wordCount, so a change-
-        // feed consumer can gauge each article's reading time without a second fetch.
-        readingMinutes: Math.max(1, Math.ceil((wordCountBySlug[change.slug] ?? 0) / 200)),
-        revisionCount: revisionStatsBySlug[change.slug]?.revisionCount ?? 0,
-        firstEdited: revisionStatsBySlug[change.slug]?.firstEdited ?? null,
-        lastEdited: revisionStatsBySlug[change.slug]?.lastEdited ?? null,
+        ...formatArticleListingEntry({
+          origin,
+          slug: change.slug,
+          title: change.title,
+          summary: metadata.summaryBySlug[change.slug] ?? '',
+          categories: metadata.categoriesBySlug[change.slug] ?? [],
+          metrics: articleListingMetricsForSlug({
+            slug: change.slug,
+            metadata,
+            backlinksData,
+            linkgraphData,
+          }),
+        }),
         date: change.date,
         authorName: change.authorName,
         sha: change.sha,
         message: change.message ?? '',
       })),
-    },
+    }),
     null,
     2,
   );

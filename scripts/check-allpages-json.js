@@ -2,7 +2,12 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { buildAllPages } from './allpages.js';
+import { buildAllPages, buildAllPagesDocument } from './allpages.js';
+import {
+  articleListingMetricsForSlug,
+  buildArticleSlugMetadata,
+  formatArticleListingEntry,
+} from './article-listing.js';
 import { getArticleReferences } from '../src/lib/article-references.js';
 import { publishedInboundLinkCount } from './most-linked.js';
 
@@ -151,6 +156,79 @@ const ORIGIN = 'https://taopedia.org';
   });
   assert.equal(out[0].summary, '', 'undefined summary normalizes to empty string');
   assert.deepEqual(out[0].categories, [], 'missing categories normalizes to an empty array');
+}
+
+// ---- 2b) Unit: article-listing helpers ------------------------------------
+{
+  const pages = [
+    {
+      id: 'hub/index.mdx',
+      body: 'one two three four',
+      data: { title: 'Hub', summary: 'hub summary', categories: ['Consensus'] },
+    },
+    {
+      id: 'leaf/index.mdx',
+      body: 'solo',
+      data: { title: 'Leaf', summary: '', categories: [] },
+    },
+  ];
+  const getPageSlug = (page) => page.id.replace(/\/index\.mdx$/, '');
+  const historyForSlug = (slug) =>
+    slug === 'hub'
+      ? [{ date: '2024-06-01T00:00:00.000Z' }, { date: '2024-01-01T00:00:00.000Z' }]
+      : [];
+  const renderPage = async (page) => ({
+    headings: getPageSlug(page) === 'hub' ? [{ depth: 2, slug: 'intro', text: 'Intro' }] : [],
+  });
+  const getArticleToc = (headings) => headings.map((h, i) => ({ number: i + 1, depth: h.depth, slug: h.slug, title: h.text }));
+  const backlinksFixture = { hub: [{ from: 'leaf' }], leaf: [] };
+  const linkgraphFixture = { hub: [{ target: 'leaf' }] };
+
+  const metadata = await buildArticleSlugMetadata({
+    pages,
+    getPageSlug,
+    historyForSlug,
+    renderPage,
+    getArticleToc,
+  });
+  assert.equal(metadata.wordCountBySlug.hub, 4, 'metadata: hub wordCount');
+  assert.equal(metadata.sectionCountBySlug.hub, 1, 'metadata: hub sectionCount');
+  assert.equal(metadata.revisionStatsBySlug.hub.revisionCount, 2, 'metadata: hub revisionCount');
+  assert.equal(metadata.revisionStatsBySlug.hub.firstEdited, '2024-01-01T00:00:00.000Z', 'metadata: hub firstEdited');
+  assert.equal(metadata.revisionStatsBySlug.hub.lastEdited, '2024-06-01T00:00:00.000Z', 'metadata: hub lastEdited');
+
+  const metrics = articleListingMetricsForSlug({
+    slug: 'hub',
+    metadata,
+    backlinksData: backlinksFixture,
+    linkgraphData: linkgraphFixture,
+    inboundLinks: 3,
+  });
+  assert.equal(metrics.backlinks, 3, 'metrics: backlinks honors override');
+  assert.equal(metrics.incomingLinks, 3, 'metrics: incomingLinks honors override');
+  assert.equal(metrics.referencesCount, 1, 'metrics: referencesCount from link graph');
+  assert.equal(metrics.wordCount, 4, 'metrics: wordCount from metadata');
+  assert.equal(metrics.readingMinutes, 1, 'metrics: readingMinutes ceil(4/200)');
+
+  const entry = formatArticleListingEntry({
+    origin: ORIGIN,
+    slug: 'hub',
+    title: 'Hub',
+    summary: 'hub summary',
+    categories: ['Consensus'],
+    metrics,
+  });
+  assert.equal(entry.url, `${ORIGIN}/wiki/hub/`, 'entry: canonical url');
+  assert.equal(entry.infoJsonUrl, `${ORIGIN}/wiki/hub/info.json`, 'entry: infoJsonUrl');
+  assert.equal(entry.referencesJsonUrl, entry.referencesUrl, 'entry: referencesJsonUrl alias');
+  assert.equal(entry.relatedJsonUrl, entry.relatedUrl, 'entry: relatedJsonUrl alias');
+
+  const doc = buildAllPagesDocument({
+    origin: ORIGIN,
+    articles: [entry],
+  });
+  assert.equal(doc.allpagesJsonUrl, `${ORIGIN}/wiki/special/allpages.json`, 'document: self url');
+  assert.equal(doc.count, 1, 'document: count');
 }
 
 // ---- 3) Built output: validate against the synced content collection ----

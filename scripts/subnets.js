@@ -38,3 +38,13 @@ export function buildSubnets({ pages, getPageSlug }) {
   // produces via Array.prototype.sort.
   return subnets.sort((a, b) => a.netuid - b.netuid);
 }
+
+export function buildSubnetsDocument({ origin, subnets = [] }) {
+  return {
+    site: origin,
+    url: `${origin}/wiki/special/subnets.json`,
+    subnetsJsonUrl: `${origin}/wiki/special/subnets.json`,
+    count: subnets.length,
+    subnets,
+  };
+}

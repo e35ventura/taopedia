@@ -31,3 +31,12 @@ export function buildMostLinkedPages({ backlinks, titleBySlug }) {
     .filter((entry) => entry.count > 0)
     .sort((a, b) => b.count - a.count || compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug));
 }
+
+export function buildMostLinkedPagesDocument({ origin, pages = [] }) {
+  return {
+    site: origin,
+    mostlinkedpagesJsonUrl: `${origin}/wiki/special/mostlinkedpages.json`,
+    count: pages.length,
+    pages,
+  };
+}

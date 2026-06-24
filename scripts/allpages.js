@@ -28,3 +28,12 @@ export function buildAllPages({ pages, getPageSlug, origin }) {
     categories: Array.isArray(page?.data?.categories) ? page.data.categories : [],
   }));
 }
+
+export function buildAllPagesDocument({ origin, articles = [] }) {
+  return {
+    site: origin,
+    allpagesJsonUrl: `${origin}/wiki/special/allpages.json`,
+    count: articles.length,
+    articles,
+  };
+}

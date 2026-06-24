@@ -1,9 +1,13 @@
 import type { APIRoute } from 'astro';
 import { getCollection, render } from 'astro:content';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
-import { getArticleReferences } from '../../../lib/article-references.js';
 import { getArticleToc } from '../../../lib/article-toc.js';
-import { buildMostLinkedPages } from '../../../../scripts/most-linked.js';
+import { buildMostLinkedPages, buildMostLinkedPagesDocument } from '../../../../scripts/most-linked.js';
+import {
+  articleListingMetricsForSlug,
+  formatArticleListingEntry,
+} from '../../../../scripts/article-listing.js';
+import { getListingArticleSlugMetadata } from '../../../../scripts/listing-metadata-cache.js';
 
 // Machine-readable inbound-link ranking at /wiki/special/mostlinkedpages.json.
 // Mirrors the HTML Special:MostLinkedPages page as structured JSON for
@@ -25,99 +29,35 @@ const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
 export const GET: APIRoute = async ({ site }) => {
   const origin = (site ?? new URL('https://taopedia.org')).origin;
   const pages = await getCollection('pages');
-  const titleBySlug: Record<string, string> = {};
-  const categoriesBySlug: Record<string, string[]> = {};
-  const summaryBySlug: Record<string, string> = {};
-  const pageBySlug: Record<string, (typeof pages)[number]> = {};
-  // The article body's word count — the same figure info.json exposes and the
-  // article-page footer (mw-article-meta data-word-count) renders, computed from
-  // the raw markdown body so a consumer of the ranking can gauge each top page's
-  // article length without a second fetch.
-  const wordCountBySlug: Record<string, number> = {};
-  for (const page of pages) {
-    const slug = getPageSlug(page);
-    titleBySlug[slug] = page.data.title;
-    categoriesBySlug[slug] = page.data.categories ?? [];
-    summaryBySlug[slug] = page.data.summary ?? '';
-    pageBySlug[slug] = page;
-    wordCountBySlug[slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
-  }
-
-  const ranked = buildMostLinkedPages({ backlinks: backlinksData, titleBySlug });
-
-  // sectionCount is the article's table-of-contents section count — the same
-  // figure toc.json exposes as `count` and info.json / history.json expose on
-  // their envelopes, derived from the shared getArticleToc helper. Rendered only
-  // for the ranked pages so a consumer can gauge each top page's depth (how many
-  // sections it has) alongside its link popularity without a second fetch.
-  const sectionCountBySlug: Record<string, number> = {};
-  for (const entry of ranked) {
-    const page = pageBySlug[entry.slug];
-    if (!page) continue;
-    const { headings } = await render(page);
-    sectionCountBySlug[entry.slug] = getArticleToc(headings).length;
-  }
+  const metadata = await getListingArticleSlugMetadata({
+    pages,
+    getPageSlug,
+    historyForSlug,
+    renderPage: render,
+    getArticleToc,
+  });
+  const ranked = buildMostLinkedPages({ backlinks: backlinksData, titleBySlug: metadata.titleBySlug });
 
   const body = JSON.stringify(
-    {
-      site: origin,
-      mostlinkedpagesJsonUrl: `${origin}/wiki/special/mostlinkedpages.json`,
-      count: ranked.length,
-      pages: ranked.map((entry) => ({
-        slug: entry.slug,
-        title: entry.title,
-        summary: summaryBySlug[entry.slug] || null,
-        url: `${origin}/wiki/${entry.slug}/`,
-        infoUrl: `${origin}/wiki/${entry.slug}/info/`,
-        infoJsonUrl: `${origin}/wiki/${entry.slug}/info.json`,
-        historyUrl: `${origin}/wiki/${entry.slug}/history/`,
-        historyJsonUrl: `${origin}/wiki/${entry.slug}/history.json`,
-        backlinksUrl: `${origin}/wiki/${entry.slug}/backlinks/`,
-        backlinksJsonUrl: `${origin}/wiki/${entry.slug}/backlinks.json`,
-        citeUrl: `${origin}/wiki/${entry.slug}/cite/`,
-        citeJsonUrl: `${origin}/wiki/${entry.slug}/cite.json`,
-        bibtexUrl: `${origin}/wiki/${entry.slug}/cite.bib`,
-        referencesUrl: `${origin}/wiki/${entry.slug}/references.json`,
-        // referencesJsonUrl / relatedJsonUrl are the same companion links under the
-        // consistent <name>JsonUrl key every other JSON companion uses here
-        // (infoJsonUrl, historyJsonUrl, backlinksJsonUrl, citeJsonUrl, tocJsonUrl).
-        // referencesUrl / relatedUrl were the only two companions lacking the Json
-        // suffix; they are kept for backwards compatibility.
-        referencesJsonUrl: `${origin}/wiki/${entry.slug}/references.json`,
-        relatedUrl: `${origin}/wiki/${entry.slug}/related.json`,
-        relatedJsonUrl: `${origin}/wiki/${entry.slug}/related.json`,
-        tocJsonUrl: `${origin}/wiki/${entry.slug}/toc.json`,
-        imageUrl: `${origin}/og/${entry.slug}.png`,
-        categories: categoriesBySlug[entry.slug] ?? [],
-        backlinks: entry.count,
-        // incomingLinks is the same published-only inbound-link count exposed
-        // under `backlinks`, aliased to the key name info.json / references.json /
-        // backlinks.json use ("incomingLinks"), so a consumer can read it under the
-        // consistent cross-endpoint name. `backlinks` is kept for back-compat.
-        incomingLinks: entry.count,
-        // referencesCount is the article's published OUTBOUND reference count —
-        // the complement of backlinks (its inbound count) — using the same
-        // getArticleReferences helper (published-only join) that references.json /
-        // cite.json / info.json use, so a consumer of the ranking can see both
-        // directions of each top page's link degree without a second fetch.
-        referencesCount: getArticleReferences({ slug: entry.slug, linkGraph: linkgraphData, titleBySlug }).length,
-        sectionCount: sectionCountBySlug[entry.slug] ?? 0,
-        wordCount: wordCountBySlug[entry.slug] ?? 0,
-        // The article's estimated reading time in minutes — the same ~200 wpm
-        // ceil estimate info.json exposes and the article-page footer renders
-        // from wordCount, so a consumer of the ranking can gauge each top page's
-        // reading time without a second fetch.
-        readingMinutes: Math.max(1, Math.ceil((wordCountBySlug[entry.slug] ?? 0) / 200)),
-        // The article's revision stats (history is newest-first) — the same
-        // revisionCount / firstEdited / lastEdited trio info.json / history.json
-        // expose per article and allpages.json exposes per directory entry — so a
-        // consumer of the ranking can see each top page's age and recency without
-        // a second fetch.
-        revisionCount: historyForSlug(entry.slug).length,
-        firstEdited: historyForSlug(entry.slug).at(-1)?.date ?? null,
-        lastEdited: historyForSlug(entry.slug)[0]?.date ?? null,
-      })),
-    },
+    buildMostLinkedPagesDocument({
+      origin,
+      pages: ranked.map((entry) =>
+        formatArticleListingEntry({
+          origin,
+          slug: entry.slug,
+          title: entry.title,
+          summary: metadata.summaryBySlug[entry.slug] ?? '',
+          categories: metadata.categoriesBySlug[entry.slug] ?? [],
+          metrics: articleListingMetricsForSlug({
+            slug: entry.slug,
+            metadata,
+            backlinksData,
+            linkgraphData,
+            inboundLinks: entry.count,
+          }),
+        }),
+      ),
+    }),
     null,
     2,
   );
