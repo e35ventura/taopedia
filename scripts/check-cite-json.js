@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getArticleReferences } from '../src/lib/article-references.js';
+import { buildCiteJson } from './cite-json.js';
 import { buildCitations, CITATION_FORMATS, CITATION_META } from './citations.js';
 import { publishedInboundLinkCount } from './most-linked.js';
 
@@ -46,6 +47,82 @@ const CITE_KEYS = CITATION_FORMATS.map((format) => format.key);
     tricky.bibtex.includes('  title        = {A "Quoted" \\textbackslash{} Title \\{x\\} --- Taopedia},'),
     'BibTeX title must brace-delimit and escape \\, { and } while leaving a literal quote intact',
   );
+}
+
+// ---- Unit: buildCiteJson envelope shape ------------------------------------
+{
+  const doc = buildCiteJson({
+    title: 'Yuma Consensus',
+    slug: 'yuma_consensus',
+    origin: ORIGIN,
+    summary: 'Bittensor consensus.',
+    categories: ['Consensus'],
+    incomingLinks: 4,
+    referencesCount: 7,
+    sectionCount: 5,
+    wordCount: 420,
+    revisionCount: 3,
+    firstEdited: '2024-01-01T00:00:00.000Z',
+    lastEdited: '2024-06-01T12:00:00.000Z',
+    date: '2024-06-01T12:00:00.000Z',
+  });
+  assert.equal(doc.title, 'Yuma Consensus', 'builder: title');
+  assert.equal(doc.slug, 'yuma_consensus', 'builder: slug');
+  assert.equal(doc.summary, 'Bittensor consensus.', 'builder: summary');
+  assert.equal(doc.url, `${ORIGIN}/wiki/yuma_consensus/`, 'builder: url');
+  assert.equal(doc.citeJsonUrl, `${ORIGIN}/wiki/yuma_consensus/cite.json`, 'builder: citeJsonUrl self-link');
+  assert.equal(doc.citeUrl, `${ORIGIN}/wiki/yuma_consensus/cite/`, 'builder: citeUrl');
+  assert.equal(doc.bibtexUrl, `${ORIGIN}/wiki/yuma_consensus/cite.bib`, 'builder: bibtexUrl');
+  assert.equal(doc.historyUrl, `${ORIGIN}/wiki/yuma_consensus/history/`, 'builder: historyUrl');
+  assert.equal(doc.historyJsonUrl, `${ORIGIN}/wiki/yuma_consensus/history.json`, 'builder: historyJsonUrl');
+  assert.equal(doc.backlinksUrl, `${ORIGIN}/wiki/yuma_consensus/backlinks/`, 'builder: backlinksUrl');
+  assert.equal(doc.backlinksJsonUrl, `${ORIGIN}/wiki/yuma_consensus/backlinks.json`, 'builder: backlinksJsonUrl');
+  assert.equal(doc.infoUrl, `${ORIGIN}/wiki/yuma_consensus/info/`, 'builder: infoUrl');
+  assert.equal(doc.infoJsonUrl, `${ORIGIN}/wiki/yuma_consensus/info.json`, 'builder: infoJsonUrl');
+  assert.equal(doc.tocJsonUrl, `${ORIGIN}/wiki/yuma_consensus/toc.json`, 'builder: tocJsonUrl');
+  assert.equal(doc.referencesUrl, `${ORIGIN}/wiki/yuma_consensus/references.json`, 'builder: referencesUrl');
+  assert.equal(doc.relatedUrl, `${ORIGIN}/wiki/yuma_consensus/related.json`, 'builder: relatedUrl');
+  assert.equal(doc.referencesJsonUrl, `${ORIGIN}/wiki/yuma_consensus/references.json`, 'builder: referencesJsonUrl alias');
+  assert.equal(doc.relatedJsonUrl, `${ORIGIN}/wiki/yuma_consensus/related.json`, 'builder: relatedJsonUrl alias');
+  assert.equal(doc.referencesJsonUrl, doc.referencesUrl, 'builder: referencesJsonUrl must equal referencesUrl');
+  assert.equal(doc.relatedJsonUrl, doc.relatedUrl, 'builder: relatedJsonUrl must equal relatedUrl');
+  assert.equal(doc.imageUrl, `${ORIGIN}/og/yuma_consensus.png`, 'builder: imageUrl');
+  assert.deepEqual(doc.categories, ['Consensus'], 'builder: categories');
+  assert.equal(doc.incomingLinks, 4, 'builder: incomingLinks');
+  assert.equal(doc.referencesCount, 7, 'builder: referencesCount');
+  assert.equal(doc.sectionCount, 5, 'builder: sectionCount');
+  assert.equal(doc.wordCount, 420, 'builder: wordCount');
+  assert.equal(doc.readingMinutes, 3, 'builder: readingMinutes from wordCount (ceil(420/200))');
+  assert.equal(doc.revisionCount, 3, 'builder: revisionCount');
+  assert.equal(doc.firstEdited, '2024-01-01T00:00:00.000Z', 'builder: firstEdited');
+  assert.equal(doc.lastEdited, '2024-06-01T12:00:00.000Z', 'builder: lastEdited');
+  assert.equal(doc.date, '2024-06-01T12:00:00.000Z', 'builder: date when history exists');
+  assert.equal(doc.author, CITATION_META.author, 'builder: author from CITATION_META');
+  assert.equal(doc.publisher, CITATION_META.publisher, 'builder: publisher from CITATION_META');
+  assert.deepEqual(Object.keys(doc.citations), CITE_KEYS, 'builder: citations keys');
+  assert.equal(
+    doc.citations.apa,
+    buildCitations({
+      title: 'Yuma Consensus',
+      url: `${ORIGIN}/wiki/yuma_consensus/`,
+      slug: 'yuma_consensus',
+      date: '2024-06-01T12:00:00.000Z',
+    }).apa,
+    'builder: citations.apa must match buildCitations()',
+  );
+
+  const undated = buildCiteJson({ title: 'Orphan', slug: 'orphan', origin: ORIGIN });
+  assert.equal(undated.summary, null, 'builder: default summary is null');
+  assert.deepEqual(undated.categories, [], 'builder: default categories is []');
+  assert.equal(undated.incomingLinks, 0, 'builder: default incomingLinks is 0');
+  assert.equal(undated.referencesCount, 0, 'builder: default referencesCount is 0');
+  assert.equal(undated.sectionCount, 0, 'builder: default sectionCount is 0');
+  assert.equal(undated.wordCount, 0, 'builder: default wordCount is 0');
+  assert.equal(undated.readingMinutes, 1, 'builder: default readingMinutes is 1');
+  assert.equal(undated.revisionCount, 0, 'builder: default revisionCount is 0');
+  assert.equal(undated.firstEdited, null, 'builder: default firstEdited is null');
+  assert.equal(undated.lastEdited, null, 'builder: default lastEdited is null');
+  assert.ok(!('date' in undated), 'builder: undated article must omit date key');
 }
 
 assert.ok(fs.existsSync(wikiDir), 'dist/wiki not found; run the build first');

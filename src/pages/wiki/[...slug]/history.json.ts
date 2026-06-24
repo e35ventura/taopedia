@@ -1,17 +1,12 @@
 import type { APIRoute } from 'astro';
 import { getCollection, render } from 'astro:content';
-import { getPageSlug } from '../../../lib/article-history';
+import { getPageSlug, historyForSlug } from '../../../lib/article-history';
 import { getArticleReferences } from '../../../lib/article-references.js';
 import { getArticleToc } from '../../../lib/article-toc.js';
 import { buildArticleHistory } from '../../../../scripts/article-history-json.js';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
 
 type RawRevision = { sha: string; date: string; authorName: string; message?: string };
-
-const historyModules = import.meta.glob('../../../../public/history/**/*.json', { eager: true }) as Record<
-  string,
-  { default?: { history?: RawRevision[] } }
->;
 
 const backlinksModules = import.meta.glob('../../../../public/data/backlinks.json', { eager: true }) as Record<
   string,
@@ -33,6 +28,11 @@ export async function getStaticPaths() {
     pages.map(async (page) => {
       const slug = getPageSlug(page);
       const { headings } = await render(page);
+      // Precomputed once per route in getStaticPaths — GET used to load
+      // public/history/<slug>.json again via the eager glob. Matches
+      // info.json (#1037) / backlinks.json (#1042) thin-GET pattern.
+      const revisions = historyForSlug(slug) as RawRevision[];
+
       return {
         params: { slug },
         props: {
@@ -42,6 +42,7 @@ export async function getStaticPaths() {
           referencesCount: getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length,
           sectionCount: getArticleToc(headings).length,
           wordCount: (page.body ?? '').trim().split(/\s+/).filter(Boolean).length,
+          revisions,
         },
       };
     }),
@@ -55,18 +56,16 @@ export async function getStaticPaths() {
 // `count`, plus sectionCount (the toc.json `count` figure) and wordCount (the
 // article footer's data-word-count), but does not break out per-revision.
 export const GET: APIRoute = async ({ props, site }) => {
-  const { page, slug, incomingLinks, referencesCount, sectionCount, wordCount } = props as {
+  const { page, slug, incomingLinks, referencesCount, sectionCount, wordCount, revisions } = props as {
     page: { data: { title: string; summary?: string; categories?: string[] } };
     slug: string;
     incomingLinks: number;
     referencesCount: number;
     sectionCount: number;
     wordCount: number;
+    revisions: RawRevision[];
   };
   const origin = (site ?? new URL('https://taopedia.org')).origin;
-
-  const mod = historyModules[`../../../../public/history/${slug}.json`];
-  const revisions: RawRevision[] = mod?.default?.history ?? [];
 
   const body = JSON.stringify(
     buildArticleHistory({
