@@ -88,6 +88,7 @@ const revisionStatsOf = (slug) => {
   assert.equal(result.backlinks[0].summary, 'A node in the network.', 'builder: backlinks[0].summary');
   assert.deepEqual(result.backlinks[0].categories, ['Mechanism'], 'builder: backlinks[0].categories');
   assert.equal(result.backlinks[0].backlinks, 0, 'builder: backlinks[0].backlinks defaults to 0 when omitted');
+  assert.equal(result.backlinks[0].incomingLinks, 0, 'builder: backlinks[0].incomingLinks equals backlinks (alias)');
   assert.equal(result.backlinks[0].url, `${ORIGIN}/wiki/neuron/`, 'builder: backlinks[0].url');
   assert.equal(result.backlinks[0].infoUrl, `${ORIGIN}/wiki/neuron/info/`, 'builder: backlinks[0].infoUrl');
   assert.equal(result.backlinks[0].infoJsonUrl, `${ORIGIN}/wiki/neuron/info.json`, 'builder: backlinks[0].infoJsonUrl');
@@ -121,6 +122,7 @@ const revisionStatsOf = (slug) => {
   assert.equal(result.backlinks[1].summary, null, 'builder: backlinks[1].summary is null when empty');
   assert.deepEqual(result.backlinks[1].categories, [], 'builder: backlinks[1].categories defaults to [] when omitted');
   assert.equal(result.backlinks[1].backlinks, 0, 'builder: backlinks[1].backlinks defaults to 0 when omitted');
+  assert.equal(result.backlinks[1].incomingLinks, 0, 'builder: backlinks[1].incomingLinks equals backlinks (alias)');
   assert.equal(result.backlinks[1].url, `${ORIGIN}/wiki/subnet_1/`, 'builder: backlinks[1].url');
   assert.equal(result.backlinks[1].historyUrl, `${ORIGIN}/wiki/subnet_1/history/`, 'builder: backlinks[1].historyUrl');
   assert.equal(result.backlinks[1].historyJsonUrl, `${ORIGIN}/wiki/subnet_1/history.json`, 'builder: backlinks[1].historyJsonUrl');
@@ -359,6 +361,9 @@ for (const slug of articleSlugs) {
       `${slug}: every backlink entry backlinks must match the published inbound-link count`,
     );
     assert.ok(Number.isInteger(entry.backlinks) && entry.backlinks >= 0, `${slug}: every backlink entry backlinks must be a non-negative integer`);
+    // incomingLinks is the info.json-named alias of the same inbound count, the
+    // per-entry field related.json / references.json / allpages.json also carry.
+    assert.equal(entry.incomingLinks, entry.backlinks, `${slug}: every backlink entry incomingLinks must equal its backlinks (the published inbound-link count)`);
     // referencesCount is the linking article's published OUTBOUND reference count
     // (the inbound complement of backlinks) — the same per-entry figure
     // allpages.json / subnets.json expose — from the same getArticleReferences join.
