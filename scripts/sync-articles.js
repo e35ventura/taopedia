@@ -621,6 +621,19 @@ const ariaStructureAttrPattern = /<[^>]*\saria-(?:level|posinset|setsize)\s*=/i;
 const nonSpaceDelimitedAriaStructureAttrPattern =
   /<[^>]*[/"'`](?:aria-(?:level|posinset|setsize))\s*=/i;
 
+// aria-colindex/colcount/colspan/rowindex/rowcount/rowspan (+ the *indextext
+// variants) fake the table-grid position and dimensions a screen reader
+// announces. These are the ARIA counterpart to the already-blocked native
+// colspan=/rowspan= on table cells (#465): on an allowed <table>/<td>/<th> an
+// injected aria-rowcount="500" or aria-colspan="9" makes AT announce a forged
+// table size or a cell spanning columns it does not, distorting the structure a
+// non-visual reader perceives — with no script, handler, or flagged scheme. Same
+// accessibility-structure spoof family as the merged aria-level/posinset/setsize
+// block. Glossary tables never set their own grid-position ARIA.
+const ariaGridAttrPattern = /<[^>]*\saria-(?:col|row)(?:index(?:text)?|count|span)\s*=/i;
+const nonSpaceDelimitedAriaGridAttrPattern =
+  /<[^>]*[/"'`](?:aria-(?:col|row)(?:index(?:text)?|count|span))\s*=/i;
+
 // aria-pressed=/aria-checked=/aria-selected= fake toggle and option state in
 // assistive technology — e.g. aria-pressed="true" makes a link sound pressed,
 // aria-selected="true" marks a list item as the chosen procedure step, and
@@ -1415,6 +1428,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": aria-level, aria-posinset, and aria-setsize attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    ariaGridAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAriaGridAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": aria-colindex, aria-colcount, aria-colspan, aria-rowindex, aria-rowcount, and aria-rowspan attributes are not allowed in article content`,
     );
   }
 

@@ -932,6 +932,22 @@ accepts('<a href="/wiki/aria-level=demo">aria-level docs</a>', 'benign aria-leve
 accepts('ARIA level is an accessibility concept described here only as prose.', 'benign aria-level prose');
 accepts('<span class=x/aria-setsize-demo>not an aria-setsize attribute</span>', 'benign aria-setsize substring in class value');
 
+// aria-col*/aria-row*= fake table-grid position/dimensions for AT — the ARIA
+// counterpart to the already-blocked native colspan/rowspan (#465), same
+// accessibility-structure spoof family as merged aria-level/posinset/setsize.
+rejects('Intro.\n\n<table aria-rowcount="500"><tr><td>x</td></tr></table>', 'plain aria-rowcount attribute on table');
+rejects('Intro.\n\n<td aria-colspan="9">x</td>', 'plain aria-colspan attribute');
+rejects('Intro.\n\n<td aria-colindex="3">x</td>', 'plain aria-colindex attribute');
+rejects('Intro.\n\n<td aria-rowindextext="Row three">x</td>', 'plain aria-rowindextext attribute');
+rejects('Intro.\n\n<  th   aria-colcount = "9">x</th>', 'spaced aria-colcount attribute');
+rejects('<td class="x"aria-rowspan="4">x</td>', 'quote-abutted aria-rowspan attribute');
+rejects('<td class=x/aria-rowindex="2">x</td>', 'slash-delimited aria-rowindex attribute');
+rejects("<td class='x'aria-colspan='9'>x</td>", 'single-quote-abutted aria-colspan attribute');
+
+accepts('<a href="/wiki/aria-colindex=demo">aria-colindex docs</a>', 'benign aria-colindex substring in quoted href');
+accepts('ARIA rowcount is an accessibility concept described here only as prose.', 'benign aria-rowcount prose');
+accepts('<span class=x/aria-colspan-demo>not an aria-colspan attribute</span>', 'benign aria-colspan substring in class value');
+
 // aria-pressed=/aria-checked=/aria-selected= fake toggle and option state —
 // same family as merged #582 (aria-busy), #568 (aria-current), and #559
 // (aria-expanded).
