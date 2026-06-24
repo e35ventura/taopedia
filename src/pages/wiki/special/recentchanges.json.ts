@@ -83,6 +83,19 @@ export const GET: APIRoute = async ({ site }) => {
       lastEdited: history[0]?.date ?? null,
     };
   }
+  // inbound link count (exposed as both `backlinks` and the `incomingLinks`
+  // alias) and outbound reference count, cached once per slug like
+  // sectionCountBySlug / revisionStatsBySlug above — an article can appear in
+  // multiple changes, and the inbound count was otherwise computed twice per
+  // entry (once for each key) while getArticleReferences is a full link-graph
+  // join. Same compute-once pattern subnets.json / mostlinkedpages.json use.
+  const inboundBySlug: Record<string, number> = {};
+  const referencesCountBySlug: Record<string, number> = {};
+  for (const change of changes) {
+    if (change.slug in inboundBySlug) continue;
+    inboundBySlug[change.slug] = publishedInboundLinkCount(backlinksData, change.slug, titleBySlug);
+    referencesCountBySlug[change.slug] = getArticleReferences({ slug: change.slug, linkGraph: linkgraphData, titleBySlug }).length;
+  }
   const dateRange =
     changes.length > 0
       ? { newest: changes[0].date, oldest: changes[changes.length - 1].date }
@@ -132,18 +145,18 @@ export const GET: APIRoute = async ({ site }) => {
         tocJsonUrl: `${origin}/wiki/${change.slug}/toc.json`,
         imageUrl: `${origin}/og/${change.slug}.png`,
         categories: categoriesBySlug[change.slug] ?? [],
-        backlinks: publishedInboundLinkCount(backlinksData, change.slug, titleBySlug),
+        backlinks: inboundBySlug[change.slug] ?? 0,
         // incomingLinks is the same published-only inbound-link count exposed
         // under `backlinks`, aliased to the key name info.json / references.json /
         // backlinks.json use ("incomingLinks"), so a feed consumer can read it
         // under the consistent cross-endpoint name. `backlinks` is kept for back-compat.
-        incomingLinks: publishedInboundLinkCount(backlinksData, change.slug, titleBySlug),
+        incomingLinks: inboundBySlug[change.slug] ?? 0,
         // referencesCount is the changed article's published OUTBOUND reference
         // count — the complement of backlinks (its inbound count) — using the same
         // getArticleReferences helper (published-only join) that references.json /
         // cite.json / info.json use, so a feed consumer can see both directions of
         // each changed article's link degree without a second fetch.
-        referencesCount: getArticleReferences({ slug: change.slug, linkGraph: linkgraphData, titleBySlug }).length,
+        referencesCount: referencesCountBySlug[change.slug] ?? 0,
         sectionCount: sectionCountBySlug[change.slug] ?? 0,
         wordCount: wordCountBySlug[change.slug] ?? 0,
         // readingMinutes is the changed article's estimated reading time — the
