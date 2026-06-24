@@ -108,6 +108,11 @@ export const GET: APIRoute = async ({ site, props }) => {
       // history.json expose and the article-page footer renders, so a consumer
       // citing the article can record its length without a second fetch.
       wordCount: Number.isFinite(wordCount) ? wordCount : 0,
+      // readingMinutes is the estimated reading time — the same ~200 wpm ceil
+      // formula the article-page footer ("N min read") and info.json / toc.json /
+      // history.json expose from wordCount, so a consumer citing the article can
+      // record its reading time without recomputing it or a second fetch.
+      readingMinutes: Math.max(1, Math.ceil((Number.isFinite(wordCount) ? wordCount : 0) / 200)),
       ...(date ? { date } : {}),
       ...CITATION_META,
       citations,

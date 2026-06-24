@@ -278,6 +278,27 @@ for (const slug of articleSlugs) {
       `cite.json wordCount must agree with the sibling info.json envelope for ${slug}`,
     );
   }
+  // readingMinutes is the ~200 wpm ceil estimate the article footer renders from
+  // wordCount — the same figure info.json / toc.json / history.json expose. It
+  // must be a positive integer, equal ceil(wordCount / 200), and agree with the
+  // sibling info.json envelope (independent source).
+  assert.ok(
+    Number.isInteger(doc.readingMinutes) && doc.readingMinutes >= 1,
+    `cite.json readingMinutes must be a positive integer for ${slug}`,
+  );
+  assert.equal(
+    doc.readingMinutes,
+    Math.max(1, Math.ceil(doc.wordCount / 200)),
+    `cite.json readingMinutes must equal ceil(wordCount / 200) for ${slug}`,
+  );
+  if (fs.existsSync(citeInfoJsonFile)) {
+    const infoDoc = JSON.parse(fs.readFileSync(citeInfoJsonFile, 'utf8'));
+    assert.equal(
+      doc.readingMinutes,
+      infoDoc.readingMinutes,
+      `cite.json readingMinutes must agree with the sibling info.json envelope for ${slug}`,
+    );
+  }
   const historyJsonFile = path.join(wikiDir, slug, 'history.json');
   if (fs.existsSync(historyJsonFile)) {
     const historyDoc = JSON.parse(fs.readFileSync(historyJsonFile, 'utf8'));
