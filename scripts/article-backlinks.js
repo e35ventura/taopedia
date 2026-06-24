@@ -17,6 +17,12 @@ export const buildArticleBacklinks = ({ slug, title, origin, summary = '', categ
   bibtexUrl: `${origin}/wiki/${slug}/cite.bib`,
   referencesUrl: `${origin}/wiki/${slug}/references.json`,
   relatedUrl: `${origin}/wiki/${slug}/related.json`,
+  // referencesJsonUrl / relatedJsonUrl are the consistently-named *JsonUrl aliases
+  // for referencesUrl / relatedUrl, matching the infoJsonUrl / backlinksJsonUrl /
+  // citeJsonUrl / tocJsonUrl companions this envelope already exposes.
+  // referencesUrl / relatedUrl kept for back-compat.
+  referencesJsonUrl: `${origin}/wiki/${slug}/references.json`,
+  relatedJsonUrl: `${origin}/wiki/${slug}/related.json`,
   tocJsonUrl: `${origin}/wiki/${slug}/toc.json`,
   imageUrl: `${origin}/og/${slug}.png`,
   categories,
