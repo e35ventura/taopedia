@@ -67,10 +67,6 @@ export const buildCategoryArticlesDocument = ({ origin, categoryName, categoryPa
     // exposes as `count` and info.json / history.json expose, and subnets.json /
     // mostlinkedpages.json expose per directory entry.
     sectionCount: Number.isFinite(article.sectionCount) ? article.sectionCount : 0,
-    // The article's estimated reading time in minutes — the ~200 wpm ceil estimate
-    // info.json exposes and the article footer renders, and allpages.json /
-    // subnets.json / mostlinkedpages.json expose per directory entry.
-    readingMinutes: Math.max(1, Math.ceil((Number.isFinite(article.wordCount) ? article.wordCount : 0) / 200)),
     url: `${origin}/wiki/${article.slug}/`,
     infoUrl: `${origin}/wiki/${article.slug}/info/`,
     infoJsonUrl: `${origin}/wiki/${article.slug}/info.json`,
