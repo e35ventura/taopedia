@@ -24,13 +24,18 @@ export async function getStaticPaths() {
 
   return pages.map((page) => {
     const slug = getPageSlug(page);
-    const references = getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).map((ref) => ({
-      ...ref,
-      summary: summaryBySlug[ref.slug] ?? '',
-      categories: categoriesBySlug[ref.slug] ?? [],
-      backlinks: publishedInboundLinkCount(backlinksData, ref.slug, titleBySlug),
-      lastEdited: historyForSlug(ref.slug)[0]?.date ?? null,
-    }));
+    const references = getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).map((ref) => {
+      const history = historyForSlug(ref.slug);
+      return {
+        ...ref,
+        summary: summaryBySlug[ref.slug] ?? '',
+        categories: categoriesBySlug[ref.slug] ?? [],
+        backlinks: publishedInboundLinkCount(backlinksData, ref.slug, titleBySlug),
+        revisionCount: history.length,
+        firstEdited: history[history.length - 1]?.date ?? null,
+        lastEdited: history[0]?.date ?? null,
+      };
+    });
     // History is newest-first, so [0] is the latest revision and the last entry
     // is the original publication — the same firstEdited/lastEdited pair the
     // info.json and history.json envelopes expose.
@@ -66,7 +71,16 @@ export const GET: APIRoute = async ({ props, site }) => {
     revisionCount: number;
     firstEdited: string | null;
     lastEdited: string | null;
-    references: Array<{ slug: string; title: string; summary: string; categories: string[]; backlinks: number; lastEdited: string | null }>;
+    references: Array<{
+      slug: string;
+      title: string;
+      summary: string;
+      categories: string[];
+      backlinks: number;
+      revisionCount: number;
+      firstEdited: string | null;
+      lastEdited: string | null;
+    }>;
   };
   const origin = (site ?? new URL('https://taopedia.org')).origin;
 

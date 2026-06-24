@@ -14,13 +14,19 @@ const slugmapFile = path.join(projectRoot, 'public', 'data', 'slugmap.json');
 const backlinksFile = path.join(projectRoot, 'public', 'data', 'backlinks.json');
 const historyDir = path.join(projectRoot, 'public', 'history');
 const ORIGIN = 'https://taopedia.org';
-// Each entry's lastEdited = the referenced article's latest revision date
-// (history is newest-first), re-derived from the raw history file.
-const lastEditedOf = (slug) => {
+// Each entry's revision stats come from the referenced article's raw history
+// file (history is newest-first), so the checker does not trust the built JSON.
+const revisionStatsOf = (slug) => {
   const file = path.join(historyDir, `${slug}.json`);
-  if (!fs.existsSync(file)) return null;
+  if (!fs.existsSync(file)) {
+    return { revisionCount: 0, firstEdited: null, lastEdited: null };
+  }
   const history = JSON.parse(fs.readFileSync(file, 'utf8')).history || [];
-  return Array.isArray(history) && history.length > 0 ? history[0].date : null;
+  return {
+    revisionCount: Array.isArray(history) ? history.length : 0,
+    firstEdited: Array.isArray(history) && history.length > 0 ? history[history.length - 1].date : null,
+    lastEdited: Array.isArray(history) && history.length > 0 ? history[0].date : null,
+  };
 };
 
 // ---- 1) Unit: helper and builder behavior ---------------------------------
@@ -88,6 +94,8 @@ const lastEditedOf = (slug) => {
         summary: null,
         categories: [],
         backlinks: 0,
+        revisionCount: 0,
+        firstEdited: null,
         lastEdited: null,
         url: `${ORIGIN}/wiki/delta/`,
         infoUrl: `${ORIGIN}/wiki/delta/info/`,
@@ -110,6 +118,8 @@ const lastEditedOf = (slug) => {
         summary: null,
         categories: [],
         backlinks: 0,
+        revisionCount: 0,
+        firstEdited: null,
         lastEdited: null,
         url: `${ORIGIN}/wiki/alpha/`,
         infoUrl: `${ORIGIN}/wiki/alpha/info/`,
@@ -132,6 +142,8 @@ const lastEditedOf = (slug) => {
         summary: null,
         categories: [],
         backlinks: 0,
+        revisionCount: 0,
+        firstEdited: null,
         lastEdited: null,
         url: `${ORIGIN}/wiki/gamma/`,
         infoUrl: `${ORIGIN}/wiki/gamma/info/`,
@@ -154,6 +166,8 @@ const lastEditedOf = (slug) => {
         summary: null,
         categories: [],
         backlinks: 0,
+        revisionCount: 0,
+        firstEdited: null,
         lastEdited: null,
         url: `${ORIGIN}/wiki/beta/`,
         infoUrl: `${ORIGIN}/wiki/beta/info/`,
@@ -352,10 +366,47 @@ for (const slug of articleSlugs) {
     // same figure allpages.json / subnets.json / related.json expose per row.
     assert.equal(entry.backlinks, publishedInboundLinkCount(backlinksData, entry.slug, titleBySlug), `${slug}: every reference entry backlinks must match the published inbound-link count`);
     assert.ok(Number.isInteger(entry.backlinks) && entry.backlinks >= 0, `${slug}: every reference entry backlinks must be a non-negative integer`);
-    // lastEdited mirrors the referenced article's latest revision date (the same
-    // per-entry field allpages.json / subnets.json / mostlinkedpages.json expose);
-    // null when the referenced article has no recorded history.
-    assert.equal(entry.lastEdited, lastEditedOf(entry.slug), `${slug}: every reference entry lastEdited must equal the referenced article's latest revision date (or null)`);
+    // revisionCount / firstEdited / lastEdited mirror the referenced article's
+    // revision-history summary, so consumers can sort or filter references by
+    // age and edit activity without a second fetch.
+    const entryStats = revisionStatsOf(entry.slug);
+    assert.ok(
+      Number.isInteger(entry.revisionCount) && entry.revisionCount >= 0,
+      `${slug}: every reference entry revisionCount must be a non-negative integer (got ${JSON.stringify(entry.revisionCount)})`,
+    );
+    assert.equal(
+      entry.revisionCount,
+      entryStats.revisionCount,
+      `${slug}: every reference entry revisionCount must equal the referenced article's commit-history length`,
+    );
+    assert.equal(
+      entry.firstEdited,
+      entryStats.firstEdited,
+      `${slug}: every reference entry firstEdited must equal the referenced article's oldest revision date (or null)`,
+    );
+    assert.equal(
+      entry.lastEdited,
+      entryStats.lastEdited,
+      `${slug}: every reference entry lastEdited must equal the referenced article's latest revision date (or null)`,
+    );
+    const entryInfoJsonFile = path.join(wikiDir, entry.slug, 'info.json');
+    assert.ok(fs.existsSync(entryInfoJsonFile), `${slug}: every reference entry must have a sibling info.json for cross-surface stat parity`);
+    const entryInfoDoc = JSON.parse(fs.readFileSync(entryInfoJsonFile, 'utf8'));
+    assert.equal(
+      entry.revisionCount,
+      entryInfoDoc.revisionCount,
+      `${slug}: every reference entry revisionCount must agree with its sibling info.json envelope`,
+    );
+    assert.equal(
+      entry.firstEdited,
+      entryInfoDoc.firstEdited,
+      `${slug}: every reference entry firstEdited must agree with its sibling info.json envelope`,
+    );
+    assert.equal(
+      entry.lastEdited,
+      entryInfoDoc.lastEdited,
+      `${slug}: every reference entry lastEdited must agree with its sibling info.json envelope`,
+    );
     assert.equal(
       entry.infoUrl,
       `${ORIGIN}/wiki/${entry.slug}/info/`,
