@@ -57,6 +57,10 @@ export const GET: APIRoute = async ({ site }) => {
     const { headings } = await render(page);
     sectionCountBySlug[subnet.slug] = getArticleToc(headings).length;
   }
+  const historyBySlug: Record<string, ReturnType<typeof historyForSlug>> = {};
+  for (const subnet of subnets) {
+    historyBySlug[subnet.slug] = historyForSlug(subnet.slug);
+  }
 
   const body = JSON.stringify(
     {
@@ -122,9 +126,9 @@ export const GET: APIRoute = async ({ site }) => {
         // expose per article and allpages.json / mostlinkedpages.json expose per
         // directory entry — so a subnet dashboard can show each subnet's age and
         // recency without a second fetch.
-        revisionCount: historyForSlug(subnet.slug).length,
-        firstEdited: historyForSlug(subnet.slug).at(-1)?.date ?? null,
-        lastEdited: historyForSlug(subnet.slug)[0]?.date ?? null,
+        revisionCount: historyBySlug[subnet.slug]?.length ?? 0,
+        firstEdited: historyBySlug[subnet.slug]?.at(-1)?.date ?? null,
+        lastEdited: historyBySlug[subnet.slug]?.[0]?.date ?? null,
       })),
     },
     null,
