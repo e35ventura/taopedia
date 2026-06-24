@@ -75,61 +75,64 @@ export const GET: APIRoute = async ({ site }) => {
       // backwards compatibility; subnetsJsonUrl is the consistent name.
       subnetsJsonUrl: `${origin}/wiki/special/subnets.json`,
       count: subnets.length,
-      subnets: subnets.map((subnet) => ({
-        netuid: subnet.netuid,
-        name: subnet.name,
-        slug: subnet.slug,
-        summary: subnet.summary || null,
-        url: `${origin}/wiki/${subnet.slug}/`,
-        infoUrl: `${origin}/wiki/${subnet.slug}/info/`,
-        infoJsonUrl: `${origin}/wiki/${subnet.slug}/info.json`,
-        historyUrl: `${origin}/wiki/${subnet.slug}/history/`,
-        historyJsonUrl: `${origin}/wiki/${subnet.slug}/history.json`,
-        backlinksUrl: `${origin}/wiki/${subnet.slug}/backlinks/`,
-        backlinksJsonUrl: `${origin}/wiki/${subnet.slug}/backlinks.json`,
-        citeUrl: `${origin}/wiki/${subnet.slug}/cite/`,
-        citeJsonUrl: `${origin}/wiki/${subnet.slug}/cite.json`,
-        bibtexUrl: `${origin}/wiki/${subnet.slug}/cite.bib`,
-        referencesUrl: `${origin}/wiki/${subnet.slug}/references.json`,
-        // referencesJsonUrl / relatedJsonUrl are the same companion links under the
-        // consistent <name>JsonUrl key every other JSON companion uses here
-        // (infoJsonUrl, historyJsonUrl, backlinksJsonUrl, citeJsonUrl, tocJsonUrl).
-        // referencesUrl / relatedUrl were the only two companions lacking the Json
-        // suffix; they are kept for backwards compatibility.
-        referencesJsonUrl: `${origin}/wiki/${subnet.slug}/references.json`,
-        relatedUrl: `${origin}/wiki/${subnet.slug}/related.json`,
-        relatedJsonUrl: `${origin}/wiki/${subnet.slug}/related.json`,
-        tocJsonUrl: `${origin}/wiki/${subnet.slug}/toc.json`,
-        imageUrl: `${origin}/og/${subnet.slug}.png`,
-        categories: subnet.categories,
-        backlinks: publishedInboundLinkCount(backlinksData, subnet.slug, titleBySlug),
-        // incomingLinks is the same published-only inbound-link count exposed
-        // under `backlinks`, aliased to the key name info.json / references.json /
-        // backlinks.json use ("incomingLinks"), so a consumer can read it under the
-        // consistent cross-endpoint name. `backlinks` is kept for back-compat.
-        incomingLinks: publishedInboundLinkCount(backlinksData, subnet.slug, titleBySlug),
-        // referencesCount is the subnet article's published OUTBOUND reference
-        // count — the complement of backlinks (its inbound count) — using the same
-        // getArticleReferences helper (published-only join) that references.json /
-        // cite.json / info.json use, so a subnet dashboard can see both directions
-        // of each subnet's link degree without a second fetch.
-        referencesCount: getArticleReferences({ slug: subnet.slug, linkGraph: linkgraphData, titleBySlug }).length,
-        sectionCount: sectionCountBySlug[subnet.slug] ?? 0,
-        wordCount: wordCountBySlug[subnet.slug] ?? 0,
-        // The subnet article's estimated reading time in minutes — the same
-        // ~200 wpm ceil estimate info.json exposes and the article-page footer
-        // ("N min read") renders from wordCount, so a subnet dashboard can show
-        // each subnet's reading time without a second fetch.
-        readingMinutes: Math.max(1, Math.ceil((wordCountBySlug[subnet.slug] ?? 0) / 200)),
-        // The subnet article's revision stats (history is newest-first) — the same
-        // revisionCount / firstEdited / lastEdited trio info.json / history.json
-        // expose per article and allpages.json / mostlinkedpages.json expose per
-        // directory entry — so a subnet dashboard can show each subnet's age and
-        // recency without a second fetch.
-        revisionCount: historyBySlug[subnet.slug]?.length ?? 0,
-        firstEdited: historyBySlug[subnet.slug]?.at(-1)?.date ?? null,
-        lastEdited: historyBySlug[subnet.slug]?.[0]?.date ?? null,
-      })),
+      subnets: subnets.map((subnet) => {
+        const inboundLinks = publishedInboundLinkCount(backlinksData, subnet.slug, titleBySlug);
+        return {
+          netuid: subnet.netuid,
+          name: subnet.name,
+          slug: subnet.slug,
+          summary: subnet.summary || null,
+          url: `${origin}/wiki/${subnet.slug}/`,
+          infoUrl: `${origin}/wiki/${subnet.slug}/info/`,
+          infoJsonUrl: `${origin}/wiki/${subnet.slug}/info.json`,
+          historyUrl: `${origin}/wiki/${subnet.slug}/history/`,
+          historyJsonUrl: `${origin}/wiki/${subnet.slug}/history.json`,
+          backlinksUrl: `${origin}/wiki/${subnet.slug}/backlinks/`,
+          backlinksJsonUrl: `${origin}/wiki/${subnet.slug}/backlinks.json`,
+          citeUrl: `${origin}/wiki/${subnet.slug}/cite/`,
+          citeJsonUrl: `${origin}/wiki/${subnet.slug}/cite.json`,
+          bibtexUrl: `${origin}/wiki/${subnet.slug}/cite.bib`,
+          referencesUrl: `${origin}/wiki/${subnet.slug}/references.json`,
+          // referencesJsonUrl / relatedJsonUrl are the same companion links under the
+          // consistent <name>JsonUrl key every other JSON companion uses here
+          // (infoJsonUrl, historyJsonUrl, backlinksJsonUrl, citeJsonUrl, tocJsonUrl).
+          // referencesUrl / relatedUrl were the only two companions lacking the Json
+          // suffix; they are kept for backwards compatibility.
+          referencesJsonUrl: `${origin}/wiki/${subnet.slug}/references.json`,
+          relatedUrl: `${origin}/wiki/${subnet.slug}/related.json`,
+          relatedJsonUrl: `${origin}/wiki/${subnet.slug}/related.json`,
+          tocJsonUrl: `${origin}/wiki/${subnet.slug}/toc.json`,
+          imageUrl: `${origin}/og/${subnet.slug}.png`,
+          categories: subnet.categories,
+          backlinks: inboundLinks,
+          // incomingLinks is the same published-only inbound-link count exposed
+          // under `backlinks`, aliased to the key name info.json / references.json /
+          // backlinks.json use ("incomingLinks"), so a consumer can read it under the
+          // consistent cross-endpoint name. `backlinks` is kept for back-compat.
+          incomingLinks: inboundLinks,
+          // referencesCount is the subnet article's published OUTBOUND reference
+          // count — the complement of backlinks (its inbound count) — using the same
+          // getArticleReferences helper (published-only join) that references.json /
+          // cite.json / info.json use, so a subnet dashboard can see both directions
+          // of each subnet's link degree without a second fetch.
+          referencesCount: getArticleReferences({ slug: subnet.slug, linkGraph: linkgraphData, titleBySlug }).length,
+          sectionCount: sectionCountBySlug[subnet.slug] ?? 0,
+          wordCount: wordCountBySlug[subnet.slug] ?? 0,
+          // The subnet article's estimated reading time in minutes — the same
+          // ~200 wpm ceil estimate info.json exposes and the article-page footer
+          // ("N min read") renders from wordCount, so a subnet dashboard can show
+          // each subnet's reading time without a second fetch.
+          readingMinutes: Math.max(1, Math.ceil((wordCountBySlug[subnet.slug] ?? 0) / 200)),
+          // The subnet article's revision stats (history is newest-first) — the same
+          // revisionCount / firstEdited / lastEdited trio info.json / history.json
+          // expose per article and allpages.json / mostlinkedpages.json expose per
+          // directory entry — so a subnet dashboard can show each subnet's age and
+          // recency without a second fetch.
+          revisionCount: historyBySlug[subnet.slug]?.length ?? 0,
+          firstEdited: historyBySlug[subnet.slug]?.at(-1)?.date ?? null,
+          lastEdited: historyBySlug[subnet.slug]?.[0]?.date ?? null,
+        };
+      }),
     },
     null,
     2,
