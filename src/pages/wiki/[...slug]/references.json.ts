@@ -1,7 +1,8 @@
 import type { APIRoute } from 'astro';
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
 import { buildArticleReferences, getArticleReferences } from '../../../lib/article-references.js';
+import { getArticleToc } from '../../../lib/article-toc.js';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
 
 const linkgraphModules = import.meta.glob('../../../../public/data/linkgraph.json', { eager: true }) as Record<
@@ -22,8 +23,9 @@ export async function getStaticPaths() {
   const summaryBySlug = Object.fromEntries(pages.map((page) => [getPageSlug(page), page.data.summary ?? '']));
   const categoriesBySlug = Object.fromEntries(pages.map((page) => [getPageSlug(page), page.data.categories ?? []]));
 
-  return pages.map((page) => {
+  return Promise.all(pages.map(async (page) => {
     const slug = getPageSlug(page);
+    const { headings } = await render(page);
     const references = getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).map((ref) => {
       const history = historyForSlug(ref.slug);
       return {
@@ -52,10 +54,11 @@ export async function getStaticPaths() {
         revisionCount: history.length,
         firstEdited: history[history.length - 1]?.date ?? null,
         lastEdited: history[0]?.date ?? null,
+        sectionCount: getArticleToc(headings).length,
         references,
       },
     };
-  });
+  }));
 }
 
 // Machine-readable per-article outbound-reference index. Exposes the published
@@ -63,7 +66,7 @@ export async function getStaticPaths() {
 // graph that powers backlinks.json, without advertising an HTML subpage that
 // does not exist.
 export const GET: APIRoute = async ({ props, site }) => {
-  const { slug, title, summary, categories, incomingLinks, revisionCount, firstEdited, lastEdited, references } = props as {
+  const { slug, title, summary, categories, incomingLinks, revisionCount, firstEdited, lastEdited, sectionCount, references } = props as {
     slug: string;
     title: string;
     summary: string;
@@ -72,6 +75,7 @@ export const GET: APIRoute = async ({ props, site }) => {
     revisionCount: number;
     firstEdited: string | null;
     lastEdited: string | null;
+    sectionCount: number;
     references: Array<{
       slug: string;
       title: string;
@@ -86,7 +90,11 @@ export const GET: APIRoute = async ({ props, site }) => {
   };
   const origin = (site ?? new URL('https://taopedia.org')).origin;
 
-  const body = JSON.stringify(buildArticleReferences({ slug, title, origin, summary, categories, incomingLinks, revisionCount, firstEdited, lastEdited, references }), null, 2);
+  const body = JSON.stringify(
+    buildArticleReferences({ slug, title, origin, summary, categories, incomingLinks, revisionCount, firstEdited, lastEdited, sectionCount, references }),
+    null,
+    2,
+  );
 
   return new Response(body, {
     headers: { 'Content-Type': 'application/json; charset=utf-8' },

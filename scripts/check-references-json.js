@@ -71,6 +71,7 @@ const revisionStatsOf = (slug) => {
     revisionCount: 12,
     firstEdited: '2024-01-01T00:00:00.000Z',
     lastEdited: '2024-06-01T00:00:00.000Z',
+    sectionCount: 7,
     references: references.map((entry, index) => ({
       ...entry,
       referencesCount: index + 1,
@@ -98,6 +99,7 @@ const revisionStatsOf = (slug) => {
   assert.equal(doc.revisionCount, 12, 'builder: revisionCount field threaded verbatim');
   assert.equal(doc.firstEdited, '2024-01-01T00:00:00.000Z', 'builder: firstEdited field threaded verbatim');
   assert.equal(doc.lastEdited, '2024-06-01T00:00:00.000Z', 'builder: lastEdited field threaded verbatim');
+  assert.equal(doc.sectionCount, 7, 'builder: sectionCount field threaded verbatim');
   assert.equal(doc.count, 4, 'builder: count field');
   assert.deepEqual(
     doc.references,
@@ -213,6 +215,7 @@ const revisionStatsOf = (slug) => {
   assert.equal(empty.revisionCount, 0, 'builder: default revisionCount is 0');
   assert.equal(empty.firstEdited, null, 'builder: default firstEdited is null');
   assert.equal(empty.lastEdited, null, 'builder: default lastEdited is null');
+  assert.equal(empty.sectionCount, 0, 'builder: default sectionCount is 0');
   assert.equal(empty.count, 0, 'builder: empty count is 0');
   assert.deepEqual(empty.references, [], 'builder: empty references is []');
 }
@@ -333,6 +336,19 @@ for (const slug of articleSlugs) {
     `${slug}: references.json revisionCount must be a non-negative integer (got ${JSON.stringify(doc.revisionCount)})`,
   );
   const refInfoJsonFile = path.join(wikiDir, slug, 'info.json');
+  assert.ok(
+    Number.isInteger(doc.sectionCount) && doc.sectionCount >= 0,
+    `${slug}: references.json sectionCount must be a non-negative integer (got ${JSON.stringify(doc.sectionCount)})`,
+  );
+  const refTocJsonFile = path.join(wikiDir, slug, 'toc.json');
+  if (fs.existsSync(refTocJsonFile)) {
+    const tocDoc = JSON.parse(fs.readFileSync(refTocJsonFile, 'utf8'));
+    assert.equal(
+      doc.sectionCount,
+      tocDoc.count,
+      `${slug}: references.json sectionCount must agree with the sibling toc.json count`,
+    );
+  }
   if (fs.existsSync(refInfoJsonFile)) {
     const infoDoc = JSON.parse(fs.readFileSync(refInfoJsonFile, 'utf8'));
     assert.equal(
