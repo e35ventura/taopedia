@@ -604,6 +604,14 @@ const unsafeContentPatterns = [
   // class (OneNote's handler has a documented history of malware abuse). A glossary's
   // prose never links to a local OneNote app, and the scheme name never occurs in prose.
   { pattern: /\bonenote\s*:/i, reason: 'onenote: application protocol-handler URLs are not allowed in article content' },
+  // mhtml: and jar: are archive-extraction URL schemes that historically rendered
+  // attacker-controlled HTML pulled from inside an archive in the page's own
+  // context: mhtml:https://host/x!sub (the IE/Edge MHTML handler, CVE-2011-1894)
+  // and jar:https://host/x.jar!/payload.html (Firefox's jar: handler, disabled for
+  // exactly this content-injection). In an injected <a href>/<img src> they are a
+  // non-http content-injection channel, the same class as the blocked
+  // javascript:/vbscript:/data: schemes. Neither name occurs in glossary prose.
+  { pattern: /\b(?:mhtml|jar)\s*:/i, reason: 'archive-extraction URL schemes are not allowed in article content' },
   // intent: is the Android app-launch scheme: a URI of the form intent:[//host/path]#Intent;…;end
   // hands the URL to the Android intent system, which opens or deep-links into a native app
   // outside the browser — a standalone app-launch attack on mobile readers, the same
@@ -654,6 +662,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /ms-(?:msdt|appinstaller)\s*:/i, reason: 'Windows protocol-handler URLs are not allowed in article content' },
   { pattern: /ms-(?:word|excel|powerpoint|visio|access|project|publisher|infopath|spd)\s*:/i, reason: 'Microsoft Office document protocol-handler URLs are not allowed in article content' },
   { pattern: /onenote\s*:/i, reason: 'onenote: application protocol-handler URLs are not allowed in article content' },
+  { pattern: /(?:mhtml|jar)\s*:/i, reason: 'archive-extraction URL schemes are not allowed in article content' },
   { pattern: /intent\s*:[^\s"'<>)]*#\s*Intent\b/i, reason: 'intent: app-launch URLs are not allowed in article content' },
   { pattern: /\bshell\s*:(?=[^\s"'<>)])/i, reason: 'shell: protocol-handler URLs are not allowed in article content' },
   { pattern: /data\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
@@ -672,6 +681,7 @@ const infoboxRowValueSchemePatterns = [
   /ms-(?:msdt|appinstaller)\s*:/i,
   /ms-(?:word|excel|powerpoint|visio|access|project|publisher|infopath|spd)\s*:/i,
   /onenote\s*:/i,
+  /(?:mhtml|jar)\s*:/i,
   /intent\s*:[^\s"'<>)]*#\s*Intent\b/i,
   /\bshell\s*:(?=[^\s"'<>)])/i,
   /data\s*:\s*text\/html/i,
