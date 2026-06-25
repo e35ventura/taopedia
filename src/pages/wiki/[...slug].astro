@@ -11,16 +11,23 @@ import { getRelatedPages } from '../../lib/related-pages';
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
+  // Build the published-title map once for the whole collection and carry it on
+  // props. The page body used to re-run getCollection('pages') and rebuild this
+  // exact map on every one of the ~350 article pages just to drive related-page
+  // selection (an O(N) collection read + map rebuild per page); precompute it
+  // once here, mirroring info.astro (#1209) and the info.json getStaticPaths.
+  const titleBySlug: Record<string, string> = {};
+  for (const p of pages) titleBySlug[getPageSlug(p)] = p.data.title;
   return pages.map((page) => {
     const slug = page.id.replace(/\/index\.(md|mdx)$/, '').replace(/\/index$/, '').replace(/\.(md|mdx)$/, '');
     return {
       params: { slug },
-      props: { page, slug },
+      props: { page, slug, titleBySlug },
     };
   });
 }
 
-const { page, slug } = Astro.props;
+const { page, slug, titleBySlug } = Astro.props;
 const { Content, headings } = await render(page);
 const tocHeadings = getArticleToc(headings);
 
@@ -83,9 +90,9 @@ const categoriesIndex = Object.values(categoriesModules)[0]?.default ?? {};
 const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
 const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
 
-const allPages = await getCollection('pages');
-const titleBySlug: Record<string, string> = {};
-for (const p of allPages) titleBySlug[getPageSlug(p)] = p.data.title;
+// titleBySlug is precomputed once in getStaticPaths (see above) and carried on
+// props, so the related-page join no longer re-reads the whole page collection
+// on every article render. publishedSlugs is its key set.
 const publishedSlugs = new Set(Object.keys(titleBySlug));
 
 const relatedPages = getRelatedPages({
