@@ -36,6 +36,36 @@ const projectRoot = path.resolve(__dirname, '..');
   );
 }
 
+// ---- 1a) a category repeated in one article's frontmatter counts once -----
+{
+  const deduped = buildCategories({
+    pages: [
+      { data: { categories: ['TAO', 'TAO'] } },
+      { data: { categories: ['Wallets'] } },
+    ],
+  });
+  assert.deepEqual(
+    deduped,
+    [
+      { name: 'TAO', count: 1, slug: 'TAO' },
+      { name: 'Wallets', count: 1, slug: 'Wallets' },
+    ],
+    'a category listed twice by one article must count that article once (TAO => 1, not 2)',
+  );
+}
+
+// ---- 1a') the categoriesIndex branch dedupes repeated slugs too -----------
+{
+  const deduped = buildCategories({
+    categoriesIndex: { TAO: ['alpha', 'alpha', 'beta'] },
+  });
+  assert.deepEqual(
+    deduped,
+    [{ name: 'TAO', count: 2, slug: 'TAO' }],
+    'a slug repeated in a category index must count once (distinct alpha, beta => 2)',
+  );
+}
+
 // ---- 1b) slug is the url-safe category path segment -----------------------
 {
   const topics = buildCategories({
