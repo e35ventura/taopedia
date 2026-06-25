@@ -52,33 +52,29 @@ export const GET: APIRoute = async ({ site }) => {
   // only for the changed articles in the feed so a change-feed consumer can gauge
   // each article's depth without a second fetch. Cached per slug because an
   // article can appear in multiple changes.
-  const sectionCountBySlug: Record<string, number> = {};
-  // wordCount is the changed article's body word count — the same figure
-  // info.json exposes and the article-page footer (mw-article-meta
-  // data-word-count) renders, computed from the raw markdown body so a change-
-  // feed consumer can gauge each article's length without a second fetch.
-  // Computed here (gated to the slugs that actually appear in the feed, ≤
-  // RECENT_LIMIT) rather than splitting every article body in the collection up
-  // front — the same compute-only-for-feed-members pattern sectionCount /
-  // revisionStats / inbound / references below already follow. Cached per slug
-  // because an article can appear in multiple changes.
-  const wordCountBySlug: Record<string, number> = {};
-  for (const change of changes) {
-    if (change.slug in sectionCountBySlug) continue;
-    const page = pageBySlug[change.slug];
-    if (!page) continue;
-    const { headings } = await render(page);
-    sectionCountBySlug[change.slug] = getArticleToc(headings).length;
-    wordCountBySlug[change.slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
-  }
-  // revisionCount/firstEdited/lastEdited are the changed article's own commit-
-  // history stats (history is newest-first) — the same trio info.json /
-  // allpages.json expose per article, and mostlinkedpages.json / subnets.json /
-  // category articles.json expose per directory entry — so a change-feed
-  // consumer can see the changed article's overall edit age/activity, not just
-  // this one change's date, without a second fetch. Cached per slug because an
-  // article can appear in multiple changes.
+  // Gather every per-changed-article stat in a single pass over `changes`
+  // instead of four separate loops over the same list. Each figure is cached
+  // per slug because an article can appear in multiple changes, and all are
+  // gated to the slugs that actually appear in the feed (≤ RECENT_LIMIT):
+  //   - revisionCount/firstEdited/lastEdited: the article's own commit-history
+  //     stats (history newest-first) — the same trio info.json / allpages.json
+  //     expose per article and mostlinkedpages.json / subnets.json / category
+  //     articles.json expose per entry.
+  //   - inbound link count (exposed as both `backlinks` and the `incomingLinks`
+  //     alias) and outbound reference count (getArticleReferences is a full
+  //     link-graph join) — same compute-once pattern subnets.json /
+  //     mostlinkedpages.json use.
+  //   - sectionCount (toc.json `count`) and wordCount (the article footer's
+  //     data-word-count), both read off the rendered page.
+  // The slug-only stats are computed before the no-page guard so every change
+  // still gets them (the render/sectionCount/wordCount step is what requires a
+  // resolved page), keeping output byte-identical. Mirrors the single-pass
+  // gather in subnets.json / mostlinkedpages.json.
   const revisionStatsBySlug: Record<string, { revisionCount: number; firstEdited: string | null; lastEdited: string | null }> = {};
+  const inboundBySlug: Record<string, number> = {};
+  const referencesCountBySlug: Record<string, number> = {};
+  const sectionCountBySlug: Record<string, number> = {};
+  const wordCountBySlug: Record<string, number> = {};
   for (const change of changes) {
     if (change.slug in revisionStatsBySlug) continue;
     const history = historyForSlug(change.slug);
@@ -87,19 +83,13 @@ export const GET: APIRoute = async ({ site }) => {
       firstEdited: history[history.length - 1]?.date ?? null,
       lastEdited: history[0]?.date ?? null,
     };
-  }
-  // inbound link count (exposed as both `backlinks` and the `incomingLinks`
-  // alias) and outbound reference count, cached once per slug like
-  // sectionCountBySlug / revisionStatsBySlug above — an article can appear in
-  // multiple changes, and the inbound count was otherwise computed twice per
-  // entry (once for each key) while getArticleReferences is a full link-graph
-  // join. Same compute-once pattern subnets.json / mostlinkedpages.json use.
-  const inboundBySlug: Record<string, number> = {};
-  const referencesCountBySlug: Record<string, number> = {};
-  for (const change of changes) {
-    if (change.slug in inboundBySlug) continue;
     inboundBySlug[change.slug] = publishedInboundLinkCount(backlinksData, change.slug, titleBySlug);
     referencesCountBySlug[change.slug] = getArticleReferences({ slug: change.slug, linkGraph: linkgraphData, titleBySlug }).length;
+    const page = pageBySlug[change.slug];
+    if (!page) continue;
+    const { headings } = await render(page);
+    sectionCountBySlug[change.slug] = getArticleToc(headings).length;
+    wordCountBySlug[change.slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
   }
   const dateRange =
     changes.length > 0
