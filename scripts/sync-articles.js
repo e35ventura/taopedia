@@ -488,6 +488,12 @@ const unsafeContentPatterns = [
   // background=/crossorigin=, leaking the reader's visit to an attacker-chosen URL with
   // no handler or flagged scheme. Article markup never sets either.
   { pattern: /\s(lowsrc|dynsrc)\s*=/i, reason: 'lowsrc and dynsrc attributes are not allowed in article content' },
+  // longdesc= is the obsolete companion of lowsrc=/dynsrc=: on an allowed <img> it
+  // points the image at an arbitrary external description-document URL, outside the
+  // src/scheme checks that apply to the image itself — another attacker-chosen
+  // off-site reference smuggled through an allowed element with no handler or flagged
+  // scheme. Removed from HTML; article markup never sets it.
+  { pattern: /\slongdesc\s*=/i, reason: 'longdesc attributes are not allowed in article content' },
   // align=/valign= are obsolete presentational layout attributes: on an allowed
   // element they reposition content (centre/float/right-align a block, top/bottom
   // a cell) without the blocked inline style= attribute or the blocked <center>
@@ -622,7 +628,7 @@ const nonSpaceDelimitedInteractionSurfaceAttrPattern =
 // overlays, content spoofing) — same presentational-injection family as the
 // rest of this alternation, so it lives in the same scan and error message.
 const nonSpaceDelimitedPresentationalLayoutAttrPattern =
-  /<[^>]*[/"'`](?:style|align|valign|bgcolor|background|lowsrc|dynsrc|border|cellpadding|cellspacing|hspace|vspace)\s*=/i;
+  /<[^>]*[/"'`](?:style|align|valign|bgcolor|background|lowsrc|dynsrc|longdesc|border|cellpadding|cellspacing|hspace|vspace)\s*=/i;
 
 // width=/height= on an allowed <img> reserve an oversized layout box without the
 // blocked inline style= attribute — a layout-defacement surface (the same class

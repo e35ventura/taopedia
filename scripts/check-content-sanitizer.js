@@ -629,6 +629,11 @@ rejects('Intro.\n\n<  img   dynsrc = "//evil.example/beacon.gif">', 'spaced dyns
 rejects('Intro.\n\n<img src="/a.png"lowsrc="https://evil.example/t.png">', 'quote-abutted lowsrc attribute');
 rejects('Intro.\n\n<img src=x/dynsrc="//evil.example/b">', 'slash-delimited dynsrc attribute');
 accepts('The lowsrc fallback technique is described here only as prose.', 'benign lowsrc prose word');
+// longdesc= is the obsolete <img> external-description-URL companion of lowsrc=/dynsrc=.
+rejects('Intro.\n\n<img src="/a.png" longdesc="https://evil.example/desc.html">', 'plain longdesc attribute');
+rejects('Intro.\n\n<img src="/a.png"longdesc="//evil.example/d">', 'quote-abutted longdesc attribute');
+rejects('Intro.\n\n<img src=x/longdesc="//evil.example/d">', 'slash-delimited longdesc attribute');
+accepts('The longdesc accessibility attribute is described here only as prose.', 'benign longdesc prose word');
 
 // align=/valign= are obsolete presentational layout attributes that reposition
 // content without the blocked style= attribute or <center> element. Blocked like style=.
