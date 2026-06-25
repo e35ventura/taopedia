@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // The shared <head> (src/components/Seo.astro) emits an OpenGraph + Twitter
 // Card meta block that Facebook, LinkedIn, Telegram, Slack, Discord, and X read
@@ -19,7 +20,7 @@ import path from 'node:path';
 // the same component. Title/description/url bindings are covered indirectly by
 // check-structured-data.js and are intentionally not re-asserted here.
 
-const projectRoot = path.resolve(new URL('..', import.meta.url).pathname);
+const projectRoot = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 const seo = fs.readFileSync(path.join(projectRoot, 'src', 'components', 'Seo.astro'), 'utf8');
 
 // og:image dimensions must match the generated /og/<slug>.png aspect ratio

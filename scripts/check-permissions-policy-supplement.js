@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // Supplemental Permissions-Policy denials validated separately from check-csp.js
 // so header hardening PRs can land without conflicting on the monolithic DENIED list.
@@ -52,7 +53,7 @@ function permissionsPolicyValue(config) {
   return match[1];
 }
 
-const projectRoot = path.resolve(new URL('..', import.meta.url).pathname);
+const projectRoot = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 const config = fs.readFileSync(path.join(projectRoot, 'netlify.toml'), 'utf8');
 validateSupplementalPermissionsPolicy(permissionsPolicyValue(config));
 

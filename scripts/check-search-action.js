@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const projectRoot = path.resolve(new URL('..', import.meta.url).pathname);
+const projectRoot = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 const searchFormFiles = [
   path.join(projectRoot, 'src', 'layouts', 'WikiLayout.astro'),
   path.join(projectRoot, 'src', 'pages', 'index.astro'),

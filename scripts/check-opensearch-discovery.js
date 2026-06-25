@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // The site builds and serves an OpenSearch Description Document at
 // /opensearch.xml. For browsers to register it as a custom search engine,
@@ -9,7 +10,7 @@ import path from 'node:path';
 // (check-rss-discovery) and JSON feed (check-json-feed-discovery). Without
 // it, browsers have no way to discover the OpenSearch endpoint even though
 // the XML is reachable directly by URL.
-const projectRoot = path.resolve(new URL('..', import.meta.url).pathname);
+const projectRoot = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 const seo = fs.readFileSync(path.join(projectRoot, 'src', 'components', 'Seo.astro'), 'utf8');
 
 assert.match(

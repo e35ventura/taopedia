@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // Validates the Progressive Web App manifest served at /site.webmanifest
 // (public/site.webmanifest, copied verbatim into the build output). The shared
@@ -18,7 +19,7 @@ import path from 'node:path';
 // rel=manifest links the same <head> emits. It reads the source files directly
 // (like check-share-metadata.js reads Seo.astro), so it runs without a build.
 
-const projectRoot = path.resolve(new URL('..', import.meta.url).pathname);
+const projectRoot = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 const publicDir = path.join(projectRoot, 'public');
 const manifestPath = path.join(publicDir, 'site.webmanifest');
 const seoPath = path.join(projectRoot, 'src', 'components', 'Seo.astro');

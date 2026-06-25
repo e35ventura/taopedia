@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import rehypeExternalLinks, { isExternalHref } from './rehype-external-links.js';
 
 function anchor(href) {
@@ -89,7 +90,7 @@ assert.equal(isExternalHref(''), false);
 // carry rel="noopener" itself or it exposes window.opener to the opened page
 // (reverse tabnabbing). Scan the source and fail on a blank-target anchor missing
 // noopener.
-const srcDir = path.resolve(new URL('../src', import.meta.url).pathname);
+const srcDir = path.resolve(fileURLToPath(new URL('../src', import.meta.url)));
 function* astroFiles(dir) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const fp = path.join(dir, entry.name);

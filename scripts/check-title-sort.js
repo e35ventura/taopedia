@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { compareTitles, sortPagesByTitle } from '../src/lib/title-sort.js';
 
 // Numbered titles must order numerically, not lexicographically.
@@ -75,7 +76,7 @@ assert.deepEqual(
 // Every article list page must order titles through the shared helper so the
 // directory, topic groups, and category routes cannot drift back to
 // lexicographic ordering.
-const projectRoot = path.resolve(new URL('..', import.meta.url).pathname);
+const projectRoot = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 const listPages = [
   'src/pages/index.astro',
   'src/pages/wiki/special/allpages.astro',
