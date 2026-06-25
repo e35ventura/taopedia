@@ -117,7 +117,9 @@ const groupedArticles = [
     let selectedTopic = 'all';
 
     function normalize(value) {
-      return (value || '').toLowerCase();
+      // Trim so whitespace-only filter input shows every article (same rule as
+      // /search/ treating a blank q as "no query").
+      return (value || '').trim().toLowerCase();
     }
 
     function applyFilters() {

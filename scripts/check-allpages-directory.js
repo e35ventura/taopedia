@@ -6,6 +6,16 @@ import path from 'node:path';
 // article, including articles whose categories are outside the featured
 // topic groups — otherwise the page's title filter can never find them.
 
+const allpagesSource = fs.readFileSync(
+  path.join(process.cwd(), 'src', 'pages', 'wiki', 'special', 'allpages.astro'),
+  'utf8',
+);
+assert.match(
+  allpagesSource,
+  /\.trim\(\)\.toLowerCase\(\)/,
+  'the Articles directory filter must trim input so whitespace-only queries show all articles',
+);
+
 const contentDir = path.join(process.cwd(), 'src', 'content', 'pages');
 const directoryHtml = path.join(
   process.cwd(),
