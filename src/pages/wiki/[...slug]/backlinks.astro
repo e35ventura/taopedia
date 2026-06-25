@@ -16,12 +16,14 @@ export async function getStaticPaths() {
   >;
   const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
 
-  // titleBySlug comes from public/data/slugmap.json — the same artifact
-  // backlinks.json and the site-wide feeds read.
+  // Resolve each linking slug to its current title from public/data/slugmap.json —
+  // the same artifact backlinks.json / info.json read — instead of rebuilding
+  // titleBySlug from getCollection frontmatter on every article page.
   const titleBySlug = publishedTitleBySlug();
 
   return pages.map((page) => {
     const slug = getPageSlug(page);
+    const title = titleBySlug[slug] ?? page.data.title;
     // Precomputed once per route in getStaticPaths — the page body used to re-run
     // getCollection('pages') and rebuild titleBySlug on every article page just
     // to derive this article's sorted backlink list (O(N) per page). Mirrors
@@ -33,21 +35,21 @@ export async function getStaticPaths() {
 
     return {
       params: { slug },
-      props: { page, slug, backlinks },
+      props: { slug, title, backlinks },
     };
   });
 }
 
-const { page, slug, backlinks } = Astro.props;
+const { slug, title, backlinks } = Astro.props;
 
 const articleUrl = `/wiki/${slug}/`;
 const historyUrl = `/wiki/${slug}/history/`;
 const backlinksUrl = `/wiki/${slug}/backlinks/`;
-const pageTitle = `Pages that link to "${page.data.title}"`;
-const pageDescription = `Articles across Taopedia that link to the "${page.data.title}" article.`;
+const pageTitle = `Pages that link to "${title}"`;
+const pageDescription = `Articles across Taopedia that link to the "${title}" article.`;
 ---
 
-<WikiLayout title={pageTitle} description={pageDescription}>
+<WikiLayout title={pageTitle} description={pageDescription} image={`/og/${slug}.png`}>
   <div class="mw-body-content">
     <nav class="mw-article-toolbar">
       <a href={articleUrl}>Article</a>
@@ -63,7 +65,7 @@ const pageDescription = `Articles across Taopedia that link to the "${page.data.
       <div class="mw-parser-output">
         <p>
           The following {backlinks.length} {backlinks.length === 1 ? 'page links' : 'pages link'} to
-          {' '}<a href={articleUrl}>{page.data.title}</a>:
+          {' '}<a href={articleUrl}>{title}</a>:
         </p>
         <ul class="mw-whatlinkshere">
           {backlinks.map((link) => (
