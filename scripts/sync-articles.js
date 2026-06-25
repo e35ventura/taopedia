@@ -87,6 +87,23 @@ const controlCharPattern = new RegExp(
   ']',
 );
 
+// Additional invisible format characters beyond the zero-width batch above:
+// SOFT HYPHEN (U+00AD) renders nothing except an optional hyphen at a line break,
+// the invisible math operators FUNCTION APPLICATION / INVISIBLE TIMES / SEPARATOR
+// / PLUS (U+2061-U+2064), the MONGOLIAN VOWEL SEPARATOR (U+180E), and the Hangul
+// fillers (U+115F, U+1160, U+3164, U+FFA0) all render as nothing in Latin prose.
+// Like the zero-width characters already blocked, an injected one can split a
+// flagged term or wallet address for detection-evasion while reading normally, and
+// none has any use in the glossary English prose Markdown emits. Built from code
+// points (no literal invisible bytes in source), matching controlCharPattern.
+const additionalInvisibleCharPattern = new RegExp(
+  '[' +
+    [0x00ad, 0x115f, 0x1160, 0x180e, 0x2061, 0x2062, 0x2063, 0x2064, 0x3164, 0xffa0]
+      .map((code) => String.fromCharCode(code))
+      .join('') +
+  ']',
+);
+
 const unsafeContentPatterns = [
   { pattern: /^\s*import\s/m, reason: 'MDX imports are not allowed in article content' },
   { pattern: /^\s*export\s/m, reason: 'MDX exports are not allowed in article content' },
@@ -280,6 +297,7 @@ const unsafeContentPatterns = [
   { pattern: bidiControlPattern, reason: 'bidirectional control characters are not allowed in article content' },
   { pattern: invisibleFormatCharPattern, reason: 'invisible bidi marks and zero-width characters are not allowed in article content' },
   { pattern: controlCharPattern, reason: 'control characters are not allowed in article content' },
+  { pattern: additionalInvisibleCharPattern, reason: 'invisible format characters are not allowed in article content' },
   ...directivePatterns,
 ];
 

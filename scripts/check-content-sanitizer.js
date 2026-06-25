@@ -343,6 +343,16 @@ rejects('A C1' + String.fromCharCode(0x85) + 'control hides here.', 'C1 control 
 accepts('Line one' + String.fromCharCode(0x0a) + 'line two with a' + String.fromCharCode(0x09) + 'tab pass fine.', 'benign TAB and LINE FEED whitespace passes');
 accepts('Ordinary glossary prose with spaces and punctuation is fine.', 'benign prose with no control characters');
 
+// Additional invisible format characters (soft hyphen, invisible math operators,
+// Mongolian vowel separator, Hangul fillers) render nothing in Latin prose and
+// can split a flagged term like the zero-width characters; none is authored by
+// Markdown. Built with String.fromCharCode so no literal invisible bytes appear.
+rejects('A soft' + String.fromCharCode(0x00ad) + 'hyphen splits a term.', 'soft hyphen U+00AD');
+rejects('Invisible' + String.fromCharCode(0x2062) + 'times hides here.', 'invisible times U+2062');
+rejects('A mongolian' + String.fromCharCode(0x180e) + 'separator hides.', 'mongolian vowel separator U+180E');
+rejects('A hangul' + String.fromCharCode(0x3164) + 'filler hides here.', 'hangul filler U+3164');
+accepts('An ordinary ascii-hyphen word like proof-of-stake is fine.', 'benign ASCII hyphen-minus passes');
+
 // Inline event handlers are blocked regardless of the attribute delimiter — a
 // slash, or a quote abutting the handler — not just a leading space.
 rejects('<img src=x onerror=alert(1)>', 'space-delimited handler');
