@@ -233,6 +233,15 @@ rejects('Intro.\n\n<rb>base</rb>', 'standalone <rb>');
 accepts('The HTML ruby element is described here only as prose.', 'benign ruby prose');
 accepts('A ruby gemstone and the Ruby language are ordinary words.', 'benign ruby/Ruby words');
 
+// <wbr> inserts a zero-width word-break opportunity — the markup form of the
+// blocked zero-width break characters (ZWSP/soft-hyphen/word-joiner). An injected
+// <wbr> splits a flagged term/address in the stored markup (detection evasion)
+// while the browser still renders it continuously, so block the element.
+rejects('Intro.\n\n5Grw<wbr>vaEF5zXb<wbr>HpNehXCPcNoHGKutQY is the address.', 'plain <wbr>');
+rejects('Intro.\n\n<  wbr  >', 'spaced <wbr>');
+rejects('Intro.\n\nsplit<wbr/>here', 'self-closed <wbr>');
+accepts('The HTML wbr element marks a line-break opportunity, described here only as prose.', 'benign wbr prose');
+
 // referrerpolicy= overrides the site's strict Referrer-Policy header for one
 // element — an injected referrerpolicy="unsafe-url" leaks the full referring URL
 // to an external destination. Blocked like the other interaction attributes.

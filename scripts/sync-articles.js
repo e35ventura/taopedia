@@ -258,6 +258,17 @@ const unsafeContentPatterns = [
   // glossary prose is single-script English and never uses ruby annotations, so
   // block the whole ruby element family.
   { pattern: /<\s*(ruby|rt|rp|rtc|rb)\b/i, reason: 'ruby annotation elements are not allowed in article content' },
+  // <wbr> inserts a zero-width word-break OPPORTUNITY: it renders nothing and only
+  // permits an optional line break at that point. It is the markup form of the
+  // zero-width break CHARACTERS already blocked above (ZERO WIDTH SPACE U+200B,
+  // SOFT HYPHEN U+00AD, WORD JOINER U+2060): an injected
+  // `5Grw<wbr>vaEF<wbr>address` splits a flagged term or wallet address into
+  // separate tokens in the stored markup — defeating substring/regex matching on
+  // the synced content (detection evasion) — while every current browser still
+  // renders it as one continuous string, with no script, handler, or flagged
+  // scheme. This is the same parity by which <bdo> is blocked as the markup form
+  // of the bidi control characters; a single-script glossary never needs <wbr>.
+  { pattern: /<\s*wbr\b/i, reason: 'wbr elements are not allowed in article content' },
   { pattern: /\sslot\s*=/i, reason: 'slot attributes are not allowed in article content' },
   // The <style> element is already blocked above, but an inline `style=`
   // attribute on any allowed element is the matching gap: it lets injected CSS
