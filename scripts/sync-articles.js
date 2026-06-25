@@ -766,6 +766,17 @@ const unsafeContentPatterns = [
   // "Slack: a team chat app" or "a Discord server" (a name then a colon/word, no ://) is
   // never affected; the scheme names never occur as URLs in glossary prose.
   { pattern: /\b(?:tg|whatsapp|discord|slack)\s*:\/\//i, reason: 'messaging-app deep-link URL schemes are not allowed in article content' },
+  // webcal:// webcals:// feed:// itpc:// pcast:// are subscription-handler URL schemes the
+  // OS resolves to point a native app at an attacker-controlled remote resource it then
+  // fetches on a schedule — outside the browser with no script. webcal://attacker.example/x.ics
+  // subscribes the reader's calendar app to a remote calendar (recurring events / alarms that
+  // carry social-engineering text and links, plus a periodic tracking beacon every refresh),
+  // feed:// adds an attacker feed to the news reader, and itpc://pcast:// subscribe the podcast
+  // app to an attacker feed. Same out-of-sandbox native-app handler class as the blocked
+  // tg:/skype:/zoommtg: schemes. The //-authority form is required so the common prose word
+  // "feed:" (e.g. "a price feed:") keeps its boundary and is never affected; the names never
+  // occur as URLs in glossary prose.
+  { pattern: /\b(?:webcal|webcals|feed|itpc|pcast)\s*:\/\//i, reason: 'subscription-handler URL schemes are not allowed in article content' },
   // shell: is the Windows Explorer protocol handler: shell:startup opens the user's
   // Startup folder (a drop-a-payload persistence path), shell:::{CLSID} opens special
   // folders / Control-Panel applets, and the OS — not the browser — resolves it, with
@@ -831,6 +842,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:zoommtg|zoomus|msteams)\s*:/i, reason: 'video-conferencing client protocol-handler URLs are not allowed in article content' },
   { pattern: /\b(?:skype|callto|facetime-audio|facetime|sgnl)\s*:(?=[^\s"'<>)])/i, reason: 'communication-app launch URL schemes are not allowed in article content' },
   { pattern: /(?:tg|whatsapp|discord|slack)\s*:\/\//i, reason: 'messaging-app deep-link URL schemes are not allowed in article content' },
+  { pattern: /(?:webcal|webcals|feed|itpc|pcast)\s*:\/\//i, reason: 'subscription-handler URL schemes are not allowed in article content' },
   { pattern: /\bshell\s*:(?=[^\s"'<>)])/i, reason: 'shell: protocol-handler URLs are not allowed in article content' },
   { pattern: /\bms-cxh(?:-full)?\s*:/i, reason: 'Windows CloudExperienceHost protocol-handler URLs are not allowed in article content' },
   { pattern: /data\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
@@ -866,6 +878,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:zoommtg|zoomus|msteams)\s*:/i,
   /\b(?:skype|callto|facetime-audio|facetime|sgnl)\s*:(?=[^\s"'<>)])/i,
   /(?:tg|whatsapp|discord|slack)\s*:\/\//i,
+  /(?:webcal|webcals|feed|itpc|pcast)\s*:\/\//i,
   /\bshell\s*:(?=[^\s"'<>)])/i,
   /\bms-cxh(?:-full)?\s*:/i,
   /data\s*:\s*text\/html/i,

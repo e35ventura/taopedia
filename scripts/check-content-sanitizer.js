@@ -491,6 +491,20 @@ rejects('See [x](disc&#111;rd://-/channels/123).', 'entity-obfuscated discord://
 infoboxRowRejects('tg://resolve?domain=evilchannel', 'tg:// rejected in an infobox row value');
 infoboxRowRejects('slack://open?team=T0', 'slack:// rejected in an infobox row value');
 accepts('Slack: a team chat app, Discord servers, and Telegram channels are described here only as prose.', 'benign Slack:/Discord/Telegram prose (no // authority)');
+// webcal:// webcals:// feed:// itpc:// pcast:// are subscription-handler schemes the OS points
+// a native app at an attacker remote resource it then fetches on a schedule (calendar/news/
+// podcast subscription) — same out-of-sandbox handler class as tg://. The // form keeps the
+// common prose word "feed:" safe.
+rejects('See [x](webcal://attacker.example/evil.ics).', 'plain webcal:// calendar subscription');
+rejects('See [x](webcals://attacker.example/evil.ics).', 'plain webcals:// calendar subscription');
+rejects('See [x](feed://attacker.example/rss.xml).', 'plain feed:// subscription');
+rejects('See [x](itpc://attacker.example/podcast.xml).', 'plain itpc:// podcast subscription');
+rejects('See [x](pcast://attacker.example/podcast.xml).', 'plain pcast:// podcast subscription');
+// Entity-obfuscated: the literal scan misses "webc&#97;l://" but the decoded re-scan catches it.
+rejects('See [x](webc&#97;l://attacker.example/evil.ics).', 'entity-obfuscated webcal:// (obfuscated scan path)');
+// Infobox-row-value scan path.
+infoboxRowRejects('webcal://attacker.example/evil.ics', 'webcal:// rejected in an infobox row value');
+accepts('An RSS feed: a stream of updates, and a price feed are described here only as prose.', 'benign "feed:" prose (no // authority)');
 // search-ms: opens Explorer search on a remote WebDAV/SMB share (malware-delivery
 // chain), and ms-officecmd: invokes Office deep-link commands (argument-injection
 // RCE) — two more native Windows handlers blocked like ms-msdt:/javascript:.
