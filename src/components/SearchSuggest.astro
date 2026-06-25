@@ -232,6 +232,16 @@
         // Delay so a mousedown on an option resolves before we tear the list down.
         setTimeout(closeList, 120);
       });
+      form.addEventListener('submit', function (e) {
+        var trimmed = input.value.trim();
+        if (!trimmed) {
+          e.preventDefault();
+          input.value = '';
+          closeList();
+          return;
+        }
+        if (trimmed !== input.value) input.value = trimmed;
+      });
     }
 
     function init() {

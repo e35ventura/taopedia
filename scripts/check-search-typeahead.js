@@ -13,6 +13,20 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
 const distDir = path.join(projectRoot, 'dist');
+const suggestSource = fs.readFileSync(
+  path.join(projectRoot, 'src', 'components', 'SearchSuggest.astro'),
+  'utf8',
+);
+assert.match(
+  suggestSource,
+  /addEventListener\('submit'/,
+  'SearchSuggest must intercept search form submit',
+);
+assert.match(
+  suggestSource,
+  /input\.value\.trim\(\)/,
+  'SearchSuggest must trim the query on submit so whitespace-only input does not navigate to /search/',
+);
 assert.ok(fs.existsSync(distDir), 'dist not found; run the build first');
 
 // 1) The suggestion data must be served with the fields the typeahead uses.
