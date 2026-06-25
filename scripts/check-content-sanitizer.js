@@ -429,6 +429,7 @@ accepts('OneNote and the notebook app are described here only as prose.', 'benig
 // the prose words "market"/"itms" before a colon.
 rejects('See [x](market://details?id=com.evil.app).', 'plain market:// (Play Store) scheme');
 rejects('See [x](itms-apps://itunes.apple.com/app/id000).', 'plain itms-apps:// (App Store) scheme');
+rejects('See [x](itms://itunes.apple.com/app/id000).', 'plain itms:// (App Store) scheme');
 rejects('See [x](ms-windows-store://pdp/?productid=EVIL).', 'plain ms-windows-store:// scheme');
 accepts('The bull market: gains continued, and itms is an old acronym, described only as prose.', 'benign "market:"/"itms" prose words are not the app-store schemes');
 // intent: is the Android app-launch scheme — intent:[//host/path]#Intent;…;end hands the
