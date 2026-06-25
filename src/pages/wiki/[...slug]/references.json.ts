@@ -19,44 +19,50 @@ const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
-  const titleBySlug = Object.fromEntries(pages.map((page) => [getPageSlug(page), page.data.title]));
-  const summaryBySlug = Object.fromEntries(pages.map((page) => [getPageSlug(page), page.data.summary ?? '']));
-  const categoriesBySlug = Object.fromEntries(pages.map((page) => [getPageSlug(page), page.data.categories ?? []]));
-  // Per-slug table-of-contents section count — the same sectionCount info.json /
-  // history.json expose (and the toc.json `count`). Built once from the content
-  // collection so both the envelope and each reference entry can carry it.
-  const sectionCountBySlug = Object.fromEntries(
-    await Promise.all(pages.map(async (page) => [getPageSlug(page), getArticleToc((await render(page)).headings).length])),
-  );
-  // Per-slug body word count — the same wordCount info.json / history.json expose
-  // and allpages.json / subnets.json expose per directory entry.
-  const wordCountBySlug = Object.fromEntries(
-    pages.map((page) => [getPageSlug(page), (page.body ?? '').trim().split(/\s+/).filter(Boolean).length]),
-  );
-  // Per-slug revision history, published inbound-link count, and outbound
-  // reference list — the stats each reference entry (and the envelope) carries.
-  // They depend only on the target slug, but the same target recurs across many
-  // articles' reference lists, so computing them inside the entry map below
-  // recomputes each target's stats once per referencing article (O(articles ×
-  // references)) — and getArticleReferences is a full link-graph join.
-  // Precompute them once over the page collection, the same way
-  // subnets.json / mostlinkedpages.json precompute their historyBySlug map.
-  // referencesBySlug caches the full list (not just its length) so the main
-  // loop below can reuse the current page's own outbound list directly instead
-  // of calling getArticleReferences a second time for the same slug.
-  const historyBySlug = Object.fromEntries(pages.map((page) => [getPageSlug(page), historyForSlug(getPageSlug(page))]));
-  const inboundBySlug = Object.fromEntries(
-    pages.map((page) => [getPageSlug(page), publishedInboundLinkCount(backlinksData, getPageSlug(page), titleBySlug)]),
-  );
-  const referencesBySlug = Object.fromEntries(
-    pages.map((page) => [getPageSlug(page), getArticleReferences({ slug: getPageSlug(page), linkGraph: linkgraphData, titleBySlug })]),
-  );
-  const referencesCountBySlug = Object.fromEntries(
-    pages.map((page) => {
+  // Gather every title-independent per-slug map in a single pass over the
+  // content collection — title, summary, categories, body word count, revision
+  // history, and table-of-contents section count were six separate
+  // pages.map / Object.fromEntries loops. The word-count and history reads are
+  // folded into the render pass (rendering is what needs a resolved page), kept
+  // parallel via Promise.all so the render step is not serialized. Each is a
+  // per-slug stat the envelope and reference entries carry (the same figures
+  // info.json / history.json / toc.json expose); output is byte-identical. This
+  // is the same single-pass gather merged for related.json (#1239).
+  const titleBySlug: Record<string, string> = {};
+  const summaryBySlug: Record<string, string> = {};
+  const categoriesBySlug: Record<string, string[]> = {};
+  const wordCountBySlug: Record<string, number> = {};
+  const historyBySlug: Record<string, ReturnType<typeof historyForSlug>> = {};
+  const sectionCountBySlug: Record<string, number> = {};
+  await Promise.all(
+    pages.map(async (page) => {
       const slug = getPageSlug(page);
-      return [slug, referencesBySlug[slug]?.length ?? 0];
+      titleBySlug[slug] = page.data.title;
+      summaryBySlug[slug] = page.data.summary ?? '';
+      categoriesBySlug[slug] = page.data.categories ?? [];
+      wordCountBySlug[slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
+      historyBySlug[slug] = historyForSlug(slug);
+      const { headings } = await render(page);
+      sectionCountBySlug[slug] = getArticleToc(headings).length;
     }),
   );
+  // Published inbound-link count and outbound reference list, gathered in a
+  // single pass after titleBySlug is built (both resolve targets through it).
+  // The same target recurs across many articles' reference lists, so computing
+  // these inside the entry map below would recompute each target's stats once
+  // per referencing article (O(articles × references)) — and getArticleReferences
+  // is a full link-graph join. referencesBySlug caches the full list (not just
+  // its length) so the main loop can reuse the current page's own outbound list
+  // directly instead of calling getArticleReferences a second time.
+  const inboundBySlug: Record<string, number> = {};
+  const referencesBySlug: Record<string, ReturnType<typeof getArticleReferences>> = {};
+  const referencesCountBySlug: Record<string, number> = {};
+  for (const page of pages) {
+    const slug = getPageSlug(page);
+    inboundBySlug[slug] = publishedInboundLinkCount(backlinksData, slug, titleBySlug);
+    referencesBySlug[slug] = getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug });
+    referencesCountBySlug[slug] = referencesBySlug[slug].length;
+  }
 
   return Promise.all(pages.map(async (page) => {
     const slug = getPageSlug(page);
