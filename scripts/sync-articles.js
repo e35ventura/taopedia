@@ -636,6 +636,16 @@ const unsafeContentPatterns = [
   // class (OneNote's handler has a documented history of malware abuse). A glossary's
   // prose never links to a local OneNote app, and the scheme name never occurs in prose.
   { pattern: /\bonenote\s*:/i, reason: 'onenote: application protocol-handler URLs are not allowed in article content' },
+  // ms-settings:/ms-windows-store:/ms-gamingoverlay: are three more native Windows app
+  // protocol handlers the OS — not the browser — resolves when a link is clicked, the
+  // same out-of-sandbox launch class as the blocked onenote:/ms-cxh: handlers.
+  // ms-windows-store:pdp/?productid=… deep-links the Store straight to an app's install
+  // page (an app-install social-engineering surface); ms-settings:windowsdefender and
+  // friends deep-link the Settings app to security pages an attacker wants the reader to
+  // toggle; and ms-gamingoverlay: is the handler whose unregistered/abused form pops the
+  // documented system error dialog (a no-script annoyance / DoS). The hyphenated/compound
+  // "ms-" tokens never occur in glossary prose.
+  { pattern: /\bms-(?:settings|windows-store|gamingoverlay)\s*:/i, reason: 'Windows app protocol-handler URLs are not allowed in article content' },
   // mhtml: and jar: are archive-extraction URL schemes that historically rendered
   // attacker-controlled HTML pulled from inside an archive in the page's own
   // context: mhtml:https://host/x!sub (the IE/Edge MHTML handler, CVE-2011-1894)
@@ -718,6 +728,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /ms-(?:word|excel|powerpoint|visio|access|project|publisher|infopath|spd)\s*:/i, reason: 'Microsoft Office document protocol-handler URLs are not allowed in article content' },
   { pattern: /ms-settings\s*:/i, reason: 'Windows Settings protocol-handler URLs are not allowed in article content' },
   { pattern: /onenote\s*:/i, reason: 'onenote: application protocol-handler URLs are not allowed in article content' },
+  { pattern: /ms-(?:settings|windows-store|gamingoverlay)\s*:/i, reason: 'Windows app protocol-handler URLs are not allowed in article content' },
   { pattern: /(?:mhtml|jar)\s*:/i, reason: 'archive-extraction URL schemes are not allowed in article content' },
   { pattern: /(?:rdp|vnc|telnet|ssh)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i, reason: 'mobile app-store URL schemes are not allowed in article content' },
@@ -741,6 +752,7 @@ const infoboxRowValueSchemePatterns = [
   /ms-(?:word|excel|powerpoint|visio|access|project|publisher|infopath|spd)\s*:/i,
   /ms-settings\s*:/i,
   /onenote\s*:/i,
+  /ms-(?:settings|windows-store|gamingoverlay)\s*:/i,
   /(?:mhtml|jar)\s*:/i,
   /(?:rdp|vnc|telnet|ssh)\s*:\/\//i,
   /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i,

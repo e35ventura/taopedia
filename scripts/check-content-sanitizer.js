@@ -438,6 +438,13 @@ accepts('The application settings and user preferences are described here only a
 rejects('See [x](onenote:https://evil.example/x.one).', 'plain onenote: scheme');
 rejects('See [x](on&#101;note:https://evil.example/x.one).', 'entity-obfuscated onenote: scheme');
 accepts('OneNote and the notebook app are described here only as prose.', 'benign OneNote app name is not the onenote: scheme');
+// ms-settings:/ms-windows-store:/ms-gamingoverlay: are native Windows app protocol
+// handlers the OS launches out of the sandbox — blocked like onenote:/ms-cxh:.
+rejects('See [x](ms-windows-store://pdp/?productid=9WZDNCRFHVN5).', 'plain ms-windows-store: handler URL');
+rejects('See [x](ms-settings:windowsdefender).', 'plain ms-settings: handler URL');
+rejects('See [x](ms-gamingoverlay:broadcast).', 'plain ms-gamingoverlay: handler URL');
+rejects('See [x](ms-setti&#110;gs:windowsdefender).', 'entity-obfuscated ms-settings:');
+accepts('The Microsoft Store and the Settings app are described here only as prose.', 'benign Store/Settings app names are not the ms- schemes');
 // intent: is the Android app-launch scheme — intent:[//host/path]#Intent;…;end hands the
 // URL to a native app. Per Chrome's syntax an optional host/path may sit between the
 // scheme and the required #Intent marker, so all of these forms are rejected; the
