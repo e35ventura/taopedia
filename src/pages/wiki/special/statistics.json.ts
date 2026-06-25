@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
 import { buildStatistics } from '../../../../scripts/statistics.js';
+import categoriesIndex from '../../../../public/data/categories.json';
 
 // Machine-readable site statistics at /wiki/special/statistics.json. Mirrors
 // the figures shown on the HTML Special:Statistics page as structured JSON for
@@ -20,6 +21,10 @@ export const GET: APIRoute = async ({ site }) => {
     pages,
     historyForSlug,
     getPageSlug,
+    // Topic counts come from public/data/categories.json — the same artifact
+    // categories.json (#1403) and feeds.opml (#1299) read — instead of re-
+    // counting every article's categories frontmatter during the pages scan.
+    categoriesIndex,
   });
 
   const topicSlug = (name: string) => name.replace(/ /g, '_');
