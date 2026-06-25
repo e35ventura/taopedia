@@ -17,7 +17,11 @@ import { compareTitles } from '../src/lib/title-sort.js';
 
 export function publishedInboundLinkCount(backlinks, slug, titleBySlug) {
   const links = backlinks?.[slug];
-  return (Array.isArray(links) ? links : []).filter((link) => titleBySlug[link?.from]).length;
+  // Count only inbound links from OTHER published articles. The backlink graph
+  // (build-linkgraph.js) already drops self-links, but exclude `from === slug`
+  // here too so the inbound count never counts an article's link to itself —
+  // matching getArticleReferences, which excludes self on the outbound side.
+  return (Array.isArray(links) ? links : []).filter((link) => link?.from !== slug && titleBySlug[link?.from]).length;
 }
 
 export function buildMostLinkedPages({ backlinks, titleBySlug }) {
