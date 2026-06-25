@@ -2,33 +2,25 @@
 import WikiLayout from '../../../layouts/WikiLayout.astro';
 import { getCollection } from 'astro:content';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
-import { compareTitles } from '../../../lib/title-sort.js';
+import { buildStatistics } from '../../../../scripts/statistics.js';
+import categoriesIndex from '../../../../public/data/categories.json';
 
 const pages = await getCollection('pages');
 
-// Aggregate the content collection with the build-time revision history (the
-// same source the sitemap <lastmod> and the article footer use) into a content
-// overview.
-let totalWords = 0;
-let totalRevisions = 0;
-let newestDate = '';
-const topicCounts = new Map<string, number>();
+// Aggregate word counts and revision history from the content collection, with
+// topic counts from public/data/categories.json — the same artifact
+// statistics.json (#1404) and categories.json (#1403) read — via the shared
+// buildStatistics() helper so the HTML and JSON surfaces never disagree.
+const {
+  totalArticles,
+  totalTopics,
+  totalRevisions,
+  totalWords,
+  averageWords,
+  newestDate,
+  largestTopic,
+} = buildStatistics({ pages, historyForSlug, getPageSlug, categoriesIndex });
 
-for (const page of pages) {
-  totalWords += (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
-  const history = historyForSlug(getPageSlug(page));
-  totalRevisions += history.length;
-  const latest = history[0]?.date ?? '';
-  if (latest > newestDate) newestDate = latest;
-  for (const topic of page.data.categories ?? []) {
-    topicCounts.set(topic, (topicCounts.get(topic) ?? 0) + 1);
-  }
-}
-
-const totalArticles = pages.length;
-const totalTopics = topicCounts.size;
-const averageWords = totalArticles ? Math.round(totalWords / totalArticles) : 0;
-const largestTopic = [...topicCounts.entries()].sort((a, b) => b[1] - a[1] || compareTitles(a[0], b[0]))[0];
 const newestLabel = newestDate
   ? new Date(newestDate).toLocaleDateString('en-US', { timeZone: 'UTC', year: 'numeric', month: 'long', day: 'numeric' })
   : '';
@@ -41,7 +33,7 @@ const stats: Array<{ label: string; value: string }> = [
   { label: 'Average words per article', value: averageWords.toLocaleString('en-US') },
 ];
 if (largestTopic) {
-  stats.push({ label: 'Largest topic', value: `${largestTopic[0]} (${largestTopic[1].toLocaleString('en-US')})` });
+  stats.push({ label: 'Largest topic', value: `${largestTopic.name} (${largestTopic.count.toLocaleString('en-US')})` });
 }
 ---
 

@@ -1,14 +1,17 @@
 ---
 import WikiLayout from '../../../layouts/WikiLayout.astro';
-import { getCollection } from 'astro:content';
 import { sortPagesByTitle } from '../../../lib/title-sort.js';
+import { sortedPagesFromSlugMap } from '../../../../scripts/allpages.js';
+import slugMap from '../../../../public/data/slugmap.json';
 
-const pages = await getCollection('pages');
-const sortedPages = sortPagesByTitle(pages);
+// Read public/data/slugmap.json for title/summary/categories — the same artifact
+// allpages.json (#1240) and search-data.json (#1405) use — instead of calling
+// getCollection('pages') and re-scanning every article's frontmatter.
+const sortedPages = sortedPagesFromSlugMap(slugMap);
 const getPageSlug = (page: { id: string }) =>
   page.id.replace(/\/index\.(md|mdx)$/, '').replace(/\/index$/, '').replace(/\.(md|mdx)$/, '');
 
-const categoryIndex = new Map<string, typeof pages>();
+const categoryIndex = new Map<string, typeof sortedPages>();
 for (const page of sortedPages) {
   for (const category of page.data.categories ?? []) {
     const existing = categoryIndex.get(category) ?? [];
@@ -20,7 +23,7 @@ for (const page of sortedPages) {
 const priorityTopics = ['Wallets', 'Subnets', 'Mining', 'Staking', 'Consensus', 'Tokenomics'];
 const topicFilters = priorityTopics
   .map((topic) => [topic, categoryIndex.get(topic)] as const)
-  .filter((entry): entry is readonly [string, typeof pages] => Boolean(entry[1]));
+  .filter((entry): entry is readonly [string, typeof sortedPages] => Boolean(entry[1]));
 
 // Articles whose categories include none of the featured topics would
 // otherwise not be rendered anywhere in the directory, so the title filter
@@ -39,9 +42,11 @@ const groupedArticles = [
   })),
   ...(otherPages.length > 0 ? [{ topic: 'Other topics', pages: otherPages, categoryHref: null }] : []),
 ];
+const shareImage =
+  sortedPages.length > 0 ? `/og/${getPageSlug(sortedPages[0])}.png` : '/og/home.png';
 ---
 
-<WikiLayout title="Articles" description="Browse the full directory of Taopedia articles in the Bittensor knowledge base.">
+<WikiLayout title="Articles" description="Browse the full directory of Taopedia articles in the Bittensor knowledge base." image={shareImage}>
   <div class="mw-body-content">
     <h1 class="firstHeading">Articles</h1>
 

@@ -36,9 +36,13 @@ const feeds = [
   { type: 'application/atom+xml', title: feedTitle, href: `/wiki/category/${category}/atom.xml` },
   { type: 'application/feed+json', title: feedTitle, href: `/wiki/category/${category}/feed.json` },
 ];
+// Bind the first member article's OG card so category hub shares show a topic-
+// representative preview instead of the generic homepage card (same /og/<slug>.png
+// pattern article pages use via WikiLayout → Seo).
+const shareImage = categoryPages.length > 0 ? `/og/${categoryPages[0].slug}.png` : '/og/home.png';
 ---
 
-<WikiLayout title={pageTitle} description={pageDescription} feeds={feeds}>
+<WikiLayout title={pageTitle} description={pageDescription} image={shareImage} feeds={feeds}>
   <div class="mw-body-content">
     <h1 class="firstHeading">{categoryName}</h1>
     

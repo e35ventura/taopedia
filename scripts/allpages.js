@@ -12,6 +12,24 @@
 
 import { sortPagesByTitle } from '../src/lib/title-sort.js';
 
+// Build page-shaped entries from public/data/slugmap.json — the same artifact
+// search-data.json (#1405) and og/[slug].png (#1460) read — for surfaces that
+// only need title/summary/categories, not the full content collection body.
+export function pagesFromSlugMap(slugMap = {}) {
+  return Object.entries(slugMap).map(([slug, entry]) => ({
+    id: `${slug}/index.mdx`,
+    data: {
+      title: entry?.title ?? slug,
+      summary: entry?.summary ?? '',
+      categories: Array.isArray(entry?.categories) ? entry.categories : [],
+    },
+  }));
+}
+
+export function sortedPagesFromSlugMap(slugMap = {}) {
+  return sortPagesByTitle(pagesFromSlugMap(slugMap));
+}
+
 export function buildAllPages({ pages, getPageSlug, origin }) {
   if (!Array.isArray(pages) || pages.length === 0) return [];
   const base = String(origin ?? '').replace(/\/+$/, '');

@@ -14,6 +14,7 @@ import { formatRevisionDate } from '../../../lib/format-date.js';
 const titleBySlug = publishedTitleBySlug();
 
 const changes = allRecentChanges(titleBySlug, RECENT_LIMIT);
+const shareImage = changes.length > 0 ? `/og/${changes[0].slug}.png` : '/og/home.png';
 const feedTitle = 'Taopedia - Recent changes';
 const feeds = [
   { type: 'application/rss+xml', title: feedTitle, href: '/wiki/special/recentchanges/rss.xml' },
@@ -25,6 +26,7 @@ const feeds = [
 <WikiLayout
   title="Recent changes"
   description="The most recently updated articles across the Taopedia Bittensor knowledge base."
+  image={shareImage}
   feeds={feeds}
 >
   <div class="mw-body-content">
