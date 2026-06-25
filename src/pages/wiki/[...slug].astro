@@ -136,6 +136,9 @@ const infoUrl = `/wiki/${slug}/info/`;
 // Home › this article.
 const primaryTopic = page.data.categories?.[0];
 const primaryTopicUrl = primaryTopic ? `/wiki/category/${primaryTopic.replace(/ /g, '_')}/` : undefined;
+// Footer topic chips dedupe repeated frontmatter categories so a duplicated tag
+// cannot render the same topic link twice on the article page.
+const articleTopics = [...new Set(page.data.categories ?? [])];
 const serializedValidSlugs = JSON.stringify(validSlugs).replace(/</g, '\\u003c');
 
 // Article metadata footer: the last-modified date (newest-first revision from
@@ -303,10 +306,10 @@ const readingMinutes = Math.max(1, Math.ceil(wordCount / 200));
       </section>
     )}
 
-    {page.data.categories && page.data.categories.length > 0 && (
+    {articleTopics.length > 0 && (
       <div class="article-topics" data-pagefind-ignore>
         <span>Topics</span>
-        {page.data.categories.map((cat: string) => (
+        {articleTopics.map((cat: string) => (
           <a data-pagefind-filter="category" href={`/wiki/category/${cat.replace(/ /g, '_')}/`}>{cat}</a>
         ))}
       </div>
