@@ -771,6 +771,14 @@ accepts('Hover the cursor over the link, described here only as prose.', 'benign
 rejects('Intro.\n\n<tref xlink:href="#node">x</tref>', 'plain <tref> element');
 rejects('Intro.\n\n<  tref  href="#n" />', 'spaced <tref> element');
 accepts('The treframework changelog is described here only as prose.', 'benign tref-substring word is not <tref>');
+// <altGlyph>/<glyphRef> render glyphs cloned from an xlink:href-referenced element —
+// blocked like the other SVG reference sub-elements <use>/<tref>/<textPath>.
+rejects('Intro.\n\n<altGlyph xlink:href="#g">x</altGlyph>', 'plain <altGlyph> element');
+rejects('Intro.\n\n<  altGlyph  href="#g" />', 'spaced <altGlyph> element');
+rejects('Intro.\n\n<glyphRef xlink:href="#g" />', 'plain <glyphRef> element');
+rejects('Intro.\n\n<  glyphRef  href="#g" />', 'spaced <glyphRef> element');
+accepts('The glyph reference table for the font is described here only as prose.', 'benign glyph/reference prose words');
+accepts('<altglyphic-notes>not an altGlyph element</altglyphic-notes>', 'benign altglyphic substring is not <altGlyph>');
 
 // <dialog open> renders a top-layer overlay (with backdrop) and no script or
 // inline style, so a raw <dialog> is a clickjacking/phishing primitive. Blocked.
