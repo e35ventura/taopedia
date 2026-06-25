@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import WikiLayout from '../../../layouts/WikiLayout.astro';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
+import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
@@ -23,7 +24,12 @@ export async function getStaticPaths() {
 
   return pages.map((page) => {
     const slug = getPageSlug(page);
-    const inboundCount = (backlinksData[slug] ?? []).filter((entry) => titleBySlug[entry.from]).length;
+    // Use the shared published-inbound-link counter the JSON endpoints
+    // (info.json / backlinks.json / mostlinkedpages.json) already use, so the
+    // "Incoming links" figure on this page can never disagree with them. It
+    // counts links from other published articles AND excludes self-links
+    // (`from !== slug`), matching getArticleReferences on the outbound side.
+    const inboundCount = publishedInboundLinkCount(backlinksData, slug, titleBySlug);
     return {
       params: { slug },
       props: { page, slug, inboundCount },
