@@ -1,7 +1,7 @@
 ---
 import WikiLayout from '../../../layouts/WikiLayout.astro';
 import { allRecentChanges } from '../../../lib/article-history';
-import { publishedTitleBySlug } from '../../../lib/recent-changes-feed-context';
+import { publishedTitleBySlug } from '../../../lib/site-feed-context';
 import { RECENT_LIMIT } from '../../../lib/recent-changes.js';
 import { formatRevisionDate } from '../../../lib/format-date.js';
 
@@ -9,7 +9,8 @@ import { formatRevisionDate } from '../../../lib/format-date.js';
 // build-time revision history (the same source as the sitemap <lastmod> and the
 // per-article history page), joined to article titles. Unlike the per-article
 // history page, this aggregates the whole wiki into one newest-first feed.
-// titleBySlug comes from public/data/slugmap.json — same artifact as #1436.
+// titleBySlug comes from public/data/slugmap.json — same artifact the
+// site-wide feeds and recent-changes syndication endpoints read.
 const titleBySlug = publishedTitleBySlug();
 
 const changes = allRecentChanges(titleBySlug, RECENT_LIMIT);
