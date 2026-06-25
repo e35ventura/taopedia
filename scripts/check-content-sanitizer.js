@@ -415,6 +415,13 @@ accepts('Microsoft Word, Excel, and PowerPoint are described here only as prose.
 rejects('See [x](onenote:https://evil.example/x.one).', 'plain onenote: scheme');
 rejects('See [x](on&#101;note:https://evil.example/x.one).', 'entity-obfuscated onenote: scheme');
 accepts('OneNote and the notebook app are described here only as prose.', 'benign OneNote app name is not the onenote: scheme');
+// market://, itms-apps://itms://, and ms-windows-store:// are app-store-launch schemes —
+// a link opens the native app store on an attacker-chosen listing. The // guard keeps
+// the prose words "market"/"itms" before a colon.
+rejects('See [x](market://details?id=com.evil.app).', 'plain market:// (Play Store) scheme');
+rejects('See [x](itms-apps://itunes.apple.com/app/id000).', 'plain itms-apps:// (App Store) scheme');
+rejects('See [x](ms-windows-store://pdp/?productid=EVIL).', 'plain ms-windows-store:// scheme');
+accepts('The bull market: gains continued, and itms is an old acronym, described only as prose.', 'benign "market:"/"itms" prose words are not the app-store schemes');
 // intent: is the Android app-launch scheme — intent:[//host/path]#Intent;…;end hands the
 // URL to a native app. Per Chrome's syntax an optional host/path may sit between the
 // scheme and the required #Intent marker, so all of these forms are rejected; the

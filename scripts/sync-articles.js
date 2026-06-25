@@ -610,6 +610,13 @@ const unsafeContentPatterns = [
   // class (OneNote's handler has a documented history of malware abuse). A glossary's
   // prose never links to a local OneNote app, and the scheme name never occurs in prose.
   { pattern: /\bonenote\s*:/i, reason: 'onenote: application protocol-handler URLs are not allowed in article content' },
+  // market:// (Android Play Store), itms-apps://itms:// (iOS App Store), and
+  // ms-windows-store:// (Microsoft Store) are app-store-launch schemes: a clicked link
+  // forces the reader's device to leave the browser and open the native app store on an
+  // attacker-chosen app listing — an app-install lure / out-of-browser app-launch, the
+  // same class as the blocked intent: and ms-appinstaller: schemes. The required // means
+  // the prose words "market"/"itms" before a colon (e.g. "the bull market: gains") pass.
+  { pattern: /\b(?:market|itms-apps|itms|ms-windows-store)\s*:\s*\/\//i, reason: 'app-store-launch URLs are not allowed in article content' },
   // mhtml: and jar: are archive-extraction URL schemes that historically rendered
   // attacker-controlled HTML pulled from inside an archive in the page's own
   // context: mhtml:https://host/x!sub (the IE/Edge MHTML handler, CVE-2011-1894)
@@ -668,6 +675,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /ms-(?:msdt|appinstaller)\s*:/i, reason: 'Windows protocol-handler URLs are not allowed in article content' },
   { pattern: /ms-(?:word|excel|powerpoint|visio|access|project|publisher|infopath|spd)\s*:/i, reason: 'Microsoft Office document protocol-handler URLs are not allowed in article content' },
   { pattern: /onenote\s*:/i, reason: 'onenote: application protocol-handler URLs are not allowed in article content' },
+  { pattern: /\b(?:market|itms-apps|itms|ms-windows-store)\s*:\s*\/\//i, reason: 'app-store-launch URLs are not allowed in article content' },
   { pattern: /(?:mhtml|jar)\s*:/i, reason: 'archive-extraction URL schemes are not allowed in article content' },
   { pattern: /intent\s*:[^\s"'<>)]*#\s*Intent\b/i, reason: 'intent: app-launch URLs are not allowed in article content' },
   { pattern: /\bshell\s*:(?=[^\s"'<>)])/i, reason: 'shell: protocol-handler URLs are not allowed in article content' },
@@ -687,6 +695,7 @@ const infoboxRowValueSchemePatterns = [
   /ms-(?:msdt|appinstaller)\s*:/i,
   /ms-(?:word|excel|powerpoint|visio|access|project|publisher|infopath|spd)\s*:/i,
   /onenote\s*:/i,
+  /\b(?:market|itms-apps|itms|ms-windows-store)\s*:\s*\/\//i,
   /(?:mhtml|jar)\s*:/i,
   /intent\s*:[^\s"'<>)]*#\s*Intent\b/i,
   /\bshell\s*:(?=[^\s"'<>)])/i,
