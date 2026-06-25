@@ -1,7 +1,7 @@
 ---
 import WikiLayout from '../../../layouts/WikiLayout.astro';
-import { getCollection } from 'astro:content';
-import { getPageSlug, allRecentChanges } from '../../../lib/article-history';
+import { allRecentChanges } from '../../../lib/article-history';
+import { publishedTitleBySlug } from '../../../lib/recent-changes-feed-context';
 import { RECENT_LIMIT } from '../../../lib/recent-changes.js';
 import { formatRevisionDate } from '../../../lib/format-date.js';
 
@@ -9,11 +9,8 @@ import { formatRevisionDate } from '../../../lib/format-date.js';
 // build-time revision history (the same source as the sitemap <lastmod> and the
 // per-article history page), joined to article titles. Unlike the per-article
 // history page, this aggregates the whole wiki into one newest-first feed.
-const pages = await getCollection('pages');
-const titleBySlug: Record<string, string> = {};
-for (const page of pages) {
-  titleBySlug[getPageSlug(page)] = page.data.title;
-}
+// titleBySlug comes from public/data/slugmap.json — same artifact as #1436.
+const titleBySlug = publishedTitleBySlug();
 
 const changes = allRecentChanges(titleBySlug, RECENT_LIMIT);
 const feedTitle = 'Taopedia - Recent changes';

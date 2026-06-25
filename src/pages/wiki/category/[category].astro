@@ -1,38 +1,23 @@
 ---
 import WikiLayout from '../../../layouts/WikiLayout.astro';
-import { getCollection } from 'astro:content';
-import { sortPagesByTitle } from '../../../lib/title-sort.js';
+import { getCategoryArticles } from '../../../lib/category-articles.js';
+import categoriesIndex from '../../../../public/data/categories.json';
+import slugMap from '../../../../public/data/slugmap.json';
 
 export async function getStaticPaths() {
-  const pages = await getCollection('pages');
-  const getPageSlug = (page: { id: string }) =>
-    page.id.replace(/\/index\.(md|mdx)$/, '').replace(/\/index$/, '').replace(/\.(md|mdx)$/, '');
-
-  // Group articles by category in a single pass over the collection. The page
-  // body used to re-run getCollection('pages') and re-filter the whole
-  // collection once per category page; here each category's already-sorted
-  // member list (the only data the body renders: slug, title, summary) is
-  // derived once and handed to the page via props.
-  const membersByCategory = new Map<string, typeof pages>();
-  for (const page of pages) {
-    for (const category of page.data.categories ?? []) {
-      const members = membersByCategory.get(category) ?? [];
-      members.push(page);
-      membersByCategory.set(category, members);
-    }
-  }
-
-  return [...membersByCategory.entries()].map(([categoryName, members]) => ({
-    params: { category: categoryName.replace(/ /g, '_') },
-    props: {
-      categoryName,
-      articles: sortPagesByTitle(members).map((page) => ({
-        slug: getPageSlug(page),
-        title: page.data.title,
-        summary: page.data.summary ?? '',
-      })),
-    },
-  }));
+  // Read public/data/categories.json for membership and slugmap.json for
+  // title/summary — the same artifacts category articles.json (#1243) and
+  // categories.json (#1403) use — instead of calling getCollection('pages') and
+  // re-scanning every article's frontmatter in getStaticPaths.
+  return Object.keys(categoriesIndex)
+    .sort()
+    .map((categoryName) => ({
+      params: { category: categoryName.replace(/ /g, '_') },
+      props: {
+        categoryName,
+        articles: getCategoryArticles({ categoryName, categoriesIndex, slugMap }),
+      },
+    }));
 }
 
 const { category } = Astro.params;
