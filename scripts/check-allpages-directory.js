@@ -15,6 +15,16 @@ assert.match(
   /\.trim\(\)\.toLowerCase\(\)/,
   'the Articles directory filter must trim input so whitespace-only queries show all articles',
 );
+assert.match(
+  allpagesSource,
+  /new Set\(page\.data\.categories/,
+  'the Articles directory must dedupe repeated frontmatter categories per article',
+);
+assert.match(
+  allpagesSource,
+  /pageCategories\(page\)\.join\('\|'\)/,
+  'the Articles directory filter must use deduped topic tags on each card',
+);
 
 const contentDir = path.join(process.cwd(), 'src', 'content', 'pages');
 const directoryHtml = path.join(
