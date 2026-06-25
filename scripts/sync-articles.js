@@ -693,6 +693,16 @@ const unsafeContentPatterns = [
   // ms-*/onenote: handlers. The //-authority form is required so the prose word "steam"
   // before a colon is never affected; the names never occur as URLs in glossary prose.
   { pattern: /\b(?:steam|com\.epicgames\.launcher)\s*:\/\//i, reason: 'game-launcher protocol-handler URLs are not allowed in article content' },
+  // skype: callto: facetime: facetime-audio: sgnl: launch a native communication app
+  // pointed at an attacker-controlled contact: a clicked skype:victim?call,
+  // facetime:attacker@evil, facetime-audio:attacker@evil, callto:victim, or sgnl://…
+  // (Signal) opens/dials in a desktop app outside the page sandbox with no script — the
+  // same native app-launch class as the blocked intent:/shell:/zoommtg: schemes. The
+  // (?=non-space) lookahead means a real scheme URL (scheme:target, no space after the
+  // colon) is blocked while a prose definition like "Skype: a VoIP app" / "FaceTime:
+  // Apple's video call" (a name followed by a colon and a space) is never affected — the
+  // same shell: precedent above.
+  { pattern: /\b(?:skype|callto|facetime-audio|facetime|sgnl)\s*:(?=[^\s"'<>)])/i, reason: 'communication-app launch URL schemes are not allowed in article content' },
   // intent: is the Android app-launch scheme: a URI of the form intent:[//host/path]#Intent;…;end
   // hands the URL to the Android intent system, which opens or deep-links into a native app
   // outside the browser — a standalone app-launch attack on mobile readers, the same
@@ -766,6 +776,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:rdp|vnc|telnet|ssh)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i, reason: 'mobile app-store URL schemes are not allowed in article content' },
   { pattern: /(?:steam|com\.epicgames\.launcher)\s*:\/\//i, reason: 'game-launcher protocol-handler URLs are not allowed in article content' },
+  { pattern: /\b(?:skype|callto|facetime-audio|facetime|sgnl)\s*:(?=[^\s"'<>)])/i, reason: 'communication-app launch URL schemes are not allowed in article content' },
   { pattern: /intent\s*:[^\s"'<>)]*#\s*Intent\b/i, reason: 'intent: app-launch URLs are not allowed in article content' },
   { pattern: /(?:zoommtg|zoomus|msteams)\s*:/i, reason: 'video-conferencing client protocol-handler URLs are not allowed in article content' },
   { pattern: /\bshell\s*:(?=[^\s"'<>)])/i, reason: 'shell: protocol-handler URLs are not allowed in article content' },
@@ -794,6 +805,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:rdp|vnc|telnet|ssh)\s*:\/\//i,
   /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i,
   /(?:steam|com\.epicgames\.launcher)\s*:\/\//i,
+  /\b(?:skype|callto|facetime-audio|facetime|sgnl)\s*:(?=[^\s"'<>)])/i,
   /intent\s*:[^\s"'<>)]*#\s*Intent\b/i,
   /(?:zoommtg|zoomus|msteams)\s*:/i,
   /\bshell\s*:(?=[^\s"'<>)])/i,

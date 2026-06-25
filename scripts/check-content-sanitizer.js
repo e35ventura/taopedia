@@ -419,6 +419,17 @@ accepts('A steamroller of demand and the Epic Games launcher are described here 
 rejects('See [x](android-app://com.evil.app).', 'plain android-app:// URL');
 rejects('See [x](itms-apps://itunes.apple.com/app/id0).', 'plain itms-apps:// App Store URL');
 accepts('The DeFi market: outlook and a token marketplace are described here as prose.', 'benign market: prose (no // authority)');
+// skype: callto: facetime: facetime-audio: sgnl: launch a native comm app at an
+// attacker contact/meeting (same class as intent:). The non-space lookahead (shell:
+// precedent) blocks scheme:target URLs but not "Skype: a VoIP app" prose definitions.
+// Every newly blocked scheme has a rejection assertion.
+rejects('See [x](skype:victim?call).', 'plain skype: call URL');
+rejects('See [x](callto:victim).', 'plain callto: URL');
+rejects('See [x](facetime:attacker@evil.example).', 'plain facetime: URL');
+rejects('See [x](facetime-audio:attacker@evil.example).', 'plain facetime-audio: URL');
+rejects('See [x](sgnl://signal.me/x).', 'plain sgnl: (Signal) URL');
+accepts('Skype: a VoIP app, FaceTime: Apple video calling, and Teams are defined here as prose.', 'benign Skype:/FaceTime: glossary definitions (colon then space)');
+accepts('A video call and a meeting link are described here only as prose.', 'benign call/meeting prose words');
 // search-ms: opens Explorer search on a remote WebDAV/SMB share (malware-delivery
 // chain), and ms-officecmd: invokes Office deep-link commands (argument-injection
 // RCE) — two more native Windows handlers blocked like ms-msdt:/javascript:.
