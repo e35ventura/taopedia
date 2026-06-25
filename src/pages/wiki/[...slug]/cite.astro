@@ -7,25 +7,33 @@ import { buildCitations, CITATION_FORMATS, CITATION_META } from '../../../../scr
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
+  const origin = 'https://taopedia.org';
+
   return pages.map((page) => {
     const slug = getPageSlug(page);
+    const lastRevision = historyForSlug(slug)[0]?.date ?? '';
+    const url = `${origin}/wiki/${slug}/`;
+    // Precomputed once per route in getStaticPaths — the page body used to call
+    // historyForSlug again to derive the last-revision date for buildCitations().
+    // Mirrors cite.bib (#1041) / cite.json.
+    const citations = buildCitations({ title: page.data.title, url, slug, date: lastRevision });
     return {
       params: { slug },
-      props: { page, slug },
+      props: { page, slug, lastRevision, citations },
     };
   });
 }
 
-const { page, slug } = Astro.props;
+const { page, slug, lastRevision, citations } = Astro.props;
 
 // MediaWiki's Special:CiteThisPage for one article: ready-made bibliographic
 // citations. The date is the article's last revision (newest-first git history
 // at public/history/<slug>.json — the same source as the article footer, the
 // sitemap <lastmod>, and Special:RecentChanges); articles with no recorded
-// history cite without a date rather than an invalid one.
-const lastRevision = historyForSlug(slug)[0]?.date ?? '';
+// history cite without a date rather than an invalid one. lastRevision and
+// citations are precomputed once per route in getStaticPaths (see above).
+
 const url = new URL(`/wiki/${slug}/`, Astro.site).toString();
-const citations = buildCitations({ title: page.data.title, url, slug, date: lastRevision });
 
 const lastRevisionLabel = lastRevision
   ? new Date(lastRevision).toLocaleDateString('en-US', { timeZone: 'UTC', year: 'numeric', month: 'long', day: 'numeric' })
