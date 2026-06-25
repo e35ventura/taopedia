@@ -398,6 +398,14 @@ rejects('See [x](gopher://internal-host:6379/_payload).', 'plain gopher:// SSRF 
 rejects('See [x](nntp://news.evil.example/group).', 'plain nntp:// URL');
 rejects('See [x](irc://irc.evil.example/channel).', 'plain irc:// URL');
 rejects('See [x](ircs://irc.evil.example:6697/x).', 'plain ircs:// URL');
+// Entity-obfuscated: literal scan misses "gop&#104;er://" but the decoded re-scan
+// (obfuscatedSchemePatterns) catches gopher:// after &#104; -> h.
+rejects('See [x](gop&#104;er://internal-host:6379/_payload).', 'entity-obfuscated gopher:// (obfuscated scan path)');
+rejects('See [x](ir&#99;://irc.evil.example/channel).', 'entity-obfuscated irc:// (obfuscated scan path)');
+// Infobox-row-value scan path.
+infoboxRowRejects('gopher://internal-host:6379/_payload', 'gopher:// rejected in an infobox row value');
+infoboxRowRejects('irc://irc.evil.example/channel', 'irc:// rejected in an infobox row value');
+infoboxRowAccepts('Breaking news about an IRC channel, described as prose', 'benign legacy-net prose allowed in an infobox row value');
 accepts('Breaking news: the IRC channel and a gopher burrow are described here as prose.', 'benign news:/irc/gopher prose (no // authority)');
 // mhtml:/jar: archive-extraction schemes historically rendered attacker HTML from
 // inside an archive (mhtml: IE CVE-2011-1894; jar: Firefox), blocked like data:.
