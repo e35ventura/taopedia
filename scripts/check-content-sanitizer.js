@@ -404,7 +404,9 @@ rejects('See [x](rdp://attacker-host/).', 'plain rdp:// remote-desktop URL');
 rejects('See [x](ssh://user@evil.example).', 'plain ssh:// URL');
 rejects('See [x](telnet://internal-host:23).', 'plain telnet:// URL');
 rejects('See [x](vnc://evil.example:5900).', 'plain vnc:// URL');
+rejects('See [x](sftp://user@evil.example/).', 'plain sftp:// URL (SSH file-transfer client launch)');
 accepts('SSH: Secure Shell and RDP: Remote Desktop Protocol are defined here as prose.', 'benign SSH:/RDP: glossary definitions (no // authority)');
+accepts('The sftp command and SFTP: SSH File Transfer Protocol are described here only as prose.', 'benign sftp/SFTP: prose (no // authority)');
 accepts('Connect over ssh and telnet are described only as protocol names here.', 'benign ssh/telnet prose words');
 // ms-its: and mk:@MSITStore: resolve a page out of a compiled-HTML-help (.chm) archive
 // through the native ITSS handler (a documented RCE vector), blocked like mhtml:/jar:.
