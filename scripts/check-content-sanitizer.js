@@ -351,6 +351,12 @@ rejects('A soft' + String.fromCharCode(0x00ad) + 'hyphen splits a term.', 'soft 
 rejects('Invisible' + String.fromCharCode(0x2062) + 'times hides here.', 'invisible times U+2062');
 rejects('A mongolian' + String.fromCharCode(0x180e) + 'separator hides.', 'mongolian vowel separator U+180E');
 rejects('A hangul' + String.fromCharCode(0x3164) + 'filler hides here.', 'hangul filler U+3164');
+// U+206A-U+206F (inhibit/activate symmetric swapping, Arabic form shaping, national/
+// nominal digit shapes) complete the invisible format-character range the U+2061-U+2064
+// math operators above started; all render nothing in Latin prose.
+rejects('Symmetric' + String.fromCharCode(0x206a) + 'swap hides here.', 'inhibit symmetric swapping U+206A');
+rejects('Arabic' + String.fromCharCode(0x206d) + 'shaping hides here.', 'activate arabic form shaping U+206D');
+rejects('A nominal' + String.fromCharCode(0x206f) + 'digit shape hides.', 'nominal digit shapes U+206F');
 accepts('An ordinary ascii-hyphen word like proof-of-stake is fine.', 'benign ASCII hyphen-minus passes');
 
 // Unicode tag characters (U+E0000-U+E007F) and interlinear annotation anchors
