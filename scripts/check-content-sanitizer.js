@@ -390,6 +390,12 @@ rejects('See [x](jar:https://evil.example/x.jar!/payload.html).', 'plain jar: ar
 rejects('![x](mhtml:https://evil.example/x!a)', 'mhtml: in an image src');
 rejects('See [x](m&#104;tml:https://evil.example/x!a).', 'entity-obfuscated mhtml:');
 accepts('A jar of configuration and an MHTML export are described here only as prose.', 'benign jar/mhtml prose words (no scheme colon)');
+// magnet:?xt=… and ed2k://… launch a native P2P client and start a download/seed,
+// blocked like mhtml:/jar: archive-extraction handlers.
+rejects('See [x](magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567).', 'plain magnet: P2P scheme');
+rejects('See [x](ed2k://|file|evil.bin|1024|HASH|/).', 'plain ed2k: P2P scheme');
+rejects('See [x](m&#97;gnet:?xt=urn:btih:abc).', 'entity-obfuscated magnet:');
+accepts('A magnet link metaphor and an ed2k network are described here only as prose.', 'benign magnet/ed2k prose words (no scheme colon)');
 // vscode:/vscode-insiders:/vscodium: are code-editor protocol handlers the OS launches
 // (open folder / run tasks / install extension), blocked like onenote:/ms-cxh:.
 rejects('See [x](vscode://file/etc/passwd).', 'plain vscode: editor scheme');
