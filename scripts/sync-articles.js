@@ -373,6 +373,13 @@ const unsafeContentPatterns = [
   { pattern: /\bdata\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*image\/svg\+xml/i, reason: 'SVG data URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*application\/xhtml\+xml/i, reason: 'XHTML data URLs are not allowed in article content' },
+  // data:text/xml and data:application/xml render as a navigable XML document: an
+  // xml-stylesheet processing instruction can pull in an XSLT sheet whose <script>
+  // executes, the same parsed-as-markup script-execution / mutation surface as the
+  // already-blocked SVG (image/svg+xml) and XHTML (application/xhtml+xml) XML data
+  // URLs. (?:text|application)/xml does not match application/xhtml+xml — handled by
+  // its own rule above — so this closes the remaining XML data: types.
+  { pattern: /\bdata\s*:\s*(?:text|application)\/xml\b/i, reason: 'XML data URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*(?:text|application)\/(?:javascript|ecmascript)/i, reason: 'script data URLs are not allowed in article content' },
   { pattern: bidiControlPattern, reason: 'bidirectional control characters are not allowed in article content' },
   { pattern: invisibleFormatCharPattern, reason: 'invisible bidi marks and zero-width characters are not allowed in article content' },
@@ -393,6 +400,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /data\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
   { pattern: /data\s*:\s*image\/svg\+xml/i, reason: 'SVG data URLs are not allowed in article content' },
   { pattern: /data\s*:\s*application\/xhtml\+xml/i, reason: 'XHTML data URLs are not allowed in article content' },
+  { pattern: /data\s*:\s*(?:text|application)\/xml\b/i, reason: 'XML data URLs are not allowed in article content' },
   { pattern: /data\s*:\s*(?:text|application)\/(?:javascript|ecmascript)/i, reason: 'script data URLs are not allowed in article content' },
   ...directivePatterns,
 ];
@@ -403,6 +411,7 @@ const infoboxRowValueSchemePatterns = [
   /data\s*:\s*text\/html/i,
   /data\s*:\s*image\/svg\+xml/i,
   /data\s*:\s*application\/xhtml\+xml/i,
+  /data\s*:\s*(?:text|application)\/xml\b/i,
   /data\s*:\s*(?:text|application)\/(?:javascript|ecmascript)/i,
 ];
 

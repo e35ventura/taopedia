@@ -298,7 +298,12 @@ rejects('See [x](data:text/html;base64,PHNjcmlwdD4=).', 'plain data:text/html');
 rejects('See [x](data:image/svg+xml,<svg></svg>).', 'plain svg data uri');
 rejects('See [x](data:image/svg+xml;base64,PHN2ZyBvbmxvYWQ9YWxlcnQoMSk+).', 'base64 svg data uri (script hidden in blob)');
 rejects('See [x](data:application/xhtml+xml;base64,PHNjcmlwdD4=).', 'base64 xhtml data uri (script hidden in blob)');
-rejects('See [x](data:text/javascript,alert(1)).', 'plain data:text/javascript');
+// data:text/xml and data:application/xml render as navigable XML; an xml-stylesheet
+// processing instruction can load an XSLT sheet whose <script> executes — the same
+// parsed-as-markup surface as the blocked SVG/XHTML XML data URLs.
+rejects('See [x](data:application/xml,<?xml-stylesheet href="evil.xsl"?><r/>).', 'plain data:application/xml');
+rejects('See [x](data:text/xml;base64,PHI+PC9yPg==).', 'base64 data:text/xml');
+accepts('See [x](data:image/png;base64,iVBORw0KGgo=).', 'benign data:image/png still allowed');
 rejects('See [x](data:application/ecmascript,alert(1)).', 'plain data:application/ecmascript');
 rejects('See [x](&#100;ata:text/javascript,alert(1)).', 'entity data:text/javascript');
 
