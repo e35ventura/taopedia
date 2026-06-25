@@ -162,6 +162,15 @@ const unsafeContentPatterns = [
   // glossary's prose never marks its own search regions — the site exposes search
   // through its own layout component — so block the element.
   { pattern: /<\s*search\b/i, reason: 'search elements are not allowed in article content' },
+  // <data value="…"> and <time datetime="…"> carry a machine-readable value that a
+  // scraper, screen reader, or "copy value" affordance reads instead of, and
+  // independently from, the visible text — so an injected one makes the machine-read
+  // value diverge from what the reader sees (e.g. <time datetime="2099-01-01">2020
+  // </time>, or <data value="https://evil.example">official site</data>). Same
+  // machine-readable-text / auxiliary-spoof class the title= and aria-label /
+  // aria-describedby attributes are already blocked for. Glossary prose carries no
+  // machine values. The \b anchor leaves the already-blocked <datalist> untouched.
+  { pattern: /<\s*(data|time)\b/i, reason: 'data and time elements are not allowed in article content' },
   // <template> parses its contents into an inert document fragment rather than the
   // live DOM. That makes it a DOM-clobbering / mutation-XSS surface (named elements
   // inside can shadow `document.<name>` globals, and the hidden subtree is a known
