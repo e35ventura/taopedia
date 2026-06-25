@@ -213,6 +213,18 @@ rejects('Intro.\n\n<canvas width="1200" height="2000"></canvas>', 'plain <canvas
 rejects('Intro.\n\n<  canvas   id="x">fallback</canvas>', 'spaced <canvas>');
 accepts('The HTML canvas element is described here only as prose.', 'benign canvas prose');
 
+// <ruby>/<rt>/<rp>/<rtc>/<rb> render interlinear annotation text (small type above
+// the base text); an injected <ruby>scam<rt>✓ official</rt></ruby> overlays a fake
+// trust mark — a content-spoof in the same class as the blocked marquee/bdo/font.
+rejects('Intro.\n\n<ruby>5Fake address<rt>✓ official</rt></ruby>', 'plain <ruby> with <rt>');
+rejects('Intro.\n\n<  ruby   lang="ja">x</ruby>', 'spaced <ruby>');
+rejects('Intro.\n\n<rt>annotation</rt>', 'standalone <rt>');
+rejects('Intro.\n\n<rp>(</rp>', 'standalone <rp>');
+rejects('Intro.\n\n<rtc>group</rtc>', 'standalone <rtc>');
+rejects('Intro.\n\n<rb>base</rb>', 'standalone <rb>');
+accepts('The HTML ruby element is described here only as prose.', 'benign ruby prose');
+accepts('A ruby gemstone and the Ruby language are ordinary words.', 'benign ruby/Ruby words');
+
 // referrerpolicy= overrides the site's strict Referrer-Policy header for one
 // element — an injected referrerpolicy="unsafe-url" leaks the full referring URL
 // to an external destination. Blocked like the other interaction attributes.
