@@ -406,6 +406,12 @@ rejects('See [x](telnet://internal-host:23).', 'plain telnet:// URL');
 rejects('See [x](vnc://evil.example:5900).', 'plain vnc:// URL');
 accepts('SSH: Secure Shell and RDP: Remote Desktop Protocol are defined here as prose.', 'benign SSH:/RDP: glossary definitions (no // authority)');
 accepts('Connect over ssh and telnet are described only as protocol names here.', 'benign ssh/telnet prose words');
+// irc:// and ircs:// launch a native IRC client and auto-connect to an attacker server,
+// blocked like rdp:/vnc:/ssh:// remote-session client-launch schemes.
+rejects('See [x](irc://evil.example:6667/#channel).', 'plain irc:// client-launch scheme');
+rejects('See [x](ircs://evil.example:6697/#channel).', 'plain ircs:// client-launch scheme');
+rejects('See [x](ir&#99;://evil.example/#x).', 'entity-obfuscated irc://');
+accepts('The IRC protocol and IRCS over TLS are described here only as prose.', 'benign IRC/IRCS prose words (no scheme //)');
 // ms-its: and mk:@MSITStore: resolve a page out of a compiled-HTML-help (.chm) archive
 // through the native ITSS handler (a documented RCE vector), blocked like mhtml:/jar:.
 rejects('See [x](ms-its:evil.chm::/exploit.htm).', 'plain ms-its: CHM scheme');

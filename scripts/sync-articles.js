@@ -676,6 +676,13 @@ const unsafeContentPatterns = [
   // glossary definition like "SSH: Secure Shell" (a scheme name followed by a colon
   // in prose, with no //) is never affected.
   { pattern: /\b(?:rdp|vnc|telnet|ssh)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
+  // irc:// and ircs:// are IRC client-launch URL schemes the OS resolves to open the
+  // locally-installed IRC client and auto-connect/join an attacker-chosen server and
+  // channel (irc://evil.example:6667/#chan), driving a native client outside the page
+  // sandbox with no script — the same client-launch class as the blocked rdp:/vnc:/ssh:
+  // remote-session schemes. The //-authority form is required and the scheme names never
+  // occur as URLs in glossary prose.
+  { pattern: /\b(?:irc|ircs)\s*:\/\//i, reason: 'IRC client-launch URL schemes are not allowed in article content' },
   // ms-its: and mk:@MSITStore: are the InfoTech Storage System (compiled-HTML-help, .chm)
   // URL schemes: ms-its:<chm>::/page.htm and mk:@MSITStore:<chm>::/page.htm resolve a page
   // out of a local or remote .chm help archive through the native ITSS handler — a
@@ -772,6 +779,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:mhtml|jar)\s*:/i, reason: 'archive-extraction URL schemes are not allowed in article content' },
   { pattern: /(?:vscode-insiders|vscodium|vscode)\s*:/i, reason: 'code-editor protocol-handler URLs are not allowed in article content' },
   { pattern: /(?:rdp|vnc|telnet|ssh)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
+  { pattern: /(?:irc|ircs)\s*:\/\//i, reason: 'IRC client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:ms-its\s*:|mk\s*:\s*@)/i, reason: 'compiled-HTML-help (CHM) URL schemes are not allowed in article content' },
   { pattern: /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i, reason: 'mobile app-store URL schemes are not allowed in article content' },
   { pattern: /(?:steam|com\.epicgames\.launcher)\s*:\/\//i, reason: 'game-launcher protocol-handler URLs are not allowed in article content' },
@@ -801,6 +809,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:mhtml|jar)\s*:/i,
   /(?:vscode-insiders|vscodium|vscode)\s*:/i,
   /(?:rdp|vnc|telnet|ssh)\s*:\/\//i,
+  /(?:irc|ircs)\s*:\/\//i,
   /(?:ms-its\s*:|mk\s*:\s*@)/i,
   /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i,
   /(?:steam|com\.epicgames\.launcher)\s*:\/\//i,
