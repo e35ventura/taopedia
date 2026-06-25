@@ -144,7 +144,7 @@ const unsafeContentPatterns = [
   // <applet> embeds and runs a legacy Java applet — the same active-content /
   // code-execution / embedding threat as the already-blocked <object> / <embed> /
   // <iframe>. Grouped with the active-embedding family it belongs to.
-  { pattern: /<\s*(base|frame|frameset|iframe|object|embed|applet|link|meta|style|form|input|button|textarea|select|option|fieldset|legend|datalist|output)\b/i, reason: 'active HTML elements are not allowed in article content' },
+  { pattern: /<\s*(base|frame|frameset|iframe|object|embed|applet|link|meta|style|form|input|button|textarea|select|option|fieldset|legend|datalist|output|label)\b/i, reason: 'active HTML elements are not allowed in article content' },
   // <dialog open> renders in the browser top layer -- above all page content, with
   // a backdrop -- with no script and no inline style. That makes a raw <dialog> a
   // clickjacking/phishing overlay primitive (e.g. a fake "wallet compromised" modal

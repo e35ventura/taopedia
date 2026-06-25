@@ -49,6 +49,10 @@ rejects('Intro.\n\n<option value="evil">Pick me</option>', 'standalone option');
 rejects('Intro.\n\n<fieldset><legend>Seed phrase</legend></fieldset>', 'standalone fieldset');
 rejects('Intro.\n\n<datalist id="wallets"><option value="5Grw..."></datalist>', 'standalone datalist');
 rejects('Intro.\n\n<output name="result">done</output>', 'standalone output');
+rejects('Intro.\n\n<label>Enter your 12-word seed phrase:</label>', 'plain <label>');
+rejects('Intro.\n\n<  label  >Wallet address</label>', 'spaced <label>');
+rejects('Intro.\n\n<label for="wallet">Recovery phrase</label>', 'label with for attribute');
+accepts('A field label in documentation refers to form captions described as prose.', 'benign label prose');
 
 // The `ping` attribute on an allowed <a> is a no-JS tracking beacon: a click
 // POSTs to the listed URL. It passes every scheme/handler/element check, so it
