@@ -399,6 +399,12 @@ rejects('See [x](telnet://internal-host:23).', 'plain telnet:// URL');
 rejects('See [x](vnc://evil.example:5900).', 'plain vnc:// URL');
 accepts('SSH: Secure Shell and RDP: Remote Desktop Protocol are defined here as prose.', 'benign SSH:/RDP: glossary definitions (no // authority)');
 accepts('Connect over ssh and telnet are described only as protocol names here.', 'benign ssh/telnet prose words');
+// ms-its: and mk:@MSITStore: resolve a page out of a compiled-HTML-help (.chm) archive
+// through the native ITSS handler (a documented RCE vector), blocked like mhtml:/jar:.
+rejects('See [x](ms-its:evil.chm::/exploit.htm).', 'plain ms-its: CHM scheme');
+rejects('See [x](mk:@MSITStore:evil.chm::/exploit.htm).', 'plain mk:@MSITStore: CHM scheme');
+rejects('See [x](ms-i&#116;s:evil.chm::/x.htm).', 'entity-obfuscated ms-its:');
+accepts('The mk abbreviation and an ITSS help archive are described here only as prose.', 'benign mk/ITSS prose words (no :@ or ms-its: scheme)');
 // itms-services:// market:// android-app:// etc. are mobile app-store install/launch
 // schemes (itms-services:// = iOS OTA install), blocked like intent:; //-guarded.
 rejects('See [x](itms-services://?action=download-manifest&url=https://evil.example/m.plist).', 'plain itms-services:// iOS OTA install');
