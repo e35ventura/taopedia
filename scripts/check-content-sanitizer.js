@@ -505,6 +505,23 @@ rejects('See [x](disc&#111;rd://-/channels/123).', 'entity-obfuscated discord://
 infoboxRowRejects('tg://resolve?domain=evilchannel', 'tg:// rejected in an infobox row value');
 infoboxRowRejects('slack://open?team=T0', 'slack:// rejected in an infobox row value');
 accepts('Slack: a team chat app, Discord servers, and Telegram channels are described here only as prose.', 'benign Slack:/Discord/Telegram prose (no // authority)');
+// bitcoin: ethereum: litecoin: … are cryptocurrency wallet payment-request URI schemes
+// (BIP-21 / EIP-681 + altcoins) that open the reader's wallet app pre-filled with an
+// attacker recipient address/amount — a one-click payment-phishing prompt, same native-app
+// class as tg:/skype:. The (?=non-space) lookahead blocks bitcoin:<addr> while keeping
+// "Bitcoin: a cryptocurrency" prose definitions (colon then a space) safe.
+rejects('See [x](bitcoin:1AttackerAddr0000000000000000000?amount=1).', 'plain bitcoin: (BIP-21) payment URI');
+rejects('See [x](ethereum:0xAttacker0000000000000000000000000000000000?value=1e18).', 'plain ethereum: (EIP-681) payment URI');
+rejects('See [x](litecoin:LAttackerAddr00000000000000000000?amount=1).', 'plain litecoin: payment URI');
+rejects('See [x](dogecoin:DAttackerAddr0000000000000000000?amount=1).', 'plain dogecoin: payment URI');
+rejects('See [x](monero:4AttackerAddr?tx_amount=1).', 'plain monero: payment URI');
+rejects('See [x](zcash:t1AttackerAddr?amount=1).', 'plain zcash: payment URI');
+// Entity-obfuscated: the literal scan misses "bitco&#105;n:" but the decoded re-scan catches it.
+rejects('See [x](bitco&#105;n:1AttackerAddr?amount=1).', 'entity-obfuscated bitcoin: (obfuscated scan path)');
+// Infobox-row-value scan path.
+infoboxRowRejects('bitcoin:1AttackerAddr?amount=1', 'bitcoin: rejected in an infobox row value');
+infoboxRowRejects('ethereum:0xAttacker?value=1', 'ethereum: rejected in an infobox row value');
+accepts('Bitcoin: a proof-of-work cryptocurrency, and Ethereum: a smart-contract chain, are defined here as prose.', 'benign Bitcoin:/Ethereum: glossary definitions (colon then space)');
 // search-ms: opens Explorer search on a remote WebDAV/SMB share (malware-delivery
 // chain), and ms-officecmd: invokes Office deep-link commands (argument-injection
 // RCE) — two more native Windows handlers blocked like ms-msdt:/javascript:.

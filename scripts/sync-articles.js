@@ -782,6 +782,19 @@ const unsafeContentPatterns = [
   // "Slack: a team chat app" or "a Discord server" (a name then a colon/word, no ://) is
   // never affected; the scheme names never occur as URLs in glossary prose.
   { pattern: /\b(?:tg|whatsapp|discord|slack)\s*:\/\//i, reason: 'messaging-app deep-link URL schemes are not allowed in article content' },
+  // bitcoin: bitcoincash: ethereum: litecoin: dogecoin: monero: zcash: are cryptocurrency
+  // wallet payment-request URI schemes (the BIP-21 `bitcoin:<address>?amount=…` and EIP-681
+  // `ethereum:<address>@<chain>?value=…` families and their altcoin siblings). The OS — not
+  // the browser — resolves them and opens the reader's locally-installed wallet app pre-filled
+  // with an ATTACKER-CHOSEN recipient address and amount, a one-click payment-phishing /
+  // fund-theft prompt outside the page sandbox with no script. This is an especially relevant
+  // vector for a crypto glossary: an injected `bitcoin:1AttackerAddr?amount=1` link reads as a
+  // normal "pay" button. Same native-app-handler class as the blocked tg:/skype: schemes. A
+  // real payment URI always carries a target (an address) immediately after the colon, so the
+  // (?=non-space) lookahead — the shell:/skype: precedent — blocks `bitcoin:<addr>` while a
+  // prose definition like "Bitcoin: a proof-of-work cryptocurrency" (colon then a space) is
+  // never affected; the scheme names never occur as URIs in glossary prose.
+  { pattern: /\b(?:bitcoin|bitcoincash|ethereum|litecoin|dogecoin|monero|zcash)\s*:(?=[^\s"'<>)])/i, reason: 'cryptocurrency wallet payment-request URL schemes are not allowed in article content' },
   // shell: is the Windows Explorer protocol handler: shell:startup opens the user's
   // Startup folder (a drop-a-payload persistence path), shell:::{CLSID} opens special
   // folders / Control-Panel applets, and the OS — not the browser — resolves it, with
@@ -849,6 +862,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:zoommtg|zoomus|msteams)\s*:/i, reason: 'video-conferencing client protocol-handler URLs are not allowed in article content' },
   { pattern: /\b(?:skype|callto|facetime-audio|facetime|sgnl)\s*:(?=[^\s"'<>)])/i, reason: 'communication-app launch URL schemes are not allowed in article content' },
   { pattern: /(?:tg|whatsapp|discord|slack)\s*:\/\//i, reason: 'messaging-app deep-link URL schemes are not allowed in article content' },
+  { pattern: /\b(?:bitcoin|bitcoincash|ethereum|litecoin|dogecoin|monero|zcash)\s*:(?=[^\s"'<>)])/i, reason: 'cryptocurrency wallet payment-request URL schemes are not allowed in article content' },
   { pattern: /\bshell\s*:(?=[^\s"'<>)])/i, reason: 'shell: protocol-handler URLs are not allowed in article content' },
   { pattern: /\bms-cxh(?:-full)?\s*:/i, reason: 'Windows CloudExperienceHost protocol-handler URLs are not allowed in article content' },
   { pattern: /data\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
@@ -886,6 +900,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:zoommtg|zoomus|msteams)\s*:/i,
   /\b(?:skype|callto|facetime-audio|facetime|sgnl)\s*:(?=[^\s"'<>)])/i,
   /(?:tg|whatsapp|discord|slack)\s*:\/\//i,
+  /\b(?:bitcoin|bitcoincash|ethereum|litecoin|dogecoin|monero|zcash)\s*:(?=[^\s"'<>)])/i,
   /\bshell\s*:(?=[^\s"'<>)])/i,
   /\bms-cxh(?:-full)?\s*:/i,
   /data\s*:\s*text\/html/i,
