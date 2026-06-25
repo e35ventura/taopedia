@@ -12,14 +12,21 @@
 
 import { compareTitles } from '../src/lib/title-sort.js';
 
-export function buildStatistics({ pages, historyForSlug, getPageSlug }) {
+export function buildStatistics({ pages, historyForSlug, getPageSlug, categoriesIndex } = {}) {
   let totalWords = 0;
   let totalRevisions = 0;
   let newestDate = '';
   let oldestDate = '';
   const topicCounts = new Map();
 
-  for (const page of pages) {
+  if (categoriesIndex) {
+    for (const [name, slugs] of Object.entries(categoriesIndex)) {
+      const count = Array.isArray(slugs) ? slugs.length : 0;
+      if (count > 0) topicCounts.set(name, count);
+    }
+  }
+
+  for (const page of pages ?? []) {
     const body = String(page?.body ?? '').trim();
     if (body) {
       totalWords += body.split(/\s+/).filter(Boolean).length;
@@ -33,8 +40,10 @@ export function buildStatistics({ pages, historyForSlug, getPageSlug }) {
       if (!newestDate || date > newestDate) newestDate = date;
       if (!oldestDate || date < oldestDate) oldestDate = date;
     }
-    for (const topic of page?.data?.categories ?? []) {
-      topicCounts.set(topic, (topicCounts.get(topic) ?? 0) + 1);
+    if (!categoriesIndex) {
+      for (const topic of page?.data?.categories ?? []) {
+        topicCounts.set(topic, (topicCounts.get(topic) ?? 0) + 1);
+      }
     }
   }
 
