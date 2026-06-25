@@ -212,6 +212,24 @@ assert.equal(
 );
 
 assert.equal(
+  isUnsafeImageUrl('data:application/xml,<?xml-stylesheet href="evil.xsl"?><r/>'),
+  true,
+  'XML data image URLs should be classified as unsafe',
+);
+
+assert.equal(
+  isUnsafeImageUrl('data:text/xml;base64,PHI+PC9yPg=='),
+  true,
+  'base64 XML data image URLs should be classified as unsafe',
+);
+
+assert.equal(
+  resolveArticleImageSource('local_asset', 'data:application/xml,<?xml-stylesheet href="evil.xsl"?><r/>', imageAssets),
+  undefined,
+  'XML data URLs from infobox JSON should not render as image sources',
+);
+
+assert.equal(
   isUnsafeImageUrl('data:image/png;base64,AA=='),
   false,
   'benign raster data image URLs should not be classified as unsafe schemes',
