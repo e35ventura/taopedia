@@ -206,7 +206,10 @@ accepts('A plaintext export or an XMP metadata block is described here only as p
 // reverse LTR runs, so <bdo> is a distinct primitive that must be blocked.
 rejects('Intro.\n\n<bdo dir="rtl">moc.elpmaxe-live//:sptth</bdo>', 'plain <bdo>');
 rejects('Intro.\n\n<  bdo   dir="rtl">x</bdo>', 'spaced <bdo>');
+rejects('Intro.\n\n<bdi>wallet address</bdi>', 'plain <bdi>');
+rejects('Intro.\n\n<  bdi  >x</bdi>', 'spaced <bdi>');
 accepts('Bidirectional override and the bdo element are described here only as prose.', 'benign bdo prose');
+accepts('Bidirectional isolation and the bdi element are described here only as prose.', 'benign bdi prose');
 
 // <meter>/<progress> render native gauge/progress-bar widgets — an injected one
 // is a content-spoofing surface (a fake "scan 80%" bar or risk gauge) a glossary

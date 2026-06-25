@@ -231,7 +231,7 @@ const unsafeContentPatterns = [
   // string, with no script, handler, or flagged scheme. The `dir` attribute on an
   // ordinary element only sets base paragraph direction and does NOT reverse LTR
   // runs, so <bdo> is a distinct primitive; a glossary's prose never needs it.
-  { pattern: /<\s*bdo\b/i, reason: 'bidirectional override (bdo) elements are not allowed in article content' },
+  { pattern: /<\s*(bdo|bdi)\b/i, reason: 'bidirectional override (bdo) elements are not allowed in article content' },
   // <meter>/<progress> render native gauge and progress-bar widgets in every
   // current browser. An injected one in article prose is a content-spoofing
   // surface — e.g. a fake "wallet scan 80%" progress bar or a coloured risk
