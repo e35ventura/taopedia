@@ -756,6 +756,16 @@ const unsafeContentPatterns = [
   // Apple's video call" (a name followed by a colon and a space) is never affected — the
   // same shell: precedent.
   { pattern: /\b(?:skype|callto|facetime-audio|facetime|sgnl)\s*:(?=[^\s"'<>)])/i, reason: 'communication-app launch URL schemes are not allowed in article content' },
+  // tg://, whatsapp://, discord://, and slack:// are messaging-app deep-link protocol
+  // handlers the OS resolves to launch the locally-installed client — not the browser.
+  // A clicked tg://resolve?domain=…, whatsapp://send?phone=…, discord://-/… or
+  // slack://open?team=… deep-links the native app (joining an attacker-chosen channel,
+  // opening a DM to an attacker-controlled contact, or driving the client) outside the
+  // page sandbox with no script — the same native app-launch class as the blocked
+  // skype:/sgnl:/zoommtg: handlers. The //-authority form is required so prose like
+  // "Slack: a team chat app" or "a Discord server" (a name then a colon/word, no ://) is
+  // never affected; the scheme names never occur as URLs in glossary prose.
+  { pattern: /\b(?:tg|whatsapp|discord|slack)\s*:\/\//i, reason: 'messaging-app deep-link URL schemes are not allowed in article content' },
   // shell: is the Windows Explorer protocol handler: shell:startup opens the user's
   // Startup folder (a drop-a-payload persistence path), shell:::{CLSID} opens special
   // folders / Control-Panel applets, and the OS — not the browser — resolves it, with
@@ -820,6 +830,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /intent\s*:[^\s"'<>)]*#\s*Intent\b/i, reason: 'intent: app-launch URLs are not allowed in article content' },
   { pattern: /(?:zoommtg|zoomus|msteams)\s*:/i, reason: 'video-conferencing client protocol-handler URLs are not allowed in article content' },
   { pattern: /\b(?:skype|callto|facetime-audio|facetime|sgnl)\s*:(?=[^\s"'<>)])/i, reason: 'communication-app launch URL schemes are not allowed in article content' },
+  { pattern: /(?:tg|whatsapp|discord|slack)\s*:\/\//i, reason: 'messaging-app deep-link URL schemes are not allowed in article content' },
   { pattern: /\bshell\s*:(?=[^\s"'<>)])/i, reason: 'shell: protocol-handler URLs are not allowed in article content' },
   { pattern: /\bms-cxh(?:-full)?\s*:/i, reason: 'Windows CloudExperienceHost protocol-handler URLs are not allowed in article content' },
   { pattern: /data\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
@@ -854,6 +865,7 @@ const infoboxRowValueSchemePatterns = [
   /intent\s*:[^\s"'<>)]*#\s*Intent\b/i,
   /(?:zoommtg|zoomus|msteams)\s*:/i,
   /\b(?:skype|callto|facetime-audio|facetime|sgnl)\s*:(?=[^\s"'<>)])/i,
+  /(?:tg|whatsapp|discord|slack)\s*:\/\//i,
   /\bshell\s*:(?=[^\s"'<>)])/i,
   /\bms-cxh(?:-full)?\s*:/i,
   /data\s*:\s*text\/html/i,
