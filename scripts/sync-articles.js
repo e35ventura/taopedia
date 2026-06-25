@@ -644,6 +644,14 @@ const unsafeContentPatterns = [
   // class (OneNote's handler has a documented history of malware abuse). A glossary's
   // prose never links to a local OneNote app, and the scheme name never occurs in prose.
   { pattern: /\bonenote\s*:/i, reason: 'onenote: application protocol-handler URLs are not allowed in article content' },
+  // sip: sips: xmpp: h323: are real-time-communication URL schemes the OS hands to a
+  // native softphone / chat client: a clicked sip:victim@host or xmpp:victim@host dials
+  // or messages an attacker-controlled address in a desktop VoIP/Jabber client outside
+  // the page sandbox with no script — the same native client-launch class as the blocked
+  // callto:/skype: schemes. The (?=non-space) lookahead blocks a real scheme:target URL
+  // while a prose definition like "SIP: Session Initiation Protocol" (a name followed by
+  // a colon and a space) is never affected — the same shell: precedent.
+  { pattern: /\b(?:sips|sip|xmpp|h323)\s*:(?=[^\s"'<>)])/i, reason: 'real-time-communication URL schemes are not allowed in article content' },
   // ms-settings:/ms-windows-store:/ms-gamingoverlay: are three more native Windows app
   // protocol handlers the OS — not the browser — resolves when a link is clicked, the
   // same out-of-sandbox launch class as the blocked onenote:/ms-cxh: handlers.
@@ -843,6 +851,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /ms-(?:word|excel|powerpoint|visio|access|project|publisher|infopath|spd)\s*:/i, reason: 'Microsoft Office document protocol-handler URLs are not allowed in article content' },
   { pattern: /ms-settings\s*:/i, reason: 'Windows Settings protocol-handler URLs are not allowed in article content' },
   { pattern: /onenote\s*:/i, reason: 'onenote: application protocol-handler URLs are not allowed in article content' },
+  { pattern: /\b(?:sips|sip|xmpp|h323)\s*:(?=[^\s"'<>)])/i, reason: 'real-time-communication URL schemes are not allowed in article content' },
   { pattern: /ms-(?:settings|windows-store|gamingoverlay)\s*:/i, reason: 'Windows app protocol-handler URLs are not allowed in article content' },
   { pattern: /smb\s*:\/\//i, reason: 'smb: file-share URLs are not allowed in article content' },
   { pattern: /afp\s*:\/\//i, reason: 'afp: file-share URLs are not allowed in article content' },
@@ -881,6 +890,7 @@ const infoboxRowValueSchemePatterns = [
   /ms-(?:word|excel|powerpoint|visio|access|project|publisher|infopath|spd)\s*:/i,
   /ms-settings\s*:/i,
   /onenote\s*:/i,
+  /\b(?:sips|sip|xmpp|h323)\s*:(?=[^\s"'<>)])/i,
   /ms-(?:settings|windows-store|gamingoverlay)\s*:/i,
   /smb\s*:\/\//i,
   /afp\s*:\/\//i,
