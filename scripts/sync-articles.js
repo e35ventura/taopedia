@@ -303,6 +303,17 @@ const unsafeContentPatterns = [
   // otherwise evades the element rule. A glossary's prose is plain text and never
   // emits raw MathML.
   { pattern: /<\s*(mrow|mi|mo|mn|ms|mtext|mspace|mfrac|msqrt|mroot|mstyle|merror|mpadded|mphantom|mfenced|menclose|msub|msup|msubsup|munder|mover|munderover|mmultiscripts|mtable|mtr|mtd)\b/i, reason: 'MathML presentation elements are not allowed in article content' },
+  // The remaining MathML presentation elements not covered by the block above:
+  // the multiscript companions <mprescripts> (separates pre- from post-scripts in
+  // <mmultiscripts>) and <maligngroup>/<malignmark>'s grouping partner;
+  // <mlabeledtr> (a labeled <mtable> row); and the elementary-math layout family
+  // <mstack>/<mlongdiv>/<msgroup>/<msrow>/<mscarries>/<mscarry>/<msline> that lays
+  // out stacked addition / long-division notation. Like the presentation set above
+  // they render math notation only inside a <math> root (already blocked); block
+  // them standalone too so the MathML presentation surface is fully closed even if
+  // the <math> root that hosts them is split off. A glossary's prose is plain text
+  // and never emits raw MathML.
+  { pattern: /<\s*(mprescripts|maligngroup|mlabeledtr|mstack|mlongdiv|msgroup|msrow|mscarries|mscarry|msline)\b/i, reason: 'MathML elementary-math and alignment presentation elements are not allowed in article content' },
   // <image> (SVG) and <feImage> (SVG filter primitive) load an external resource
   // via href/xlink:href. Because they are SVG-namespaced -- not the HTML <img>
   // element -- they bypass the img-src and URL-scheme checks the sanitizer applies
