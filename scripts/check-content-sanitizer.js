@@ -506,6 +506,11 @@ accepts('The Microsoft Store and the Settings app are described here only as pro
 rejects('See [x](smb://attacker.example/share).', 'plain smb:// file-share URL');
 rejects('See [x](s&#109;b://attacker.example/share).', 'entity-obfuscated smb:// URL');
 accepts('The SMB protocol and Server Message Block are described here only as prose.', 'benign "SMB" prose is not the smb:// scheme');
+// afp:// is the macOS Apple Filing Protocol file-share scheme, the macOS sibling of
+// smb:// — a clicked afp:// mounts the attacker's share in Finder. // form keeps prose.
+rejects('See [x](afp://attacker.example/share).', 'plain afp:// file-share URL');
+rejects('See [x](a&#102;p://attacker.example/share).', 'entity-obfuscated afp:// URL');
+accepts('The AFP protocol and Apple Filing Protocol are described here only as prose.', 'benign "AFP" prose is not the afp:// scheme');
 // intent: is the Android app-launch scheme — intent:[//host/path]#Intent;…;end hands the
 // URL to a native app. Per Chrome's syntax an optional host/path may sit between the
 // scheme and the required #Intent marker, so all of these forms are rejected; the
