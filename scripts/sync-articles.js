@@ -782,6 +782,18 @@ const unsafeContentPatterns = [
   // "Slack: a team chat app" or "a Discord server" (a name then a colon/word, no ://) is
   // never affected; the scheme names never occur as URLs in glossary prose.
   { pattern: /\b(?:tg|whatsapp|discord|slack)\s*:\/\//i, reason: 'messaging-app deep-link URL schemes are not allowed in article content' },
+  // chrome:// chrome-extension:// moz-extension:// edge:// brave:// opera:// vivaldi://
+  // resource:// and view-source: are privileged browser-internal URL schemes the browser
+  // resolves to a context article links must never reach. chrome://settings / edge://settings
+  // / brave://settings / opera:// / vivaldi:// navigate the reader to a privileged
+  // browser-internal page (a UI-spoof / settings social-engineering surface), chrome-extension://
+  // and moz-extension:// load a resource from an installed extension's origin, resource:// reads
+  // a Firefox-internal chrome resource, and view-source:https://internal/ renders the raw source
+  // of an arbitrary (e.g. intranet) page. None is an http(s) link, the same non-http /
+  // out-of-scope navigation class as the blocked about:/data: and app-handler schemes. The
+  // //-authority form (and the hyphenated "view-source" token, which never occurs in prose)
+  // keeps benign words like "the cutting edge" or "a browser extension" unaffected.
+  { pattern: /\b(?:chrome|chrome-extension|moz-extension|edge|brave|opera|vivaldi|resource)\s*:\/\/|\bview-source\s*:/i, reason: 'privileged browser-internal URL schemes are not allowed in article content' },
   // shell: is the Windows Explorer protocol handler: shell:startup opens the user's
   // Startup folder (a drop-a-payload persistence path), shell:::{CLSID} opens special
   // folders / Control-Panel applets, and the OS — not the browser — resolves it, with
@@ -849,6 +861,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:zoommtg|zoomus|msteams)\s*:/i, reason: 'video-conferencing client protocol-handler URLs are not allowed in article content' },
   { pattern: /\b(?:skype|callto|facetime-audio|facetime|sgnl)\s*:(?=[^\s"'<>)])/i, reason: 'communication-app launch URL schemes are not allowed in article content' },
   { pattern: /(?:tg|whatsapp|discord|slack)\s*:\/\//i, reason: 'messaging-app deep-link URL schemes are not allowed in article content' },
+  { pattern: /(?:chrome|chrome-extension|moz-extension|edge|brave|opera|vivaldi|resource)\s*:\/\/|view-source\s*:/i, reason: 'privileged browser-internal URL schemes are not allowed in article content' },
   { pattern: /\bshell\s*:(?=[^\s"'<>)])/i, reason: 'shell: protocol-handler URLs are not allowed in article content' },
   { pattern: /\bms-cxh(?:-full)?\s*:/i, reason: 'Windows CloudExperienceHost protocol-handler URLs are not allowed in article content' },
   { pattern: /data\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
@@ -886,6 +899,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:zoommtg|zoomus|msteams)\s*:/i,
   /\b(?:skype|callto|facetime-audio|facetime|sgnl)\s*:(?=[^\s"'<>)])/i,
   /(?:tg|whatsapp|discord|slack)\s*:\/\//i,
+  /(?:chrome|chrome-extension|moz-extension|edge|brave|opera|vivaldi|resource)\s*:\/\/|view-source\s*:/i,
   /\bshell\s*:(?=[^\s"'<>)])/i,
   /\bms-cxh(?:-full)?\s*:/i,
   /data\s*:\s*text\/html/i,

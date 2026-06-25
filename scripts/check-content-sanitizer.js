@@ -505,6 +505,23 @@ rejects('See [x](disc&#111;rd://-/channels/123).', 'entity-obfuscated discord://
 infoboxRowRejects('tg://resolve?domain=evilchannel', 'tg:// rejected in an infobox row value');
 infoboxRowRejects('slack://open?team=T0', 'slack:// rejected in an infobox row value');
 accepts('Slack: a team chat app, Discord servers, and Telegram channels are described here only as prose.', 'benign Slack:/Discord/Telegram prose (no // authority)');
+// chrome:// edge:// brave:// chrome-extension:// moz-extension:// resource:// view-source: are
+// privileged browser-internal schemes article links must never reach (settings UI-spoof,
+// extension-origin resource load, raw source view of an intranet page). The // authority and
+// the hyphenated "view-source" token keep benign words ("cutting edge", "browser extension") safe.
+rejects('See [x](chrome://settings/passwords).', 'plain chrome:// internal page');
+rejects('See [x](edge://settings/privacy).', 'plain edge:// internal page');
+rejects('See [x](brave://settings/).', 'plain brave:// internal page');
+rejects('See [x](chrome-extension://abcdefghijklmnop/options.html).', 'plain chrome-extension:// resource');
+rejects('See [x](moz-extension://1111-2222/panel.html).', 'plain moz-extension:// resource');
+rejects('See [x](resource://gre/modules/Foo.jsm).', 'plain resource:// Firefox-internal');
+rejects('See [x](view-source:https://intranet.example/secret).', 'plain view-source: raw source view');
+// Entity-obfuscated: the literal scan misses "chr&#111;me://" but the decoded re-scan catches it.
+rejects('See [x](chr&#111;me://settings).', 'entity-obfuscated chrome:// (obfuscated scan path)');
+// Infobox-row-value scan path.
+infoboxRowRejects('chrome://settings/passwords', 'chrome:// rejected in an infobox row value');
+infoboxRowRejects('view-source:https://intranet.example/secret', 'view-source: rejected in an infobox row value');
+accepts('A cutting edge: design, a browser extension, and the Opera browser are described here only as prose.', 'benign "edge"/"extension"/"Opera" prose words (no // authority)');
 // search-ms: opens Explorer search on a remote WebDAV/SMB share (malware-delivery
 // chain), and ms-officecmd: invokes Office deep-link commands (argument-injection
 // RCE) — two more native Windows handlers blocked like ms-msdt:/javascript:.
