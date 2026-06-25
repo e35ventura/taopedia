@@ -710,6 +710,18 @@ const quoteSlashDelimitedInertAttrPattern = /<[^>]*["'`]\/inert(?=[\s>/=])/i;
 const isAttrPattern = /<\s*[a-z][\w:-]*[^>]*\sis\s*=/i;
 const nonSpaceDelimitedIsAttrPattern = /<\s*[a-z][\w:-]*[^>]*[/"'`]is\s*=/i;
 
+// xml:base= overrides the base URI used to resolve every RELATIVE url (href/src) in
+// the element's subtree, so `<svg xml:base="https://evil/">…<image href="a.png">` (or
+// any foreign-content subtree) resolves a.png against the attacker's origin instead
+// of the site — a relative-URL / resource-redirection hijack in exactly the SVG /
+// MathML / XML namespaces whose elements the sanitizer already blocks. It is a global
+// attribute that rides on an allowed element, the same inert-in-plain-HTML but
+// dangerous-in-a-parsing-context class as the blocked is=/slot= primitives. A
+// glossary's prose Markdown never emits it. Tag-anchored and run against
+// emptiedAttributeContent so a quoted value mentioning "xml:base" cannot trip it.
+const xmlBaseAttrPattern = /<\s*[a-z][\w:-]*[^>]*\sxml:base\s*=/i;
+const nonSpaceDelimitedXmlBaseAttrPattern = /<\s*[a-z][\w:-]*[^>]*[/"'`]xml:base\s*=/i;
+
 // aria-label=/aria-labelledby= override an allowed element's accessible name.
 // On links and images this can make screen-reader output differ from the visible
 // text or destination (e.g. a visible "claim TAO" link announced as "official
@@ -1711,6 +1723,13 @@ export function validateArticleContent(slug, content) {
     || nonSpaceDelimitedIsAttrPattern.test(emptiedAttributeContent)
   ) {
     throw new Error(`Unsafe article content in "${slug}": is attributes are not allowed in article content`);
+  }
+
+  if (
+    xmlBaseAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedXmlBaseAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(`Unsafe article content in "${slug}": xml:base attributes are not allowed in article content`);
   }
 
   if (
