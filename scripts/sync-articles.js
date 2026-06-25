@@ -277,6 +277,17 @@ const unsafeContentPatterns = [
   // the other svg/math sub-elements, so the MathML annotation / foreign-content path
   // stays closed even if the <math> root that hosts them is split off.
   { pattern: /<\s*(semantics|annotation)\b/i, reason: 'MathML semantics and annotation sub-elements are not allowed in article content' },
+  // The MathML PRESENTATION elements (token <mi>/<mo>/<mn>/<ms>/<mtext>/<mspace>,
+  // layout <mrow>/<mfrac>/<msqrt>/<mroot>/<mstyle>/<merror>/<mpadded>/<mphantom>/
+  // <mfenced>/<menclose>, script <msub>/<msup>/<msubsup>/<munder>/<mover>/
+  // <munderover>/<mmultiscripts>, and table <mtable>/<mtr>/<mtd>) render
+  // mathematical notation and are only meaningful inside a <math> root, which is
+  // already blocked. Block them standalone too, like the other MathML sub-elements
+  // (annotation-xml, maction, semantics/annotation, mglyph), so the MathML surface
+  // is fully closed even if the <math> root that hosts them is split off or
+  // otherwise evades the element rule. A glossary's prose is plain text and never
+  // emits raw MathML.
+  { pattern: /<\s*(mrow|mi|mo|mn|ms|mtext|mspace|mfrac|msqrt|mroot|mstyle|merror|mpadded|mphantom|mfenced|menclose|msub|msup|msubsup|munder|mover|munderover|mmultiscripts|mtable|mtr|mtd)\b/i, reason: 'MathML presentation elements are not allowed in article content' },
   // <image> (SVG) and <feImage> (SVG filter primitive) load an external resource
   // via href/xlink:href. Because they are SVG-namespaced -- not the HTML <img>
   // element -- they bypass the img-src and URL-scheme checks the sanitizer applies

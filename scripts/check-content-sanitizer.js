@@ -658,6 +658,18 @@ rejects('Intro.\n\n<annotation encoding="application/xhtml+xml"><p>x</p></annota
 rejects('Intro.\n\n<  semantics  >x</semantics>', 'spaced <semantics> element');
 accepts('The semantics of the protocol and an annotation note are described as prose.', 'benign semantics/annotation prose words');
 accepts('<semantic-version>1.0</semantic-version>', 'benign semantic-version is not <semantics>');
+
+// MathML presentation elements (token/layout/script/table) render math notation
+// only inside <math> (blocked); block them standalone like the other math
+// sub-elements so the surface is closed even if the <math> root is split off.
+rejects('Intro.\n\n<mrow><mi>x</mi><mo>+</mo><mn>1</mn></mrow>', 'plain MathML <mrow>/<mi>/<mo>/<mn>');
+rejects('Intro.\n\n<mfrac><mn>1</mn><mn>2</mn></mfrac>', 'plain <mfrac> element');
+rejects('Intro.\n\n<msup><mi>x</mi><mn>2</mn></msup>', 'plain <msup> element');
+rejects('Intro.\n\n<mtable><mtr><mtd>x</mtd></mtr></mtable>', 'plain <mtable>/<mtr>/<mtd>');
+rejects('Intro.\n\n<  mtext  >hello</mtext>', 'spaced <mtext> element');
+accepts('The math operator mo and the number mn are described here only as prose.', 'benign mo/mn prose words');
+accepts('<motion>x</motion>', 'benign <motion> is not <mo>');
+accepts('<mistake>x</mistake>', 'benign <mistake> is not <mi>');
 // <maction> is the MathML interactive element (actiontype toggle/statusline/tooltip)
 // — an unwanted interactive surface like <dialog>/<details>.
 rejects('Intro.\n\n<maction actiontype="toggle"><mtext>click me</mtext></maction>', 'plain <maction> element');
