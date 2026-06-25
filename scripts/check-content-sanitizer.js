@@ -712,6 +712,18 @@ rejects('Intro.\n\n<mtable><mtr><mtd>x</mtd></mtr></mtable>', 'plain <mtable>/<m
 rejects('Intro.\n\n<  mtext  >hello</mtext>', 'spaced <mtext> element');
 accepts('The math operator mo and the number mn are described here only as prose.', 'benign mo/mn prose words');
 accepts('<motion>x</motion>', 'benign <motion> is not <mo>');
+// Remaining MathML presentation elements: multiscript/alignment companions
+// (<mprescripts>/<maligngroup>), the labeled table row <mlabeledtr>, and the
+// elementary-math layout family (<mstack>/<mlongdiv>/<msgroup>/<msrow>/<mscarries>/
+// <mscarry>/<msline>) — blocked standalone like the presentation set above.
+rejects('Intro.\n\n<mmultiscripts><mi>x</mi><mprescripts/></mmultiscripts>', 'plain <mprescripts> element');
+rejects('Intro.\n\n<mtable><mlabeledtr><mtd>x</mtd></mlabeledtr></mtable>', 'plain <mlabeledtr> element');
+rejects('Intro.\n\n<mstack><msrow><mn>1</mn></msrow></mstack>', 'plain <mstack>/<msrow> element');
+rejects('Intro.\n\n<mlongdiv><mscarries><mscarry>1</mscarry></mscarries></mlongdiv>', 'plain <mlongdiv>/<mscarries> element');
+rejects('Intro.\n\n<  maligngroup  />', 'spaced <maligngroup> element');
+rejects('Intro.\n\n<msgroup><msline/></msgroup>', 'plain <msgroup>/<msline> element');
+accepts('The mscarry total and the msline rule are described here only as prose.', 'benign mscarry/msline prose words');
+accepts('<mstacker-tool>not an mstack element</mstacker-tool>', 'benign mstacker substring is not <mstack>');
 accepts('<mistake>x</mistake>', 'benign <mistake> is not <mi>');
 // <maction> is the MathML interactive element (actiontype toggle/statusline/tooltip)
 // — an unwanted interactive surface like <dialog>/<details>.
