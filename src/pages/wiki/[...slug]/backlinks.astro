@@ -6,41 +6,41 @@ import { compareTitles } from '../../../lib/title-sort.js';
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
+  // Inbound links are computed at build time by scripts/build-linkgraph.js and
+  // written to public/data/backlinks.json. Globbed inside getStaticPaths because
+  // Astro runs this function in isolation from the module scope.
+  const backlinksModules = import.meta.glob('../../../../public/data/backlinks.json', { eager: true }) as Record<
+    string,
+    { default?: Record<string, Array<{ from: string; fromTitle?: string }>> }
+  >;
+  const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
+
+  // Resolve each linking slug to its current title from the published collection.
+  // Using the live title (not the snapshot stored in backlinks.json) keeps labels
+  // fresh, and the join drops links from any source that is no longer a published
+  // article — mirroring the orphan-skipping join in Special:RecentChanges.
+  const titleBySlug: Record<string, string> = {};
+  for (const p of pages) titleBySlug[getPageSlug(p)] = p.data.title;
+
   return pages.map((page) => {
     const slug = getPageSlug(page);
+    // Precomputed once per route in getStaticPaths — the page body used to re-run
+    // getCollection('pages') and rebuild titleBySlug on every article page just
+    // to derive this article's sorted backlink list (O(N) per page). Mirrors
+    // backlinks.json (#1042) and the category-page getStaticPaths fix (#1206).
+    const backlinks = (backlinksData[slug] ?? [])
+      .filter((entry) => titleBySlug[entry.from])
+      .map((entry) => ({ slug: entry.from, title: titleBySlug[entry.from] }))
+      .sort((a, b) => compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug));
+
     return {
       params: { slug },
-      props: { page, slug },
+      props: { page, slug, backlinks },
     };
   });
 }
 
-const { page, slug } = Astro.props;
-
-// MediaWiki's Special:WhatLinksHere for one article: the pages that link to it.
-// Inbound links are computed at build time by scripts/build-linkgraph.js and
-// written to public/data/backlinks.json, keyed by target slug — the same graph
-// that powers broken-link detection on the article page. Loaded via glob so a
-// missing file (e.g. a `dev` run before the link graph is built) degrades to an
-// empty list instead of failing the build.
-const backlinksModules = import.meta.glob('../../../../public/data/backlinks.json', { eager: true }) as Record<
-  string,
-  { default?: Record<string, Array<{ from: string; fromTitle?: string }>> }
->;
-const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
-
-// Resolve each linking slug to its current title from the published collection.
-// Using the live title (not the snapshot stored in backlinks.json) keeps labels
-// fresh, and the join drops links from any source that is no longer a published
-// article — mirroring the orphan-skipping join in Special:RecentChanges.
-const pages = await getCollection('pages');
-const titleBySlug: Record<string, string> = {};
-for (const p of pages) titleBySlug[getPageSlug(p)] = p.data.title;
-
-const backlinks = (backlinksData[slug] ?? [])
-  .filter((entry) => titleBySlug[entry.from])
-  .map((entry) => ({ slug: entry.from, title: titleBySlug[entry.from] }))
-  .sort((a, b) => compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug));
+const { page, slug, backlinks } = Astro.props;
 
 const articleUrl = `/wiki/${slug}/`;
 const historyUrl = `/wiki/${slug}/history/`;
