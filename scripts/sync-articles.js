@@ -604,6 +604,12 @@ const unsafeContentPatterns = [
   // same non-http class as the blocked schemes above. Article links are limited to
   // http(s). The // authority form is required so prose is never affected.
   { pattern: /\b(?:gopher|nntp|ircs|irc)\s*:\/\//i, reason: 'legacy internet-protocol URL schemes are not allowed in article content' },
+  // ftp:// ftps:// tftp:// are file-transfer URL schemes that open a non-http connection to
+  // a remote host to upload or download a file — not an http(s) resource. Article links are
+  // limited to http(s), so these are never a valid article link; ftp:// is also a classic
+  // server-side-request (SSRF) target. Block them as non-http schemes like the sftp:/gopher:
+  // schemes. The // authority form is required so prose about the "FTP protocol" is unaffected.
+  { pattern: /\b(?:ftps|ftp|tftp)\s*:\/\//i, reason: 'file-transfer URL schemes are not allowed in article content' },
   // search-ms:/ms-officecmd: are two more native Windows protocol handlers a clicked
   // link hands to the OS instead of the browser, with no script. search-ms: opens
   // Windows Explorer search pointed at a remote WebDAV/SMB share so attacker-hosted
@@ -858,6 +864,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /vbscript\s*:/i, reason: 'vbscript: URLs are not allowed in article content' },
   { pattern: /(?:blob|filesystem)\s*:/i, reason: 'object-URL schemes are not allowed in article content' },
   { pattern: /(?:gopher|nntp|ircs|irc)\s*:\/\//i, reason: 'legacy internet-protocol URL schemes are not allowed in article content' },
+  { pattern: /(?:ftps|ftp|tftp)\s*:\/\//i, reason: 'file-transfer URL schemes are not allowed in article content' },
   { pattern: /(?:search-ms|ms-officecmd)\s*:/i, reason: 'Windows protocol-handler URLs are not allowed in article content' },
   { pattern: /ms-(?:msdt|appinstaller)\s*:/i, reason: 'Windows protocol-handler URLs are not allowed in article content' },
   { pattern: /ms-(?:word|excel|powerpoint|visio|access|project|publisher|infopath|spd)\s*:/i, reason: 'Microsoft Office document protocol-handler URLs are not allowed in article content' },
@@ -898,6 +905,7 @@ const infoboxRowValueSchemePatterns = [
   /vbscript\s*:/i,
   /(?:blob|filesystem)\s*:/i,
   /(?:gopher|nntp|ircs|irc)\s*:\/\//i,
+  /(?:ftps|ftp|tftp)\s*:\/\//i,
   /(?:search-ms|ms-officecmd)\s*:/i,
   /ms-(?:msdt|appinstaller)\s*:/i,
   /ms-(?:word|excel|powerpoint|visio|access|project|publisher|infopath|spd)\s*:/i,
