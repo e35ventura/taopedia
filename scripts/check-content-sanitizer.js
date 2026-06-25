@@ -58,6 +58,12 @@ rejects('Intro.\n\n<  label  >Wallet address</label>', 'spaced <label>');
 rejects('Intro.\n\n<label for="wallet">Recovery phrase</label>', 'label with for attribute');
 accepts('A field label in documentation refers to form captions described as prose.', 'benign label prose');
 
+// <keygen> is the obsolete form-associated control in the same active form-control
+// group as input/button/select/optgroup/label/output above.
+rejects('Intro.\n\n<keygen name="key" challenge="x">', 'plain <keygen>');
+rejects('Intro.\n\n<  keygen  keytype="rsa">', 'spaced <keygen>');
+accepts('A keygen step in TLS provisioning is described here only as prose.', 'benign keygen prose');
+
 // The `ping` attribute on an allowed <a> is a no-JS tracking beacon: a click
 // POSTs to the listed URL. It passes every scheme/handler/element check, so it
 // is blocked as its own attribute, like slot= and the form controls above.
