@@ -26,21 +26,11 @@ export const GET: APIRoute = async ({ site }) => {
   const origin = (site ?? new URL('https://taopedia.org')).origin;
   const pages = await getCollection('pages');
   const titleBySlug: Record<string, string> = {};
-  const categoriesBySlug: Record<string, string[]> = {};
-  const summaryBySlug: Record<string, string> = {};
   const pageBySlug: Record<string, (typeof pages)[number]> = {};
-  // The article body's word count — the same figure info.json exposes and the
-  // article-page footer (mw-article-meta data-word-count) renders, computed from
-  // the raw markdown body so a consumer of the ranking can gauge each top page's
-  // article length without a second fetch.
-  const wordCountBySlug: Record<string, number> = {};
   for (const page of pages) {
     const slug = getPageSlug(page);
     titleBySlug[slug] = page.data.title;
-    categoriesBySlug[slug] = page.data.categories ?? [];
-    summaryBySlug[slug] = page.data.summary ?? '';
     pageBySlug[slug] = page;
-    wordCountBySlug[slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
   }
 
   const ranked = buildMostLinkedPages({ backlinks: backlinksData, titleBySlug });
@@ -58,12 +48,24 @@ export const GET: APIRoute = async ({ site }) => {
   // output byte-identical.
   const sectionCountBySlug: Record<string, number> = {};
   const historyBySlug: Record<string, ReturnType<typeof historyForSlug>> = {};
+  // categories/summary/wordCount are only ever read by entry.slug below, for the
+  // handful of ranked pages (buildMostLinkedPages already drops every
+  // zero-inbound article) — not the full ~350-article collection. Previously
+  // copied/tokenized for every published article up front; gated into this same
+  // ranked-pages-only loop that already scopes sectionCount, the same
+  // compute-only-for-feed-members pattern #1213 / #1232 use for recentchanges.json.
+  const categoriesBySlug: Record<string, string[]> = {};
+  const summaryBySlug: Record<string, string> = {};
+  const wordCountBySlug: Record<string, number> = {};
   for (const entry of ranked) {
     historyBySlug[entry.slug] = historyForSlug(entry.slug);
     const page = pageBySlug[entry.slug];
     if (!page) continue;
     const { headings } = await render(page);
     sectionCountBySlug[entry.slug] = getArticleToc(headings).length;
+    categoriesBySlug[entry.slug] = page.data.categories ?? [];
+    summaryBySlug[entry.slug] = page.data.summary ?? '';
+    wordCountBySlug[entry.slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
   }
 
   const body = JSON.stringify(
