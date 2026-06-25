@@ -668,14 +668,16 @@ const unsafeContentPatterns = [
   // sandbox with no script. Same native protocol-handler class as the blocked
   // ms-*/onenote: handlers; the editor scheme names never occur in glossary prose.
   { pattern: /\b(?:vscode-insiders|vscodium|vscode)\s*:/i, reason: 'code-editor protocol-handler URLs are not allowed in article content' },
-  // rdp:// vnc:// telnet:// ssh:// hand the URL's host to a native remote-session
+  // rdp:// vnc:// telnet:// ssh:// sftp:// hand the URL's host to a native remote-session
   // client: a clicked rdp://attacker-host or telnet://internal-host opens an OS
   // client outside the page sandbox with no script — the same native protocol-handler
   // class as the ms-*/shell: schemes above, and article links are limited to http(s)
   // so these are never valid article links. The // authority form is required so a
   // glossary definition like "SSH: Secure Shell" (a scheme name followed by a colon
-  // in prose, with no //) is never affected.
-  { pattern: /\b(?:rdp|vnc|telnet|ssh)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
+  // in prose, with no //) is never affected. sftp:// is the SSH file-transfer sibling
+  // of ssh://: it launches a registered SFTP client (WinSCP/FileZilla) pointed at the
+  // attacker's host, the same out-of-sandbox client-launch / credential-prompt surface.
+  { pattern: /\b(?:rdp|vnc|telnet|ssh|sftp)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
   // ms-its: and mk:@MSITStore: are the InfoTech Storage System (compiled-HTML-help, .chm)
   // URL schemes: ms-its:<chm>::/page.htm and mk:@MSITStore:<chm>::/page.htm resolve a page
   // out of a local or remote .chm help archive through the native ITSS handler — a
@@ -771,7 +773,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /smb\s*:\/\//i, reason: 'smb: file-share URLs are not allowed in article content' },
   { pattern: /(?:mhtml|jar)\s*:/i, reason: 'archive-extraction URL schemes are not allowed in article content' },
   { pattern: /(?:vscode-insiders|vscodium|vscode)\s*:/i, reason: 'code-editor protocol-handler URLs are not allowed in article content' },
-  { pattern: /(?:rdp|vnc|telnet|ssh)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
+  { pattern: /(?:rdp|vnc|telnet|ssh|sftp)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:ms-its\s*:|mk\s*:\s*@)/i, reason: 'compiled-HTML-help (CHM) URL schemes are not allowed in article content' },
   { pattern: /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i, reason: 'mobile app-store URL schemes are not allowed in article content' },
   { pattern: /(?:steam|com\.epicgames\.launcher)\s*:\/\//i, reason: 'game-launcher protocol-handler URLs are not allowed in article content' },
@@ -800,7 +802,7 @@ const infoboxRowValueSchemePatterns = [
   /smb\s*:\/\//i,
   /(?:mhtml|jar)\s*:/i,
   /(?:vscode-insiders|vscodium|vscode)\s*:/i,
-  /(?:rdp|vnc|telnet|ssh)\s*:\/\//i,
+  /(?:rdp|vnc|telnet|ssh|sftp)\s*:\/\//i,
   /(?:ms-its\s*:|mk\s*:\s*@)/i,
   /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i,
   /(?:steam|com\.epicgames\.launcher)\s*:\/\//i,
