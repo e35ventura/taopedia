@@ -398,6 +398,11 @@ rejects('See [x](gopher://internal-host:6379/_payload).', 'plain gopher:// SSRF 
 rejects('See [x](nntp://news.evil.example/group).', 'plain nntp:// URL');
 rejects('See [x](irc://irc.evil.example/channel).', 'plain irc:// URL');
 rejects('See [x](ircs://irc.evil.example:6697/x).', 'plain ircs:// URL');
+// dict:// is another gopher-class SSRF gadget and finger:// queries a remote finger
+// daemon (user-info disclosure) — the remaining legacy internet protocols. // keeps prose.
+rejects('See [x](dict://internal-host:11211/stats).', 'plain dict:// SSRF URL');
+rejects('See [x](finger://attacker.example/root).', 'plain finger:// URL');
+accepts('The dict command and the finger protocol are described here only as prose.', 'benign dict/finger prose (no // authority)');
 // Entity-obfuscated: literal scan misses "gop&#104;er://" but the decoded re-scan
 // (obfuscatedSchemePatterns) catches gopher:// after &#104; -> h.
 rejects('See [x](gop&#104;er://internal-host:6379/_payload).', 'entity-obfuscated gopher:// (obfuscated scan path)');
