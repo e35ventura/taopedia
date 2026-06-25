@@ -318,6 +318,18 @@ const unsafeContentPatterns = [
   // <math> (already blocked), but block it standalone too so it is caught even if
   // the <math> root that hosts it is split off, like the other svg/math sub-elements.
   { pattern: /<\s*mglyph\b/i, reason: 'MathML mglyph sub-elements are not allowed in article content' },
+  // <malignmark> is the parser twin of the already-blocked <mglyph>: per the HTML
+  // tree-construction "foreign content" rules these two — and only these two — start
+  // tags are processed in the MathML namespace when they appear inside a MathML text
+  // integration point (<mi>/<mo>/<mn>/<ms>/<mtext>), instead of forcing the parser
+  // back into HTML the way every other tag there does. That asymmetry is the engine
+  // of the canonical MathML mutation-XSS ("mXSS") breakout: an injected <malignmark>
+  // keeps the parser in foreign content where namespace confusion smuggles markup
+  // past a naive sanitizer. <mglyph> is blocked standalone for exactly this reason;
+  // block its twin <malignmark> too so the integration-point pair is fully closed
+  // even if the <math> root that hosts it is split off. A glossary's plain-prose
+  // Markdown body never authors raw MathML.
+  { pattern: /<\s*malignmark\b/i, reason: 'MathML malignmark sub-elements are not allowed in article content' },
   // <clipPath>/<mask>/<filter>/<marker>/<symbol> are the SVG paint-server and
   // reference-container sub-elements: <symbol>/<marker> are cloned and referenced by
   // id like <use>, and <clipPath>/<mask>/<filter> are paint servers / effect
