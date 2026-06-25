@@ -759,6 +759,17 @@ rejects('Intro.\n\n<filter><feImage href="x"/></filter>', 'plain <filter> elemen
 rejects('Intro.\n\n<  symbol  >x</symbol>', 'spaced <symbol> element');
 rejects('Intro.\n\n<marker>x</marker>', 'plain <marker> element');
 accepts('A noise filter, a binary mask, and a status marker symbol are described here only as prose.', 'benign filter/mask/marker/symbol prose words');
+// <pattern>/<linearGradient>/<radialGradient> — the remaining SVG paint-server
+// sub-elements applied by id via url(#…), blocked like <symbol>/<marker>; gradients
+// also href-reference another gradient like <use>.
+rejects('Intro.\n\n<pattern id="p"><rect/></pattern>', 'plain <pattern> element');
+rejects('Intro.\n\n<  pattern  id="p">x</pattern>', 'spaced <pattern> element');
+rejects('Intro.\n\n<linearGradient id="g"><stop offset="0"/></linearGradient>', 'plain <linearGradient> element');
+rejects('Intro.\n\n<  linearGradient  href="#g" />', 'spaced <linearGradient> element');
+rejects('Intro.\n\n<radialGradient id="g"><stop offset="1"/></radialGradient>', 'plain <radialGradient> element');
+rejects('Intro.\n\n<  radialGradient  xlink:href="#g" />', 'spaced <radialGradient> element');
+accepts('A design pattern and a color gradient are described here only as prose.', 'benign pattern/gradient prose words');
+accepts('<patterns-list>not a pattern element</patterns-list>', 'benign patterns substring is not <pattern>');
 // <switch> (conditional-content cloaking) and <view> (fragment nav) SVG sub-elements.
 rejects('Intro.\n\n<switch><text systemLanguage="en">A</text></switch>', 'plain <switch> element');
 rejects('Intro.\n\n<view viewBox="0 0 1 1" />', 'plain <view> element');

@@ -327,6 +327,19 @@ const unsafeContentPatterns = [
   // blocks above; block them standalone so they are caught even if the <svg> root is
   // split off. A glossary's plain-prose Markdown body never authors raw SVG.
   { pattern: /<\s*(clipPath|mask|filter|marker|symbol)\b/i, reason: 'SVG paint-server and reference sub-elements are not allowed in article content' },
+  // <pattern>/<linearGradient>/<radialGradient> are the remaining SVG paint-server
+  // sub-elements left after the <clipPath>/<mask>/<filter>/<marker>/<symbol> block
+  // above: each defines a fill/stroke paint server that is applied to another shape
+  // by id via url(#…) (`fill="url(#g)"`), exactly the same reference-by-id model as
+  // the blocked <symbol>/<marker>. <pattern> additionally tiles a referenced subtree
+  // (a clone primitive like <use>), and <linearGradient>/<radialGradient> support
+  // href/xlink:href to inherit stops from another gradient — the same href reference
+  // primitive as the blocked <use>/<textPath>/<tref>. Same SVG sub-element class
+  // (reference / clone / paint-server) as the blocks above; block them standalone so
+  // they are caught even if the <svg> root is split off. A glossary's plain-prose
+  // Markdown body never authors raw SVG, and "pattern"/"gradient" as English words
+  // carry no `<` so benign prose is unaffected.
+  { pattern: /<\s*(pattern|linearGradient|radialGradient)\b/i, reason: 'SVG paint-server gradient and pattern sub-elements are not allowed in article content' },
   // <switch> conditionally renders the first child whose test attributes
   // (requiredFeatures/requiredExtensions/systemLanguage) pass — a content-cloaking
   // primitive that shows different content to different locales/user agents (the
