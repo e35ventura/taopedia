@@ -30,7 +30,8 @@ export const GET: APIRoute = async ({ site }) => {
   // category feed routes use (#1192 / #1195 / #1197).
   const lastmodBySlug: Record<string, string> = {};
   for (const page of pages) {
-    lastmodBySlug[getPageSlug(page)] = lastmodForSlug(getPageSlug(page));
+    const slug = getPageSlug(page);
+    lastmodBySlug[slug] = lastmodForSlug(slug);
   }
 
   // Canonical, trailing-slash paths that each map 1:1 to a built page: the
