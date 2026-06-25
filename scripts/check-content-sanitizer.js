@@ -657,7 +657,7 @@ rejects('Intro.\n\n<  set  attributeName="x" />', 'spaced <set> element');
 rejects('Intro.\n\n<discard begin="0s" />', 'plain <discard> element');
 rejects('Intro.\n\n<mpath href="#evil" />', 'plain <mpath> element');
 rejects('Intro.\n\n<  mpath  xlink:href="#x" />', 'spaced <mpath> element');
-accepts('Intro.\n\n<section><p>Use a set of rules; select an option.</p></section>', 'benign section/use/set/select prose words');
+accepts('Intro.\n\n<p>Use a set of rules; select an option.</p>', 'benign use/set/select prose words (no longer wrapped in the now-blocked <section>)');
 accepts('Discard the draft and the motion path are described here only as prose.', 'benign discard/mpath prose words');
 accepts('SVG animation and the use element are described here only as prose.', 'benign use/animation prose');
 // <image>/<feImage> are SVG external-resource loaders (href/xlink:href) that bypass
