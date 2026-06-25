@@ -181,6 +181,14 @@ const unsafeContentPatterns = [
   // emits <h1>-<h6>/<p>, never a raw <section> or <article>, so the site template's
   // own sectioning is unaffected.
   { pattern: /<\s*(section|article)\b/i, reason: 'sectioning elements (section, article) are not allowed in article content' },
+  // <address> marks up contact information for its nearest article/body ancestor
+  // and is exposed to assistive technology with an implicit `group` role; an
+  // injected <address> forges a semantic "contact information" region — e.g. a
+  // fake "official support / recovery address" given the weight of real contact
+  // markup — the same semantic-region spoof as the blocked landmark (nav/aside/
+  // main/header/footer) and sectioning (section/article) elements. A glossary's
+  // prose never marks up contact info; the site template owns any real <address>.
+  { pattern: /<\s*address\b/i, reason: 'address elements are not allowed in article content' },
   // <data value="…"> and <time datetime="…"> carry a machine-readable value that a
   // scraper, screen reader, or "copy value" affordance reads instead of, and
   // independently from, the visible text — so an injected one makes the machine-read
