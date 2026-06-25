@@ -772,6 +772,18 @@ const unsafeContentPatterns = [
   // Apple's video call" (a name followed by a colon and a space) is never affected — the
   // same shell: precedent.
   { pattern: /\b(?:skype|callto|facetime-audio|facetime|sgnl)\s*:(?=[^\s"'<>)])/i, reason: 'communication-app launch URL schemes are not allowed in article content' },
+  // mailto: tel: and sms: launch a native mail / dialer / messaging client with
+  // attacker-chosen recipients and optional prefilled content outside the page
+  // sandbox with no script. `mailto:attacker@example.com?body=seed` can prefill
+  // an exfiltration email draft, `tel:+1555...` opens the dialer on an attacker
+  // number, and `sms:+1555...?body=...` opens the SMS app with an attacker-
+  // chosen recipient and message. Article links are limited to http(s), so these
+  // contact-launch schemes are the same native-app-launch / social-engineering
+  // class as the blocked skype:/zoommtg:/tg: handlers. A real URI always carries
+  // a target immediately after the colon, so the (?=non-space) lookahead blocks
+  // `mailto:user@example.com` / `tel:+1555...` / `sms:+1555...` while keeping
+  // prose definitions like "Mailto: a URI scheme" (colon then space) unaffected.
+  { pattern: /\b(?:mailto|tel|sms)\s*:(?=[^\s"'<>)])/i, reason: 'contact-launch URL schemes are not allowed in article content' },
   // tg://, whatsapp://, discord://, and slack:// are messaging-app deep-link protocol
   // handlers the OS resolves to launch the locally-installed client — not the browser.
   // A clicked tg://resolve?domain=…, whatsapp://send?phone=…, discord://-/… or
@@ -859,6 +871,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /intent\s*:[^\s"'<>)]*#\s*Intent\b/i, reason: 'intent: app-launch URLs are not allowed in article content' },
   { pattern: /(?:zoommtg|zoomus|msteams)\s*:/i, reason: 'video-conferencing client protocol-handler URLs are not allowed in article content' },
   { pattern: /\b(?:skype|callto|facetime-audio|facetime|sgnl)\s*:(?=[^\s"'<>)])/i, reason: 'communication-app launch URL schemes are not allowed in article content' },
+  { pattern: /\b(?:mailto|tel|sms)\s*:(?=[^\s"'<>)])/i, reason: 'contact-launch URL schemes are not allowed in article content' },
   { pattern: /(?:tg|whatsapp|discord|slack)\s*:\/\//i, reason: 'messaging-app deep-link URL schemes are not allowed in article content' },
   { pattern: /(?:webcal|webcals|feed|itpc|pcast)\s*:\/\//i, reason: 'subscription-handler URL schemes are not allowed in article content' },
   { pattern: /\bshell\s*:(?=[^\s"'<>)])/i, reason: 'shell: protocol-handler URLs are not allowed in article content' },
@@ -897,6 +910,7 @@ const infoboxRowValueSchemePatterns = [
   /intent\s*:[^\s"'<>)]*#\s*Intent\b/i,
   /(?:zoommtg|zoomus|msteams)\s*:/i,
   /\b(?:skype|callto|facetime-audio|facetime|sgnl)\s*:(?=[^\s"'<>)])/i,
+  /\b(?:mailto|tel|sms)\s*:(?=[^\s"'<>)])/i,
   /(?:tg|whatsapp|discord|slack)\s*:\/\//i,
   /(?:webcal|webcals|feed|itpc|pcast)\s*:\/\//i,
   /\bshell\s*:(?=[^\s"'<>)])/i,
