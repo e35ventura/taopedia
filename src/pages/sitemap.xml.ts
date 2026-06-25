@@ -23,6 +23,16 @@ export const GET: APIRoute = async ({ site }) => {
   const origin = (site ?? new URL('https://taopedia.org')).origin;
   const pages = await getCollection('pages');
 
+  // Per-slug lastmod, computed once. lastmodForSlug is historyForSlug(slug)[0]?.date
+  // (a full revision-history lookup) and is needed twice below — once per article
+  // <loc> and again when aggregating each category hub's newest-member lastmod.
+  // Build it in a single pass and reuse it, the same compute-once pattern the
+  // category feed routes use (#1192 / #1195 / #1197).
+  const lastmodBySlug: Record<string, string> = {};
+  for (const page of pages) {
+    lastmodBySlug[getPageSlug(page)] = lastmodForSlug(getPageSlug(page));
+  }
+
   // Canonical, trailing-slash paths that each map 1:1 to a built page: the
   // homepage, the two special listing pages, every category hub route, and
   // every article route. Category hubs are derived with the same logic as
@@ -38,7 +48,7 @@ export const GET: APIRoute = async ({ site }) => {
       const slug = getPageSlug(page);
       return {
         path: `/wiki/${slug}/`,
-        lastmod: lastmodForSlug(slug),
+        lastmod: lastmodBySlug[slug] ?? '',
         image: { loc: `${origin}/og/${slug}.png`, title: page.data.title },
       };
     })
@@ -54,7 +64,7 @@ export const GET: APIRoute = async ({ site }) => {
   const categoryNames = new Set<string>();
   const categoryLastmod = new Map<string, string>();
   for (const page of pages) {
-    const lastmod = lastmodForSlug(getPageSlug(page));
+    const lastmod = lastmodBySlug[getPageSlug(page)] ?? '';
     for (const category of page.data.categories ?? []) {
       categoryNames.add(category);
       if (lastmod && lastmod > (categoryLastmod.get(category) ?? '')) {
