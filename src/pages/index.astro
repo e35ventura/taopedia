@@ -8,6 +8,7 @@ import { allRecentChanges } from '../lib/article-history';
 import { publishedTitleBySlug } from '../lib/site-feed-context';
 import { formatRevisionDate } from '../lib/format-date.js';
 import { buildSubnets } from '../../scripts/subnets.js';
+import { buildMostLinkedPages } from '../../scripts/most-linked.js';
 
 const pages = await getCollection('pages');
 const sortedPages = sortPagesByTitle(pages);
@@ -67,6 +68,27 @@ for (const change of allRecentChanges(titleBySlug, 0)) {
   recentlyUpdated.push(change);
   if (recentlyUpdated.length >= 6) break;
 }
+
+// Most-linked articles by inbound references from the build-time link graph.
+// Reuses buildMostLinkedPages() so the homepage taster matches Special:MostLinkedPages
+// and mostlinkedpages.json. Core Articles are excluded so curated sections do not
+// repeat the same titles. Refs #521.
+const backlinksModules = import.meta.glob('../../public/data/backlinks.json', { eager: true }) as Record<
+  string,
+  { default?: Record<string, Array<{ from: string }>> }
+>;
+const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
+const articleTitleBySlug: Record<string, string> = {};
+for (const page of pages) {
+  articleTitleBySlug[getPageSlug(page)] = page.data.title;
+}
+
+const mostLinkedPreview = buildMostLinkedPages({
+  backlinks: backlinksData,
+  titleBySlug: articleTitleBySlug,
+})
+  .filter((entry) => !featuredSlugSet.has(entry.slug))
+  .slice(0, 6);
 
 const alphaGroups = new Map<string, typeof pages>();
 for (const page of sortedPages) {
@@ -564,6 +586,25 @@ const initialLetter = alphabet[0] ?? '#';
           ))}
         </div>
       </section>
+
+      {mostLinkedPreview.length > 0 && (
+        <section class="home-section">
+          <div class="section-heading">
+            <h2>Most Linked</h2>
+            <a href="/wiki/special/mostlinkedpages">All most linked</a>
+          </div>
+          <ul class="recent-list">
+            {mostLinkedPreview.map((entry) => (
+              <li class="recent-item">
+                <a class="recent-link" href={`/wiki/${entry.slug}/`}>{entry.title}</a>
+                <span class="recent-date">
+                  {entry.count} {entry.count === 1 ? 'link' : 'links'}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {featuredSubnets.length > 0 && (
         <section class="home-section">
