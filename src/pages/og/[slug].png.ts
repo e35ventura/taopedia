@@ -1,21 +1,26 @@
 import type { APIRoute } from 'astro';
-import { getCollection } from 'astro:content';
 import { renderOgImage } from '../../lib/og-image';
+import slugMap from '../../../public/data/slugmap.json';
 
-const getPageSlug = (page: { id: string }) =>
-  page.id.replace(/\/index\.(md|mdx)$/, '').replace(/\/index$/, '').replace(/\.(md|mdx)$/, '');
-
-export async function getStaticPaths() {
-  const pages = await getCollection('pages');
-  const articlePaths = pages.map((page) => ({
-    params: { slug: getPageSlug(page) },
-    props: {
-      title: page.data.title,
-      description: page.data.summary,
-      label: page.data.categories?.[0] ?? 'Bittensor Knowledge Base',
-      home: false,
-    },
-  }));
+export function getStaticPaths() {
+  // Read public/data/slugmap.json — the same build artifact the sitemap (#1416),
+  // feed.json (#1422), and atom.xml (#1423) already use — instead of calling
+  // getCollection('pages') and re-parsing every article's frontmatter. The sitemap
+  // emits each article's card URL as /og/<slugMap key>.png, so keying these routes by
+  // the same slugMap entries keeps that coupling explicit and 1:1 (a key drift would
+  // otherwise 404 the sitemap image URLs). slugMap stores title (|| slug), summary
+  // (|| ''), and normalized categories (|| []), matching the previous frontmatter read.
+  const articlePaths = Object.entries(slugMap)
+    .filter(([slug]) => slug !== 'home')
+    .map(([slug, entry]) => ({
+      params: { slug },
+      props: {
+        title: entry?.title ?? slug,
+        description: entry?.summary ?? '',
+        label: entry?.categories?.[0] ?? 'Bittensor Knowledge Base',
+        home: false,
+      },
+    }));
 
   return [
     {
@@ -28,7 +33,7 @@ export async function getStaticPaths() {
         home: true,
       },
     },
-    ...articlePaths.filter((path) => path.params.slug !== 'home'),
+    ...articlePaths,
   ];
 }
 
