@@ -250,6 +250,14 @@ const unsafeContentPatterns = [
   // <video>/<audio> render native media controls in article bodies even though CSP
   // sets media-src 'none' — an injected tag is still a distraction/phishing primitive.
   { pattern: /<\s*(video|audio|track)\b/i, reason: 'media elements are not allowed in article content' },
+  // <model> embeds an interactive 3D model (USDZ/glTF) loaded from an external src and
+  // rendered as a rotatable, user-manipulable viewer. An injected one both loads an
+  // attacker-chosen external resource outside the img-src checks that gate plain <img>
+  // (a no-script tracking-beacon / external-load, like the blocked <picture>/<source>)
+  // and drops an interactive embedded widget into article prose (a distraction/spoof
+  // surface like the blocked <video>/<audio> media elements). A glossary's prose is
+  // plain text and never embeds 3D models, so block it with the rest of the media family.
+  { pattern: /<\s*model\b/i, reason: 'model elements are not allowed in article content' },
   // <bgsound> is the obsolete IE background-audio element: it auto-loads and plays an
   // external audio file from its src the moment it is parsed, outside the media-src
   // checks — the same no-script external-resource / tracking-beacon load as the
