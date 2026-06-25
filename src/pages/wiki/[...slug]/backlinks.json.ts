@@ -20,30 +20,30 @@ const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
-  // Per-slug frontmatter/body figures + revision history, each carried on the
-  // envelope and every backlink entry. These maps are mutually independent and
-  // depend only on each page itself, so build them in a single pass over the
-  // collection instead of five separate Object.fromEntries traversals.
+  // Per-slug frontmatter/body figures, revision history, and table-of-contents
+  // section count, each carried on the envelope and every backlink entry. These
+  // maps are mutually independent and depend only on each page itself; the
+  // frontmatter/history reads are folded into the render pass (rendering each page
+  // is async and is what requires a resolved page) so the collection is traversed
+  // once for all per-page stats, kept parallel via Promise.all — the same single
+  // combined pass references.json (#1248) and related.json (#1239) use.
   const titleBySlug: Record<string, string> = {};
   const summaryBySlug: Record<string, string> = {};
   const categoriesBySlug: Record<string, string[]> = {};
   const wordCountBySlug: Record<string, number> = {};
   const historyBySlug: Record<string, ReturnType<typeof historyForSlug>> = {};
-  for (const page of pages) {
-    const slug = getPageSlug(page);
-    titleBySlug[slug] = page.data.title;
-    summaryBySlug[slug] = page.data.summary ?? '';
-    categoriesBySlug[slug] = page.data.categories ?? [];
-    wordCountBySlug[slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
-    historyBySlug[slug] = historyForSlug(slug);
-  }
-  // Per-slug table-of-contents section count — the same sectionCount info.json /
-  // history.json expose (and the toc.json `count`). Built once from the content
-  // collection so both this article's envelope and each backlink entry can carry
-  // it without re-rendering inside GET. Kept as its own pass because rendering
-  // each page is async.
-  const sectionCountBySlug: Record<string, number> = Object.fromEntries(
-    await Promise.all(pages.map(async (page) => [getPageSlug(page), getArticleToc((await render(page)).headings).length])),
+  const sectionCountBySlug: Record<string, number> = {};
+  await Promise.all(
+    pages.map(async (page) => {
+      const slug = getPageSlug(page);
+      titleBySlug[slug] = page.data.title;
+      summaryBySlug[slug] = page.data.summary ?? '';
+      categoriesBySlug[slug] = page.data.categories ?? [];
+      wordCountBySlug[slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
+      historyBySlug[slug] = historyForSlug(slug);
+      const { headings } = await render(page);
+      sectionCountBySlug[slug] = getArticleToc(headings).length;
+    }),
   );
   // Published inbound-link count and outbound reference count — the same source
   // links to many articles, so computing them inside the entry map below would
