@@ -744,6 +744,11 @@ accepts('The text path through the tutorial is described here only as prose.', '
 rejects('Intro.\n\n<cursor xlink:href="https://evil.example/track.png" />', 'plain <cursor> element');
 rejects('Intro.\n\n<  cursor  href="x.png" />', 'spaced <cursor> element');
 accepts('Hover the cursor over the link, described here only as prose.', 'benign cursor prose word');
+// <tref> clones text from an xlink:href-referenced element — blocked like the other
+// SVG reference sub-elements <use>/<textPath>.
+rejects('Intro.\n\n<tref xlink:href="#node">x</tref>', 'plain <tref> element');
+rejects('Intro.\n\n<  tref  href="#n" />', 'spaced <tref> element');
+accepts('The treframework changelog is described here only as prose.', 'benign tref-substring word is not <tref>');
 
 // <dialog open> renders a top-layer overlay (with backdrop) and no script or
 // inline style, so a raw <dialog> is a clickjacking/phishing primitive. Blocked.
