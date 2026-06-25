@@ -452,6 +452,12 @@ rejects('See [x](sftp://user@evil.example/).', 'plain sftp:// URL (SSH file-tran
 accepts('SSH: Secure Shell and RDP: Remote Desktop Protocol are defined here as prose.', 'benign SSH:/RDP: glossary definitions (no // authority)');
 accepts('The sftp command and SFTP: SSH File Transfer Protocol are described here only as prose.', 'benign sftp/SFTP: prose (no // authority)');
 accepts('Connect over ssh and telnet are described only as protocol names here.', 'benign ssh/telnet prose words');
+// rlogin://rsh:// (BSD remote login/shell) and tn3270:// (IBM 3270 terminal) launch a
+// native remote-shell/terminal client — same out-of-sandbox class as telnet://ssh://.
+rejects('See [x](rlogin://attacker.example/).', 'plain rlogin:// remote-login URL');
+rejects('See [x](rsh://attacker.example/).', 'plain rsh:// remote-shell URL');
+rejects('See [x](tn3270://attacker.example/).', 'plain tn3270:// terminal URL');
+accepts('The rlogin and rsh commands and the tn3270 terminal are described here only as prose.', 'benign rlogin/rsh/tn3270 prose words (no // authority)');
 // ftp:// is the unencrypted file-transfer sibling of sftp://; browsers removed FTP, so a
 // clicked ftp:// launches a desktop FTP client over cleartext. // keeps prose.
 rejects('See [x](ftp://anonymous@attacker.example/payload.exe).', 'plain ftp:// URL (cleartext file-transfer)');
