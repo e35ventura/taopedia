@@ -269,6 +269,16 @@ rejects('Intro.\n\n<tt>monospace</tt>', 'plain <tt>');
 rejects('Intro.\n\n<nobr>unwrapped</nobr>', 'plain <nobr>');
 accepts('Big monospace headings and strike-through prices are described here as prose.', 'benign obsolete-text prose');
 
+// <blink>/<spacer>/<multicol> are obsolete non-standard Netscape presentational/layout
+// elements in the same family as <marquee>/<font>/<center>: flashing text, blank layout
+// gaps, and forced multi-column layout. Blocked for completeness like the other obsolete
+// rendered elements.
+rejects('Intro.\n\n<blink>WALLET COMPROMISED</blink>', 'plain <blink>');
+rejects('Intro.\n\n<  blink  >flashing</blink>', 'spaced <blink>');
+rejects('Intro.\n\n<spacer type="block" height="200">', 'plain <spacer>');
+rejects('Intro.\n\n<multicol cols="3">columns</multicol>', 'plain <multicol>');
+accepts('Blinking text and multi-column layouts are legacy patterns described here as prose.', 'benign blink/multicol prose');
+
 // <plaintext>/<xmp>/<listing> are obsolete raw-text elements the parser still
 // honors. An injected <plaintext> renders all following content as literal text —
 // a concrete page-defacement vector — so block them.
