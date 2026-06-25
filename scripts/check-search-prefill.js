@@ -44,6 +44,11 @@ assert.match(
   /\.get\('q'\)[^;]*\.trim\(\)/,
   'search page must trim the q parameter so whitespace-only queries do not run a search',
 );
+assert.match(
+  searchSource,
+  /function normalize\(value\)[\s\S]*\.trim\(\)\.toLowerCase\(\)/,
+  'search metadata fallback must trim query and haystack text before matching',
+);
 assert.match(searchHtml, /class="mw-search-input"/, 'built search page must include the header search input');
 
 console.log('Search prefill check passed');

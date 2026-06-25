@@ -107,7 +107,9 @@ import WikiLayout from '../layouts/WikiLayout.astro';
     }
 
     function normalize(value) {
-      return (value || '').toLowerCase();
+      // Trim so accidental leading/trailing spaces in the metadata fallback
+      // (astro dev, where Pagefind is absent) do not skew substring matches.
+      return (value || '').trim().toLowerCase();
     }
 
     function setStatus(text) {
