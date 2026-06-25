@@ -78,7 +78,19 @@ export const GET: APIRoute = async ({ site }) => {
   // consumer can see the changed article's overall edit age/activity, not just
   // this one change's date, without a second fetch. Cached per slug because an
   // article can appear in multiple changes.
+  // inbound link count (exposed as both `backlinks` and the `incomingLinks`
+  // alias) and outbound reference count, cached once per slug like
+  // sectionCountBySlug above — an article can appear in multiple changes, and the
+  // inbound count was otherwise computed twice per entry (once for each key)
+  // while getArticleReferences is a full link-graph join. These three stat maps
+  // are gathered in a single pass over the change feed: history, inbound and
+  // references are all keyed by the change's slug and need no resolved page (only
+  // sectionCount above does), so they were folded out of two separate change
+  // loops into one. Same compute-once pattern subnets.json / mostlinkedpages.json
+  // use.
   const revisionStatsBySlug: Record<string, { revisionCount: number; firstEdited: string | null; lastEdited: string | null }> = {};
+  const inboundBySlug: Record<string, number> = {};
+  const referencesCountBySlug: Record<string, number> = {};
   for (const change of changes) {
     if (change.slug in revisionStatsBySlug) continue;
     const history = historyForSlug(change.slug);
@@ -87,17 +99,6 @@ export const GET: APIRoute = async ({ site }) => {
       firstEdited: history[history.length - 1]?.date ?? null,
       lastEdited: history[0]?.date ?? null,
     };
-  }
-  // inbound link count (exposed as both `backlinks` and the `incomingLinks`
-  // alias) and outbound reference count, cached once per slug like
-  // sectionCountBySlug / revisionStatsBySlug above — an article can appear in
-  // multiple changes, and the inbound count was otherwise computed twice per
-  // entry (once for each key) while getArticleReferences is a full link-graph
-  // join. Same compute-once pattern subnets.json / mostlinkedpages.json use.
-  const inboundBySlug: Record<string, number> = {};
-  const referencesCountBySlug: Record<string, number> = {};
-  for (const change of changes) {
-    if (change.slug in inboundBySlug) continue;
     inboundBySlug[change.slug] = publishedInboundLinkCount(backlinksData, change.slug, titleBySlug);
     referencesCountBySlug[change.slug] = getArticleReferences({ slug: change.slug, linkGraph: linkgraphData, titleBySlug }).length;
   }
