@@ -384,6 +384,14 @@ const unsafeContentPatterns = [
   // <noframes>/<noembed>. A glossary's prose never authors it; the document <title>
   // comes from the site template.
   { pattern: /<\s*title\b/i, reason: 'title elements are not allowed in article content' },
+  // <html>/<head> are document-structure elements that never belong in an article-body
+  // fragment. The HTML parser merges a stray <html>'s attributes onto the real root
+  // <html> element (an attribute-injection surface — e.g. lang/class/manifest applied
+  // to the live document), and <head> switches the tree-construction insertion mode, a
+  // parsing-context confusion the same class as the blocked <noscript>/<template> and
+  // the <frame>/<frameset> document-structure tags. A glossary's prose Markdown body is
+  // a fragment that never authors them; the document shell comes from the site template.
+  { pattern: /<\s*(html|head)\b/i, reason: 'html and head document-structure elements are not allowed in article content' },
   // <marquee> still renders an animated, attention-grabbing scrolling banner in
   // every current browser. An injected <marquee> in article content is a concrete
   // content-spoofing / phishing surface (e.g. a fake scrolling "wallet compromised"

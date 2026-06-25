@@ -229,6 +229,11 @@ accepts('Noframes and noembed fallbacks are described here only as prose.', 'ben
 rejects('Intro.\n\n<title>Hidden page heading</title>rest', 'plain <title>');
 rejects('Intro.\n\n<  title  >swallowed</title>', 'spaced <title>');
 accepts('The article title is defined in frontmatter, described here only as prose.', 'benign title prose word');
+// <html>/<head> are document-structure elements — the parser merges a stray <html>'s
+// attributes onto the live root element and <head> switches insertion mode.
+rejects('Intro.\n\n<html lang="x" manifest="//evil.example/m">x</html>', 'plain <html>');
+rejects('Intro.\n\n<  head  ><meta></head>', 'spaced <head>');
+accepts('The article heading and the page head section are described here only as prose.', 'benign html/head prose words');
 
 // <marquee> still renders an animated scrolling banner in current browsers, so an
 // injected one is a content-spoofing / phishing surface with no script. Blocked.
