@@ -145,6 +145,13 @@ const unsafeContentPatterns = [
   // code-execution / embedding threat as the already-blocked <object> / <embed> /
   // <iframe>. Grouped with the active-embedding family it belongs to.
   { pattern: /<\s*(base|frame|frameset|iframe|object|embed|applet|link|meta|style|form|input|button|textarea|select|option|optgroup|fieldset|legend|datalist|output|label|menu|menuitem)\b/i, reason: 'active HTML elements are not allowed in article content' },
+  // <param> supplies the data/movie/src/url/code parameters that drive a plugin
+  // host -- it has no purpose except inside the <object>/<embed>/<applet>
+  // active-embedding elements blocked above, so it is the remaining member of
+  // that family. Block it standalone like <optgroup> (blocked though inert
+  // without its <select> parent) so the embedding family is caught even if the
+  // host element is split off during a mutation-XSS / sanitizer bypass.
+  { pattern: /<\s*param\b/i, reason: 'param elements are not allowed in article content' },
   // <dialog open> renders in the browser top layer -- above all page content, with
   // a backdrop -- with no script and no inline style. That makes a raw <dialog> a
   // clickjacking/phishing overlay primitive (e.g. a fake "wallet compromised" modal

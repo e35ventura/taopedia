@@ -57,6 +57,13 @@ rejects('Intro.\n\n<label>Enter your 12-word seed phrase:</label>', 'plain <labe
 rejects('Intro.\n\n<  label  >Wallet address</label>', 'spaced <label>');
 rejects('Intro.\n\n<label for="wallet">Recovery phrase</label>', 'label with for attribute');
 accepts('A field label in documentation refers to form captions described as prose.', 'benign label prose');
+// <param> drives the <object>/<embed>/<applet> plugin hosts blocked above; it is
+// inert alone (like <optgroup> without <select>) but blocked standalone so the
+// embedding family is caught even if the host element is split off.
+rejects('Intro.\n\n<object data="x"><param name="movie" value="https://evil.example/x.swf"></object>', 'plain <param>');
+rejects('Intro.\n\n<  param  name="src" value="x">', 'spaced <param>');
+rejects('Intro.\n\n<param name="code" value="Evil.class">', 'standalone <param>');
+accepts('A query parameter and a function parameter are ordinary words here.', 'benign param prose word');
 rejects('Intro.\n\n<menu type="context"><menuitem label="Open wallet"></menu>', 'plain menu with menuitem');
 rejects('Intro.\n\n<  menu   type="context">', 'spaced menu');
 rejects('Intro.\n\n<menuitem label="Export seed phrase">', 'standalone menuitem');
