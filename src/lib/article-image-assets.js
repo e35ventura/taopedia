@@ -60,6 +60,13 @@ function decodeEntityPass(value) {
     .replace(/&sol;/gi, '/')
     .replace(/&plus;/gi, '+')
     .replace(/&(?:tab|newline);/gi, '')
+    // stripUrlObfuscationChars (above) already removes the whole Default_Ignorable
+    // class, so java\u00ADscript: / data:text\u200b/html are caught -- but the NAMED
+    // entities for that class were never decoded, so java&shy;script: stayed literal
+    // and passed isUnsafeImageUrl while a browser decodes &shy; and ignores the char.
+    // These are exactly the HTML named character references that resolve to a
+    // Default_Ignorable code point; collapse them to nothing like their stripped chars.
+    .replace(/&(?:shy|ZeroWidthSpace|zwnj|zwj|lrm|rlm|NoBreak|af|ApplyFunction|it|InvisibleTimes|ic|InvisibleComma);/gi, '')
     .replace(/&amp;/gi, '&');
 }
 
