@@ -646,6 +646,12 @@ const unsafeContentPatterns = [
   // documented system error dialog (a no-script annoyance / DoS). The hyphenated/compound
   // "ms-" tokens never occur in glossary prose.
   { pattern: /\bms-(?:settings|windows-store|gamingoverlay)\s*:/i, reason: 'Windows app protocol-handler URLs are not allowed in article content' },
+  // smb:// is the Windows file-share scheme: a clicked smb://attacker.example/share makes
+  // Windows open an SMB connection to the attacker's server, which silently performs NTLM
+  // authentication and leaks the reader's hashed credentials (an NTLM-leak / relay
+  // credential-theft attack) outside the browser with no script. A glossary never links
+  // to a file share; the // form means prose about the "SMB protocol" is unaffected.
+  { pattern: /\bsmb\s*:\/\//i, reason: 'smb: file-share URLs are not allowed in article content' },
   // mhtml: and jar: are archive-extraction URL schemes that historically rendered
   // attacker-controlled HTML pulled from inside an archive in the page's own
   // context: mhtml:https://host/x!sub (the IE/Edge MHTML handler, CVE-2011-1894)
@@ -729,6 +735,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /ms-settings\s*:/i, reason: 'Windows Settings protocol-handler URLs are not allowed in article content' },
   { pattern: /onenote\s*:/i, reason: 'onenote: application protocol-handler URLs are not allowed in article content' },
   { pattern: /ms-(?:settings|windows-store|gamingoverlay)\s*:/i, reason: 'Windows app protocol-handler URLs are not allowed in article content' },
+  { pattern: /smb\s*:\/\//i, reason: 'smb: file-share URLs are not allowed in article content' },
   { pattern: /(?:mhtml|jar)\s*:/i, reason: 'archive-extraction URL schemes are not allowed in article content' },
   { pattern: /(?:rdp|vnc|telnet|ssh)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i, reason: 'mobile app-store URL schemes are not allowed in article content' },
@@ -753,6 +760,7 @@ const infoboxRowValueSchemePatterns = [
   /ms-settings\s*:/i,
   /onenote\s*:/i,
   /ms-(?:settings|windows-store|gamingoverlay)\s*:/i,
+  /smb\s*:\/\//i,
   /(?:mhtml|jar)\s*:/i,
   /(?:rdp|vnc|telnet|ssh)\s*:\/\//i,
   /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i,
