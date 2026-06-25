@@ -133,6 +133,15 @@ function main() {
   Object.keys(linkGraph).forEach(fromSlug => {
     linkGraph[fromSlug].forEach(link => {
       const toSlug = link.target;
+      // Skip self-links: an article that links to itself must not appear as its
+      // own backlink ("What links here") or count toward its own inbound total.
+      // getArticleReferences already excludes self-references on the OUTBOUND
+      // side (target === slug); the inbound graph uses the same rule so the two
+      // directions agree and Special:MostLinkedPages is not inflated by a
+      // self-link.
+      if (toSlug === fromSlug) {
+        return;
+      }
       const pairKey = `${toSlug}\0${fromSlug}`;
       if (backlinkPairs.has(pairKey)) {
         return;

@@ -40,6 +40,31 @@ const projectRoot = path.resolve(__dirname, '..');
   );
 }
 
+// ---- 1b) Self-links are not counted as inbound links ----------------------
+//
+// An article that links to itself must not count toward its own inbound total
+// (and must not appear as its own backlink). This matches getArticleReferences,
+// which excludes self on the outbound side (target === slug). The backlink graph
+// (build-linkgraph.js) drops self-links at build time, and publishedInboundLinkCount
+// excludes `from === slug` as a second guard.
+{
+  const ranked = buildMostLinkedPages({
+    backlinks: {
+      a: [{ from: 'a' }, { from: 'b' }], // self-link from 'a' must NOT count
+      b: [{ from: 'a' }],
+    },
+    titleBySlug: { a: 'Alpha', b: 'Beta' },
+  });
+  assert.deepEqual(
+    ranked,
+    [
+      { slug: 'a', title: 'Alpha', count: 1 },
+      { slug: 'b', title: 'Beta', count: 1 },
+    ],
+    'a self-link must not count toward an article’s own inbound total',
+  );
+}
+
 // ---- 2) Tiebreak uses compareTitles (NOT raw string) ----------------------
 //
 // Same-count numeric-suffixed slugs must order numerically (subnet_9 before
