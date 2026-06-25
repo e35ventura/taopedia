@@ -1,10 +1,12 @@
 import type { APIRoute } from 'astro';
 import { getCollection, render } from 'astro:content';
 import { getPageSlug, allRecentChanges, historyForSlug } from '../../../lib/article-history';
+import { publishedTitleBySlug } from '../../../lib/recent-changes-feed-context';
 import { RECENT_LIMIT } from '../../../lib/recent-changes.js';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
 import { getArticleReferences } from '../../../lib/article-references.js';
 import { getArticleToc } from '../../../lib/article-toc.js';
+import slugMap from '../../../../public/data/slugmap.json';
 
 // The inbound-link graph is the same public/data/backlinks.json the HTML
 // "What links here" page, allpages.json, mostlinkedpages.json, subnets.json and
@@ -30,17 +32,29 @@ const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
 
 export const GET: APIRoute = async ({ site }) => {
   const origin = (site ?? new URL('https://taopedia.org')).origin;
-  const pages = await getCollection('pages');
+  const titleBySlug = publishedTitleBySlug();
+  const changes = allRecentChanges(titleBySlug, RECENT_LIMIT);
 
-  const titleBySlug: Record<string, string> = {};
-  const pageBySlug: Record<string, (typeof pages)[number]> = {};
-  for (const page of pages) {
-    const slug = getPageSlug(page);
-    titleBySlug[slug] = page.data.title;
-    pageBySlug[slug] = page;
+  // categories/summary come from public/data/slugmap.json for feed-member slugs
+  // only — the same artifact the recent-changes syndication feeds (#1436) read —
+  // instead of copying page.data for every published article up front.
+  const feedMemberSlugs = new Set<string>();
+  const categoriesBySlug: Record<string, string[]> = {};
+  const summaryBySlug: Record<string, string> = {};
+  for (const change of changes) {
+    if (change.slug in categoriesBySlug) continue;
+    feedMemberSlugs.add(change.slug);
+    categoriesBySlug[change.slug] = slugMap[change.slug]?.categories ?? [];
+    summaryBySlug[change.slug] = slugMap[change.slug]?.summary ?? '';
   }
 
-  const changes = allRecentChanges(titleBySlug, RECENT_LIMIT);
+  // sectionCount and wordCount still need the article body; resolve only the
+  // feed-member pages instead of indexing the whole collection up front.
+  const pageBySlug: Record<string, Awaited<ReturnType<typeof getCollection<'pages'>>>[number]> = {};
+  for (const page of await getCollection('pages')) {
+    const slug = getPageSlug(page);
+    if (feedMemberSlugs.has(slug)) pageBySlug[slug] = page;
+  }
 
   // sectionCount is the changed article's table-of-contents section count — the
   // same figure toc.json exposes as `count` and info.json / history.json expose
@@ -48,32 +62,14 @@ export const GET: APIRoute = async ({ site }) => {
   // only for the changed articles in the feed so a change-feed consumer can gauge
   // each article's depth without a second fetch. Cached per slug because an
   // article can appear in multiple changes.
-  const sectionCountBySlug: Record<string, number> = {};
-  // wordCount is the changed article's body word count — the same figure
-  // info.json exposes and the article-page footer (mw-article-meta
-  // data-word-count) renders, computed from the raw markdown body so a change-
-  // feed consumer can gauge each article's length without a second fetch.
-  // Computed here (gated to the slugs that actually appear in the feed, ≤
-  // RECENT_LIMIT) rather than splitting every article body in the collection up
-  // front — the same compute-only-for-feed-members pattern sectionCount /
-  // revisionStats / inbound / references below already follow. Cached per slug
-  // because an article can appear in multiple changes.
   const wordCountBySlug: Record<string, number> = {};
-  // categories/summary are only ever read by change.slug below (≤ RECENT_LIMIT
-  // entries), but were previously copied from page.data for every one of the
-  // ~350 published articles up front. Gated into this same feed-members-only
-  // loop, the same compute-only-for-feed-members pattern as wordCount above.
-  const categoriesBySlug: Record<string, string[]> = {};
-  const summaryBySlug: Record<string, string> = {};
-  for (const change of changes) {
-    if (change.slug in sectionCountBySlug) continue;
-    const page = pageBySlug[change.slug];
+  const sectionCountBySlug: Record<string, number> = {};
+  for (const slug of feedMemberSlugs) {
+    const page = pageBySlug[slug];
     if (!page) continue;
     const { headings } = await render(page);
-    sectionCountBySlug[change.slug] = getArticleToc(headings).length;
-    wordCountBySlug[change.slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
-    categoriesBySlug[change.slug] = page.data.categories ?? [];
-    summaryBySlug[change.slug] = page.data.summary ?? '';
+    sectionCountBySlug[slug] = getArticleToc(headings).length;
+    wordCountBySlug[slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
   }
   // revisionCount/firstEdited/lastEdited are the changed article's own commit-
   // history stats (history is newest-first) — the same trio info.json /

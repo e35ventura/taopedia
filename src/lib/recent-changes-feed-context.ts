@@ -1,5 +1,6 @@
 import { allRecentChanges } from './article-history';
 import slugMap from '../../public/data/slugmap.json';
+import { publishedTitleBySlug } from './site-feed-context';
 
 // Shared feed context for the recent-changes JSON/Atom/RSS endpoints. Reads
 // public/data/slugmap.json for published slug titles and per-feed-member
@@ -8,9 +9,7 @@ import slugMap from '../../public/data/slugmap.json';
 // scanning every article's frontmatter. titleBySlug must still cover every
 // published slug because allRecentChanges uses it to filter history events.
 export function prepareRecentChangesFeedData(limit: number) {
-  const titleBySlug = Object.fromEntries(
-    Object.entries(slugMap).map(([slug, entry]) => [slug, entry?.title ?? slug]),
-  );
+  const titleBySlug = publishedTitleBySlug();
   const changes = allRecentChanges(titleBySlug, limit);
 
   // categories are only ever read by change.slug (≤ limit entries). Gate to feed
@@ -24,3 +23,6 @@ export function prepareRecentChangesFeedData(limit: number) {
 
   return { changes, categoriesBySlug };
 }
+
+// Re-export for JSON endpoints that import title lookup from this module.
+export { publishedTitleBySlug };

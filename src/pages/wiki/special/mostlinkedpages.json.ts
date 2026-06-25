@@ -1,9 +1,11 @@
 import type { APIRoute } from 'astro';
 import { getCollection, render } from 'astro:content';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
+import { publishedTitleBySlug } from '../../../lib/recent-changes-feed-context';
 import { getArticleReferences } from '../../../lib/article-references.js';
 import { getArticleToc } from '../../../lib/article-toc.js';
 import { buildMostLinkedPages } from '../../../../scripts/most-linked.js';
+import slugMap from '../../../../public/data/slugmap.json';
 
 // Machine-readable inbound-link ranking at /wiki/special/mostlinkedpages.json.
 // Mirrors the HTML Special:MostLinkedPages page as structured JSON for
@@ -24,16 +26,25 @@ const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
 
 export const GET: APIRoute = async ({ site }) => {
   const origin = (site ?? new URL('https://taopedia.org')).origin;
-  const pages = await getCollection('pages');
-  const titleBySlug: Record<string, string> = {};
-  const pageBySlug: Record<string, (typeof pages)[number]> = {};
-  for (const page of pages) {
-    const slug = getPageSlug(page);
-    titleBySlug[slug] = page.data.title;
-    pageBySlug[slug] = page;
+  const titleBySlug = publishedTitleBySlug();
+  const ranked = buildMostLinkedPages({ backlinks: backlinksData, titleBySlug });
+
+  // categories/summary come from public/data/slugmap.json for ranked slugs only —
+  // the same artifact search-data.json (#1405) reads — instead of copying
+  // page.data for every published article up front.
+  const rankedSlugs = new Set(ranked.map((entry) => entry.slug));
+  const categoriesBySlug: Record<string, string[]> = {};
+  const summaryBySlug: Record<string, string> = {};
+  for (const slug of rankedSlugs) {
+    categoriesBySlug[slug] = slugMap[slug]?.categories ?? [];
+    summaryBySlug[slug] = slugMap[slug]?.summary ?? '';
   }
 
-  const ranked = buildMostLinkedPages({ backlinks: backlinksData, titleBySlug });
+  const pageBySlug: Record<string, Awaited<ReturnType<typeof getCollection<'pages'>>>[number]> = {};
+  for (const page of await getCollection('pages')) {
+    const slug = getPageSlug(page);
+    if (rankedSlugs.has(slug)) pageBySlug[slug] = page;
+  }
 
   // sectionCount is the article's table-of-contents section count — the same
   // figure toc.json exposes as `count` and info.json / history.json expose on
@@ -48,14 +59,6 @@ export const GET: APIRoute = async ({ site }) => {
   // output byte-identical.
   const sectionCountBySlug: Record<string, number> = {};
   const historyBySlug: Record<string, ReturnType<typeof historyForSlug>> = {};
-  // categories/summary/wordCount are only ever read by entry.slug below, for the
-  // handful of ranked pages (buildMostLinkedPages already drops every
-  // zero-inbound article) — not the full ~350-article collection. Previously
-  // copied/tokenized for every published article up front; gated into this same
-  // ranked-pages-only loop that already scopes sectionCount, the same
-  // compute-only-for-feed-members pattern #1213 / #1232 use for recentchanges.json.
-  const categoriesBySlug: Record<string, string[]> = {};
-  const summaryBySlug: Record<string, string> = {};
   const wordCountBySlug: Record<string, number> = {};
   for (const entry of ranked) {
     historyBySlug[entry.slug] = historyForSlug(entry.slug);
@@ -63,8 +66,6 @@ export const GET: APIRoute = async ({ site }) => {
     if (!page) continue;
     const { headings } = await render(page);
     sectionCountBySlug[entry.slug] = getArticleToc(headings).length;
-    categoriesBySlug[entry.slug] = page.data.categories ?? [];
-    summaryBySlug[entry.slug] = page.data.summary ?? '';
     wordCountBySlug[entry.slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
   }
 
