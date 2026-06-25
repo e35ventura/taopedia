@@ -113,6 +113,28 @@ assert.deepEqual(
   'remark wiki-link resolution should try the canonical slug before protocol-relative URL fallbacks',
 );
 
+// Regression: an article whose TITLE slugifies to another article's exact slug
+// must NOT clobber that article's identity mapping. A real slug always resolves
+// to its own article, deterministically, regardless of object iteration order.
+{
+  const collisionMap = {
+    alpha: { title: 'Alpha Network' }, // real slug "alpha"
+    alpha_token: { title: 'Alpha' }, // title "Alpha" -> slugify("Alpha") === "alpha"
+  };
+  assert.equal(
+    resolveTargetSlug('alpha', buildSlugAliases(collisionMap)),
+    'alpha',
+    'a real slug must resolve to its own article, not a later article whose title slugifies to it',
+  );
+  // Reversed key order must yield the same result (identity mapping always wins).
+  const reversed = { alpha_token: { title: 'Alpha' }, alpha: { title: 'Alpha Network' } };
+  assert.equal(
+    resolveTargetSlug('alpha', buildSlugAliases(reversed)),
+    'alpha',
+    'identity mapping must win regardless of slug-map iteration order',
+  );
+}
+
 // Rendered in-content wiki links must use the canonical trailing-slash URL so
 // they match the article canonical (#61), sitemap (#75/#127) and search data
 // (#92) instead of 301-redirecting on every click.
