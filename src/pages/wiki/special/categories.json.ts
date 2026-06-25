@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
-import { getCollection } from 'astro:content';
 import { buildCategories } from '../../../../scripts/categories.js';
+import categoriesIndex from '../../../../public/data/categories.json';
 
 // Machine-readable topic index at /wiki/special/categories.json. Mirrors the
 // HTML Special:Categories page as structured JSON for programmatic consumers
@@ -9,11 +9,13 @@ import { buildCategories } from '../../../../scripts/categories.js';
 // regression check derive from one source of truth, and topics are ordered with
 // the same compareTitles numeric collation the HTML page uses.
 
-export const GET: APIRoute = async ({ site }) => {
+export const GET: APIRoute = ({ site }) => {
   const origin = (site ?? new URL('https://taopedia.org')).origin;
-  const pages = await getCollection('pages');
 
-  const topics = buildCategories({ pages });
+  // Read public/data/categories.json — the same artifact check-categories-json.js
+  // cross-references — instead of calling getCollection('pages') and re-scanning
+  // every article's categories frontmatter. Matches feeds.opml.ts (#1299).
+  const topics = buildCategories({ categoriesIndex });
 
   const body = JSON.stringify(
     {
