@@ -596,6 +596,14 @@ const unsafeContentPatterns = [
   // class as the already-blocked data: URLs. A glossary's prose never links to a
   // blob:/filesystem: URL, and the scheme names never occur in glossary text.
   { pattern: /\b(?:blob|filesystem)\s*:/i, reason: 'object-URL schemes are not allowed in article content' },
+  // gopher:// nntp:// irc:// ircs:// are legacy internet-protocol schemes that hand the
+  // connection to a non-http handler: gopher:// is a classic SSRF vector (it sends an
+  // arbitrary TCP payload to the host:port, e.g. to reach internal services), nntp://
+  // opens a Usenet news client, and irc://ircs:// launch an IRC client joining an
+  // attacker-named server/channel — all outside the page sandbox with no script, the
+  // same non-http class as the blocked schemes above. Article links are limited to
+  // http(s). The // authority form is required so prose is never affected.
+  { pattern: /\b(?:gopher|nntp|ircs|irc)\s*:\/\//i, reason: 'legacy internet-protocol URL schemes are not allowed in article content' },
   // search-ms:/ms-officecmd: are two more native Windows protocol handlers a clicked
   // link hands to the OS instead of the browser, with no script. search-ms: opens
   // Windows Explorer search pointed at a remote WebDAV/SMB share so attacker-hosted
@@ -762,6 +770,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /javascript\s*:/i, reason: 'javascript: URLs are not allowed in article content' },
   { pattern: /vbscript\s*:/i, reason: 'vbscript: URLs are not allowed in article content' },
   { pattern: /(?:blob|filesystem)\s*:/i, reason: 'object-URL schemes are not allowed in article content' },
+  { pattern: /(?:gopher|nntp|ircs|irc)\s*:\/\//i, reason: 'legacy internet-protocol URL schemes are not allowed in article content' },
   { pattern: /(?:search-ms|ms-officecmd)\s*:/i, reason: 'Windows protocol-handler URLs are not allowed in article content' },
   { pattern: /ms-(?:msdt|appinstaller)\s*:/i, reason: 'Windows protocol-handler URLs are not allowed in article content' },
   { pattern: /ms-(?:word|excel|powerpoint|visio|access|project|publisher|infopath|spd)\s*:/i, reason: 'Microsoft Office document protocol-handler URLs are not allowed in article content' },
@@ -791,6 +800,7 @@ const infoboxRowValueSchemePatterns = [
   /javascript\s*:/i,
   /vbscript\s*:/i,
   /(?:blob|filesystem)\s*:/i,
+  /(?:gopher|nntp|ircs|irc)\s*:\/\//i,
   /(?:search-ms|ms-officecmd)\s*:/i,
   /ms-(?:msdt|appinstaller)\s*:/i,
   /ms-(?:word|excel|powerpoint|visio|access|project|publisher|infopath|spd)\s*:/i,
