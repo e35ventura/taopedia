@@ -25,6 +25,8 @@ export function buildAllPages({ pages, getPageSlug, origin }) {
     title: page?.data?.title ?? '',
     summary: page?.data?.summary ?? '',
     url: `${base}/wiki/${getPageSlug(page)}/`,
-    categories: Array.isArray(page?.data?.categories) ? page.data.categories : [],
+    // Dedupe repeated frontmatter topics so a duplicated tag cannot appear twice
+    // in the machine-readable directory (matching the HTML topic-group fix).
+    categories: Array.isArray(page?.data?.categories) ? [...new Set(page.data.categories)] : [],
   }));
 }

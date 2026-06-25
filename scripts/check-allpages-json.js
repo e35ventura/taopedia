@@ -67,6 +67,20 @@ const ORIGIN = 'https://taopedia.org';
   assert.deepEqual(out[0].categories, ['Subnets'], 'categories preserved');
 }
 
+// Repeated frontmatter categories must be deduped while preserving first-seen order.
+{
+  const out = buildAllPages({
+    pages: [{ id: 'x/index.mdx', data: { title: 'X', summary: '', categories: ['Mining', 'Consensus', 'Mining'] } }],
+    getPageSlug: (page) => page.id.replace(/\/index\.mdx$/, ''),
+    origin: ORIGIN,
+  });
+  assert.deepEqual(
+    out[0].categories,
+    ['Mining', 'Consensus'],
+    'repeated frontmatter categories must be deduped in allpages.json rows',
+  );
+}
+
 // Numeric title sort: "Subnet 9" before "Subnet 10" (numeric, not raw string).
 {
   const pages = [
