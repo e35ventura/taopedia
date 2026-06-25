@@ -658,6 +658,13 @@ const unsafeContentPatterns = [
   // prompt surface outside the page sandbox with no script. A glossary never links to a
   // file share; the // form means prose about the "AFP protocol" is unaffected.
   { pattern: /\bafp\s*:\/\//i, reason: 'afp: file-share URLs are not allowed in article content' },
+  // webdav://dav:// (and the davs:// secure form) are the WebDAV remote-filesystem
+  // schemes, another sibling of the blocked smb://: on Windows the WebClient service
+  // mounts the attacker's WebDAV server and can be coerced into HTTP/NTLM authentication
+  // (a credential-leak surface), and the share is a writable remote mount — an
+  // out-of-browser network-mount surface with no script. A glossary never links to a
+  // WebDAV share; the // form means prose about the "WebDAV protocol" is unaffected.
+  { pattern: /\b(?:webdav|dav)s?\s*:\/\//i, reason: 'webdav: remote-filesystem URLs are not allowed in article content' },
   // mhtml: and jar: are archive-extraction URL schemes that historically rendered
   // attacker-controlled HTML pulled from inside an archive in the page's own
   // context: mhtml:https://host/x!sub (the IE/Edge MHTML handler, CVE-2011-1894)
@@ -794,6 +801,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /ms-(?:settings|windows-store|gamingoverlay)\s*:/i, reason: 'Windows app protocol-handler URLs are not allowed in article content' },
   { pattern: /smb\s*:\/\//i, reason: 'smb: file-share URLs are not allowed in article content' },
   { pattern: /afp\s*:\/\//i, reason: 'afp: file-share URLs are not allowed in article content' },
+  { pattern: /(?:webdav|dav)s?\s*:\/\//i, reason: 'webdav: remote-filesystem URLs are not allowed in article content' },
   { pattern: /(?:mhtml|jar)\s*:/i, reason: 'archive-extraction URL schemes are not allowed in article content' },
   { pattern: /(?:magnet|ed2k)\s*:/i, reason: 'peer-to-peer file-sharing URL schemes are not allowed in article content' },
   { pattern: /(?:vscode-insiders|vscodium|vscode)\s*:/i, reason: 'code-editor protocol-handler URLs are not allowed in article content' },
@@ -826,6 +834,7 @@ const infoboxRowValueSchemePatterns = [
   /ms-(?:settings|windows-store|gamingoverlay)\s*:/i,
   /smb\s*:\/\//i,
   /afp\s*:\/\//i,
+  /(?:webdav|dav)s?\s*:\/\//i,
   /(?:mhtml|jar)\s*:/i,
   /(?:magnet|ed2k)\s*:/i,
   /(?:vscode-insiders|vscodium|vscode)\s*:/i,

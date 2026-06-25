@@ -511,6 +511,12 @@ accepts('The SMB protocol and Server Message Block are described here only as pr
 rejects('See [x](afp://attacker.example/share).', 'plain afp:// file-share URL');
 rejects('See [x](a&#102;p://attacker.example/share).', 'entity-obfuscated afp:// URL');
 accepts('The AFP protocol and Apple Filing Protocol are described here only as prose.', 'benign "AFP" prose is not the afp:// scheme');
+// webdav://dav:// (and davs://) are the WebDAV remote-filesystem schemes — on Windows the
+// WebClient mounts the attacker's server and can be coerced into NTLM auth. // keeps prose.
+rejects('See [x](webdav://attacker.example/share).', 'plain webdav:// URL');
+rejects('See [x](dav://attacker.example/share).', 'plain dav:// URL');
+rejects('See [x](davs://attacker.example/share).', 'plain davs:// secure WebDAV URL');
+accepts('The WebDAV protocol and a chap named Dav are described here only as prose.', 'benign "WebDAV"/"Dav" prose is not the scheme');
 // intent: is the Android app-launch scheme — intent:[//host/path]#Intent;…;end hands the
 // URL to a native app. Per Chrome's syntax an optional host/path may sit between the
 // scheme and the required #Intent marker, so all of these forms are rejected; the
