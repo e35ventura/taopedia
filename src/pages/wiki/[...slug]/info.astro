@@ -73,7 +73,7 @@ const pageTitle = `Information for "${page.data.title}"`;
 const pageDescription = `Page metadata for the Taopedia article "${page.data.title}": topics, incoming links, and revision history.`;
 ---
 
-<WikiLayout title={pageTitle} description={pageDescription}>
+<WikiLayout title={pageTitle} description={pageDescription} image={`/og/${slug}.png`}>
   <div class="mw-body-content">
     <nav class="mw-article-toolbar">
       <a href={articleUrl}>Article</a>
