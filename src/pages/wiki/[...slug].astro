@@ -11,16 +11,62 @@ import { getRelatedPages } from '../../lib/related-pages';
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
+
+  // Related-pages inputs: the build-time link graph + category index (the same
+  // public/data/*.json the What-links-here page and broken-link detection use).
+  // Globbed inside getStaticPaths because Astro runs this function isolated from
+  // the module scope. The page body used to re-run getCollection('pages'),
+  // rebuild titleBySlug across the whole collection, and call getRelatedPages on
+  // every one of the article pages (O(N) work per page); computing each
+  // article's related set once here mirrors related.json's getStaticPaths.
+  const categoriesModules = import.meta.glob('../../../public/data/categories.json', { eager: true }) as Record<
+    string,
+    { default?: Record<string, string[]> }
+  >;
+  const backlinksModules = import.meta.glob('../../../public/data/backlinks.json', { eager: true }) as Record<
+    string,
+    { default?: Record<string, Array<{ from: string }>> }
+  >;
+  const linkgraphModules = import.meta.glob('../../../public/data/linkgraph.json', { eager: true }) as Record<
+    string,
+    { default?: Record<string, Array<{ target: string }>> }
+  >;
+  const categoriesIndex = Object.values(categoriesModules)[0]?.default ?? {};
+  const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
+  const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
+
+  let slugMap: Record<string, { title?: string; categories?: string[]; summary?: string }> = {};
+  try {
+    const slugData = await import('../../../public/data/slugmap.json');
+    slugMap = slugData.default as typeof slugMap;
+  } catch (e) {
+    // Slug map not yet generated
+  }
+
+  const titleBySlug: Record<string, string> = {};
+  for (const p of pages) titleBySlug[getPageSlug(p)] = p.data.title;
+  const publishedSlugs = new Set(Object.keys(titleBySlug));
+
   return pages.map((page) => {
-    const slug = page.id.replace(/\/index\.(md|mdx)$/, '').replace(/\/index$/, '').replace(/\.(md|mdx)$/, '');
+    const slug = getPageSlug(page);
+    const relatedPages = getRelatedPages({
+      slug,
+      slugMap,
+      categoriesIndex,
+      backlinks: backlinksData,
+      outgoing: linkgraphData,
+      publishedSlugs,
+      titleBySlug,
+      max: 4,
+    });
     return {
       params: { slug },
-      props: { page, slug },
+      props: { page, slug, relatedPages },
     };
   });
 }
 
-const { page, slug } = Astro.props;
+const { page, slug, relatedPages } = Astro.props;
 const { Content, headings } = await render(page);
 const tocHeadings = getArticleToc(headings);
 
@@ -62,42 +108,9 @@ try {
 const slugAliases = buildSlugAliases(slugMap);
 const validSlugs = Object.keys(slugMap);
 
-// Related pages: reuse the build-time link graph + category index (the same
-// public/data/*.json the What-links-here page and broken-link detection use) to
-// surface a few related articles this one does not already link. Selection logic
-// lives in src/lib/related-pages.ts (pure + unit-testable). Globbed so a `dev` run
-// before the link graph is built degrades to an empty (hidden) section.
-const categoriesModules = import.meta.glob('../../../public/data/categories.json', { eager: true }) as Record<
-  string,
-  { default?: Record<string, string[]> }
->;
-const backlinksModules = import.meta.glob('../../../public/data/backlinks.json', { eager: true }) as Record<
-  string,
-  { default?: Record<string, Array<{ from: string }>> }
->;
-const linkgraphModules = import.meta.glob('../../../public/data/linkgraph.json', { eager: true }) as Record<
-  string,
-  { default?: Record<string, Array<{ target: string }>> }
->;
-const categoriesIndex = Object.values(categoriesModules)[0]?.default ?? {};
-const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
-const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
-
-const allPages = await getCollection('pages');
-const titleBySlug: Record<string, string> = {};
-for (const p of allPages) titleBySlug[getPageSlug(p)] = p.data.title;
-const publishedSlugs = new Set(Object.keys(titleBySlug));
-
-const relatedPages = getRelatedPages({
-  slug,
-  slugMap: slugMap as Record<string, { title?: string; categories?: string[]; summary?: string }>,
-  categoriesIndex,
-  backlinks: backlinksData,
-  outgoing: linkgraphData,
-  publishedSlugs,
-  titleBySlug,
-  max: 4,
-});
+// relatedPages is precomputed once per route in getStaticPaths (see above) and
+// passed via props, instead of re-reading the whole content collection on every
+// article page.
 
 function renderInfoboxValue(value: string) {
   return parseWikiLinkTokens(value).map((token) => {
