@@ -50,16 +50,20 @@ export const GET: APIRoute = async ({ site }) => {
   // on their envelopes, derived from the shared getArticleToc helper. Rendered
   // only for the registry's subnet articles so a subnet dashboard can gauge each
   // subnet's depth (how many sections it documents) without a second fetch.
+  // Gather each subnet's section count and revision history in a single pass over
+  // the registry list. These were two separate loops over `subnets`; the history
+  // read is folded into the render pass so the list is traversed once. History is
+  // read before the no-page guard so every subnet still gets a history entry (the
+  // render/sectionCount step is what requires a resolved page), keeping output
+  // byte-identical.
   const sectionCountBySlug: Record<string, number> = {};
+  const historyBySlug: Record<string, ReturnType<typeof historyForSlug>> = {};
   for (const subnet of subnets) {
+    historyBySlug[subnet.slug] = historyForSlug(subnet.slug);
     const page = pageBySlug[subnet.slug];
     if (!page) continue;
     const { headings } = await render(page);
     sectionCountBySlug[subnet.slug] = getArticleToc(headings).length;
-  }
-  const historyBySlug: Record<string, ReturnType<typeof historyForSlug>> = {};
-  for (const subnet of subnets) {
-    historyBySlug[subnet.slug] = historyForSlug(subnet.slug);
   }
 
   const body = JSON.stringify(
