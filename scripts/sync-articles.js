@@ -718,6 +718,15 @@ const unsafeContentPatterns = [
   // sandbox with no script — the same native protocol-handler class as the blocked
   // ms-*/onenote: handlers; the scheme names never occur in glossary prose.
   { pattern: /\b(?:zoommtg|zoomus|msteams)\s*:/i, reason: 'video-conferencing client protocol-handler URLs are not allowed in article content' },
+  // skype: callto: facetime: facetime-audio: sgnl: launch a native communication app
+  // pointed at an attacker-controlled contact: a clicked skype:victim?call,
+  // facetime:attacker@evil, callto:victim, or sgnl://… (Signal) opens/dials in a desktop
+  // app outside the page sandbox with no script — the same native app-launch class as the
+  // blocked intent:/zoommtg:/shell: schemes. The (?=non-space) lookahead blocks a real
+  // scheme:target URL while a prose definition like "Skype: a VoIP app" / "FaceTime:
+  // Apple's video call" (a name followed by a colon and a space) is never affected — the
+  // same shell: precedent.
+  { pattern: /\b(?:skype|callto|facetime-audio|facetime|sgnl)\s*:(?=[^\s"'<>)])/i, reason: 'communication-app launch URL schemes are not allowed in article content' },
   // shell: is the Windows Explorer protocol handler: shell:startup opens the user's
   // Startup folder (a drop-a-payload persistence path), shell:::{CLSID} opens special
   // folders / Control-Panel applets, and the OS — not the browser — resolves it, with
@@ -777,6 +786,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:steam|com\.epicgames\.launcher)\s*:\/\//i, reason: 'game-launcher protocol-handler URLs are not allowed in article content' },
   { pattern: /intent\s*:[^\s"'<>)]*#\s*Intent\b/i, reason: 'intent: app-launch URLs are not allowed in article content' },
   { pattern: /(?:zoommtg|zoomus|msteams)\s*:/i, reason: 'video-conferencing client protocol-handler URLs are not allowed in article content' },
+  { pattern: /\b(?:skype|callto|facetime-audio|facetime|sgnl)\s*:(?=[^\s"'<>)])/i, reason: 'communication-app launch URL schemes are not allowed in article content' },
   { pattern: /\bshell\s*:(?=[^\s"'<>)])/i, reason: 'shell: protocol-handler URLs are not allowed in article content' },
   { pattern: /\bms-cxh(?:-full)?\s*:/i, reason: 'Windows CloudExperienceHost protocol-handler URLs are not allowed in article content' },
   { pattern: /data\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
@@ -806,6 +816,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:steam|com\.epicgames\.launcher)\s*:\/\//i,
   /intent\s*:[^\s"'<>)]*#\s*Intent\b/i,
   /(?:zoommtg|zoomus|msteams)\s*:/i,
+  /\b(?:skype|callto|facetime-audio|facetime|sgnl)\s*:(?=[^\s"'<>)])/i,
   /\bshell\s*:(?=[^\s"'<>)])/i,
   /\bms-cxh(?:-full)?\s*:/i,
   /data\s*:\s*text\/html/i,
