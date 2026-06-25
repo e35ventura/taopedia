@@ -66,6 +66,24 @@ const projectRoot = path.resolve(__dirname, '..');
   assert.deepEqual(out[0].categories, ['Subnets'], 'categories pass through from page data');
 }
 
+// Repeated frontmatter categories must be deduped while preserving first-seen order.
+{
+  const out = buildSubnets({
+    pages: [
+      {
+        id: 'a/index.mdx',
+        data: { title: 'Subnet 1: Apex', categories: ['Subnets', 'Mining', 'Subnets'] },
+      },
+    ],
+    getPageSlug: (page) => page.id.replace(/\/index\.mdx$/, ''),
+  });
+  assert.deepEqual(
+    out[0].categories,
+    ['Subnets', 'Mining'],
+    'repeated frontmatter categories must be deduped in subnets.json rows',
+  );
+}
+
 // Whitespace tolerance around the colon (the HTML page's regex accepts `\s*`).
 {
   const out = buildSubnets({

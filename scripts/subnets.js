@@ -27,7 +27,7 @@ export function buildSubnets({ pages, getPageSlug }) {
         name,
         slug: getPageSlug(page),
         summary: page?.data?.summary ?? '',
-        categories: Array.isArray(page?.data?.categories) ? page.data.categories : [],
+        categories: Array.isArray(page?.data?.categories) ? [...new Set(page.data.categories)] : [],
       };
     })
     .filter((entry) => entry !== null);
