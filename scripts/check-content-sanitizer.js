@@ -353,6 +353,16 @@ rejects('A mongolian' + String.fromCharCode(0x180e) + 'separator hides.', 'mongo
 rejects('A hangul' + String.fromCharCode(0x3164) + 'filler hides here.', 'hangul filler U+3164');
 accepts('An ordinary ascii-hyphen word like proof-of-stake is fine.', 'benign ASCII hyphen-minus passes');
 
+// Unicode tag characters (U+E0000-U+E007F) and interlinear annotation anchors
+// (U+FFF9-U+FFFB) are invisible no-glyph format code points: the tag block is the
+// "ASCII smuggling" hidden-text vector and the annotation anchors render nothing.
+// Built with String.fromCodePoint so no literal invisible bytes appear in source.
+rejects('A normal sentence.' + String.fromCodePoint(0xe0054) + 'A hidden tag char rides along.', 'tag character U+E0054 (ASCII smuggling)');
+rejects('Start' + String.fromCodePoint(0xe0001) + 'language tag base hides here.', 'tag character U+E0001');
+rejects('An' + String.fromCodePoint(0xfff9) + 'interlinear anchor hides here.', 'interlinear annotation anchor U+FFF9');
+accepts('Ordinary prose with an emoji 😀 and math symbol 𝐀 passes fine.', 'benign emoji and astral math characters pass');
+accepts('Tag characters and interlinear annotation are described here only as prose.', 'benign invisible-smuggling-char prose with none present');
+
 // Inline event handlers are blocked regardless of the attribute delimiter — a
 // slash, or a quote abutting the handler — not just a leading space.
 rejects('<img src=x onerror=alert(1)>', 'space-delimited handler');

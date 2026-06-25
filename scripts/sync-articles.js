@@ -104,6 +104,20 @@ const additionalInvisibleCharPattern = new RegExp(
   ']',
 );
 
+// Unicode TAG characters (U+E0000-U+E007F) and the INTERLINEAR ANNOTATION anchors
+// (U+FFF9 ANCHOR, U+FFFA SEPARATOR, U+FFFB TERMINATOR) are invisible format code
+// points that render no glyph at all. The tag block is the canonical "ASCII
+// smuggling" vector — an attacker encodes hidden text or instructions entirely in
+// tag characters that ride inside visible prose completely unseen (e.g. a hidden
+// payload trailing a normal sentence, invisible to a human reviewer but present in
+// the stored/copied text and to any downstream consumer); interlinear annotation
+// controls are likewise invisible with no rendered output. Neither has any use in
+// the glossary English prose Markdown emits, so block them like the zero-width /
+// control / format characters above. Written with \u{...} escapes (the `u` flag is
+// required for the astral tag-character range) so no literal invisible byte enters
+// this source.
+const invisibleSmugglingCharPattern = /[\u{FFF9}-\u{FFFB}\u{E0000}-\u{E007F}]/u;
+
 const unsafeContentPatterns = [
   { pattern: /^\s*import\s/m, reason: 'MDX imports are not allowed in article content' },
   { pattern: /^\s*export\s/m, reason: 'MDX exports are not allowed in article content' },
@@ -298,6 +312,7 @@ const unsafeContentPatterns = [
   { pattern: invisibleFormatCharPattern, reason: 'invisible bidi marks and zero-width characters are not allowed in article content' },
   { pattern: controlCharPattern, reason: 'control characters are not allowed in article content' },
   { pattern: additionalInvisibleCharPattern, reason: 'invisible format characters are not allowed in article content' },
+  { pattern: invisibleSmugglingCharPattern, reason: 'invisible tag and annotation characters are not allowed in article content' },
   ...directivePatterns,
 ];
 
