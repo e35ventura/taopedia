@@ -185,8 +185,12 @@ const unsafeContentPatterns = [
   // carry <foreignObject> HTML, animation elements that retarget attributes, or
   // namespaced links). Article bodies are plain glossary prose and never need
   // either element, so block them outright rather than relying on the script /
-  // handler / scheme scans alone.
-  { pattern: /<\s*(svg|math|foreignObject)\b/i, reason: 'SVG and MathML elements are not allowed in article content' },
+  // handler / scheme scans alone. <foreignObject> (SVG) and <annotation-xml>
+  // (MathML) are the HTML integration points: with encoding="text/html" the
+  // parser re-enters HTML mode inside <annotation-xml>, the canonical MathML
+  // mutation-XSS / sanitizer-bypass vector (the MathML counterpart of
+  // foreignObject), so they are blocked standalone too.
+  { pattern: /<\s*(svg|math|foreignObject|annotation-xml)\b/i, reason: 'SVG and MathML elements are not allowed in article content' },
   // <noscript> is parsed under different rules depending on the browser's scripting
   // state, a known mutation-XSS / sanitizer-confusion surface (sanitizers such as
   // DOMPurify special-case it). A glossary never needs script-fallback markup, so
