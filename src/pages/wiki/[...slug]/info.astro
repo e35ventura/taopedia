@@ -5,16 +5,33 @@ import { getPageSlug, historyForSlug } from '../../../lib/article-history';
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
+  // backlinks.json is the same inbound-link graph Special:WhatLinksHere /
+  // Special:MostLinkedPages read. Globbed inside getStaticPaths because Astro
+  // runs this function in isolation from the module scope.
+  const backlinksModules = import.meta.glob('../../../../public/data/backlinks.json', { eager: true }) as Record<
+    string,
+    { default?: Record<string, Array<{ from: string }>> }
+  >;
+  const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
+  // Build the published-title map once for the whole collection, then carry the
+  // per-article inbound-link count on props. The page body used to re-run
+  // getCollection('pages') and rebuild titleBySlug on every article page just
+  // to derive this one number (O(N) per page); precomputing it once here
+  // mirrors the info.json endpoint's getStaticPaths.
+  const titleBySlug: Record<string, string> = {};
+  for (const p of pages) titleBySlug[getPageSlug(p)] = p.data.title;
+
   return pages.map((page) => {
     const slug = getPageSlug(page);
+    const inboundCount = (backlinksData[slug] ?? []).filter((entry) => titleBySlug[entry.from]).length;
     return {
       params: { slug },
-      props: { page, slug },
+      props: { page, slug, inboundCount },
     };
   });
 }
 
-const { page, slug } = Astro.props;
+const { page, slug, inboundCount } = Astro.props;
 
 // MediaWiki's "Page information" (action=info) for one article: a consolidated
 // metadata overview whose figures each link to their own detail page. Built
@@ -24,19 +41,10 @@ const { page, slug } = Astro.props;
 // (public/history/<slug>.json, the same source as the History page, the sitemap
 // <lastmod>, and Special:RecentChanges). No new data pipeline, no new dependencies.
 
-// Count only inbound links from published articles — the same orphan-skipping
-// join Special:WhatLinksHere and Special:MostLinkedPages use, so the figure
-// matches the count shown on this article's "What links here" page.
-const pages = await getCollection('pages');
-const titleBySlug: Record<string, string> = {};
-for (const p of pages) titleBySlug[getPageSlug(p)] = p.data.title;
-
-const backlinksModules = import.meta.glob('../../../../public/data/backlinks.json', { eager: true }) as Record<
-  string,
-  { default?: Record<string, Array<{ from: string }>> }
->;
-const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
-const inboundCount = (backlinksData[slug] ?? []).filter((entry) => titleBySlug[entry.from]).length;
+// inboundCount counts only inbound links from published articles — the same
+// orphan-skipping join Special:WhatLinksHere and Special:MostLinkedPages use,
+// so the figure matches the count shown on this article's "What links here"
+// page. Precomputed once per route in getStaticPaths (see above).
 
 // Newest-first history: length is the revision count, [0] the latest revision,
 // and the last entry the article's creation. Empty when no history is recorded.
