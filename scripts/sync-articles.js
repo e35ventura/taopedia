@@ -1789,6 +1789,15 @@ function decodeEntityPass(content) {
     .replace(/&sol;/gi, '/')
     .replace(/&plus;/gi, '+')
     .replace(/&(?:tab|newline);/gi, '')
+    // stripUrlObfuscationChars already removes the whole Default_Ignorable class
+    // (soft hyphen, zero-width spaces/joiners, bidi marks, word joiner, invisible
+    // math operators) so a flagged scheme can't be split by one of those raw chars
+    // or its numeric (&#173;) entity. The NAMED entities for that same class were
+    // never decoded, so java&shy;script: / java&zwnj;script: stayed literal and
+    // evaded the scan while a browser decodes them and ignores the resulting char.
+    // These are exactly the HTML named character references that resolve to a
+    // Default_Ignorable code point; collapse them to nothing like their stripped chars.
+    .replace(/&(?:shy|ZeroWidthSpace|zwnj|zwj|lrm|rlm|NoBreak|af|ApplyFunction|it|InvisibleTimes|ic|InvisibleComma);/gi, '')
     .replace(/&amp;/gi, '&');
 }
 

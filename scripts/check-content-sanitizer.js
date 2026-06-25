@@ -537,6 +537,16 @@ rejects('See [x](&#100;ata:image/svg+xml;base64,PHN2Zz4=).', 'entity-obfuscated 
 rejects('See [x](&#100;ata:application/xhtml+xml;base64,PHNjcmlwdD4=).', 'entity-obfuscated xhtml data uri');
 rejects('See [x](data:image/svg&plus;xml;base64,PHN2Zz4=).', 'named-plus-entity svg data uri');
 rejects('See [x](data:application/xhtml&plus;xml;base64,PHNjcmlwdD4=).', 'named-plus-entity xhtml data uri');
+// The raw Default_Ignorable chars (and their numeric entities) that split a flagged
+// scheme are already stripped; the NAMED entities for that same class were not
+// decoded, so java&shy;script: stayed literal and evaded the scan. Decode them too.
+rejects('See [x](java&shy;script:alert(1)).', 'named-soft-hyphen-entity javascript:');
+rejects('See [x](java&zwnj;script:alert(1)).', 'named-zwnj-entity javascript:');
+rejects('See [x](java&zwj;script:alert(1)).', 'named-zwj-entity javascript:');
+rejects('See [x](java&lrm;script:alert(1)).', 'named-lrm-entity javascript:');
+rejects('See [x](java&NoBreak;script:alert(1)).', 'named-word-joiner-entity javascript:');
+rejects('See [x](da&ZeroWidthSpace;ta:text/html,evil).', 'named-zwsp-entity data:text/html');
+accepts('Zero-width and soft-hyphen named entities are described here only as prose.', 'benign prose names the entities without using them in a scheme');
 
 // Bidirectional control characters (Trojan Source, CVE-2021-42574) reorder how
 // text renders without changing its bytes, so a link can display as a trusted
