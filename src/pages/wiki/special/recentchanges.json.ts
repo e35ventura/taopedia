@@ -36,18 +36,12 @@ export const GET: APIRoute = async ({ site }) => {
   const categoriesBySlug: Record<string, string[]> = {};
   const summaryBySlug: Record<string, string> = {};
   const pageBySlug: Record<string, (typeof pages)[number]> = {};
-  // wordCount is the changed article's body word count — the same figure
-  // info.json exposes and the article-page footer (mw-article-meta
-  // data-word-count) renders, computed from the raw markdown body so a change-
-  // feed consumer can gauge each article's length without a second fetch.
-  const wordCountBySlug: Record<string, number> = {};
   for (const page of pages) {
     const slug = getPageSlug(page);
     titleBySlug[slug] = page.data.title;
     categoriesBySlug[slug] = page.data.categories ?? [];
     summaryBySlug[slug] = page.data.summary ?? '';
     pageBySlug[slug] = page;
-    wordCountBySlug[slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
   }
 
   const changes = allRecentChanges(titleBySlug, RECENT_LIMIT);
@@ -59,12 +53,23 @@ export const GET: APIRoute = async ({ site }) => {
   // each article's depth without a second fetch. Cached per slug because an
   // article can appear in multiple changes.
   const sectionCountBySlug: Record<string, number> = {};
+  // wordCount is the changed article's body word count — the same figure
+  // info.json exposes and the article-page footer (mw-article-meta
+  // data-word-count) renders, computed from the raw markdown body so a change-
+  // feed consumer can gauge each article's length without a second fetch.
+  // Computed here (gated to the slugs that actually appear in the feed, ≤
+  // RECENT_LIMIT) rather than splitting every article body in the collection up
+  // front — the same compute-only-for-feed-members pattern sectionCount /
+  // revisionStats / inbound / references below already follow. Cached per slug
+  // because an article can appear in multiple changes.
+  const wordCountBySlug: Record<string, number> = {};
   for (const change of changes) {
     if (change.slug in sectionCountBySlug) continue;
     const page = pageBySlug[change.slug];
     if (!page) continue;
     const { headings } = await render(page);
     sectionCountBySlug[change.slug] = getArticleToc(headings).length;
+    wordCountBySlug[change.slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
   }
   // revisionCount/firstEdited/lastEdited are the changed article's own commit-
   // history stats (history is newest-first) — the same trio info.json /
