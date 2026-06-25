@@ -599,6 +599,15 @@ const unsafeContentPatterns = [
   // by any non-whitespace URL characters and then #Intent. The whitespace boundary means the
   // common prose word "intent" before a colon (e.g. "the author's intent: clarity") is unaffected.
   { pattern: /\bintent\s*:[^\s"'<>)]*#\s*Intent\b/i, reason: 'intent: app-launch URLs are not allowed in article content' },
+  // file:// URLs reference the reader's local filesystem (file:///etc/passwd,
+  // file://server/share). Web browsers block web→file navigation, but the article
+  // content is also served through the syndicated RSS/Atom/JSON feeds and read in
+  // non-browser clients that do not all enforce that boundary, so a file:// link is a
+  // local-file disclosure / phishing vector with no legitimate use in a Bittensor
+  // glossary — the same out-of-page resource class as the blocked protocol handlers.
+  // Require the // authority marker so the prose phrase "file: " (e.g. "the config
+  // file: settings.json") is unaffected.
+  { pattern: /\bfile\s*:\/\//i, reason: 'file:// local filesystem URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*image\/svg\+xml/i, reason: 'SVG data URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*application\/xhtml\+xml/i, reason: 'XHTML data URLs are not allowed in article content' },
@@ -623,6 +632,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /ms-(?:msdt|appinstaller)\s*:/i, reason: 'Windows protocol-handler URLs are not allowed in article content' },
   { pattern: /ms-(?:word|excel|powerpoint|visio|access|project|publisher|infopath|spd)\s*:/i, reason: 'Microsoft Office document protocol-handler URLs are not allowed in article content' },
   { pattern: /intent\s*:[^\s"'<>)]*#\s*Intent\b/i, reason: 'intent: app-launch URLs are not allowed in article content' },
+  { pattern: /\bfile\s*:\/\//i, reason: 'file:// local filesystem URLs are not allowed in article content' },
   { pattern: /data\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
   { pattern: /data\s*:\s*image\/svg\+xml/i, reason: 'SVG data URLs are not allowed in article content' },
   { pattern: /data\s*:\s*application\/xhtml\+xml/i, reason: 'XHTML data URLs are not allowed in article content' },
@@ -637,6 +647,7 @@ const infoboxRowValueSchemePatterns = [
   /ms-(?:msdt|appinstaller)\s*:/i,
   /ms-(?:word|excel|powerpoint|visio|access|project|publisher|infopath|spd)\s*:/i,
   /intent\s*:[^\s"'<>)]*#\s*Intent\b/i,
+  /\bfile\s*:\/\//i,
   /data\s*:\s*text\/html/i,
   /data\s*:\s*image\/svg\+xml/i,
   /data\s*:\s*application\/xhtml\+xml/i,

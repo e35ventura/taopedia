@@ -398,6 +398,14 @@ rejects('See [x](intent://evil.example/#Intent;scheme=https;package=com.evil;end
 rejects('See [x](intent:#Intent;action=android.intent.action.VIEW;end).', 'intent: with bare #Intent fragment');
 rejects('See [x](intent:scan/#Intent;scheme=zxing;package=com.evil;end).', 'intent: with host/path before #Intent');
 accepts("The author's intent: clarity over cleverness in every article.", 'benign "intent:" prose word is not the scheme');
+// file:// references the reader's local filesystem (file:///etc/passwd,
+// file://server/share). Browsers block web→file navigation, but the syndicated feeds
+// and non-browser readers do not all enforce that, so a file:// link is a local-file
+// disclosure / phishing vector. The // authority marker keeps the prose "file: " safe.
+rejects('See [x](file:///etc/passwd).', 'plain file:/// local path URL');
+rejects('See [x](file://evil.example/share/x).', 'file:// remote share URL');
+rejects('See [x](fil&#101;://etc/passwd).', 'entity-obfuscated file:// URL');
+accepts('Open the config file: settings.json, described here only as prose.', 'benign "file:" prose word is not the scheme');
 accepts('Discussing user intent and the #Intent label only as prose, far apart.', 'benign "intent" prose word with a distant #Intent is not the scheme');
 
 // MDX expression braces execute at build time in article bodies. They are only
