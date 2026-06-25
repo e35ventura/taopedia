@@ -1,7 +1,8 @@
 import type { APIRoute } from 'astro';
-import { getCollection } from 'astro:content';
 import { compareTitles } from '../lib/title-sort.js';
-import { getPageSlug, lastmodForSlug } from '../lib/article-history';
+import { lastmodForSlug } from '../lib/article-history';
+import slugMap from '../../public/data/slugmap.json';
+import categoriesIndex from '../../public/data/categories.json';
 
 const escapeXml = (value: string) =>
   value.replace(/[&<>"']/g, (char) => {
@@ -19,18 +20,17 @@ const escapeXml = (value: string) =>
     }
   });
 
-export const GET: APIRoute = async ({ site }) => {
-  const origin = (site ?? new URL('https://taopedia.org')).origin;
-  const pages = await getCollection('pages');
+const categorySlug = (categoryName: string) => categoryName.replace(/ /g, '_');
 
-  // Per-slug lastmod, computed once. lastmodForSlug is historyForSlug(slug)[0]?.date
-  // (a full revision-history lookup) and is needed twice below — once per article
-  // <loc> and again when aggregating each category hub's newest-member lastmod.
-  // Build it in a single pass and reuse it, the same compute-once pattern the
-  // category feed routes use (#1192 / #1195 / #1197).
+export const GET: APIRoute = ({ site }) => {
+  const origin = (site ?? new URL('https://taopedia.org')).origin;
+
+  // Read public/data/slugmap.json and categories.json — the same build artifacts
+  // search-data.json (#1405) and categories.json (#1403) already use — instead
+  // of calling getCollection('pages') and re-scanning every article's frontmatter.
   const lastmodBySlug: Record<string, string> = {};
-  for (const page of pages) {
-    lastmodBySlug[getPageSlug(page)] = lastmodForSlug(getPageSlug(page));
+  for (const slug of Object.keys(slugMap)) {
+    lastmodBySlug[slug] = lastmodForSlug(slug);
   }
 
   // Canonical, trailing-slash paths that each map 1:1 to a built page: the
@@ -43,40 +43,30 @@ export const GET: APIRoute = async ({ site }) => {
   // visually represents the article; surface it to image search via the
   // image-sitemap namespace (only article URLs carry an image). The card URL is
   // stable per slug and lives on this origin.
-  const articleEntries = pages
-    .map((page) => {
-      const slug = getPageSlug(page);
-      return {
-        path: `/wiki/${slug}/`,
-        lastmod: lastmodBySlug[slug] ?? '',
-        image: { loc: `${origin}/og/${slug}.png`, title: page.data.title },
-      };
-    })
+  const articleEntries = Object.entries(slugMap)
+    .map(([slug, entry]) => ({
+      path: `/wiki/${slug}/`,
+      lastmod: lastmodBySlug[slug] ?? '',
+      image: { loc: `${origin}/og/${slug}.png`, title: entry?.title ?? slug },
+    }))
     .sort((a, b) => compareTitles(a.path, b.path));
 
-  // Same derivation as wiki/category/[category].astro getStaticPaths: the set
-  // of distinct category labels, each routed at /wiki/category/<label_>/ with
-  // spaces mapped to underscores. These hub pages are indexable and carry their
-  // own canonical + meta description (#58). A hub's listing changes exactly
-  // when a member article changes, so its <lastmod> is the newest member
-  // lastmod — the same history source as the article entries, whose ISO-8601
-  // UTC strings order correctly under string comparison.
-  const categoryNames = new Set<string>();
-  const categoryLastmod = new Map<string, string>();
-  for (const page of pages) {
-    const lastmod = lastmodBySlug[getPageSlug(page)] ?? '';
-    for (const category of page.data.categories ?? []) {
-      categoryNames.add(category);
-      if (lastmod && lastmod > (categoryLastmod.get(category) ?? '')) {
-        categoryLastmod.set(category, lastmod);
+  // Same derivation as wiki/category/[category].astro getStaticPaths: each
+  // category label routed at /wiki/category/<label_>/ with spaces mapped to
+  // underscores. A hub's <lastmod> is the newest member lastmod — ISO-8601 UTC
+  // strings order correctly under string comparison.
+  const categoryEntries = Object.entries(categoriesIndex)
+    .map(([category, slugs]) => {
+      let lastmod = '';
+      for (const slug of slugs) {
+        const memberLastmod = lastmodBySlug[slug] ?? '';
+        if (memberLastmod > lastmod) lastmod = memberLastmod;
       }
-    }
-  }
-  const categoryEntries = [...categoryNames]
-    .map((category) => ({
-      path: `/wiki/category/${category.replace(/ /g, '_')}/`,
-      lastmod: categoryLastmod.get(category) ?? '',
-    }))
+      return {
+        path: `/wiki/category/${categorySlug(category)}/`,
+        lastmod,
+      };
+    })
     .sort((a, b) => compareTitles(a.path, b.path));
 
   const entries = [
