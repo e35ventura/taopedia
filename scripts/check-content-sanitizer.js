@@ -1435,6 +1435,21 @@ accepts('<a href="/wiki/aria-relevant=demo">aria-relevant docs</a>', 'benign ari
 accepts('ARIA relevant is an accessibility concept described here only as prose.', 'benign aria-relevant prose');
 accepts('<span class=x/aria-relevant-demo>not an aria-relevant attribute</span>', 'benign aria-relevant substring in class value');
 
+// aria-grabbed=/aria-dropeffect= are the deprecated ARIA drag-and-drop STATE
+// attributes — same assistive-tech state/widget spoof family as the merged
+// aria-pressed/aria-checked/aria-selected and aria-disabled/readonly/required
+// blocks; static prose never drags or drops, so complete the ARIA state set.
+rejects('Intro.\n\n<div aria-grabbed="true">x</div>', 'plain aria-grabbed attribute');
+rejects('Intro.\n\n<div aria-dropeffect="copy">x</div>', 'plain aria-dropeffect attribute');
+rejects('Intro.\n\n<  div   aria-dropeffect = "move">x</div>', 'spaced aria-dropeffect attribute');
+rejects('<a href="x"aria-grabbed="true">go</a>', 'quote-abutted aria-grabbed attribute');
+rejects('<div class=x/aria-dropeffect="link">x</div>', 'slash-delimited aria-dropeffect attribute');
+rejects("<p class='x'aria-grabbed='false'>x</p>", 'single-quote-abutted aria-grabbed attribute');
+
+accepts('<a href="/wiki/aria-grabbed=demo">aria-grabbed docs</a>', 'benign aria-grabbed substring in quoted href');
+accepts('ARIA dropeffect is a deprecated accessibility concept described here only as prose.', 'benign aria-dropeffect prose');
+accepts('<span class=x/aria-grabbed-demo>not an aria-grabbed attribute</span>', 'benign aria-grabbed substring in class value');
+
 // srcset=/sizes= on <img> steer responsive loading — gap after #411 blocked picture/source.
 rejects('Intro.\n\n<img src="/wiki/fig.png" srcset="https://evil.example/x 1x" alt="x">', 'plain img srcset attribute');
 rejects('Intro.\n\n<  img   src="/wiki/fig.png"   srcset = "https://evil.example/x 2x">', 'spaced img srcset attribute');
