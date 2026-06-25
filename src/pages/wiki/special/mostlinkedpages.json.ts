@@ -50,16 +50,20 @@ export const GET: APIRoute = async ({ site }) => {
   // their envelopes, derived from the shared getArticleToc helper. Rendered only
   // for the ranked pages so a consumer can gauge each top page's depth (how many
   // sections it has) alongside its link popularity without a second fetch.
+  // Gather each ranked page's section count and revision history in a single pass
+  // over the ranked list. These were two separate loops over `ranked`; the history
+  // read is folded into the render pass so the list is traversed once. History is
+  // read before the no-page guard so every ranked entry still gets a history entry
+  // (the render/sectionCount step is what requires a resolved page), keeping the
+  // output byte-identical.
   const sectionCountBySlug: Record<string, number> = {};
+  const historyBySlug: Record<string, ReturnType<typeof historyForSlug>> = {};
   for (const entry of ranked) {
+    historyBySlug[entry.slug] = historyForSlug(entry.slug);
     const page = pageBySlug[entry.slug];
     if (!page) continue;
     const { headings } = await render(page);
     sectionCountBySlug[entry.slug] = getArticleToc(headings).length;
-  }
-  const historyBySlug: Record<string, ReturnType<typeof historyForSlug>> = {};
-  for (const entry of ranked) {
-    historyBySlug[entry.slug] = historyForSlug(entry.slug);
   }
 
   const body = JSON.stringify(
