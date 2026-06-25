@@ -1,6 +1,12 @@
 const LOCAL_IMAGE_EXTENSION_PATTERN = /\.(?:avif|gif|jpe?g|png|webp)$/i;
 const PASSTHROUGH_IMAGE_URL_PATTERN = /^(?:[a-z][a-z0-9+.-]*:|\/\/|\/)/i;
-const UNSAFE_IMAGE_URL_PATTERN = /^(?:javascript|vbscript)\s*:|^data\s*:\s*(?:text\/html|image\/svg\+xml|application\/xhtml\+xml|(?:text|application)\/(?:javascript|ecmascript))/i;
+// data:text/xml and data:application/xml render as a navigable XML document whose
+// xml-stylesheet processing instruction can load an XSLT sheet that executes script —
+// the same parsed-as-markup surface as the SVG (image/svg+xml) and XHTML
+// (application/xhtml+xml) data URLs already blocked here. The article-content
+// sanitizer (scripts/sync-articles.js) blocks these XML data: types for links and
+// infobox values, so block them for image sources too to keep the two lists in sync.
+const UNSAFE_IMAGE_URL_PATTERN = /^(?:javascript|vbscript)\s*:|^data\s*:\s*(?:text\/html|image\/svg\+xml|application\/xhtml\+xml|(?:text|application)\/xml\b|(?:text|application)\/(?:javascript|ecmascript))/i;
 
 function decodePathSegments(value) {
   try {
