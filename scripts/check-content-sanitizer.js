@@ -526,6 +526,11 @@ accepts('The SMB protocol and Server Message Block are described here only as pr
 rejects('See [x](afp://attacker.example/share).', 'plain afp:// file-share URL');
 rejects('See [x](a&#102;p://attacker.example/share).', 'entity-obfuscated afp:// URL');
 accepts('The AFP protocol and Apple Filing Protocol are described here only as prose.', 'benign "AFP" prose is not the afp:// scheme');
+// nfs:// is the Unix/Linux Network File System share scheme, the sibling of smb:// — a
+// clicked nfs:// points the OS at an attacker-controlled export to mount. // keeps prose.
+rejects('See [x](nfs://attacker.example/export).', 'plain nfs:// file-share URL');
+rejects('See [x](n&#102;s://attacker.example/export).', 'entity-obfuscated nfs:// URL');
+accepts('The NFS protocol and Network File System are described here only as prose.', 'benign "NFS" prose is not the nfs:// scheme');
 // intent: is the Android app-launch scheme — intent:[//host/path]#Intent;…;end hands the
 // URL to a native app. Per Chrome's syntax an optional host/path may sit between the
 // scheme and the required #Intent marker, so all of these forms are rejected; the
