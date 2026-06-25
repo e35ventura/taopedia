@@ -643,6 +643,14 @@ const unsafeContentPatterns = [
   // by any non-whitespace URL characters and then #Intent. The whitespace boundary means the
   // common prose word "intent" before a colon (e.g. "the author's intent: clarity") is unaffected.
   { pattern: /\bintent\s*:[^\s"'<>)]*#\s*Intent\b/i, reason: 'intent: app-launch URLs are not allowed in article content' },
+  // zoommtg:/zoomus:/msteams: are video-conferencing client protocol handlers the OS
+  // resolves to launch the locally-installed client — not the browser — at an
+  // attacker-chosen meeting/host. zoommtg: is the Zoom launch scheme whose argument
+  // handling was a documented client RCE/launch vector (CVE-2018-15715), and msteams:
+  // deep-links the Teams client. A clicked link drives a native app outside the page
+  // sandbox with no script — the same native protocol-handler class as the blocked
+  // ms-*/onenote: handlers; the scheme names never occur in glossary prose.
+  { pattern: /\b(?:zoommtg|zoomus|msteams)\s*:/i, reason: 'video-conferencing client protocol-handler URLs are not allowed in article content' },
   // shell: is the Windows Explorer protocol handler: shell:startup opens the user's
   // Startup folder (a drop-a-payload persistence path), shell:::{CLSID} opens special
   // folders / Control-Panel applets, and the OS — not the browser — resolves it, with
@@ -695,6 +703,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:rdp|vnc|telnet|ssh)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i, reason: 'mobile app-store URL schemes are not allowed in article content' },
   { pattern: /intent\s*:[^\s"'<>)]*#\s*Intent\b/i, reason: 'intent: app-launch URLs are not allowed in article content' },
+  { pattern: /(?:zoommtg|zoomus|msteams)\s*:/i, reason: 'video-conferencing client protocol-handler URLs are not allowed in article content' },
   { pattern: /\bshell\s*:(?=[^\s"'<>)])/i, reason: 'shell: protocol-handler URLs are not allowed in article content' },
   { pattern: /\bms-cxh(?:-full)?\s*:/i, reason: 'Windows CloudExperienceHost protocol-handler URLs are not allowed in article content' },
   { pattern: /data\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
@@ -717,6 +726,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:rdp|vnc|telnet|ssh)\s*:\/\//i,
   /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i,
   /intent\s*:[^\s"'<>)]*#\s*Intent\b/i,
+  /(?:zoommtg|zoomus|msteams)\s*:/i,
   /\bshell\s*:(?=[^\s"'<>)])/i,
   /\bms-cxh(?:-full)?\s*:/i,
   /data\s*:\s*text\/html/i,
