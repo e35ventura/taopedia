@@ -32,34 +32,37 @@ export async function getStaticPaths() {
   const pages = await getCollection('pages');
   const titleBySlug = Object.fromEntries(pages.map((page) => [getPageSlug(page), page.data.title]));
   const publishedSlugs = new Set(Object.keys(titleBySlug));
-  // Per-entry wordCount: each related article's body word count — the same
-  // figure info.json / history.json expose and allpages.json / subnets.json
-  // expose per directory entry. Built once from the content collection.
-  const wordCountBySlug = Object.fromEntries(
-    pages.map((page) => [getPageSlug(page), (page.body ?? '').trim().split(/\s+/).filter(Boolean).length]),
+  // Gather each article's body word count, table-of-contents section count, and
+  // revision history in a single pass over the content collection — these were
+  // three separate loops over `pages`. The wordCount and history reads are folded
+  // into the render pass (rendering is what requires a resolved page), kept parallel
+  // via Promise.all so the render step is not serialized. Each is a per-slug stat
+  // the envelope and related entries carry (the same figures info.json /
+  // history.json / toc.json expose); output is byte-identical.
+  const wordCountBySlug: Record<string, number> = {};
+  const sectionCountBySlug: Record<string, number> = {};
+  const historyBySlug: Record<string, ReturnType<typeof historyForSlug>> = {};
+  await Promise.all(
+    pages.map(async (page) => {
+      const slug = getPageSlug(page);
+      wordCountBySlug[slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
+      historyBySlug[slug] = historyForSlug(slug);
+      const { headings } = await render(page);
+      sectionCountBySlug[slug] = getArticleToc(headings).length;
+    }),
   );
-  // Per-slug table-of-contents section count — the same sectionCount info.json /
-  // history.json expose (and the toc.json `count`). Built once from the content
-  // collection so both the envelope and each related entry can carry it.
-  const sectionCountBySlug = Object.fromEntries(
-    await Promise.all(pages.map(async (page) => [getPageSlug(page), getArticleToc((await render(page)).headings).length])),
-  );
-  // Per-slug revision history, published inbound-link count, and outbound
-  // reference count — the three stats each related entry (and the envelope)
-  // carries. They depend only on the target slug, but the same target recurs
-  // across many articles' related sets, so computing them inside the entry map
-  // below recomputes each target's stats once per referencing article
-  // (O(articles × related)) — and getArticleReferences is a full link-graph
-  // join. Precompute them once over the page collection, the same way
-  // subnets.json / mostlinkedpages.json precompute their historyBySlug map and
-  // this endpoint already precomputes wordCountBySlug / sectionCountBySlug.
-  const historyBySlug = Object.fromEntries(pages.map((page) => [getPageSlug(page), historyForSlug(getPageSlug(page))]));
-  const inboundBySlug = Object.fromEntries(
-    pages.map((page) => [getPageSlug(page), publishedInboundLinkCount(backlinksData, getPageSlug(page), titleBySlug)]),
-  );
-  const referencesCountBySlug = Object.fromEntries(
-    pages.map((page) => [getPageSlug(page), getArticleReferences({ slug: getPageSlug(page), linkGraph: linkgraphData, titleBySlug }).length]),
-  );
+  // Published inbound-link count and outbound reference count, gathered in a single
+  // pass after titleBySlug is built (both resolve titles through it). These were two
+  // separate loops; getArticleReferences is a full link-graph join, so computing
+  // both per slug here keeps each target's stats out of the O(articles × related)
+  // entry map below.
+  const inboundBySlug: Record<string, number> = {};
+  const referencesCountBySlug: Record<string, number> = {};
+  for (const page of pages) {
+    const slug = getPageSlug(page);
+    inboundBySlug[slug] = publishedInboundLinkCount(backlinksData, slug, titleBySlug);
+    referencesCountBySlug[slug] = getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length;
+  }
 
   return Promise.all(
     pages.map(async (page) => {
