@@ -739,6 +739,11 @@ accepts('Switch wallets and view your balance, described here only as prose.', '
 rejects('Intro.\n\n<textPath href="#p">label</textPath>', 'plain <textPath> element');
 rejects('Intro.\n\n<  textPath  xlink:href="#p">x</textPath>', 'spaced <textPath> element');
 accepts('The text path through the tutorial is described here only as prose.', 'benign text/path prose words');
+// <cursor> is the SVG external-image loader (xlink:href), same external-resource
+// threat as <image>/<feImage>/<mglyph>.
+rejects('Intro.\n\n<cursor xlink:href="https://evil.example/track.png" />', 'plain <cursor> element');
+rejects('Intro.\n\n<  cursor  href="x.png" />', 'spaced <cursor> element');
+accepts('Hover the cursor over the link, described here only as prose.', 'benign cursor prose word');
 
 // <dialog open> renders a top-layer overlay (with backdrop) and no script or
 // inline style, so a raw <dialog> is a clickjacking/phishing primitive. Blocked.
