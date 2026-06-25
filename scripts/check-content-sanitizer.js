@@ -475,6 +475,13 @@ rejects('See [x](shell:::{20D04FE0-3AEA-1069-A2D8-08002B30309D}).', 'shell:::{CL
 rejects('See [x](sh&#101;ll:Downloads).', 'entity-obfuscated shell: URL');
 accepts('The Bash shell: a command interpreter, described here only as prose.', 'benign "shell:" prose word is not the scheme');
 accepts('Discussing user intent and the #Intent label only as prose, far apart.', 'benign "intent" prose word with a distant #Intent is not the scheme');
+// zoommtg:/zoomus:/msteams: launch a native conferencing client at an attacker host
+// (zoommtg: = documented Zoom launch/RCE vector), blocked like onenote:/ms-cxh:.
+rejects('See [x](zoommtg://zoom.us/join?confno=123&pwd=evil).', 'plain zoommtg: conferencing scheme');
+rejects('See [x](zoomus://zoom.us/join?confno=123).', 'plain zoomus: conferencing scheme');
+rejects('See [x](msteams:/l/meetup-join/evil).', 'plain msteams: conferencing scheme');
+rejects('See [x](zoom&#109;tg://zoom.us/join).', 'entity-obfuscated zoommtg:');
+accepts('Zoom and Microsoft Teams meetings are described here only as prose.', 'benign conferencing app names are not the schemes');
 // ms-cxh:/ms-cxh-full: are the Windows CloudExperienceHost protocol handlers (a
 // documented LPE/UAC-bypass surface) — the OS resolves them, blocked like ms-msdt:.
 rejects('See [x](ms-cxh://localonly/?comingFromMSA=1).', 'plain ms-cxh: handler URL');
