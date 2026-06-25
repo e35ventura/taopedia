@@ -199,6 +199,15 @@ const unsafeContentPatterns = [
   // standalone <foreignObject> / <annotation-xml>, block them on their own so they
   // are caught even if the <svg>/<math> root that hosts them is split off.
   { pattern: /<\s*(animate|animateTransform|animateMotion|set|use)\b/i, reason: 'SVG animation and use sub-elements are not allowed in article content' },
+  // <image>/<feImage> load an attacker-chosen external resource by href/xlink:href
+  // (SVG <image> is the raster-image element — browsers even alias a bare <image>
+  // to <img> — and <feImage> pulls an external image into a filter), outside the
+  // <img>-scoped src/srcset checks, so they are a no-script resource-load / beacon
+  // surface. <text>/<tspan>/<textPath> render attacker-controlled text in the SVG
+  // coordinate space (a content-spoof primitive). Like the other svg/math
+  // sub-elements above, block them standalone so they are caught even if the
+  // <svg> root that hosts them is split off.
+  { pattern: /<\s*(image|feImage|text|tspan|textPath)\b/i, reason: 'SVG render and resource sub-elements are not allowed in article content' },
   // <noscript> is parsed under different rules depending on the browser's scripting
   // state, a known mutation-XSS / sanitizer-confusion surface (sanitizers such as
   // DOMPurify special-case it). A glossary never needs script-fallback markup, so

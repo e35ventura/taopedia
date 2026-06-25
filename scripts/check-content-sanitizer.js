@@ -610,6 +610,19 @@ rejects('Intro.\n\n<  set  attributeName="x" />', 'spaced <set> element');
 accepts('Intro.\n\n<section><p>Use a set of rules; select an option.</p></section>', 'benign section/use/set/select prose words');
 accepts('SVG animation and the use element are described here only as prose.', 'benign use/animation prose');
 
+// SVG <image>/<feImage> load an attacker-chosen external resource outside the
+// <img>-scoped src checks, and <text>/<tspan>/<textPath> render attacker text;
+// blocked standalone like the other svg/math sub-elements.
+rejects('Intro.\n\n<image href="https://evil.example/track.png" />', 'plain SVG <image> element');
+rejects('Intro.\n\n<feImage href="https://evil.example/x" />', 'plain <feImage> element');
+rejects('Intro.\n\n<text x="0" y="0">Official wallet</text>', 'plain SVG <text> element');
+rejects('Intro.\n\n<tspan>x</tspan>', 'plain <tspan> element');
+rejects('Intro.\n\n<textPath href="#p">x</textPath>', 'plain <textPath> element');
+rejects('Intro.\n\n<  image  href="https://evil.example/x" />', 'spaced SVG <image> element');
+accepts('Intro.\n\n<img src="/wiki/fig.png" alt="An image of the network">', 'benign <img> (not SVG <image>) and prose word "image"');
+accepts('Intro.\n\n<textarea-demo>not a text element</textarea-demo>', 'benign textarea-demo is not <text>');
+accepts('The SVG image and text elements are described here only as prose.', 'benign image/text prose');
+
 // <dialog open> renders a top-layer overlay (with backdrop) and no script or
 // inline style, so a raw <dialog> is a clickjacking/phishing primitive. Blocked.
 rejects('Intro.\n\n<dialog open>Your wallet is compromised. Visit evil.example.</dialog>', 'plain <dialog open>');
