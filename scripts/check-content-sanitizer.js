@@ -370,6 +370,13 @@ rejects('See [x](data:application/xhtml+xml;base64,PHNjcmlwdD4=).', 'base64 xhtm
 rejects('See [x](data:text/javascript,alert(1)).', 'plain data:text/javascript');
 rejects('See [x](data:application/ecmascript,alert(1)).', 'plain data:application/ecmascript');
 rejects('See [x](&#100;ata:text/javascript,alert(1)).', 'entity data:text/javascript');
+// search-ms: opens Explorer search on a remote WebDAV/SMB share (malware-delivery
+// chain), and ms-officecmd: invokes Office deep-link commands (argument-injection
+// RCE) — two more native Windows handlers blocked like ms-msdt:/javascript:.
+rejects('See [x](search-ms:query=x&crumb=location:\\\\evil.example\\share).', 'plain search-ms:');
+rejects('See [x](ms-officecmd:%7B%22id%22:3%7D).', 'plain ms-officecmd:');
+rejects('See [x](search-m&#115;:query=x).', 'entity-obfuscated search-ms:');
+accepts('A full-text search: type a term to search the glossary, described here only as prose.', 'benign "search:" prose is not the search-ms scheme');
 // ms-msdt:/ms-appinstaller: hand the URL to a native Windows handler (Follina
 // CVE-2022-30190 / App Installer CVE-2021-43890) — blocked like javascript:/vbscript:.
 rejects('See [x](ms-msdt:/id PCWDiagnostic).', 'plain ms-msdt:');
