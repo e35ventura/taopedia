@@ -241,6 +241,13 @@ const unsafeContentPatterns = [
   // <video>/<audio> render native media controls in article bodies even though CSP
   // sets media-src 'none' — an injected tag is still a distraction/phishing primitive.
   { pattern: /<\s*(video|audio|track)\b/i, reason: 'media elements are not allowed in article content' },
+  // <bgsound> is the obsolete IE background-audio element: it auto-loads and plays an
+  // external audio file from its src the moment it is parsed, outside the media-src
+  // checks — the same no-script external-resource / tracking-beacon load as the
+  // blocked <audio>/<video> media elements and the lowsrc=/dynsrc= image loaders,
+  // leaking the reader's visit to an attacker-chosen URL with no handler. Article
+  // markup never authors it.
+  { pattern: /<\s*bgsound\b/i, reason: 'bgsound elements are not allowed in article content' },
   // <picture>/<source> steer responsive image loading to attacker-chosen URLs outside
   // the img-src checks that apply to plain <img> tags in article bodies alone.
   { pattern: /<\s*(picture|source)\b/i, reason: 'picture and source elements are not allowed in article content' },

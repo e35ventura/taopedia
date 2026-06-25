@@ -811,6 +811,11 @@ rejects('Intro.\n\n<video src="/evil.mp4" controls></video>', 'plain <video>');
 rejects('Intro.\n\n<  audio  src="/evil.mp3"></audio>', 'spaced <audio>');
 rejects('Intro.\n\n<track src="/evil.vtt" kind="captions">', 'plain <track>');
 rejects('Intro.\n\n<  track  src="/evil.vtt">', 'spaced <track>');
+// <bgsound> is the obsolete IE external-audio loader — same tracking-beacon class as
+// the <audio>/<video> media elements and lowsrc=/dynsrc=.
+rejects('Intro.\n\n<bgsound src="https://evil.example/track.mp3" loop="infinite">', 'plain <bgsound>');
+rejects('Intro.\n\n<  bgsound  src="//evil.example/beacon.wav">', 'spaced <bgsound>');
+accepts('The background sound of the demo is described here only as prose.', 'benign background sound prose');
 rejects('Intro.\n\n<picture><source srcset="https://evil.example/x.webp" type="image/webp"><img src="/wiki/fig.png" alt="x"></picture>', 'plain <picture>');
 rejects('Intro.\n\n<  source  srcset="https://evil.example/x.webp">', 'spaced <source>');
 
