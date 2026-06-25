@@ -7,7 +7,8 @@ export const GET: APIRoute = ({ site }) => {
 
   // Mirror /rss.xml and /feed.json: same canonical article URLs and
   // newest-first ordering, but serialize as Atom 1.0 for clients that prefer the
-  // Atom syndication format.
+  // Atom syndication format. Item metadata comes from public/data/slugmap.json
+  // via site-feed-context (same artifact read as #1422 feed.json).
   const items = buildSiteJsonAtomFeedItems(origin);
   const body = buildAtomFeed({ siteUrl: `${origin}/`, items });
 
