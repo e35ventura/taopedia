@@ -74,6 +74,31 @@ assert.equal('date_published' in undated, false, 'omits blank date_published val
 assert.equal('date_modified' in undated, false, 'omits blank date_modified values');
 assert.equal('tags' in undated, false, 'omits blank tags');
 
+// A duplicated frontmatter category (categories: ['TAO', 'TAO']) — the same data
+// condition buildCategories/buildStatistics were fixed to count distinctly (#1472)
+// — must map to a single tag. Whitespace-only variants collapse to the same tag
+// because blanks are trimmed before dedupe.
+{
+  const dupFeed = JSON.parse(
+    buildJsonFeed({
+      siteUrl,
+      items: [
+        {
+          title: 'Duplicated Category',
+          url: 'https://taopedia.org/wiki/duplicated_category/',
+          categories: ['TAO', 'TAO', '  TAO  ', 'Concepts'],
+          dateModified: '2026-06-05T00:00:00Z',
+        },
+      ],
+    }),
+  );
+  assert.deepEqual(
+    dupFeed.items[0].tags,
+    ['TAO', 'Concepts'],
+    'duplicated categories collapse to distinct tags in first-seen order',
+  );
+}
+
 // Revision-event feeds can point multiple items at the same canonical article
 // URL, so the shared serializer must preserve a caller-supplied distinct id.
 {

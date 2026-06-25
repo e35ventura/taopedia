@@ -50,6 +50,24 @@ function itemDate(item) {
   return '';
 }
 
+// Trim, drop blanks, and dedupe an item's categories, preserving first-seen
+// order. An article whose frontmatter lists the same category twice
+// (`categories: ['TAO', 'TAO']`) is a real data condition — the same one
+// `buildCategories`/`buildStatistics` were fixed to count distinctly (#1472).
+// Without this the entry emits duplicate <category> elements for that article.
+function uniqueCategories(categories) {
+  const seen = new Set();
+  const out = [];
+  for (const raw of Array.isArray(categories) ? categories : []) {
+    const value = String(raw ?? '').trim();
+    if (value && !seen.has(value)) {
+      seen.add(value);
+      out.push(value);
+    }
+  }
+  return out;
+}
+
 export function buildAtomFeed({
   siteUrl,
   items = [],
@@ -90,9 +108,7 @@ export function buildAtomFeed({
       const summary = cleanText(item.description ?? item.summary);
       const datePublished = toRfc3339(item.datePublished);
       const dateModified = toRfc3339(itemDate(item)) || feedUpdated;
-      const categories = (Array.isArray(item.categories) ? item.categories : [])
-        .map(cleanText)
-        .filter(Boolean)
+      const categories = uniqueCategories(item.categories)
         .map((category) => `    <category term="${escapeXml(category)}" />`);
 
       return [
