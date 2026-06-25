@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import WikiLayout from '../../../layouts/WikiLayout.astro';
 import { getPageSlug } from '../../../lib/article-history';
+import { publishedTitleBySlug } from '../../../lib/site-feed-context';
 import { compareTitles } from '../../../lib/title-sort.js';
 
 export async function getStaticPaths() {
@@ -15,12 +16,9 @@ export async function getStaticPaths() {
   >;
   const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
 
-  // Resolve each linking slug to its current title from the published collection.
-  // Using the live title (not the snapshot stored in backlinks.json) keeps labels
-  // fresh, and the join drops links from any source that is no longer a published
-  // article — mirroring the orphan-skipping join in Special:RecentChanges.
-  const titleBySlug: Record<string, string> = {};
-  for (const p of pages) titleBySlug[getPageSlug(p)] = p.data.title;
+  // titleBySlug comes from public/data/slugmap.json — the same artifact
+  // backlinks.json and the site-wide feeds read.
+  const titleBySlug = publishedTitleBySlug();
 
   return pages.map((page) => {
     const slug = getPageSlug(page);

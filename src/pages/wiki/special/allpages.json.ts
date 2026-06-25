@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getCollection, render } from 'astro:content';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
+import { publishedTitleBySlug, pagesFromSlugMap } from '../../../lib/site-feed-context';
 import { getArticleReferences } from '../../../lib/article-references.js';
 import { getArticleToc } from '../../../lib/article-toc.js';
 import { buildAllPages } from '../../../../scripts/allpages.js';
@@ -28,11 +29,11 @@ const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
 
 export const GET: APIRoute = async ({ site }) => {
   const origin = (site ?? new URL('https://taopedia.org')).origin;
+  const titleBySlug = publishedTitleBySlug();
+  const slugPages = pagesFromSlugMap();
+  const getSlugFromPage = (page: { id: string }) => page.id.replace(/\/index\.mdx$/, '');
+
   const pages = await getCollection('pages');
-  const titleBySlug: Record<string, string> = {};
-  for (const page of pages) {
-    titleBySlug[getPageSlug(page)] = page.data.title;
-  }
 
   // Gather each article's body word count, table-of-contents section count, and
   // revision history in a single parallel pass over the content collection —
@@ -65,7 +66,7 @@ export const GET: APIRoute = async ({ site }) => {
     referencesCountBySlug[slug] = getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length;
   }
 
-  const articles = buildAllPages({ pages, getPageSlug, origin });
+  const articles = buildAllPages({ pages: slugPages, getPageSlug: getSlugFromPage, origin });
 
   const body = JSON.stringify(
     {

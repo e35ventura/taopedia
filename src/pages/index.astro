@@ -1,32 +1,44 @@
 ---
 import '../styles/wikipedia.css';
-import { getCollection } from 'astro:content';
 import Seo from '../components/Seo.astro';
 import SearchSuggest from '../components/SearchSuggest.astro';
 import { sortPagesByTitle, compareTitles } from '../lib/title-sort.js';
 import { allRecentChanges } from '../lib/article-history';
-import { publishedTitleBySlug } from '../lib/site-feed-context';
+import {
+  pageFromSlug,
+  pagesFromSlugMap,
+  publishedTitleBySlug,
+  sortedPagesFromSlugMap,
+} from '../lib/article-metadata';
 import { formatRevisionDate } from '../lib/format-date.js';
 import { buildSubnets } from '../../scripts/subnets.js';
+import slugMap from '../../public/data/slugmap.json';
+import categoriesIndex from '../../public/data/categories.json';
 
-const pages = await getCollection('pages');
-const sortedPages = sortPagesByTitle(pages);
+// Read public/data/slugmap.json and categories.json for landing-page directory
+// metadata — the same artifacts allpages.json (#1240) and categories.json
+// (#1403) use — instead of calling getCollection('pages') and re-scanning every
+// article's frontmatter.
+const sortedPages = sortedPagesFromSlugMap(slugMap);
 const getPageSlug = (page: { id: string }) =>
   page.id.replace(/\/index\.(md|mdx)$/, '').replace(/\/index$/, '').replace(/\.(md|mdx)$/, '');
 
-const categoryIndex = new Map<string, typeof pages>();
-for (const page of pages) {
-  for (const category of page.data.categories ?? []) {
-    const existing = categoryIndex.get(category) ?? [];
-    existing.push(page);
-    categoryIndex.set(category, existing);
-  }
+type PageEntry = (typeof sortedPages)[number];
+
+const categoryIndex = new Map<string, PageEntry[]>();
+for (const [categoryName, slugs] of Object.entries(categoriesIndex)) {
+  const topicPages = sortPagesByTitle(
+    (Array.isArray(slugs) ? slugs : [])
+      .map((slug) => pageFromSlug(slug, slugMap))
+      .filter((page): page is PageEntry => page !== null),
+  );
+  if (topicPages.length > 0) categoryIndex.set(categoryName, topicPages);
 }
 
 const priorityCategories = ['Wallets', 'Subnets', 'Mining', 'Staking', 'Consensus', 'Tokenomics'];
 const topicCategories = priorityCategories
   .map((name) => [name, categoryIndex.get(name)] as const)
-  .filter((entry): entry is readonly [string, typeof pages] => Boolean(entry[1]));
+  .filter((entry): entry is readonly [string, PageEntry[]] => Boolean(entry[1]));
 
 const featuredSlugs = [
   'dynamic_tao',
@@ -35,8 +47,8 @@ const featuredSlugs = [
   'mining_and_validating',
 ];
 const featuredPages = featuredSlugs
-  .map((slug) => pages.find((page) => getPageSlug(page) === slug))
-  .filter(Boolean);
+  .map((slug) => pageFromSlug(slug, slugMap))
+  .filter((page): page is PageEntry => page !== null);
 
 // Featured subnets for landing-page discovery. Subnets are the defining
 // Bittensor entity, but the homepage otherwise never surfaces an individual one
@@ -45,7 +57,7 @@ const featuredPages = featuredSlugs
 // into the full Special:Subnets directory. Reuses the same buildSubnets() helper
 // that powers Special:Subnets and subnets.json, so the homepage can never
 // disagree with them on netuid, name, or slug. Refs #521.
-const featuredSubnets = buildSubnets({ pages, getPageSlug })
+const featuredSubnets = buildSubnets({ pages: pagesFromSlugMap(slugMap), getPageSlug })
   .filter((subnet) => !/deprecated/i.test(subnet.name))
   .slice(0, 6);
 
@@ -68,7 +80,7 @@ for (const change of allRecentChanges(titleBySlug, 0)) {
   if (recentlyUpdated.length >= 6) break;
 }
 
-const alphaGroups = new Map<string, typeof pages>();
+const alphaGroups = new Map<string, PageEntry[]>();
 for (const page of sortedPages) {
   const firstLetter = page.data.title.trim().charAt(0).toUpperCase();
   const group = /^[A-Z]$/.test(firstLetter) ? firstLetter : '#';
@@ -526,7 +538,7 @@ const initialLetter = alphabet[0] ?? '#';
             <button type="submit">Search</button>
           </form>
           <div class="search-suggestions" aria-label="Suggested searches">
-            <span>{pages.length} articles</span>
+            <span>{sortedPages.length} articles</span>
             <a href="/wiki/wallets/">wallets</a>
             <a href="/wiki/category/Staking/">staking</a>
             <a href="/wiki/yuma_consensus/">Yuma Consensus</a>

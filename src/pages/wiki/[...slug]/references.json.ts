@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getCollection, render } from 'astro:content';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
+import { publishedTitleBySlug, publishedSummaryBySlug, publishedCategoriesBySlug } from '../../../lib/site-feed-context';
 import { buildArticleReferences, getArticleReferences } from '../../../lib/article-references.js';
 import { getArticleToc } from '../../../lib/article-toc.js';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
@@ -19,6 +20,9 @@ const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
+  const titleBySlug = publishedTitleBySlug();
+  const summaryBySlug = publishedSummaryBySlug();
+  const categoriesBySlug = publishedCategoriesBySlug();
   // Gather every title-independent per-slug map in a single pass over the
   // content collection — title, summary, categories, body word count, revision
   // history, and table-of-contents section count were six separate
@@ -28,18 +32,12 @@ export async function getStaticPaths() {
   // per-slug stat the envelope and reference entries carry (the same figures
   // info.json / history.json / toc.json expose); output is byte-identical. This
   // is the same single-pass gather merged for related.json (#1239).
-  const titleBySlug: Record<string, string> = {};
-  const summaryBySlug: Record<string, string> = {};
-  const categoriesBySlug: Record<string, string[]> = {};
   const wordCountBySlug: Record<string, number> = {};
   const historyBySlug: Record<string, ReturnType<typeof historyForSlug>> = {};
   const sectionCountBySlug: Record<string, number> = {};
   await Promise.all(
     pages.map(async (page) => {
       const slug = getPageSlug(page);
-      titleBySlug[slug] = page.data.title;
-      summaryBySlug[slug] = page.data.summary ?? '';
-      categoriesBySlug[slug] = page.data.categories ?? [];
       wordCountBySlug[slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
       historyBySlug[slug] = historyForSlug(slug);
       const { headings } = await render(page);

@@ -1,13 +1,14 @@
 import { historyForSlug, lastmodForSlug } from './article-history';
 import slugMap from '../../public/data/slugmap.json';
 
-// Published article titles keyed by slug — covers every slug in slugmap.json.
-// allRecentChanges() uses this map to filter history events to published articles.
-export function publishedTitleBySlug() {
-  return Object.fromEntries(
-    Object.entries(slugMap).map(([slug, entry]) => [slug, entry?.title ?? slug]),
-  );
-}
+export {
+  pageFromSlug,
+  pagesFromSlugMap,
+  publishedCategoriesBySlug,
+  publishedSummaryBySlug,
+  publishedTitleBySlug,
+  sortedPagesFromSlugMap,
+} from './article-metadata';
 
 // Shared item builders for the site-wide JSON Feed, Atom, and RSS endpoints.
 // Read public/data/slugmap.json for title/summary/categories — the same artifact
