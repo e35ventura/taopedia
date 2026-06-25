@@ -72,11 +72,20 @@ const tocHeadings = getArticleToc(headings);
 
 // Try to load per-article infobox.json if present
 const infoboxModules = import.meta.glob('../../content/pages/**/infobox.json', { eager: true }) as Record<string, any>;
-const articleImageAssets = import.meta.glob('../../content/pages/**/*.{avif,gif,jpg,jpeg,png,webp}', {
-  eager: true,
-  query: '?url&no-inline',
-  import: 'default',
-}) as Record<string, string>;
+// Match both lower- and upper-case extensions. copyDir (scripts/sync-articles.js)
+// lower-cases the extension before its allowlist check, so it copies a
+// phone-exported `figure.JPG`/`cover.PNG` into the article folder, and
+// resolveArticleImageSource's LOCAL_IMAGE_EXTENSION_PATTERN is case-insensitive
+// too — but this glob was case-sensitive, so an uppercase-extension image was
+// copied yet never resolved to its hashed asset URL, rendering a broken <img>.
+const articleImageAssets = import.meta.glob(
+  '../../content/pages/**/*.{avif,gif,jpg,jpeg,png,webp,AVIF,GIF,JPG,JPEG,PNG,WEBP}',
+  {
+    eager: true,
+    query: '?url&no-inline',
+    import: 'default',
+  },
+) as Record<string, string>;
 let infobox: any = null;
 for (const [p, mod] of Object.entries(infoboxModules)) {
   if (p.endsWith(`/${slug}/infobox.json`)) {
