@@ -407,6 +407,17 @@ infoboxRowRejects('gopher://internal-host:6379/_payload', 'gopher:// rejected in
 infoboxRowRejects('irc://irc.evil.example/channel', 'irc:// rejected in an infobox row value');
 infoboxRowAccepts('Breaking news about an IRC channel, described as prose', 'benign legacy-net prose allowed in an infobox row value');
 accepts('Breaking news: the IRC channel and a gopher burrow are described here as prose.', 'benign news:/irc/gopher prose (no // authority)');
+// ftp:// ftps:// tftp:// file-transfer schemes open a non-http connection to a remote host
+// (ftp:// is also an SSRF target); //-guarded so prose is unaffected. Coverage spans the
+// plain content scan, the entity-decoded obfuscated scan, and the infobox scan.
+rejects('See [x](ftp://attacker.example/file).', 'plain ftp:// transfer URL');
+rejects('See [x](ftps://attacker.example/file).', 'plain ftps:// URL');
+rejects('See [x](tftp://attacker.example/file).', 'plain tftp:// URL');
+rejects('See [x](f&#116;p://attacker.example/file).', 'entity-obfuscated ftp:// (obfuscated scan path)');
+infoboxRowRejects('ftp://attacker.example/file', 'ftp:// rejected in an infobox row value');
+infoboxRowRejects('tftp://attacker.example/file', 'tftp:// rejected in an infobox row value');
+infoboxRowAccepts('An FTP server and the FTP protocol are described as prose', 'benign FTP prose allowed in an infobox row value');
+accepts('An FTP server and the TFTP protocol are described here only as prose.', 'benign ftp/tftp prose (no // authority)');
 // mhtml:/jar: archive-extraction schemes historically rendered attacker HTML from
 // inside an archive (mhtml: IE CVE-2011-1894; jar: Firefox), blocked like data:.
 rejects('See [x](mhtml:https://evil.example/x.mht!sub).', 'plain mhtml: archive scheme');
