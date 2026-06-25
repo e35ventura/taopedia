@@ -36,7 +36,9 @@ const input = {
     subnet_2: { title: 'Subnet 2' },
   },
   categoryIndex: {
-    Subnets: ['subnet_10', 'subnet_2'],
+    // 'subnet_10' is repeated to exercise per-category member de-duping (an article
+    // whose frontmatter lists the same category twice would otherwise appear twice).
+    Subnets: ['subnet_10', 'subnet_2', 'subnet_10'],
     Consensus: ['yuma_consensus', 'alpha'],
   },
 };
@@ -59,7 +61,7 @@ assert.deepEqual(Object.keys(ordered.categoryIndex), ['Consensus', 'Subnets']);
 assert.deepEqual(
   ordered.categoryIndex.Subnets,
   ['subnet_2', 'subnet_10'],
-  'category member slugs must be sorted with numeric collation',
+  'category member slugs must be sorted with numeric collation and de-duped',
 );
 
 assert.deepEqual(
@@ -69,7 +71,7 @@ assert.deepEqual(
 );
 assert.deepEqual(
   input.categoryIndex.Subnets,
-  ['subnet_10', 'subnet_2'],
+  ['subnet_10', 'subnet_2', 'subnet_10'],
   'ordering helper must not mutate caller-owned category arrays',
 );
 
@@ -106,6 +108,11 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
   }
   for (const [category, slugs] of Object.entries(categoryIndex)) {
     assertSortedValues(slugs, `generated category members for ${category}`);
+    assert.equal(
+      new Set(slugs).size,
+      slugs.length,
+      `generated category members for ${category} must not repeat a slug`,
+    );
   }
 }
 
