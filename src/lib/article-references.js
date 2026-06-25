@@ -13,7 +13,13 @@ export const getArticleReferences = ({ slug, linkGraph = {}, titleBySlug = {} })
     references.push({ slug: target, title: titleBySlug[target] });
   }
 
-  return references.sort((a, b) => compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug));
+  // Same-title tiebreak must match sortPagesByTitle / getCategoryArticles: compareTitles
+  // on the title, then a PLAIN code-unit comparison of the slug — NOT compareTitles
+  // on the slug, whose numeric collation would order subnet_9 before subnet_10 while
+  // the HTML listings (raw id order) put subnet_10 first.
+  return references.sort(
+    (a, b) => compareTitles(a.title, b.title) || (a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0),
+  );
 };
 
 export const buildArticleReferences = ({ slug, title, origin, summary = '', categories = [], incomingLinks = 0, revisionCount = 0, firstEdited = null, lastEdited = null, sectionCount = 0, wordCount = 0, references = [] }) => ({
