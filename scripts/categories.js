@@ -17,7 +17,17 @@ export function categorySlug(name) {
   return String(name ?? '').replace(/ /g, '_');
 }
 
-export function buildCategories({ pages }) {
+export function buildCategories({ pages, categoriesIndex } = {}) {
+  if (categoriesIndex) {
+    return Object.entries(categoriesIndex)
+      .map(([name, slugs]) => ({
+        name,
+        count: Array.isArray(slugs) ? slugs.length : 0,
+        slug: categorySlug(name),
+      }))
+      .filter(({ count }) => count > 0)
+      .sort((a, b) => compareTitles(a.name, b.name));
+  }
   const counts = new Map();
   for (const page of pages ?? []) {
     for (const category of page?.data?.categories ?? []) {
