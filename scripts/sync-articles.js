@@ -368,6 +368,14 @@ const unsafeContentPatterns = [
   // confusion surface DOMPurify special-cases for noscript. A glossary never needs
   // frames/embed fallback markup, so block them alongside noscript.
   { pattern: /<\s*(noframes|noembed)\b/i, reason: 'noframes and noembed elements are not allowed in article content' },
+  // <title> is a RAWTEXT/RCDATA parsing-context element: the HTML parser treats
+  // everything up to </title> as plain text, not markup, so an injected <title> in an
+  // article body silently swallows and hides all following content until a closing
+  // </title> (or to end of input) — a content-hiding / parsing-context confusion
+  // surface, the same parser-mode-switch class as the blocked <noscript>/<template>/
+  // <noframes>/<noembed>. A glossary's prose never authors it; the document <title>
+  // comes from the site template.
+  { pattern: /<\s*title\b/i, reason: 'title elements are not allowed in article content' },
   // <marquee> still renders an animated, attention-grabbing scrolling banner in
   // every current browser. An injected <marquee> in article content is a concrete
   // content-spoofing / phishing surface (e.g. a fake scrolling "wallet compromised"
