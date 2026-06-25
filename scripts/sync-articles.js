@@ -676,6 +676,14 @@ const unsafeContentPatterns = [
   // glossary definition like "SSH: Secure Shell" (a scheme name followed by a colon
   // in prose, with no //) is never affected.
   { pattern: /\b(?:rdp|vnc|telnet|ssh)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
+  // ms-its: and mk:@MSITStore: are the InfoTech Storage System (compiled-HTML-help, .chm)
+  // URL schemes: ms-its:<chm>::/page.htm and mk:@MSITStore:<chm>::/page.htm resolve a page
+  // out of a local or remote .chm help archive through the native ITSS handler — a
+  // documented remote-code-execution / content-injection vector (.chm files run script in
+  // the Local Machine zone). Same native-handler / archive-extraction class as the blocked
+  // mhtml:/jar:/ms-msdt: schemes. The mk: form requires the literal `:@` so the two-letter
+  // "mk:" never matches a prose abbreviation, and "ms-its" never occurs in glossary prose.
+  { pattern: /\b(?:ms-its\s*:|mk\s*:\s*@)/i, reason: 'compiled-HTML-help (CHM) URL schemes are not allowed in article content' },
   // itms-services:// itms-apps:// itms:// market:// android-app:// are mobile app-store
   // schemes: itms-services://?action=download-manifest&url=… triggers an iOS over-the-air
   // app install from an attacker-hosted manifest, itms://itms-apps:// open the App Store,
@@ -764,6 +772,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:mhtml|jar)\s*:/i, reason: 'archive-extraction URL schemes are not allowed in article content' },
   { pattern: /(?:vscode-insiders|vscodium|vscode)\s*:/i, reason: 'code-editor protocol-handler URLs are not allowed in article content' },
   { pattern: /(?:rdp|vnc|telnet|ssh)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
+  { pattern: /(?:ms-its\s*:|mk\s*:\s*@)/i, reason: 'compiled-HTML-help (CHM) URL schemes are not allowed in article content' },
   { pattern: /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i, reason: 'mobile app-store URL schemes are not allowed in article content' },
   { pattern: /(?:steam|com\.epicgames\.launcher)\s*:\/\//i, reason: 'game-launcher protocol-handler URLs are not allowed in article content' },
   { pattern: /intent\s*:[^\s"'<>)]*#\s*Intent\b/i, reason: 'intent: app-launch URLs are not allowed in article content' },
@@ -792,6 +801,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:mhtml|jar)\s*:/i,
   /(?:vscode-insiders|vscodium|vscode)\s*:/i,
   /(?:rdp|vnc|telnet|ssh)\s*:\/\//i,
+  /(?:ms-its\s*:|mk\s*:\s*@)/i,
   /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i,
   /(?:steam|com\.epicgames\.launcher)\s*:\/\//i,
   /intent\s*:[^\s"'<>)]*#\s*Intent\b/i,
