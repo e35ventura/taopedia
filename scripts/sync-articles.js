@@ -566,6 +566,13 @@ const unsafeContentPatterns = [
   { pattern: /\sdir\s*=/i, reason: 'dir attributes are not allowed in article content' },
   { pattern: /\bjavascript\s*:/i, reason: 'javascript: URLs are not allowed in article content' },
   { pattern: /\bvbscript\s*:/i, reason: 'vbscript: URLs are not allowed in article content' },
+  // blob:/filesystem: object-URL schemes reference a resource fetched from an
+  // opaque origin (a Blob or the sandboxed filesystem) rather than a normal http(s)
+  // URL. In an injected <a href> or <img src> they are a resource-load/navigation
+  // channel that bypasses the http(s) link surface, the same non-http resource
+  // class as the already-blocked data: URLs. A glossary's prose never links to a
+  // blob:/filesystem: URL, and the scheme names never occur in glossary text.
+  { pattern: /\b(?:blob|filesystem)\s*:/i, reason: 'object-URL schemes are not allowed in article content' },
   // search-ms:/ms-officecmd: are two more native Windows protocol handlers a clicked
   // link hands to the OS instead of the browser, with no script. search-ms: opens
   // Windows Explorer search pointed at a remote WebDAV/SMB share so attacker-hosted
@@ -610,6 +617,7 @@ const unsafeContentPatterns = [
 const obfuscatedSchemePatterns = [
   { pattern: /javascript\s*:/i, reason: 'javascript: URLs are not allowed in article content' },
   { pattern: /vbscript\s*:/i, reason: 'vbscript: URLs are not allowed in article content' },
+  { pattern: /(?:blob|filesystem)\s*:/i, reason: 'object-URL schemes are not allowed in article content' },
   { pattern: /(?:search-ms|ms-officecmd)\s*:/i, reason: 'Windows protocol-handler URLs are not allowed in article content' },
   { pattern: /ms-(?:msdt|appinstaller)\s*:/i, reason: 'Windows protocol-handler URLs are not allowed in article content' },
   { pattern: /ms-(?:word|excel|powerpoint|visio|access|project|publisher|infopath|spd)\s*:/i, reason: 'Microsoft Office document protocol-handler URLs are not allowed in article content' },
