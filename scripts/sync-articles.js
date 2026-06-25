@@ -54,6 +54,21 @@ const directivePatterns = [
 // rule stays bidi-free itself.
 const bidiControlPattern = /[\u202a-\u202e\u2066-\u2069]/;
 
+// Invisible bidi marks and zero-width characters complete the Trojan-Source /
+// invisible-character family the bidiControlPattern above guards: the LEFT-TO-
+// RIGHT MARK (U+200E), RIGHT-TO-LEFT MARK (U+200F) and ARABIC LETTER MARK
+// (U+061C) are invisible directional marks the embedding/override/isolate-only
+// bidiControlPattern misses, and the ZERO WIDTH SPACE (U+200B), WORD JOINER
+// (U+2060) and ZERO WIDTH NO-BREAK SPACE / BOM (U+FEFF) render nothing at all.
+// All six are invisible in glossary prose and let an author split or hide text:
+// e.g. a scam wallet address "5Grw<U+200B>kHvr..." reads normally but a zero-width
+// space breaks naive address-pattern detection, and a stray BOM/word-joiner can
+// fragment a flagged term. English glossary prose never needs any of them. The
+// joiners U+200C/U+200D and variation selectors are deliberately NOT included so
+// legitimate emoji and complex-script sequences keep working. Written as \uXXXX
+// escapes so this rule stays invisible-character-free itself.
+const invisibleFormatCharPattern = /[\u061c\u200b\u200e\u200f\u2060\ufeff]/;
+
 const unsafeContentPatterns = [
   { pattern: /^\s*import\s/m, reason: 'MDX imports are not allowed in article content' },
   { pattern: /^\s*export\s/m, reason: 'MDX exports are not allowed in article content' },
@@ -245,6 +260,7 @@ const unsafeContentPatterns = [
   { pattern: /\bdata\s*:\s*application\/xhtml\+xml/i, reason: 'XHTML data URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*(?:text|application)\/(?:javascript|ecmascript)/i, reason: 'script data URLs are not allowed in article content' },
   { pattern: bidiControlPattern, reason: 'bidirectional control characters are not allowed in article content' },
+  { pattern: invisibleFormatCharPattern, reason: 'invisible bidi marks and zero-width characters are not allowed in article content' },
   ...directivePatterns,
 ];
 

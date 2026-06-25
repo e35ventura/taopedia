@@ -315,6 +315,23 @@ rejects(`Intro.\n\nReorder ${LRI}some text${PDI} here.`, 'directional isolate co
 // Plain prose with no bidi controls must still pass.
 accepts('Staking and unstaking are described here in ordinary left-to-right prose.', 'benign prose without bidi controls');
 
+// Invisible bidi marks (LRM/RLM/ALM) and zero-width characters (ZWSP/word joiner/
+// BOM) are invisible in glossary prose and complete the Trojan-Source / invisible-
+// character family the bidi control block above guards. The directional marks
+// slip past the embedding/override/isolate-only bidiControlPattern, and the
+// zero-width characters can split a flagged term or scam address so it renders
+// normally but evades naive pattern detection. Reject all six outright.
+const LEFT_TO_RIGHT_MARK = String.fromCharCode(0x200e);
+const RIGHT_TO_LEFT_MARK = String.fromCharCode(0x200f);
+const ARABIC_LETTER_MARK = String.fromCharCode(0x061c);
+const BYTE_ORDER_MARK = String.fromCharCode(0xfeff); // zero width no-break space / BOM
+rejects(`Send TAO to 5Grw${ZERO_WIDTH_SPACE}kHvr address.`, 'zero-width space splitting an address');
+rejects(`Reorder ${LEFT_TO_RIGHT_MARK}some text${RIGHT_TO_LEFT_MARK} here.`, 'invisible LRM/RLM bidi marks');
+rejects(`An arabic letter mark ${ARABIC_LETTER_MARK} hides here.`, 'arabic letter mark');
+rejects(`A word${WORD_JOINER}joiner hides here.`, 'word joiner');
+rejects(`A byte order mark ${BYTE_ORDER_MARK} hides here.`, 'BOM / zero width no-break space');
+accepts('Zero-width and bidi-mark characters are described here only as prose.', 'benign invisible-char prose with none present');
+
 // Inline event handlers are blocked regardless of the attribute delimiter — a
 // slash, or a quote abutting the handler — not just a leading space.
 rejects('<img src=x onerror=alert(1)>', 'space-delimited handler');
