@@ -19,32 +19,57 @@ const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
-  const titleBySlug = Object.fromEntries(pages.map((page) => [getPageSlug(page), page.data.title]));
-
-  return Promise.all(
+  // Per-slug body word count, revision history, and table-of-contents sections —
+  // the stats the envelope carries. These depend only on each page itself; the
+  // wordCount and history reads are folded into the render pass (rendering each
+  // page is async and is what requires a resolved page) so the collection is
+  // traversed once for all per-page stats, kept parallel via Promise.all — the
+  // same single combined pass backlinks.json (#1269), references.json (#1248),
+  // info.json (#1287), and cite.json (#1289) use.
+  const titleBySlug: Record<string, string> = {};
+  const wordCountBySlug: Record<string, number> = {};
+  const historyBySlug: Record<string, ReturnType<typeof historyForSlug>> = {};
+  const sectionsBySlug: Record<string, ReturnType<typeof getArticleToc>> = {};
+  await Promise.all(
     pages.map(async (page) => {
       const slug = getPageSlug(page);
+      titleBySlug[slug] = page.data.title;
+      wordCountBySlug[slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
+      historyBySlug[slug] = historyForSlug(slug);
       const { headings } = await render(page);
-      const history = historyForSlug(slug);
-
-      return {
-        params: { slug },
-        props: {
-          slug,
-          title: page.data.title,
-          summary: page.data.summary ?? '',
-          categories: page.data.categories ?? [],
-          incomingLinks: publishedInboundLinkCount(backlinksData, slug, titleBySlug),
-          revisionCount: history.length,
-          firstEdited: history[history.length - 1]?.date ?? null,
-          lastEdited: history[0]?.date ?? null,
-          referencesCount: getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length,
-          wordCount: (page.body ?? '').trim().split(/\s+/).filter(Boolean).length,
-          sections: getArticleToc(headings),
-        },
-      };
+      sectionsBySlug[slug] = getArticleToc(headings);
     }),
   );
+  // Published inbound-link count and outbound reference count — gathered in a
+  // single pass after titleBySlug is built (both resolve targets through it).
+  const inboundBySlug: Record<string, number> = {};
+  const referencesCountBySlug: Record<string, number> = {};
+  for (const page of pages) {
+    const slug = getPageSlug(page);
+    inboundBySlug[slug] = publishedInboundLinkCount(backlinksData, slug, titleBySlug);
+    referencesCountBySlug[slug] = getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length;
+  }
+
+  return pages.map((page) => {
+    const slug = getPageSlug(page);
+    const history = historyBySlug[slug] ?? [];
+    return {
+      params: { slug },
+      props: {
+        slug,
+        title: page.data.title,
+        summary: page.data.summary ?? '',
+        categories: page.data.categories ?? [],
+        incomingLinks: inboundBySlug[slug] ?? 0,
+        revisionCount: history.length,
+        firstEdited: history[history.length - 1]?.date ?? null,
+        lastEdited: history[0]?.date ?? null,
+        referencesCount: referencesCountBySlug[slug] ?? 0,
+        wordCount: wordCountBySlug[slug] ?? 0,
+        sections: sectionsBySlug[slug] ?? [],
+      },
+    };
+  });
 }
 
 // Machine-readable companion to the rendered article contents sidebar. It uses
