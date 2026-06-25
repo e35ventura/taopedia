@@ -3,28 +3,31 @@ import { getCollection } from 'astro:content';
 import WikiLayout from '../../../layouts/WikiLayout.astro';
 import CiteCopyButtons from '../../../components/CiteCopyButtons.astro';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
+import { publishedTitleBySlug } from '../../../lib/article-metadata';
 import { buildCitations, CITATION_FORMATS, CITATION_META } from '../../../../scripts/citations.js';
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
+  const titleBySlug = publishedTitleBySlug();
   const origin = 'https://taopedia.org';
 
   return pages.map((page) => {
     const slug = getPageSlug(page);
+    const title = titleBySlug[slug] ?? page.data.title;
     const lastRevision = historyForSlug(slug)[0]?.date ?? '';
     const url = `${origin}/wiki/${slug}/`;
     // Precomputed once per route in getStaticPaths — the page body used to call
     // historyForSlug again to derive the last-revision date for buildCitations().
-    // Mirrors cite.bib (#1041) / cite.json.
-    const citations = buildCitations({ title: page.data.title, url, slug, date: lastRevision });
+    // Title comes from public/data/slugmap.json — same artifact cite.json reads.
+    const citations = buildCitations({ title, url, slug, date: lastRevision });
     return {
       params: { slug },
-      props: { page, slug, lastRevision, citations },
+      props: { page, slug, title, lastRevision, citations },
     };
   });
 }
 
-const { page, slug, lastRevision, citations } = Astro.props;
+const { page, slug, title, lastRevision, citations } = Astro.props;
 
 // MediaWiki's Special:CiteThisPage for one article: ready-made bibliographic
 // citations. The date is the article's last revision (newest-first git history
@@ -43,8 +46,8 @@ const articleUrl = `/wiki/${slug}/`;
 const historyUrl = `/wiki/${slug}/history/`;
 const backlinksUrl = `/wiki/${slug}/backlinks/`;
 const citeUrl = `/wiki/${slug}/cite/`;
-const pageTitle = `Cite "${page.data.title}"`;
-const pageDescription = `Ready-made APA, MLA, Chicago, and BibTeX citations for the Taopedia article "${page.data.title}".`;
+const pageTitle = `Cite "${title}"`;
+const pageDescription = `Ready-made APA, MLA, Chicago, and BibTeX citations for the Taopedia article "${title}".`;
 ---
 
 <WikiLayout title={pageTitle} description={pageDescription}>
@@ -59,10 +62,10 @@ const pageDescription = `Ready-made APA, MLA, Chicago, and BibTeX citations for 
     <h1 class="firstHeading">Cite this page</h1>
 
     <div class="mw-parser-output">
-      <p>Bibliographic details for <a href={articleUrl}>{page.data.title}</a>.</p>
+      <p>Bibliographic details for <a href={articleUrl}>{title}</a>.</p>
 
       <dl class="mw-cite-details">
-        <div class="mw-cite-row"><dt>Page title</dt><dd>{page.data.title}</dd></div>
+        <div class="mw-cite-row"><dt>Page title</dt><dd>{title}</dd></div>
         <div class="mw-cite-row"><dt>Author</dt><dd>{CITATION_META.author}</dd></div>
         <div class="mw-cite-row"><dt>Publisher</dt><dd>{CITATION_META.publisher}</dd></div>
         {lastRevisionLabel && (

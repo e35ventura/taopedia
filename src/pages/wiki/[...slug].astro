@@ -6,6 +6,7 @@ import ReadingProgress from '../../components/ReadingProgress.astro';
 import { resolveArticleImageSource } from '../../lib/article-image-assets.js';
 import { buildSlugAliases, parseWikiLinkTokens, resolveTargetSlug } from '../../../scripts/wiki-link-resolver.js';
 import { getPageSlug } from '../../lib/article-history';
+import { publishedTitleBySlug } from '../../lib/article-metadata';
 import { getArticleToc } from '../../lib/article-toc.js';
 import { getRelatedPages } from '../../lib/related-pages';
 
@@ -43,8 +44,7 @@ export async function getStaticPaths() {
     // Slug map not yet generated
   }
 
-  const titleBySlug: Record<string, string> = {};
-  for (const p of pages) titleBySlug[getPageSlug(p)] = p.data.title;
+  const titleBySlug = publishedTitleBySlug();
   const publishedSlugs = new Set(Object.keys(titleBySlug));
 
   return pages.map((page) => {
