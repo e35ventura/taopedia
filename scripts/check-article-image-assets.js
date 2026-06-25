@@ -133,6 +133,27 @@ assert.equal(
   'soft-hyphen-obfuscated javascript image URLs from infobox JSON should not render as image sources',
 );
 
+// The raw soft-hyphen char above is stripped, but its NAMED entity (&shy;) and the
+// other Default_Ignorable named entities were not decoded, so java&shy;script:
+// passed isUnsafeImageUrl while a browser decodes &shy; and ignores the char.
+assert.equal(
+  isUnsafeImageUrl('java&shy;script:alert(1)'),
+  true,
+  'named-soft-hyphen-entity javascript image URLs should be classified as unsafe',
+);
+
+assert.equal(
+  isUnsafeImageUrl('java&zwnj;script:alert(1)'),
+  true,
+  'named-zwnj-entity javascript image URLs should be classified as unsafe',
+);
+
+assert.equal(
+  resolveArticleImageSource('local_asset', 'java&shy;script:alert(1)', imageAssets),
+  undefined,
+  'named-soft-hyphen-entity javascript image URLs from infobox JSON should not render as image sources',
+);
+
 assert.equal(
   isUnsafeImageUrl('vb&#115;cript:msgbox(1)'),
   true,
