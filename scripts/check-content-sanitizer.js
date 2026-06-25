@@ -332,6 +332,17 @@ rejects(`A word${WORD_JOINER}joiner hides here.`, 'word joiner');
 rejects(`A byte order mark ${BYTE_ORDER_MARK} hides here.`, 'BOM / zero width no-break space');
 accepts('Zero-width and bidi-mark characters are described here only as prose.', 'benign invisible-char prose with none present');
 
+// C0/C1 control characters and DEL are non-printable bytes with no place in
+// rendered prose; the sanitizer strips this class for URL scheme scans, and this
+// extends it to article content. TAB/LF/CR whitespace is excluded. Built with
+// String.fromCharCode so this test file holds no literal control bytes.
+rejects('A form' + String.fromCharCode(0x0c) + 'feed splits a term.', 'C0 form feed control character');
+rejects('A null' + String.fromCharCode(0x00) + 'byte hides here.', 'C0 NUL control character');
+rejects('A delete' + String.fromCharCode(0x7f) + 'char hides here.', 'DEL control character');
+rejects('A C1' + String.fromCharCode(0x85) + 'control hides here.', 'C1 control character (NEL)');
+accepts('Line one' + String.fromCharCode(0x0a) + 'line two with a' + String.fromCharCode(0x09) + 'tab pass fine.', 'benign TAB and LINE FEED whitespace passes');
+accepts('Ordinary glossary prose with spaces and punctuation is fine.', 'benign prose with no control characters');
+
 // Inline event handlers are blocked regardless of the attribute delimiter — a
 // slash, or a quote abutting the handler — not just a leading space.
 rejects('<img src=x onerror=alert(1)>', 'space-delimited handler');

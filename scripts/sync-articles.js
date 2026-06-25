@@ -69,6 +69,24 @@ const bidiControlPattern = /[\u202a-\u202e\u2066-\u2069]/;
 // escapes so this rule stays invisible-character-free itself.
 const invisibleFormatCharPattern = /[\u061c\u200b\u200e\u200f\u2060\ufeff]/;
 
+// C0/C1 control characters and DEL are non-printable bytes with no place in
+// rendered glossary prose: most are invisible, and an injected one can hide or
+// disrupt text the way the zero-width characters above do (e.g. a form feed or a
+// C1 control byte splits a flagged term or wallet address while rendering as
+// nothing). The sanitizer already strips this exact class - C0 (<=U+001F), DEL
+// (U+007F) and C1 (U+0080-U+009F) - when scanning URLs for obfuscated schemes
+// (stripUrlObfuscationChars); this extends the same protection to article prose.
+// TAB (U+0009), LINE FEED (U+000A) and CARRIAGE RETURN (U+000D) are excluded so
+// normal Markdown whitespace passes. The class is built from code points via
+// String.fromCharCode so this rule contains no literal control bytes itself.
+const controlCharPattern = new RegExp(
+  '[' +
+    [[0x00, 0x08], [0x0b, 0x0c], [0x0e, 0x1f], [0x7f, 0x9f]]
+      .map(([lo, hi]) => String.fromCharCode(lo) + '-' + String.fromCharCode(hi))
+      .join('') +
+  ']',
+);
+
 const unsafeContentPatterns = [
   { pattern: /^\s*import\s/m, reason: 'MDX imports are not allowed in article content' },
   { pattern: /^\s*export\s/m, reason: 'MDX exports are not allowed in article content' },
@@ -261,6 +279,7 @@ const unsafeContentPatterns = [
   { pattern: /\bdata\s*:\s*(?:text|application)\/(?:javascript|ecmascript)/i, reason: 'script data URLs are not allowed in article content' },
   { pattern: bidiControlPattern, reason: 'bidirectional control characters are not allowed in article content' },
   { pattern: invisibleFormatCharPattern, reason: 'invisible bidi marks and zero-width characters are not allowed in article content' },
+  { pattern: controlCharPattern, reason: 'control characters are not allowed in article content' },
   ...directivePatterns,
 ];
 
