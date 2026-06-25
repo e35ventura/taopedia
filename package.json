@@ -106,7 +106,8 @@
     "test:search-typeahead": "node scripts/check-search-typeahead.js",
     "test:hovercards": "node scripts/check-hovercards.js",
     "test:related-pages": "node scripts/check-related-pages.js",
-    "test:reading-progress": "node scripts/check-reading-progress.js"
+    "test:reading-progress": "node scripts/check-reading-progress.js",
+    "test:article-topics-dedupe": "node scripts/check-article-topics-dedupe.js"
   },
   "dependencies": {
     "@astrojs/mdx": "^5.0.6",

@@ -306,7 +306,7 @@ const readingMinutes = Math.max(1, Math.ceil(wordCount / 200));
     {page.data.categories && page.data.categories.length > 0 && (
       <div class="article-topics" data-pagefind-ignore>
         <span>Topics</span>
-        {page.data.categories.map((cat: string) => (
+        {[...new Set(page.data.categories)].map((cat: string) => (
           <a data-pagefind-filter="category" href={`/wiki/category/${cat.replace(/ /g, '_')}/`}>{cat}</a>
         ))}
       </div>
