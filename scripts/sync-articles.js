@@ -498,6 +498,12 @@ const unsafeContentPatterns = [
   // "alert" box around injected text) with no script, handler, or flagged scheme.
   // Article tables never set colours, so block the attribute like style=.
   { pattern: /\sbgcolor\s*=/i, reason: 'bgcolor attributes are not allowed in article content' },
+  // bordercolor=/bordercolordark=/bordercolorlight= are the obsolete IE presentational
+  // siblings of bgcolor=: on an allowed <table>/<td>/<tr> they recolour the cell/table
+  // borders with no style= rule covering them — the same content-spoofing surface (e.g.
+  // hiding a real boundary or faking a coloured UI frame around injected text) with no
+  // script, handler, or flagged scheme. Article tables never set inline border colours.
+  { pattern: /\sbordercolor(?:dark|light)?\s*=/i, reason: 'bordercolor attributes are not allowed in article content' },
   // background= is the obsolete presentational image sibling of bgcolor=: on an
   // allowed <body>/<table>/<td> it loads an arbitrary external image as a tiled
   // background. That makes it a no-script tracking beacon — like the blocked
@@ -740,7 +746,7 @@ const nonSpaceDelimitedInteractionSurfaceAttrPattern =
 // overlays, content spoofing) — same presentational-injection family as the
 // rest of this alternation, so it lives in the same scan and error message.
 const nonSpaceDelimitedPresentationalLayoutAttrPattern =
-  /<[^>]*[/"'`](?:style|align|valign|bgcolor|background|lowsrc|dynsrc|longdesc|border|cellpadding|cellspacing|hspace|vspace)\s*=/i;
+  /<[^>]*[/"'`](?:style|align|valign|bgcolor|bordercolor(?:dark|light)?|background|lowsrc|dynsrc|longdesc|border|cellpadding|cellspacing|hspace|vspace)\s*=/i;
 
 // width=/height= on an allowed <img> reserve an oversized layout box without the
 // blocked inline style= attribute — a layout-defacement surface (the same class
