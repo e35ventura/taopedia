@@ -229,11 +229,14 @@ accepts('Noframes and noembed fallbacks are described here only as prose.', 'ben
 rejects('Intro.\n\n<title>Hidden page heading</title>rest', 'plain <title>');
 rejects('Intro.\n\n<  title  >swallowed</title>', 'spaced <title>');
 accepts('The article title is defined in frontmatter, described here only as prose.', 'benign title prose word');
-// <html>/<head> are document-structure elements — the parser merges a stray <html>'s
-// attributes onto the live root element and <head> switches insertion mode.
+// <html>/<head>/<body> are document-structure elements — the parser merges a stray
+// <html>'s or <body>'s attributes onto the live root/body element and <head> switches
+// insertion mode.
 rejects('Intro.\n\n<html lang="x" manifest="//evil.example/m">x</html>', 'plain <html>');
 rejects('Intro.\n\n<  head  ><meta></head>', 'spaced <head>');
-accepts('The article heading and the page head section are described here only as prose.', 'benign html/head prose words');
+rejects('Intro.\n\n<body background="//evil.example/track.png" onload="x">x</body>', 'plain <body>');
+rejects('Intro.\n\n<  body  class="injected">x</body>', 'spaced <body>');
+accepts('The article heading, the page head section, and the body text are described here only as prose.', 'benign html/head/body prose words');
 
 // <marquee> still renders an animated scrolling banner in current browsers, so an
 // injected one is a content-spoofing / phishing surface with no script. Blocked.
@@ -616,7 +619,7 @@ accepts('The background colour of an infobox is set in the stylesheet, not inlin
 
 // background= loads an arbitrary external image as a tiled background — a no-script
 // tracking beacon (like ping=) plus a content spoof. Blocked like bgcolor=/style=.
-rejects('Intro.\n\n<body background="https://evil.example/track.png">x</body>', 'plain background attribute');
+rejects('Intro.\n\n<td background="https://evil.example/track.png">x</td>', 'plain background attribute');
 rejects('Intro.\n\n<  table   background = "//evil.example/beacon.gif">x</table>', 'spaced background attribute');
 accepts('The page background is defined in the stylesheet and never set inline.', 'benign background prose');
 // lowsrc=/dynsrc= are the obsolete <img> external-resource loaders — same tracking-
@@ -651,7 +654,7 @@ accepts('Table borders and cell padding are defined in the stylesheet, not inlin
 rejects('Intro.\n\n<img src="x"align="top">', 'quote-abutted align attribute');
 rejects('Intro.\n\n<td src="x"valign="middle">x</td>', 'quote-abutted valign attribute');
 rejects('Intro.\n\n<table src="x"bgcolor="red"><tr><td>x</td></tr></table>', 'quote-abutted bgcolor attribute');
-rejects('Intro.\n\n<body src="x"background="https://evil.example/track.png">x</body>', 'quote-abutted background attribute');
+rejects('Intro.\n\n<td src="x"background="https://evil.example/track.png">x</td>', 'quote-abutted background attribute');
 rejects('Intro.\n\n<img src="x"border="5">', 'quote-abutted border attribute');
 rejects('Intro.\n\n<img src="x"hspace="40"vspace="40">', 'quote-abutted hspace and vspace');
 rejects('Intro.\n\n<table src="x"cellpadding="10"cellspacing="10">x</table>', 'quote-abutted cellpadding/cellspacing');
