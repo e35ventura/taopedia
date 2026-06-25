@@ -566,6 +566,12 @@ const unsafeContentPatterns = [
   { pattern: /\sdir\s*=/i, reason: 'dir attributes are not allowed in article content' },
   { pattern: /\bjavascript\s*:/i, reason: 'javascript: URLs are not allowed in article content' },
   { pattern: /\bvbscript\s*:/i, reason: 'vbscript: URLs are not allowed in article content' },
+  // ms-msdt:/ms-appinstaller: hand the URL to a native Windows protocol handler instead
+  // of the browser: a clicked link launches the local app outside the page sandbox with
+  // no script. ms-msdt: is the Follina RCE (CVE-2022-30190) and ms-appinstaller: the
+  // App Installer malware-delivery vector (CVE-2021-43890). Block them like the
+  // javascript:/vbscript: executable schemes; the names never occur in glossary prose.
+  { pattern: /\bms-(?:msdt|appinstaller)\s*:/i, reason: 'Windows protocol-handler URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*image\/svg\+xml/i, reason: 'SVG data URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*application\/xhtml\+xml/i, reason: 'XHTML data URLs are not allowed in article content' },
@@ -586,6 +592,7 @@ const unsafeContentPatterns = [
 const obfuscatedSchemePatterns = [
   { pattern: /javascript\s*:/i, reason: 'javascript: URLs are not allowed in article content' },
   { pattern: /vbscript\s*:/i, reason: 'vbscript: URLs are not allowed in article content' },
+  { pattern: /ms-(?:msdt|appinstaller)\s*:/i, reason: 'Windows protocol-handler URLs are not allowed in article content' },
   { pattern: /data\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
   { pattern: /data\s*:\s*image\/svg\+xml/i, reason: 'SVG data URLs are not allowed in article content' },
   { pattern: /data\s*:\s*application\/xhtml\+xml/i, reason: 'XHTML data URLs are not allowed in article content' },
@@ -596,6 +603,7 @@ const obfuscatedSchemePatterns = [
 const infoboxRowValueSchemePatterns = [
   /javascript\s*:/i,
   /vbscript\s*:/i,
+  /ms-(?:msdt|appinstaller)\s*:/i,
   /data\s*:\s*text\/html/i,
   /data\s*:\s*image\/svg\+xml/i,
   /data\s*:\s*application\/xhtml\+xml/i,

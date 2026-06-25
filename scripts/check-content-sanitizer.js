@@ -370,6 +370,12 @@ rejects('See [x](data:application/xhtml+xml;base64,PHNjcmlwdD4=).', 'base64 xhtm
 rejects('See [x](data:text/javascript,alert(1)).', 'plain data:text/javascript');
 rejects('See [x](data:application/ecmascript,alert(1)).', 'plain data:application/ecmascript');
 rejects('See [x](&#100;ata:text/javascript,alert(1)).', 'entity data:text/javascript');
+// ms-msdt:/ms-appinstaller: hand the URL to a native Windows handler (Follina
+// CVE-2022-30190 / App Installer CVE-2021-43890) — blocked like javascript:/vbscript:.
+rejects('See [x](ms-msdt:/id PCWDiagnostic).', 'plain ms-msdt:');
+rejects('See [x](ms-appinstaller://evil.example/x.msix).', 'plain ms-appinstaller:');
+rejects('See [x](ms-m&#115;dt:/id).', 'entity-obfuscated ms-msdt:');
+accepts('Forms-msdt and other terms ending in ms are described here only as prose.', 'benign words ending in ms are not the ms- scheme');
 
 // MDX expression braces execute at build time in article bodies. They are only
 // allowed when escaped as literal prose or inside Markdown code examples.
