@@ -370,6 +370,13 @@ rejects('See [x](data:application/xhtml+xml;base64,PHNjcmlwdD4=).', 'base64 xhtm
 rejects('See [x](data:text/javascript,alert(1)).', 'plain data:text/javascript');
 rejects('See [x](data:application/ecmascript,alert(1)).', 'plain data:application/ecmascript');
 rejects('See [x](&#100;ata:text/javascript,alert(1)).', 'entity data:text/javascript');
+// blob:/filesystem: object-URL schemes load from an opaque origin in an injected
+// <a href>/<img src>, the same non-http resource class as the blocked data: URLs.
+rejects('See [x](blob:https://evil.example/0-0-0).', 'plain blob: object URL');
+rejects('![x](blob:https://evil.example/uuid)', 'blob: in an image src');
+rejects('See [x](filesystem:https://evil.example/temporary/x).', 'plain filesystem: URL');
+rejects('See [x](bl&#111;b:https://evil.example/uuid).', 'entity-obfuscated blob:');
+accepts('The blob of weights and the filesystem layout are described here only as prose.', 'benign blob/filesystem prose words (no scheme colon)');
 // search-ms: opens Explorer search on a remote WebDAV/SMB share (malware-delivery
 // chain), and ms-officecmd: invokes Office deep-link commands (argument-injection
 // RCE) — two more native Windows handlers blocked like ms-msdt:/javascript:.
