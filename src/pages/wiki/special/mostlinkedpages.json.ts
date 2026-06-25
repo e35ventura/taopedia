@@ -57,16 +57,22 @@ export const GET: APIRoute = async ({ site }) => {
   const categoriesBySlug: Record<string, string[]> = {};
   const summaryBySlug: Record<string, string> = {};
   const wordCountBySlug: Record<string, number> = {};
-  for (const entry of ranked) {
-    historyBySlug[entry.slug] = historyForSlug(entry.slug);
-    const page = pageBySlug[entry.slug];
-    if (!page) continue;
-    const { headings } = await render(page);
-    sectionCountBySlug[entry.slug] = getArticleToc(headings).length;
-    categoriesBySlug[entry.slug] = page.data.categories ?? [];
-    summaryBySlug[entry.slug] = page.data.summary ?? '';
-    wordCountBySlug[entry.slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
-  }
+  // Promise.all keeps the render step concurrent instead of serialized — a
+  // sequential for-await loop would render each ranked page one at a time.
+  // Same parallelization the per-article endpoints (info.json, backlinks.json,
+  // references.json, etc.) and allpages.json already rely on.
+  await Promise.all(
+    ranked.map(async (entry) => {
+      historyBySlug[entry.slug] = historyForSlug(entry.slug);
+      const page = pageBySlug[entry.slug];
+      if (!page) return;
+      const { headings } = await render(page);
+      sectionCountBySlug[entry.slug] = getArticleToc(headings).length;
+      categoriesBySlug[entry.slug] = page.data.categories ?? [];
+      summaryBySlug[entry.slug] = page.data.summary ?? '';
+      wordCountBySlug[entry.slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
+    }),
+  );
 
   const body = JSON.stringify(
     {

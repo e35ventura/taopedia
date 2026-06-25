@@ -65,16 +65,24 @@ export const GET: APIRoute = async ({ site }) => {
   // loop, the same compute-only-for-feed-members pattern as wordCount above.
   const categoriesBySlug: Record<string, string[]> = {};
   const summaryBySlug: Record<string, string> = {};
-  for (const change of changes) {
-    if (change.slug in sectionCountBySlug) continue;
-    const page = pageBySlug[change.slug];
-    if (!page) continue;
-    const { headings } = await render(page);
-    sectionCountBySlug[change.slug] = getArticleToc(headings).length;
-    wordCountBySlug[change.slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
-    categoriesBySlug[change.slug] = page.data.categories ?? [];
-    summaryBySlug[change.slug] = page.data.summary ?? '';
-  }
+  // Promise.all keeps the render step concurrent instead of serialized — a
+  // sequential for-await loop would render each changed article one at a time.
+  // Same parallelization the per-article endpoints (info.json, backlinks.json,
+  // references.json, etc.) and allpages.json already rely on. Dedupe to unique
+  // slugs first (an article can appear in multiple changes) so each page is
+  // still rendered exactly once, matching the original loop's dedup guard.
+  const uniqueChangedSlugs = [...new Set(changes.map((change) => change.slug))];
+  await Promise.all(
+    uniqueChangedSlugs.map(async (slug) => {
+      const page = pageBySlug[slug];
+      if (!page) return;
+      const { headings } = await render(page);
+      sectionCountBySlug[slug] = getArticleToc(headings).length;
+      wordCountBySlug[slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
+      categoriesBySlug[slug] = page.data.categories ?? [];
+      summaryBySlug[slug] = page.data.summary ?? '';
+    }),
+  );
   // revisionCount/firstEdited/lastEdited are the changed article's own commit-
   // history stats (history is newest-first) — the same trio info.json /
   // allpages.json expose per article, and mostlinkedpages.json / subnets.json /

@@ -59,14 +59,20 @@ export const GET: APIRoute = async ({ site }) => {
   // sectionCount, the same compute-only-for-used-members pattern #1213 / #1232 /
   // #1240 use elsewhere.
   const wordCountBySlug: Record<string, number> = {};
-  for (const subnet of subnets) {
-    historyBySlug[subnet.slug] = historyForSlug(subnet.slug);
-    const page = pageBySlug[subnet.slug];
-    if (!page) continue;
-    const { headings } = await render(page);
-    sectionCountBySlug[subnet.slug] = getArticleToc(headings).length;
-    wordCountBySlug[subnet.slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
-  }
+  // Promise.all keeps the render step concurrent instead of serialized — a
+  // sequential for-await loop would render each of the 128 subnet articles one
+  // at a time. Same parallelization the per-article endpoints (info.json,
+  // backlinks.json, references.json, etc.) and allpages.json already rely on.
+  await Promise.all(
+    subnets.map(async (subnet) => {
+      historyBySlug[subnet.slug] = historyForSlug(subnet.slug);
+      const page = pageBySlug[subnet.slug];
+      if (!page) return;
+      const { headings } = await render(page);
+      sectionCountBySlug[subnet.slug] = getArticleToc(headings).length;
+      wordCountBySlug[subnet.slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
+    }),
+  );
 
   const body = JSON.stringify(
     {
