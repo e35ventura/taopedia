@@ -195,10 +195,13 @@ const unsafeContentPatterns = [
   // elements the rule above warns about ("animation elements that retarget
   // attributes"): they mutate an existing element's attribute (e.g. animate an
   // href/xlink:href or style to a new value after render), a classic mutation-XSS
-  // / sanitizer-evasion vector. <use> clones and references another subtree. Like
+  // / sanitizer-evasion vector. <use> clones and references another subtree.
+  // <discard> removes a target element at a point on the animation timeline
+  // (timeline-driven DOM mutation), and <mpath> references an external path via
+  // href/xlink:href for <animateMotion> — the rest of the animation family. Like
   // standalone <foreignObject> / <annotation-xml>, block them on their own so they
   // are caught even if the <svg>/<math> root that hosts them is split off.
-  { pattern: /<\s*(animate|animateTransform|animateMotion|set|use)\b/i, reason: 'SVG animation and use sub-elements are not allowed in article content' },
+  { pattern: /<\s*(animate|animateTransform|animateMotion|set|use|discard|mpath)\b/i, reason: 'SVG animation and use sub-elements are not allowed in article content' },
   // <image> (SVG) and <feImage> (SVG filter primitive) load an external resource
   // via href/xlink:href. Because they are SVG-namespaced -- not the HTML <img>
   // element -- they bypass the img-src and URL-scheme checks the sanitizer applies

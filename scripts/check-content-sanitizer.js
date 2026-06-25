@@ -607,7 +607,13 @@ rejects('Intro.\n\n<animateMotion path="M0,0" />', 'plain <animateMotion> elemen
 rejects('Intro.\n\n<set attributeName="href" to="https://evil.example/" />', 'plain <set> element');
 rejects('Intro.\n\n<use href="#x" />', 'plain <use> element');
 rejects('Intro.\n\n<  set  attributeName="x" />', 'spaced <set> element');
+// <discard> removes a target on the animation timeline; <mpath> references an
+// external path for <animateMotion> — the rest of the SVG animation family.
+rejects('Intro.\n\n<discard begin="0s" />', 'plain <discard> element');
+rejects('Intro.\n\n<mpath href="#evil" />', 'plain <mpath> element');
+rejects('Intro.\n\n<  mpath  xlink:href="#x" />', 'spaced <mpath> element');
 accepts('Intro.\n\n<section><p>Use a set of rules; select an option.</p></section>', 'benign section/use/set/select prose words');
+accepts('Discard the draft and the motion path are described here only as prose.', 'benign discard/mpath prose words');
 accepts('SVG animation and the use element are described here only as prose.', 'benign use/animation prose');
 // <image>/<feImage> are SVG external-resource loaders (href/xlink:href) that bypass
 // the <img> img-src/scheme checks; blocked like the other SVG sub-elements.
