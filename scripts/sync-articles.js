@@ -590,6 +590,13 @@ const unsafeContentPatterns = [
   // blocked ms-appinstaller:/ms-msdt: schemes. A glossary's prose never links to a
   // local Office app, and the names never occur in glossary text.
   { pattern: /\bms-(?:word|excel|powerpoint|visio|access|project|publisher|infopath|spd)\s*:/i, reason: 'Microsoft Office document protocol-handler URLs are not allowed in article content' },
+  // onenote: is the OneNote application protocol handler, the sibling of the ms-word:/
+  // ms-excel: Office schemes above: a clicked onenote:https://evil.example/x.one launches
+  // the locally-installed OneNote app pointed at an attacker-hosted notebook outside the
+  // page sandbox with no script — the same native-app protocol-handler / malware-delivery
+  // class (OneNote's handler has a documented history of malware abuse). A glossary's
+  // prose never links to a local OneNote app, and the scheme name never occurs in prose.
+  { pattern: /\bonenote\s*:/i, reason: 'onenote: application protocol-handler URLs are not allowed in article content' },
   // intent: is the Android app-launch scheme: a URI of the form intent:[//host/path]#Intent;…;end
   // hands the URL to the Android intent system, which opens or deep-links into a native app
   // outside the browser — a standalone app-launch attack on mobile readers, the same
@@ -622,6 +629,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:search-ms|ms-officecmd)\s*:/i, reason: 'Windows protocol-handler URLs are not allowed in article content' },
   { pattern: /ms-(?:msdt|appinstaller)\s*:/i, reason: 'Windows protocol-handler URLs are not allowed in article content' },
   { pattern: /ms-(?:word|excel|powerpoint|visio|access|project|publisher|infopath|spd)\s*:/i, reason: 'Microsoft Office document protocol-handler URLs are not allowed in article content' },
+  { pattern: /onenote\s*:/i, reason: 'onenote: application protocol-handler URLs are not allowed in article content' },
   { pattern: /intent\s*:[^\s"'<>)]*#\s*Intent\b/i, reason: 'intent: app-launch URLs are not allowed in article content' },
   { pattern: /data\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
   { pattern: /data\s*:\s*image\/svg\+xml/i, reason: 'SVG data URLs are not allowed in article content' },
@@ -636,6 +644,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:search-ms|ms-officecmd)\s*:/i,
   /ms-(?:msdt|appinstaller)\s*:/i,
   /ms-(?:word|excel|powerpoint|visio|access|project|publisher|infopath|spd)\s*:/i,
+  /onenote\s*:/i,
   /intent\s*:[^\s"'<>)]*#\s*Intent\b/i,
   /data\s*:\s*text\/html/i,
   /data\s*:\s*image\/svg\+xml/i,
