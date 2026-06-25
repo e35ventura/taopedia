@@ -119,6 +119,30 @@ data.pages.forEach((row, i) => {
   );
 });
 
+// ---- 5) Parity with per-article references.json + allpages.json ----------
+// check-references-json.js requires withEmpty > 0 (articles whose references.json
+// lists zero outbound targets). deadendpages.json must list exactly those slugs.
+const deadEndSlugs = new Set(data.pages.map((row) => row.slug));
+for (const row of data.pages) {
+  const referencesJson = path.join(wikiDir, row.slug, 'references.json');
+  assert.ok(fs.existsSync(referencesJson), `${row.slug}: dead-end must have a built references.json`);
+  const doc = JSON.parse(fs.readFileSync(referencesJson, 'utf8'));
+  assert.equal(doc.count, 0, `${row.slug}: references.json count must be 0 for a dead-end article`);
+  assert.equal(doc.referencesCount, 0, `${row.slug}: references.json referencesCount must be 0 for a dead-end article`);
+}
+
+const allpagesFile = path.join(wikiDir, 'special', 'allpages.json');
+assert.ok(fs.existsSync(allpagesFile), 'dist/wiki/special/allpages.json not found; run the build first');
+const allpages = JSON.parse(fs.readFileSync(allpagesFile, 'utf8'));
+for (const row of allpages.pages ?? []) {
+  const isDeadEnd = row.referencesCount === 0;
+  assert.equal(
+    deadEndSlugs.has(row.slug),
+    isDeadEnd,
+    `deadendpages.json membership must match allpages.json referencesCount===0 for ${row.slug} (referencesCount=${row.referencesCount})`,
+  );
+}
+
 for (let i = 1; i < data.pages.length; i++) {
   const prev = data.pages[i - 1];
   const cur = data.pages[i];
