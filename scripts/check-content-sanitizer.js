@@ -580,9 +580,12 @@ rejects('Intro.\n\n<svg viewBox="0 0 1 1"><circle r="1" /></svg>', 'plain <svg> 
 rejects('Intro.\n\n<  svg  ><circle r="1" /></svg>', 'spaced <svg> element');
 rejects('Intro.\n\n<math><mi>x</mi></math>', 'plain <math> element');
 rejects('Intro.\n\n<  math  ><mi>x</mi></math>', 'spaced <math> element');
+rejects('Intro.\n\n<foreignObject><div>evil</div></foreignObject>', 'plain <foreignObject> element');
+rejects('Intro.\n\n<  foreignObject  ><p>x</p></foreignObject>', 'spaced <foreignObject> element');
 
 // Prose that merely names these formats without an opening tag must still pass.
 accepts('SVG and MathML are XML-based formats, described here only as prose.', 'benign svg/math prose');
+accepts('A foreignObject wrapper is an SVG concept described here only as prose.', 'benign foreignObject prose');
 
 // <dialog open> renders a top-layer overlay (with backdrop) and no script or
 // inline style, so a raw <dialog> is a clickjacking/phishing primitive. Blocked.
