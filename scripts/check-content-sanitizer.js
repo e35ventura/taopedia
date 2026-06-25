@@ -427,6 +427,20 @@ rejects('See [x](vscode-insiders://vscode.git/clone?url=https://evil.example/x).
 rejects('See [x](vscodium://extension/evil.publisher.evil).', 'plain vscodium: editor scheme');
 rejects('See [x](vscod&#101;://file/x).', 'entity-obfuscated vscode:');
 accepts('The VS Code editor and the VSCodium build are described here only as prose.', 'benign editor names are not the vscode: schemes');
+// redis:// mongodb:// mysql:// postgres:// database-connection schemes address an internal
+// service (SSRF targets), never an http(s) article link; //-guarded so prose is unaffected.
+// Coverage spans the plain content scan, the entity-decoded scan, and the infobox scan.
+rejects('See [x](redis://internal-host:6379/0).', 'plain redis:// connection URL');
+rejects('See [x](mongodb://internal-host:27017/db).', 'plain mongodb:// connection URL');
+rejects('See [x](mongodb+srv://cluster.internal/db).', 'plain mongodb+srv:// connection URL');
+rejects('See [x](mysql://root@internal-host:3306/db).', 'plain mysql:// connection URL');
+rejects('See [x](postgres://user@internal-host:5432/db).', 'plain postgres:// connection URL');
+rejects('See [x](postgresql://user@internal-host:5432/db).', 'plain postgresql:// connection URL');
+rejects('See [x](red&#105;s://internal-host:6379/0).', 'entity-obfuscated redis:// (obfuscated scan path)');
+infoboxRowRejects('redis://internal-host:6379/0', 'redis:// rejected in an infobox row value');
+infoboxRowRejects('postgres://user@internal-host:5432/db', 'postgres:// rejected in an infobox row value');
+infoboxRowAccepts('Redis and PostgreSQL are described as prose', 'benign DB-name prose allowed in an infobox row value');
+accepts('Redis, MongoDB, MySQL, and PostgreSQL are described here only as prose.', 'benign database-name prose (no // authority)');
 // rdp:// vnc:// telnet:// ssh:// launch a native remote-session client at the host;
 // the // authority form is required so glossary definitions ("SSH: Secure Shell")
 // are unaffected.
