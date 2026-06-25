@@ -1714,6 +1714,12 @@ function decodeEntityPass(content) {
   return content
     .replace(/&#x([0-9a-f]+);?/gi, (match, hex) => fromCodePoint(Number.parseInt(hex, 16), match))
     .replace(/&#(\d+);?/g, (match, dec) => fromCodePoint(Number.parseInt(dec, 10), match))
+    // "#" (&num;) is the named spelling of the numeric &#35; we already decode above.
+    // The intent: rule requires the "#Intent" marker (intent:…#Intent;…;end), so a
+    // browser-decoded &num; lets `intent:evil&num;Intent;scheme=https;package=com.evil;end`
+    // resolve to a live intent URI while the named spelling slips the scheme scan —
+    // the same entity-spelled-separator class as the &colon;/&sol;/&plus; forms below.
+    .replace(/&num;/gi, '#')
     // Normalize the named HTML entities for characters a scheme or MIME type can hide
     // behind, so an entity-spelled separator cannot evade the scan: ":" (&colon;),
     // "/" (&sol;) and "+" (&plus;) each decode in a browser the same as their numeric

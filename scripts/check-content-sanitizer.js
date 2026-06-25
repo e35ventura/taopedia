@@ -445,6 +445,11 @@ accepts('OneNote and the notebook app are described here only as prose.', 'benig
 rejects('See [x](intent://evil.example/#Intent;scheme=https;package=com.evil;end).', 'plain intent:// url');
 rejects('See [x](intent:#Intent;action=android.intent.action.VIEW;end).', 'intent: with bare #Intent fragment');
 rejects('See [x](intent:scan/#Intent;scheme=zxing;package=com.evil;end).', 'intent: with host/path before #Intent');
+// "#" has a named entity (&num;) as well as the numeric &#35;; a browser decodes
+// either, so the required #Intent marker can hide behind &num; while the named
+// spelling evades the scan. The numeric &#35; form is already caught.
+rejects('See [x](intent:evil&num;Intent;scheme=https;package=com.evil;end).', 'named-num-entity #Intent marker');
+rejects('See [x](intent:evil&#35;Intent;scheme=https;package=com.evil;end).', 'numeric-num-entity #Intent marker');
 accepts("The author's intent: clarity over cleverness in every article.", 'benign "intent:" prose word is not the scheme');
 // shell: is the Windows Explorer protocol handler (shell:startup opens the Startup
 // persistence folder; shell:::{CLSID} opens special folders) — the OS resolves it, no
