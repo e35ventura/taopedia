@@ -689,6 +689,13 @@ const unsafeContentPatterns = [
   // sandbox with no script. Same native protocol-handler class as the blocked
   // ms-*/onenote: handlers; the editor scheme names never occur in glossary prose.
   { pattern: /\b(?:vscode-insiders|vscodium|vscode)\s*:/i, reason: 'code-editor protocol-handler URLs are not allowed in article content' },
+  // redis:// rediss:// mongodb:// mysql:// postgres:// postgresql:// are database-connection
+  // URL schemes that address an internal service at a host:port, not an http(s) resource.
+  // Article links are limited to http(s), so these are never a valid article link; they are
+  // also the canonical server-side-request (SSRF) targets used to reach internal databases.
+  // Block them as non-http schemes like the smb:/ldap:/gopher: schemes. The // authority
+  // form is required so prose about "Redis", "MySQL", or "Postgres" is never affected.
+  { pattern: /\b(?:redis|rediss|mongodb(?:\+srv)?|mysql|postgresql|postgres)\s*:\/\//i, reason: 'database-connection URL schemes are not allowed in article content' },
   // rdp:// vnc:// telnet:// ssh:// sftp:// hand the URL's host to a native remote-session
   // client: a clicked rdp://attacker-host or telnet://internal-host opens an OS
   // client outside the page sandbox with no script — the same native protocol-handler
@@ -806,6 +813,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:mhtml|jar)\s*:/i, reason: 'archive-extraction URL schemes are not allowed in article content' },
   { pattern: /(?:magnet|ed2k)\s*:/i, reason: 'peer-to-peer file-sharing URL schemes are not allowed in article content' },
   { pattern: /(?:vscode-insiders|vscodium|vscode)\s*:/i, reason: 'code-editor protocol-handler URLs are not allowed in article content' },
+  { pattern: /(?:redis|rediss|mongodb(?:\+srv)?|mysql|postgresql|postgres)\s*:\/\//i, reason: 'database-connection URL schemes are not allowed in article content' },
   { pattern: /(?:rdp|vnc|telnet|ssh|sftp)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:ms-its\s*:|mk\s*:\s*@)/i, reason: 'compiled-HTML-help (CHM) URL schemes are not allowed in article content' },
   { pattern: /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i, reason: 'mobile app-store URL schemes are not allowed in article content' },
@@ -839,6 +847,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:mhtml|jar)\s*:/i,
   /(?:magnet|ed2k)\s*:/i,
   /(?:vscode-insiders|vscodium|vscode)\s*:/i,
+  /(?:redis|rediss|mongodb(?:\+srv)?|mysql|postgresql|postgres)\s*:\/\//i,
   /(?:rdp|vnc|telnet|ssh|sftp)\s*:\/\//i,
   /(?:ms-its\s*:|mk\s*:\s*@)/i,
   /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i,
