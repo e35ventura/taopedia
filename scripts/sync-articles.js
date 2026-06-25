@@ -198,6 +198,15 @@ const unsafeContentPatterns = [
   // headings are emitted by Markdown and never wrapped in <hgroup>, so block it like
   // the other non-prose structural elements (search/dialog/details).
   { pattern: /<\s*hgroup\b/i, reason: 'hgroup elements are not allowed in article content' },
+  // <article>/<section> are sectioning-content roots. An injected one opens a new
+  // section in the document outline (and <article> additionally carries an implicit
+  // role=article landmark that assistive technology announces and "jump to landmark"
+  // navigation lands on), restructuring the outline and landmark tree the same way
+  // the blocked <hgroup> restructures the heading outline — letting attacker prose
+  // present itself as its own article/section region — with no script, handler, or
+  // flagged scheme. A glossary article is a single section of Markdown prose and
+  // never nests its own sectioning roots, so block them like <hgroup>.
+  { pattern: /<\s*(article|section)\b/i, reason: 'article and section elements are not allowed in article content' },
   // <template> parses its contents into an inert document fragment rather than the
   // live DOM. That makes it a DOM-clobbering / mutation-XSS surface (named elements
   // inside can shadow `document.<name>` globals, and the hidden subtree is a known

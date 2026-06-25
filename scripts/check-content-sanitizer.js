@@ -190,6 +190,15 @@ rejects('Intro.\n\n<datalist id="x"></datalist>', 'datalist still blocked (by it
 rejects('Intro.\n\n<hgroup><h2>Real heading</h2><p>attacker subheading</p></hgroup>', 'plain <hgroup> element');
 rejects('Intro.\n\n<  hgroup  ><h2>x</h2></hgroup>', 'spaced <hgroup> element');
 accepts('The heading group structure of the article is described here only as prose.', 'benign heading-group prose words');
+// <article>/<section> are sectioning-content roots: an injected one opens a new
+// document-outline section (and <article> adds an implicit role=article landmark),
+// restructuring the outline/landmark tree like the blocked <hgroup> does the heading
+// outline, with no script. Markdown glossary prose never nests its own sections.
+rejects('Intro.\n\n<article><h2>Fake heading</h2><p>attacker text</p></article>', 'plain <article> element');
+rejects('Intro.\n\n<  article  >x</article>', 'spaced <article> element');
+rejects('Intro.\n\n<section><h2>x</h2></section>', 'plain <section> element');
+rejects('Intro.\n\n<  section   id="x">y</section>', 'spaced <section> element');
+accepts('This article has a section on staking, described here only as prose.', 'benign article/section prose words');
 
 // Prose that merely mentions these words without an opening tag must still pass.
 accepts('Details about staking are described here only as prose.', 'benign details prose');
@@ -657,7 +666,7 @@ rejects('Intro.\n\n<  set  attributeName="x" />', 'spaced <set> element');
 rejects('Intro.\n\n<discard begin="0s" />', 'plain <discard> element');
 rejects('Intro.\n\n<mpath href="#evil" />', 'plain <mpath> element');
 rejects('Intro.\n\n<  mpath  xlink:href="#x" />', 'spaced <mpath> element');
-accepts('Intro.\n\n<section><p>Use a set of rules; select an option.</p></section>', 'benign section/use/set/select prose words');
+accepts('Intro.\n\n<div><p>Use a set of rules; select an option.</p></div>', 'benign use/set/select prose words');
 accepts('Discard the draft and the motion path are described here only as prose.', 'benign discard/mpath prose words');
 accepts('SVG animation and the use element are described here only as prose.', 'benign use/animation prose');
 // <image>/<feImage> are SVG external-resource loaders (href/xlink:href) that bypass
