@@ -511,6 +511,19 @@ accepts('The SMB protocol and Server Message Block are described here only as pr
 rejects('See [x](afp://attacker.example/share).', 'plain afp:// file-share URL');
 rejects('See [x](a&#102;p://attacker.example/share).', 'entity-obfuscated afp:// URL');
 accepts('The AFP protocol and Apple Filing Protocol are described here only as prose.', 'benign "AFP" prose is not the afp:// scheme');
+// ldap:// ldaps:// nfs:// dav:// davs:// the other directory / network file-share schemes
+// (ldap:// is the Log4Shell/JNDI SSRF class); //-guarded so prose is unaffected. Coverage
+// spans the plain content scan, the entity-decoded obfuscated scan, and the infobox scan.
+rejects('See [x](ldap://attacker.example/o=x).', 'plain ldap:// (JNDI/SSRF) URL');
+rejects('See [x](ldaps://attacker.example/o=x).', 'plain ldaps:// URL');
+rejects('See [x](nfs://attacker.example/export).', 'plain nfs:// URL');
+rejects('See [x](dav://attacker.example/path).', 'plain dav:// (WebDAV) URL');
+rejects('See [x](davs://attacker.example/path).', 'plain davs:// URL');
+rejects('See [x](lda&#112;://attacker.example/o=x).', 'entity-obfuscated ldap:// (obfuscated scan path)');
+infoboxRowRejects('ldap://attacker.example/o=x', 'ldap:// rejected in an infobox row value');
+infoboxRowRejects('nfs://attacker.example/export', 'nfs:// rejected in an infobox row value');
+infoboxRowAccepts('LDAP directory and an NFS export are described as prose', 'benign directory/file-share prose allowed in an infobox row value');
+accepts('An LDAP directory, an NFS export, and a WebDAV share are described here only as prose.', 'benign ldap/nfs/dav prose (no // authority)');
 // intent: is the Android app-launch scheme — intent:[//host/path]#Intent;…;end hands the
 // URL to a native app. Per Chrome's syntax an optional host/path may sit between the
 // scheme and the required #Intent marker, so all of these forms are rejected; the
