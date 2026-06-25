@@ -672,6 +672,15 @@ const unsafeContentPatterns = [
   // mount surface outside the page sandbox with no script. A glossary never links to a
   // file share; the // form means prose about the "NFS protocol" is unaffected.
   { pattern: /\bnfs\s*:\/\//i, reason: 'nfs: file-share URLs are not allowed in article content' },
+  // ldap:// ldaps:// dav:// davs:// are the remaining directory / WebDAV schemes the OS
+  // resolves to reach a remote host — not the browser. ldap://host is a classic
+  // server-side-request / JNDI-injection vector (the Log4Shell class: a lookup hands the
+  // URL to a directory client that fetches and can deserialize a remote payload), and
+  // dav://davs:// mount or fetch from an attacker-named WebDAV share — the same non-http
+  // internal-service-reachable class as the smb:/afp:/nfs: schemes above. Article links
+  // are limited to http(s); the // authority form is required so prose is never affected,
+  // and these scheme names never occur as URLs in glossary prose.
+  { pattern: /\b(?:ldaps|ldap|davs|dav)\s*:\/\//i, reason: 'directory and WebDAV URL schemes are not allowed in article content' },
   // mhtml: and jar: are archive-extraction URL schemes that historically rendered
   // attacker-controlled HTML pulled from inside an archive in the page's own
   // context: mhtml:https://host/x!sub (the IE/Edge MHTML handler, CVE-2011-1894)
@@ -810,6 +819,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /smb\s*:\/\//i, reason: 'smb: file-share URLs are not allowed in article content' },
   { pattern: /afp\s*:\/\//i, reason: 'afp: file-share URLs are not allowed in article content' },
   { pattern: /nfs\s*:\/\//i, reason: 'nfs: file-share URLs are not allowed in article content' },
+  { pattern: /(?:ldaps|ldap|davs|dav)\s*:\/\//i, reason: 'directory and WebDAV URL schemes are not allowed in article content' },
   { pattern: /(?:mhtml|jar)\s*:/i, reason: 'archive-extraction URL schemes are not allowed in article content' },
   { pattern: /(?:magnet|ed2k)\s*:/i, reason: 'peer-to-peer file-sharing URL schemes are not allowed in article content' },
   { pattern: /(?:vscode-insiders|vscodium|vscode)\s*:/i, reason: 'code-editor protocol-handler URLs are not allowed in article content' },
@@ -844,6 +854,7 @@ const infoboxRowValueSchemePatterns = [
   /smb\s*:\/\//i,
   /afp\s*:\/\//i,
   /nfs\s*:\/\//i,
+  /(?:ldaps|ldap|davs|dav)\s*:\/\//i,
   /(?:mhtml|jar)\s*:/i,
   /(?:magnet|ed2k)\s*:/i,
   /(?:vscode-insiders|vscodium|vscode)\s*:/i,
