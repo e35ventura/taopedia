@@ -582,10 +582,16 @@ rejects('Intro.\n\n<math><mi>x</mi></math>', 'plain <math> element');
 rejects('Intro.\n\n<  math  ><mi>x</mi></math>', 'spaced <math> element');
 rejects('Intro.\n\n<foreignObject><div>evil</div></foreignObject>', 'plain <foreignObject> element');
 rejects('Intro.\n\n<  foreignObject  ><p>x</p></foreignObject>', 'spaced <foreignObject> element');
+// <annotation-xml> is the MathML HTML integration point (encoding="text/html"
+// re-enters HTML parsing), the MathML mutation-XSS counterpart of <foreignObject>.
+rejects('Intro.\n\n<annotation-xml encoding="text/html"><div>evil</div></annotation-xml>', 'plain <annotation-xml> element');
+rejects('Intro.\n\n<math><annotation-xml encoding="application/xhtml+xml"><p>x</p></annotation-xml></math>', 'nested <annotation-xml> element');
+rejects('Intro.\n\n<  annotation-xml  >x</annotation-xml>', 'spaced <annotation-xml> element');
 
 // Prose that merely names these formats without an opening tag must still pass.
 accepts('SVG and MathML are XML-based formats, described here only as prose.', 'benign svg/math prose');
 accepts('A foreignObject wrapper is an SVG concept described here only as prose.', 'benign foreignObject prose');
+accepts('The annotation-xml integration point is described here only as prose.', 'benign annotation-xml prose');
 
 // <dialog open> renders a top-layer overlay (with backdrop) and no script or
 // inline style, so a raw <dialog> is a clickjacking/phishing primitive. Blocked.
