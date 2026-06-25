@@ -8,6 +8,34 @@ const height = 630;
 const logoSvg = fs.readFileSync(path.join(process.cwd(), 'public', 'logo.svg'), 'utf8');
 const logoDataUri = `data:image/svg+xml;base64,${Buffer.from(logoSvg).toString('base64')}`;
 
+// Bundle the site's branded serif (Libertinus Serif, the OFL build of Linux
+// Libertine, the first family in the wikipedia.css --font-family-serif stack)
+// and hand it to resvg explicitly. resvg renders with the build server's fonts,
+// which do not include Linux Libertine or Georgia, so without this the card's
+// wordmark and title silently fall back to a generic serif and read as off-brand
+// versus the live site. Resolved from the working directory (the repo root at
+// build time), matching the logo read above; unlike import.meta.url this path
+// survives Astro/Vite bundling.
+const ogFontsDir = path.join(process.cwd(), 'src', 'lib', 'og-fonts');
+const ogFontFiles = [
+  path.join(ogFontsDir, 'LibertinusSerif-Bold.otf'),
+  path.join(ogFontsDir, 'Inter-Regular.otf'),
+  path.join(ogFontsDir, 'Inter-SemiBold.otf'),
+  path.join(ogFontsDir, 'Inter-Bold.otf'),
+];
+
+// Shared resvg font config, used by BOTH the chip-width measurement and the final
+// render so the chip box is sized with the exact font that draws it. Serif headings
+// resolve to the bundled Libertinus Serif; sans body resolves to the bundled Inter
+// (the first family in the site's --font-family-sans stack). loadSystemFonts stays
+// on for per-glyph fallback outside the bundled subset.
+const ogFont = {
+  fontFiles: ogFontFiles,
+  loadSystemFonts: true,
+  serifFamily: 'Libertinus Serif',
+  sansSerifFamily: 'Inter',
+};
+
 // Site palette + fonts (the src/styles/wikipedia.css tokens) so the card reads as
 // Taopedia, not a generic SEO card.
 const COLOR_BASE = '#202122';
@@ -18,8 +46,8 @@ const COLOR_PAGE = '#f8f9fa';
 const COLOR_BORDER = '#a2a9b1';
 const COLOR_CHIP_BORDER = '#c8ccd1';
 const COLOR_ON_ACCENT = '#ffffff';
-const FONT_SERIF = "'Linux Libertine', Georgia, 'Times New Roman', serif";
-const FONT_SANS = "-apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+const FONT_SERIF = "'Libertinus Serif', 'Linux Libertine', Georgia, 'Times New Roman', serif";
+const FONT_SANS = "'Inter', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
 
 // Brand tagline shown in the footer of article/subnet cards (and used as the
 // default eyebrow label).
@@ -69,7 +97,7 @@ function measureChipWidth(text: string): number {
   const cached = chipWidthCache.get(text);
   if (cached !== undefined) return cached;
   const probe = `<svg xmlns="http://www.w3.org/2000/svg" width="2000" height="${CHIP_FONT_SIZE * 3}"><text x="0" y="${CHIP_FONT_SIZE * 2}" font-family="${FONT_SANS}" font-size="${CHIP_FONT_SIZE}" font-weight="${CHIP_FONT_WEIGHT}">${escapeHtml(text)}</text></svg>`;
-  const bbox = new Resvg(probe).innerBBox();
+  const bbox = new Resvg(probe, { font: ogFont }).innerBBox();
   const measured = bbox ? Math.ceil(bbox.width) : Math.ceil(text.length * CHIP_FONT_SIZE * 0.62);
   chipWidthCache.set(text, measured);
   return measured;
@@ -164,6 +192,9 @@ export function renderOgImage({ title, description, label = TAGLINE, home = fals
       mode: 'width',
       value: width,
     },
+    // Load the bundled Taopedia serif so the wordmark and title render in the
+    // brand font on every build host, not the build server's generic fallback.
+    font: ogFont,
   })
     .render()
     .asPng();
