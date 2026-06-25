@@ -616,6 +616,12 @@ rejects('Intro.\n\n<  foreignObject  ><p>x</p></foreignObject>', 'spaced <foreig
 rejects('Intro.\n\n<annotation-xml encoding="text/html"><div>evil</div></annotation-xml>', 'plain <annotation-xml> element');
 rejects('Intro.\n\n<math><annotation-xml encoding="application/xhtml+xml"><p>x</p></annotation-xml></math>', 'nested <annotation-xml> element');
 rejects('Intro.\n\n<  annotation-xml  >x</annotation-xml>', 'spaced <annotation-xml> element');
+// <maction> is the MathML interactive element (actiontype toggle/statusline/tooltip)
+// — an unwanted interactive surface like <dialog>/<details>.
+rejects('Intro.\n\n<maction actiontype="toggle"><mtext>click me</mtext></maction>', 'plain <maction> element');
+rejects('Intro.\n\n<math><maction actiontype="statusline">x</maction></math>', 'nested <maction> element');
+rejects('Intro.\n\n<  maction  >x</maction>', 'spaced <maction> element');
+accepts('The maction concept of interactive math is described here only as prose.', 'benign maction prose word');
 
 // Prose that merely names these formats without an opening tag must still pass.
 accepts('SVG and MathML are XML-based formats, described here only as prose.', 'benign svg/math prose');

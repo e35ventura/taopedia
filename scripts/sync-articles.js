@@ -225,6 +225,14 @@ const unsafeContentPatterns = [
   // mutation-XSS / sanitizer-bypass vector (the MathML counterpart of
   // foreignObject), so they are blocked standalone too.
   { pattern: /<\s*(svg|math|foreignObject|annotation-xml)\b/i, reason: 'SVG and MathML elements are not allowed in article content' },
+  // <maction> is the MathML interactive element: actiontype="toggle" makes clicking
+  // cycle through sub-expressions, and actiontype="statusline"/"tooltip" shows
+  // attacker-controlled text on interaction — an unwanted interactive surface in
+  // article prose, the same class as the blocked <dialog>/<details>/<summary>
+  // disclosure elements. Like <annotation-xml>, block it standalone so it is caught
+  // even if the <math> root that hosts it is split off; a glossary's prose never
+  // embeds interactive MathML.
+  { pattern: /<\s*maction\b/i, reason: 'maction elements are not allowed in article content' },
   // <animate>/<animateTransform>/<animateMotion>/<set> are the SVG animation
   // elements the rule above warns about ("animation elements that retarget
   // attributes"): they mutate an existing element's attribute (e.g. animate an
