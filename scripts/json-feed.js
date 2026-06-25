@@ -34,6 +34,16 @@ function itemDate(item) {
   return '';
 }
 
+function feedItemSortKey(item) {
+  if (item?.sortKey != null && String(item.sortKey).trim() !== '') {
+    return String(item.sortKey);
+  }
+  const url = String(item?.url ?? '');
+  const match = url.match(/\/wiki\/([^/?#]+)/);
+  if (match) return match[1];
+  return url;
+}
+
 export function buildJsonFeed({
   siteUrl,
   items = [],
@@ -48,18 +58,14 @@ export function buildJsonFeed({
   const pageUrl = homePageUrl ? String(homePageUrl) : root;
 
   // Same ordering contract as the RSS feed: newest modified first, then a
-  // tiebreak on the caller-supplied sortKey (the recent-changes feeds set it to
-  // the article slug so equal-timestamp items match Special:RecentChanges, which
-  // tiebreaks on slug), falling back to the canonical URL. Comparing the full
-  // URL diverges when one slug is a prefix of another (e.g. "alpha" vs
-  // "alpha_beta"): the "/" after the shared prefix flips the collation.
+  // tiebreak on sortKey (recent-changes feeds set it to the article slug).
+  // When sortKey is absent, extract the wiki slug from the canonical URL
+  // instead of comparing the full URL — prefix slugs diverge otherwise.
   const sortedItems = [...items].sort((a, b) => {
     const aDate = itemDate(a);
     const bDate = itemDate(b);
     if (aDate !== bDate) return aDate < bDate ? 1 : -1;
-    const aKey = String(a.sortKey ?? a.url ?? '');
-    const bKey = String(b.sortKey ?? b.url ?? '');
-    return compareTitles(aKey, bKey);
+    return compareTitles(feedItemSortKey(a), feedItemSortKey(b));
   });
 
   const feed = {

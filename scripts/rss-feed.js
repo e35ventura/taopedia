@@ -54,6 +54,20 @@ function itemDate(item) {
   return '';
 }
 
+// When sortKey is absent (site-wide RSS/Atom/JSON feeds), extract the wiki slug
+// from the canonical /wiki/<slug>/ URL for the tiebreak. compareTitles on the
+// full URL inverts prefix slugs (alpha vs alpha_beta) because the "/" boundary
+// after the shared prefix collates before "_" in the longer slug.
+function feedItemSortKey(item) {
+  if (item?.sortKey != null && String(item.sortKey).trim() !== '') {
+    return String(item.sortKey);
+  }
+  const url = String(item?.url ?? '');
+  const match = url.match(/\/wiki\/([^/?#]+)/);
+  if (match) return match[1];
+  return url;
+}
+
 export function buildRssFeed({
   siteUrl,
   items = [],
@@ -72,17 +86,14 @@ export function buildRssFeed({
   // identical revision timestamp. The caller may supply an explicit sortKey; the
   // recent-changes feeds set it to the article slug so equal-timestamp items
   // order identically to Special:RecentChanges (collectRecentChanges tiebreaks
-  // on slug). Comparing the full canonical URL instead would diverge when one
-  // slug is a prefix of another (e.g. "alpha" vs "alpha_beta"), because the
-  // "/" boundary char after the shared prefix flips the collation versus the
-  // "_" in the longer slug. Fall back to the URL when no sortKey is given.
+  // on slug). When sortKey is absent, extract the wiki slug from the canonical
+  // URL instead of comparing the full URL — prefix slugs (alpha vs alpha_beta)
+  // diverge when the "/" boundary is collated.
   const sortedItems = [...items].sort((a, b) => {
     const aDate = itemDate(a);
     const bDate = itemDate(b);
     if (aDate !== bDate) return aDate < bDate ? 1 : -1;
-    const aKey = String(a.sortKey ?? a.url ?? '');
-    const bKey = String(b.sortKey ?? b.url ?? '');
-    return compareTitles(aKey, bKey);
+    return compareTitles(feedItemSortKey(a), feedItemSortKey(b));
   });
 
   const itemXml = sortedItems
