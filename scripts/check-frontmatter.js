@@ -48,6 +48,19 @@ import matter from './frontmatter.js';
 }
 
 {
+  const parsed = matter('---\nseeAlso:\n  - Subnet 4: Targon\naliases:\n  - Yuma Consensus: overview\n---\nBody\n');
+  assert.deepEqual(
+    parsed.data,
+    {
+      seeAlso: ['Subnet 4: Targon'],
+      aliases: ['Yuma Consensus: overview'],
+    },
+    'parses bare list scalars that contain colon-space as plain strings, not one-key maps',
+  );
+  assert.equal(parsed.content, 'Body\n', 'list colon-scalar repair preserves the body');
+}
+
+{
   const parsed = matter('---\ntitle: Subnet 4: Targon # preferred label\nseo:\n  title: Subnet 4: Targon # preferred label\ninfoboxRows:\n  - label: Subnet 4: Targon # row label\n    value: Validator permit: required # row value\n---\nBody\n');
   assert.deepEqual(
     parsed.data,
