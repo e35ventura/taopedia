@@ -194,6 +194,12 @@ const unsafeContentPatterns = [
   // sanitizer-evasion trick), with no rendered output a reader would ever want in
   // glossary prose. Block the element outright, like the other parsing-context tags.
   { pattern: /<\s*template\b/i, reason: 'template elements are not allowed in article content' },
+  // <slot> is the shadow-DOM content-placeholder element — the element form of the
+  // already-blocked slot= attribute. A named <slot name="…"> is a DOM-clobbering /
+  // sanitizer-confusion surface that parsers and sanitizers (DOMPurify) special-case,
+  // the same parsing-context / DOM-clobbering class blocked above for <template>. A
+  // glossary's plain-prose Markdown body never emits it.
+  { pattern: /<\s*slot\b/i, reason: 'slot elements are not allowed in article content' },
   // <fencedframe> embeds cross-origin content in its own browsing context, the
   // same embedding/clickjacking/phishing surface as the already-blocked <iframe>
   // (it is the Privacy Sandbox successor to it). Article bodies never embed other

@@ -517,6 +517,11 @@ rejects('Intro.\n\n<div slot="sidebar">evil</div>', 'plain slot attribute');
 rejects('Intro.\n\n<  div   slot="sidebar">', 'spaced slot attribute');
 rejects('Intro.\n\n<div sl&#111;t="sidebar">evil</div>', 'entity-obfuscated slot attribute');
 rejects('Intro.\n\n<div s&#108;ot="sidebar">evil</div>', 'decimal-entity slot attribute');
+// The <slot> ELEMENT (shadow-DOM placeholder) is blocked too, like the slot= attribute
+// and the <template> parsing-context element.
+rejects('Intro.\n\n<slot name="x">fallback</slot>', 'plain <slot> element');
+rejects('Intro.\n\n<  slot  >x</slot>', 'spaced <slot> element');
+accepts('A time slot in the schedule is described here only as prose.', 'benign slot prose word');
 
 // Inline style attributes are blocked: the <style> element is already blocked,
 // but a style="" attribute on an allowed element still lets injected CSS
