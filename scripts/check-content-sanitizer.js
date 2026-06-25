@@ -156,6 +156,12 @@ accepts('An accesskey hint can document a keyboard shortcut without setting one.
 rejects('Intro.\n\n<details open><summary>Seed phrase</summary>evil</details>', 'plain <details>');
 rejects('Intro.\n\n<  details  ><summary>x</summary></details>', 'spaced <details>');
 rejects('Intro.\n\n<summary>Click here</summary>', 'standalone <summary>');
+// <search> exposes the implicit `search` landmark to assistive technology — an
+// injected one adds a fake search region to the AT landmark list (the element-level
+// form of the blocked role= landmark spoof).
+rejects('Intro.\n\n<search><p>Find your wallet here</p></search>', 'plain <search> element');
+rejects('Intro.\n\n<  search  >x</search>', 'spaced <search> element');
+accepts('Search the documentation for staking guides, described here only as prose.', 'benign search prose word');
 
 // Prose that merely mentions these words without an opening tag must still pass.
 accepts('Details about staking are described here only as prose.', 'benign details prose');

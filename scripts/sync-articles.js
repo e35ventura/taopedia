@@ -154,6 +154,14 @@ const unsafeContentPatterns = [
   // no script and no inline style — the same unwanted interactive surface as dialog.
   { pattern: /<\s*details\b/i, reason: 'details elements are not allowed in article content' },
   { pattern: /<\s*summary\b/i, reason: 'summary elements are not allowed in article content' },
+  // <search> exposes the implicit `search` landmark to assistive technology — an
+  // injected one adds a fake "search" region to the AT landmark list (e.g. a
+  // spoofed "search" area steering a screen-reader user to attacker-chosen content),
+  // the element-level form of the already-blocked role= landmark spoof (role= is an
+  // attribute, so it cannot cover the implicit landmark <search> provides). A
+  // glossary's prose never marks its own search regions — the site exposes search
+  // through its own layout component — so block the element.
+  { pattern: /<\s*search\b/i, reason: 'search elements are not allowed in article content' },
   // <template> parses its contents into an inert document fragment rather than the
   // live DOM. That makes it a DOM-clobbering / mutation-XSS surface (named elements
   // inside can shadow `document.<name>` globals, and the hidden subtree is a known
