@@ -390,6 +390,13 @@ rejects('See [x](jar:https://evil.example/x.jar!/payload.html).', 'plain jar: ar
 rejects('![x](mhtml:https://evil.example/x!a)', 'mhtml: in an image src');
 rejects('See [x](m&#104;tml:https://evil.example/x!a).', 'entity-obfuscated mhtml:');
 accepts('A jar of configuration and an MHTML export are described here only as prose.', 'benign jar/mhtml prose words (no scheme colon)');
+// vscode:/vscode-insiders:/vscodium: are code-editor protocol handlers the OS launches
+// (open folder / run tasks / install extension), blocked like onenote:/ms-cxh:.
+rejects('See [x](vscode://file/etc/passwd).', 'plain vscode: editor scheme');
+rejects('See [x](vscode-insiders://vscode.git/clone?url=https://evil.example/x).', 'plain vscode-insiders: editor scheme');
+rejects('See [x](vscodium://extension/evil.publisher.evil).', 'plain vscodium: editor scheme');
+rejects('See [x](vscod&#101;://file/x).', 'entity-obfuscated vscode:');
+accepts('The VS Code editor and the VSCodium build are described here only as prose.', 'benign editor names are not the vscode: schemes');
 // rdp:// vnc:// telnet:// ssh:// launch a native remote-session client at the host;
 // the // authority form is required so glossary definitions ("SSH: Secure Shell")
 // are unaffected.
