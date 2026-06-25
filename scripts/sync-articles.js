@@ -660,6 +660,13 @@ const unsafeContentPatterns = [
   // non-http content-injection channel, the same class as the blocked
   // javascript:/vbscript:/data: schemes. Neither name occurs in glossary prose.
   { pattern: /\b(?:mhtml|jar)\s*:/i, reason: 'archive-extraction URL schemes are not allowed in article content' },
+  // magnet:?xt=… and ed2k://|file|… are peer-to-peer file-sharing URL schemes the OS
+  // resolves to launch the locally-installed torrent / eDonkey client — not the browser —
+  // and hand it an attacker-chosen content hash, which the client can begin downloading
+  // (and seeding) without further interaction. A clicked link drives a native app outside
+  // the page sandbox with no script, the same native protocol-handler class as the blocked
+  // mhtml:/jar: and ms-* handlers. The scheme names never occur as URLs in glossary prose.
+  { pattern: /\b(?:magnet|ed2k)\s*:/i, reason: 'peer-to-peer file-sharing URL schemes are not allowed in article content' },
   // vscode:/vscode-insiders:/vscodium: are the code-editor protocol handlers the OS
   // resolves to launch the locally-installed editor — not the browser — when a link is
   // clicked. A crafted vscode://… link can open an attacker-chosen folder/workspace
@@ -770,6 +777,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /ms-(?:settings|windows-store|gamingoverlay)\s*:/i, reason: 'Windows app protocol-handler URLs are not allowed in article content' },
   { pattern: /smb\s*:\/\//i, reason: 'smb: file-share URLs are not allowed in article content' },
   { pattern: /(?:mhtml|jar)\s*:/i, reason: 'archive-extraction URL schemes are not allowed in article content' },
+  { pattern: /(?:magnet|ed2k)\s*:/i, reason: 'peer-to-peer file-sharing URL schemes are not allowed in article content' },
   { pattern: /(?:vscode-insiders|vscodium|vscode)\s*:/i, reason: 'code-editor protocol-handler URLs are not allowed in article content' },
   { pattern: /(?:rdp|vnc|telnet|ssh)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:ms-its\s*:|mk\s*:\s*@)/i, reason: 'compiled-HTML-help (CHM) URL schemes are not allowed in article content' },
@@ -799,6 +807,7 @@ const infoboxRowValueSchemePatterns = [
   /ms-(?:settings|windows-store|gamingoverlay)\s*:/i,
   /smb\s*:\/\//i,
   /(?:mhtml|jar)\s*:/i,
+  /(?:magnet|ed2k)\s*:/i,
   /(?:vscode-insiders|vscodium|vscode)\s*:/i,
   /(?:rdp|vnc|telnet|ssh)\s*:\/\//i,
   /(?:ms-its\s*:|mk\s*:\s*@)/i,
