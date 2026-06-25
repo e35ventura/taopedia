@@ -625,6 +625,13 @@ rejects('Intro.\n\n<  foreignObject  ><p>x</p></foreignObject>', 'spaced <foreig
 rejects('Intro.\n\n<annotation-xml encoding="text/html"><div>evil</div></annotation-xml>', 'plain <annotation-xml> element');
 rejects('Intro.\n\n<math><annotation-xml encoding="application/xhtml+xml"><p>x</p></annotation-xml></math>', 'nested <annotation-xml> element');
 rejects('Intro.\n\n<  annotation-xml  >x</annotation-xml>', 'spaced <annotation-xml> element');
+// <semantics>/<annotation> are the MathML annotation wrappers (siblings of the
+// blocked <annotation-xml>); block them standalone too.
+rejects('Intro.\n\n<semantics><mrow></mrow><annotation encoding="text/html"><div>x</div></annotation></semantics>', 'plain <semantics> element');
+rejects('Intro.\n\n<annotation encoding="application/xhtml+xml"><p>x</p></annotation>', 'plain <annotation> element');
+rejects('Intro.\n\n<  semantics  >x</semantics>', 'spaced <semantics> element');
+accepts('The semantics of the protocol and an annotation note are described as prose.', 'benign semantics/annotation prose words');
+accepts('<semantic-version>1.0</semantic-version>', 'benign semantic-version is not <semantics>');
 // <maction> is the MathML interactive element (actiontype toggle/statusline/tooltip)
 // — an unwanted interactive surface like <dialog>/<details>.
 rejects('Intro.\n\n<maction actiontype="toggle"><mtext>click me</mtext></maction>', 'plain <maction> element');

@@ -254,6 +254,14 @@ const unsafeContentPatterns = [
   // standalone <foreignObject> / <annotation-xml>, block them on their own so they
   // are caught even if the <svg>/<math> root that hosts them is split off.
   { pattern: /<\s*(animate|animateTransform|animateMotion|set|use|discard|mpath)\b/i, reason: 'SVG animation and use sub-elements are not allowed in article content' },
+  // <semantics> and <annotation> are the MathML annotation wrappers: <semantics>
+  // pairs presentation MathML with annotation markup, and <annotation> carries the
+  // annotation payload -- they are the parents/siblings of the already-blocked
+  // <annotation-xml> (the HTML-integration point where the parser re-enters HTML
+  // mode, the canonical MathML mutation-XSS trick). Block them standalone too, like
+  // the other svg/math sub-elements, so the MathML annotation / foreign-content path
+  // stays closed even if the <math> root that hosts them is split off.
+  { pattern: /<\s*(semantics|annotation)\b/i, reason: 'MathML semantics and annotation sub-elements are not allowed in article content' },
   // <image> (SVG) and <feImage> (SVG filter primitive) load an external resource
   // via href/xlink:href. Because they are SVG-namespaced -- not the HTML <img>
   // element -- they bypass the img-src and URL-scheme checks the sanitizer applies
