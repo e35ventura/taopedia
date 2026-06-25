@@ -734,6 +734,11 @@ rejects('Intro.\n\n<switch><text systemLanguage="en">A</text></switch>', 'plain 
 rejects('Intro.\n\n<view viewBox="0 0 1 1" />', 'plain <view> element');
 rejects('Intro.\n\n<  switch  >x</switch>', 'spaced <switch> element');
 accepts('Switch wallets and view your balance, described here only as prose.', 'benign switch/view prose words');
+// <textPath> (SVG text-on-path, href-referenced) — blocked like the other SVG
+// reference sub-elements; <textarea> (different element) is not matched.
+rejects('Intro.\n\n<textPath href="#p">label</textPath>', 'plain <textPath> element');
+rejects('Intro.\n\n<  textPath  xlink:href="#p">x</textPath>', 'spaced <textPath> element');
+accepts('The text path through the tutorial is described here only as prose.', 'benign text/path prose words');
 
 // <dialog open> renders a top-layer overlay (with backdrop) and no script or
 // inline style, so a raw <dialog> is a clickjacking/phishing primitive. Blocked.
