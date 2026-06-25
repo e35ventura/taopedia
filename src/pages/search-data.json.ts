@@ -1,25 +1,26 @@
 import type { APIRoute } from 'astro';
-import { getCollection } from 'astro:content';
 import { sortSearchEntries } from '../lib/search-data.js';
+import slugMap from '../../public/data/slugmap.json';
 
-const getPageSlug = (page: { id: string }) =>
-  page.id.replace(/\/index\.(md|mdx)$/, '').replace(/\/index$/, '').replace(/\.(md|mdx)$/, '');
+// Prebuilt article metadata for the client-side search fallback and typeahead.
+// Served at /search-data.json; consumed by search.astro, SearchSuggest.astro, and
+// the random-page fallback without a separate API round-trip per article.
 
-export const GET: APIRoute = async ({ site }) => {
+export const GET: APIRoute = ({ site }) => {
   const origin = (site ?? new URL('https://taopedia.org')).origin;
-  const pages = await getCollection('pages');
 
+  // Read public/data/slugmap.json — the same title/summary/categories artifact
+  // related.json and category articles.json already use — instead of calling
+  // getCollection('pages') and re-reading every article's frontmatter. Matches
+  // feeds.opml.ts (#1299) and categories.json (#1403).
   const searchEntries = sortSearchEntries(
-    pages.map((page) => {
-      const slug = getPageSlug(page);
-      return {
-        slug,
-        title: page.data.title,
-        summary: page.data.summary ?? '',
-        url: `${origin}/wiki/${slug}/`,
-        categories: page.data.categories ?? [],
-      };
-    }),
+    Object.entries(slugMap).map(([slug, entry]) => ({
+      slug,
+      title: entry?.title ?? slug,
+      summary: entry?.summary ?? '',
+      url: `${origin}/wiki/${slug}/`,
+      categories: entry?.categories ?? [],
+    })),
   );
 
   return new Response(JSON.stringify(searchEntries), {
