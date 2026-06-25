@@ -169,6 +169,10 @@ rejects('Intro.\n\n<data value="https://evil.example">official site</data>', 'pl
 rejects('Intro.\n\n<  time  datetime="2099">x</time>', 'spaced <time> element');
 accepts('The data shows staking rewards over time, described here only as prose.', 'benign data/time prose words');
 rejects('Intro.\n\n<datalist id="x"></datalist>', 'datalist still blocked (by its form-control rule; the data rule is word-boundary anchored)');
+// <hgroup> wraps a heading with adjacent content, restructuring the article outline.
+rejects('Intro.\n\n<hgroup><h2>Real heading</h2><p>attacker subheading</p></hgroup>', 'plain <hgroup> element');
+rejects('Intro.\n\n<  hgroup  ><h2>x</h2></hgroup>', 'spaced <hgroup> element');
+accepts('The heading group structure of the article is described here only as prose.', 'benign heading-group prose words');
 
 // Prose that merely mentions these words without an opening tag must still pass.
 accepts('Details about staking are described here only as prose.', 'benign details prose');

@@ -171,6 +171,14 @@ const unsafeContentPatterns = [
   // aria-describedby attributes are already blocked for. Glossary prose carries no
   // machine values. The \b anchor leaves the already-blocked <datalist> untouched.
   { pattern: /<\s*(data|time)\b/i, reason: 'data and time elements are not allowed in article content' },
+  // <hgroup> wraps a heading with adjacent content into a single heading group. An
+  // injected one restructures the article's heading outline — absorbing following
+  // prose into a heading group or altering the heading hierarchy that assistive
+  // technology, "jump to heading" navigation, and document-outline tools rely on,
+  // so attacker text can be presented as part of a heading's structure. A glossary's
+  // headings are emitted by Markdown and never wrapped in <hgroup>, so block it like
+  // the other non-prose structural elements (search/dialog/details).
+  { pattern: /<\s*hgroup\b/i, reason: 'hgroup elements are not allowed in article content' },
   // <template> parses its contents into an inert document fragment rather than the
   // live DOM. That makes it a DOM-clobbering / mutation-XSS surface (named elements
   // inside can shadow `document.<name>` globals, and the hidden subtree is a known
