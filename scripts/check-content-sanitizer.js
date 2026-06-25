@@ -399,6 +399,13 @@ rejects('See [x](telnet://internal-host:23).', 'plain telnet:// URL');
 rejects('See [x](vnc://evil.example:5900).', 'plain vnc:// URL');
 accepts('SSH: Secure Shell and RDP: Remote Desktop Protocol are defined here as prose.', 'benign SSH:/RDP: glossary definitions (no // authority)');
 accepts('Connect over ssh and telnet are described only as protocol names here.', 'benign ssh/telnet prose words');
+// itms-services:// market:// android-app:// etc. are mobile app-store install/launch
+// schemes (itms-services:// = iOS OTA install), blocked like intent:; //-guarded.
+rejects('See [x](itms-services://?action=download-manifest&url=https://evil.example/m.plist).', 'plain itms-services:// iOS OTA install');
+rejects('See [x](market://details?id=com.evil.app).', 'plain market:// Play Store URL');
+rejects('See [x](android-app://com.evil.app).', 'plain android-app:// URL');
+rejects('See [x](itms-apps://itunes.apple.com/app/id0).', 'plain itms-apps:// App Store URL');
+accepts('The DeFi market: outlook and a token marketplace are described here as prose.', 'benign market: prose (no // authority)');
 // search-ms: opens Explorer search on a remote WebDAV/SMB share (malware-delivery
 // chain), and ms-officecmd: invokes Office deep-link commands (argument-injection
 // RCE) — two more native Windows handlers blocked like ms-msdt:/javascript:.

@@ -626,6 +626,14 @@ const unsafeContentPatterns = [
   // glossary definition like "SSH: Secure Shell" (a scheme name followed by a colon
   // in prose, with no //) is never affected.
   { pattern: /\b(?:rdp|vnc|telnet|ssh)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
+  // itms-services:// itms-apps:// itms:// market:// android-app:// are mobile app-store
+  // schemes: itms-services://?action=download-manifest&url=… triggers an iOS over-the-air
+  // app install from an attacker-hosted manifest, itms://itms-apps:// open the App Store,
+  // and market://details?id=… / android-app://… deep-link the Play Store or a native
+  // Android app — native app install/launch outside the page sandbox with no script, the
+  // same class as the blocked intent: app-launch scheme. The // authority form is required
+  // so prose like "the market: outlook" (scheme name + colon, no //) is never affected.
+  { pattern: /\b(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i, reason: 'mobile app-store URL schemes are not allowed in article content' },
   // intent: is the Android app-launch scheme: a URI of the form intent:[//host/path]#Intent;…;end
   // hands the URL to the Android intent system, which opens or deep-links into a native app
   // outside the browser — a standalone app-launch attack on mobile readers, the same
@@ -678,6 +686,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /onenote\s*:/i, reason: 'onenote: application protocol-handler URLs are not allowed in article content' },
   { pattern: /(?:mhtml|jar)\s*:/i, reason: 'archive-extraction URL schemes are not allowed in article content' },
   { pattern: /(?:rdp|vnc|telnet|ssh)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
+  { pattern: /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i, reason: 'mobile app-store URL schemes are not allowed in article content' },
   { pattern: /intent\s*:[^\s"'<>)]*#\s*Intent\b/i, reason: 'intent: app-launch URLs are not allowed in article content' },
   { pattern: /\bshell\s*:(?=[^\s"'<>)])/i, reason: 'shell: protocol-handler URLs are not allowed in article content' },
   { pattern: /data\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
@@ -698,6 +707,7 @@ const infoboxRowValueSchemePatterns = [
   /onenote\s*:/i,
   /(?:mhtml|jar)\s*:/i,
   /(?:rdp|vnc|telnet|ssh)\s*:\/\//i,
+  /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i,
   /intent\s*:[^\s"'<>)]*#\s*Intent\b/i,
   /\bshell\s*:(?=[^\s"'<>)])/i,
   /data\s*:\s*text\/html/i,
