@@ -1539,6 +1539,17 @@ accepts('The attributionsrc attribute is described here only as prose.', 'benign
 accepts('<a class=x/attributionsrc href="/wiki/foo/">not an attributionsrc attribute</a>', 'benign slash inside unquoted class value before bare anchor attributionsrc word');
 accepts('<img class=x/attributionsrc src="/wiki/fig.png" alt="diagram">', 'benign slash inside unquoted class value before bare img attributionsrc word');
 
+// cite= is a URL attribute on the allowed quotation/edit elements <blockquote>/<q>/
+// <del>/<ins> — a hidden attacker-controlled URL planted in the DOM (never rendered
+// or fetched), the same external-reference-URL class as the blocked longdesc=.
+rejects('Intro.\n\n<blockquote cite="https://evil.example/source">quote</blockquote>', 'plain blockquote cite attribute');
+rejects('Intro.\n\n<q cite="https://evil.example/source">inline quote</q>', 'plain q cite attribute');
+rejects('Intro.\n\n<  del   cite = "https://evil.example/edit">removed</del>', 'spaced del cite attribute');
+rejects('<ins class="x"cite="https://evil.example/edit">added</ins>', 'quote-abutted ins cite attribute');
+accepts('See <a href="/wiki/how-to-cite=sources">how to cite sources</a> for details.', 'benign cite= inside quoted href on non-cite element');
+accepts('Intro.\n\n<blockquote>Always cite = your sources when quoting.</blockquote>', 'benign cite= in blockquote body text, not an attribute');
+accepts('The cite attribute is described here only as prose.', 'benign cite prose word');
+
 // id=/name= on any element are DOM-clobbering primitives: a browser exposes id'd
 // and named elements as properties on document/window, so an injected id/name
 // shadows the matching global and can break the site's own scripts. Same

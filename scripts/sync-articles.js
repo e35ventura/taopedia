@@ -1348,6 +1348,21 @@ const tagNameSlashDelimitedBareAttributionSrcAttrPattern = /<\s*(?:a|img)\/attri
 const whitespaceSlashDelimitedBareAttributionSrcAttrPattern = /<\s*(?:a|img)\b[^>]*\s\/attributionsrc(?=[\s>/=])/i;
 const quoteSlashDelimitedBareAttributionSrcAttrPattern = /<\s*(?:a|img)\b[^>]*["'`]\/attributionsrc(?=[\s>/=])/i;
 
+// cite= is a URL attribute valid on the allowed quotation/edit elements
+// <blockquote>/<q> (the source of the quote) and <del>/<ins> (a document
+// explaining the edit). Browsers never render it or fetch it — it lives only in
+// the DOM, where scripts, browser extensions and scrapers read and may follow it.
+// An injected <blockquote cite="https://attacker.example/…"> therefore plants an
+// attacker-controlled URL in the article with no visible cue and nothing the
+// reader can vet, the same hidden external-reference-URL class as the merged
+// longdesc= block on <img>. Markdown never emits cite= (the parser produces
+// <blockquote>/<del>/<ins> without it; a real quotation source is authored as
+// visible prose or a normal link), so article content never needs it. Tag-scoped
+// to the four cite-bearing elements and scanned on emptied quoted values so a
+// quoted href/title containing "cite=" is not a false positive.
+const citeUrlAttrPattern = /<\s*(?:blockquote|q|del|ins)\b[^>]*\scite\s*=/i;
+const quoteAbuttedCiteUrlAttrPattern = /<\s*(?:blockquote|q|del|ins)\b[^>]*["'`]cite\s*=/i;
+
 // id=/name= on any allowed element are DOM-clobbering primitives: a browser
 // exposes id'd and named elements as properties on `document` and `window`
 // (named access) and on sibling form/collection objects, so an injected
@@ -2221,6 +2236,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": attributionsrc attributes are not allowed on anchor or img elements`,
+    );
+  }
+
+  if (
+    citeUrlAttrPattern.test(emptiedAttributeContent)
+    || quoteAbuttedCiteUrlAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": cite attributes are not allowed on blockquote, q, del, or ins elements`,
     );
   }
 
