@@ -397,6 +397,11 @@ rejects('See [x](ms-excel:ofv|u|https://evil.example/x.xlsm).', 'plain ms-excel:
 rejects('See [x](ms-powerpoint:ofe|u|https://evil.example/x.pptm).', 'plain ms-powerpoint: Office scheme');
 rejects('See [x](ms-w&#111;rd:ofe|u|https://evil.example/x.docm).', 'entity-obfuscated ms-word: Office scheme');
 accepts('Microsoft Word, Excel, and PowerPoint are described here only as prose.', 'benign Office app names are not the ms- schemes');
+// onenote: is the OneNote app protocol handler, sibling of the ms-word:/ms-excel: Office
+// schemes — it launches the local OneNote app pointed at an attacker-hosted notebook.
+rejects('See [x](onenote:https://evil.example/x.one).', 'plain onenote: scheme');
+rejects('See [x](on&#101;note:https://evil.example/x.one).', 'entity-obfuscated onenote: scheme');
+accepts('OneNote and the notebook app are described here only as prose.', 'benign OneNote app name is not the onenote: scheme');
 // intent: is the Android app-launch scheme — intent:[//host/path]#Intent;…;end hands the
 // URL to a native app. Per Chrome's syntax an optional host/path may sit between the
 // scheme and the required #Intent marker, so all of these forms are rejected; the
