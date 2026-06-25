@@ -62,6 +62,20 @@ import matter from './frontmatter.js';
 }
 
 {
+  const parsed = matter('---\ncategories: [Subnet 4: Targon, TAO]\nseo: { title: Subnet 4: Targon }\ninfoboxRows: [{ label: Netuid, value: \"42\" }]\n---\nBody\n');
+  assert.deepEqual(
+    parsed.data,
+    {
+      categories: ['Subnet 4: Targon', 'TAO'],
+      seo: { title: 'Subnet 4: Targon' },
+      infoboxRows: [{ label: 'Netuid', value: '42' }],
+    },
+    'inline flow sequence/mapping colon-space scalars parse as strings, not one-key maps',
+  );
+  assert.equal(parsed.content, 'Body\n', 'flow colon-scalar repair preserves the body');
+}
+
+{
   const parsed = matter('---\ntitle: Subnet 4: Targon # preferred label\nseo:\n  title: Subnet 4: Targon # preferred label\ninfoboxRows:\n  - label: Subnet 4: Targon # row label\n    value: Validator permit: required # row value\n---\nBody\n');
   assert.deepEqual(
     parsed.data,

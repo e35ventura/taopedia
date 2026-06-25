@@ -8,10 +8,59 @@ import YAML from 'yaml';
 // valid close and stays in the body as before.
 const frontmatterPattern = /^---\r?\n(?:([\s\S]*?)\r?\n)?---(?:\r?\n(?:\r?\n)?|$)/;
 
+const COLON_PLAIN_SCALAR = /^[^"'[{|>&*!%@`#].*:\s+.+$/;
+
+function splitFlowList(value) {
+  const parts = [];
+  let current = '';
+  let inQuote = false;
+  let quote = '';
+  for (const ch of value) {
+    if ((ch === '"' || ch === "'") && (!inQuote || ch === quote)) {
+      inQuote = !inQuote;
+      quote = inQuote ? ch : '';
+      current += ch;
+    } else if (ch === ',' && !inQuote) {
+      parts.push(current);
+      current = '';
+    } else {
+      current += ch;
+    }
+  }
+  if (current) parts.push(current);
+  return parts;
+}
+
+function quoteColonFlowToken(token) {
+  const trimmed = token.trim();
+  if (!trimmed || /^["']/.test(trimmed) || /^[\[{]/.test(trimmed)) return token;
+  if (/^[A-Za-z_][\w-]*:\s+/.test(trimmed)) return token;
+  if (!COLON_PLAIN_SCALAR.test(trimmed)) return token;
+  const lead = token.match(/^\s*/)[0];
+  const trail = token.match(/\s*$/)[0];
+  return `${lead}${JSON.stringify(trimmed)}${trail}`;
+}
+
+function quoteColonFlowCollections(line) {
+  return line.replace(
+    /^(\s*[A-Za-z_][\w-]*:\s*)\[([^\]]*)\](.*)$/,
+    (match, prefix, inner, suffix) => `${prefix}[${splitFlowList(inner).map(quoteColonFlowToken).join(',')}]${suffix}`,
+  ).replace(
+    /^(\s*[A-Za-z_][\w-]*:\s*)\{([^}]*)\}(.*)$/,
+    (match, prefix, inner, suffix) => `${prefix}{${inner.replace(/([A-Za-z_][\w-]*:\s+)([^,}{]+)/g, (part, keyPart, valPart) => {
+      const value = valPart.trim();
+      if (!COLON_PLAIN_SCALAR.test(value)) return part;
+      return `${keyPart}${JSON.stringify(value)}`;
+    })}}${suffix}`,
+  );
+}
+
 function quoteColonPlainScalars(source) {
   return source
     .split(/\r?\n/)
     .map((line) => {
+      line = quoteColonFlowCollections(line);
+
       const match = line.match(/^(\s*(?:-\s+)?[A-Za-z_][\w-]*:\s+)(.+)$/);
       if (match) {
         const remainder = match[2];
@@ -19,7 +68,7 @@ function quoteColonPlainScalars(source) {
         const value = (commentMatch?.[1] ?? remainder).trimEnd();
         const comment = commentMatch?.[2] ?? '';
 
-        if (!/^[^"'[{|>&*!%@`#].*:\s+.+$/.test(value)) return line;
+        if (!COLON_PLAIN_SCALAR.test(value)) return line;
         return `${match[1]}${JSON.stringify(value)}${comment}`;
       }
 
@@ -37,7 +86,7 @@ function quoteColonPlainScalars(source) {
         const value = (commentMatch?.[1] ?? remainder).trimEnd();
         const comment = commentMatch?.[2] ?? '';
 
-        if (!/^[^"'[{|>&*!%@`#].*:\s+.+$/.test(value)) return line;
+        if (!COLON_PLAIN_SCALAR.test(value)) return line;
         return `${listMatch[1]}${JSON.stringify(value)}${comment}`;
       }
 
