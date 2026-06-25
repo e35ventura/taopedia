@@ -423,6 +423,12 @@ rejects('See [x](sftp://user@evil.example/).', 'plain sftp:// URL (SSH file-tran
 accepts('SSH: Secure Shell and RDP: Remote Desktop Protocol are defined here as prose.', 'benign SSH:/RDP: glossary definitions (no // authority)');
 accepts('The sftp command and SFTP: SSH File Transfer Protocol are described here only as prose.', 'benign sftp/SFTP: prose (no // authority)');
 accepts('Connect over ssh and telnet are described only as protocol names here.', 'benign ssh/telnet prose words');
+// rtsp://rtsps://rtspu:// (Real Time Streaming Protocol) and mms:// (Microsoft Media
+// Server) launch a native media player at the attacker's stream server. // keeps prose.
+rejects('See [x](rtsp://attacker.example/stream).', 'plain rtsp:// streaming URL');
+rejects('See [x](rtsps://attacker.example/stream).', 'plain rtsps:// streaming URL');
+rejects('See [x](mms://attacker.example/stream).', 'plain mms:// streaming URL');
+accepts('The RTSP protocol and MMS streaming are described here only as prose.', 'benign "RTSP"/"MMS" prose is not the scheme');
 // ms-its: and mk:@MSITStore: resolve a page out of a compiled-HTML-help (.chm) archive
 // through the native ITSS handler (a documented RCE vector), blocked like mhtml:/jar:.
 rejects('See [x](ms-its:evil.chm::/exploit.htm).', 'plain ms-its: CHM scheme');
