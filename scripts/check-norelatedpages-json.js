@@ -177,6 +177,30 @@ data.pages.forEach((row, i) => {
   );
 });
 
+// ---- 5) Parity with per-article related.json ----------------------------
+// check-related-json.js requires withEmpty > 0 (articles whose related.json
+// reports count === 0). norelatedpages.json must list exactly those slugs.
+const noRelatedSlugs = new Set(data.pages.map((row) => row.slug));
+for (const row of data.pages) {
+  const relatedJson = path.join(wikiDir, row.slug, 'related.json');
+  assert.ok(fs.existsSync(relatedJson), `${row.slug}: no-related article must have a built related.json`);
+  const doc = JSON.parse(fs.readFileSync(relatedJson, 'utf8'));
+  assert.equal(doc.count, 0, `${row.slug}: related.json count must be 0 for a no-related article`);
+  assert.deepEqual(doc.related, [], `${row.slug}: related.json related array must be empty`);
+}
+
+for (const slug of publishedSlugs) {
+  const relatedJson = path.join(wikiDir, slug, 'related.json');
+  if (!fs.existsSync(relatedJson)) continue;
+  const doc = JSON.parse(fs.readFileSync(relatedJson, 'utf8'));
+  const isNoRelated = doc.count === 0;
+  assert.equal(
+    noRelatedSlugs.has(slug),
+    isNoRelated,
+    `norelatedpages.json membership must match related.json count===0 for ${slug} (count=${doc.count})`,
+  );
+}
+
 for (let i = 1; i < data.pages.length; i++) {
   const prev = data.pages[i - 1];
   const cur = data.pages[i];
