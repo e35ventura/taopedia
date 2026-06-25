@@ -74,6 +74,24 @@ import matter from './frontmatter.js';
 }
 
 {
+  const parsed = matter('---\n---\nBody\n');
+  assert.deepEqual(parsed.data, {}, 'an empty (zero-line) frontmatter block parses to empty data');
+  assert.equal(parsed.content, 'Body\n', 'an empty frontmatter block is stripped, not left in the body');
+}
+
+{
+  const parsed = matter('---\n---');
+  assert.deepEqual(parsed.data, {}, 'an empty frontmatter block at end-of-input parses to empty data');
+  assert.equal(parsed.content, '', 'an empty frontmatter block at end-of-input leaves no trailing body');
+}
+
+{
+  const parsed = matter('---\nfoo---\nBody\n');
+  assert.deepEqual(parsed.data, {}, 'a mid-line --- is not a closing fence, so no frontmatter is parsed');
+  assert.equal(parsed.content, '---\nfoo---\nBody\n', 'a mid-line --- leaves the whole input as body');
+}
+
+{
   const serialized = matter.stringify('Article body\n', {
     title: 'TAO Reserve',
     categories: ['Tokenomics', 'TAO'],
