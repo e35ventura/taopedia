@@ -33,14 +33,10 @@ export const GET: APIRoute = async ({ site }) => {
   const pages = await getCollection('pages');
 
   const titleBySlug: Record<string, string> = {};
-  const categoriesBySlug: Record<string, string[]> = {};
-  const summaryBySlug: Record<string, string> = {};
   const pageBySlug: Record<string, (typeof pages)[number]> = {};
   for (const page of pages) {
     const slug = getPageSlug(page);
     titleBySlug[slug] = page.data.title;
-    categoriesBySlug[slug] = page.data.categories ?? [];
-    summaryBySlug[slug] = page.data.summary ?? '';
     pageBySlug[slug] = page;
   }
 
@@ -63,6 +59,12 @@ export const GET: APIRoute = async ({ site }) => {
   // revisionStats / inbound / references below already follow. Cached per slug
   // because an article can appear in multiple changes.
   const wordCountBySlug: Record<string, number> = {};
+  // categories/summary are only ever read by change.slug below (≤ RECENT_LIMIT
+  // entries), but were previously copied from page.data for every one of the
+  // ~350 published articles up front. Gated into this same feed-members-only
+  // loop, the same compute-only-for-feed-members pattern as wordCount above.
+  const categoriesBySlug: Record<string, string[]> = {};
+  const summaryBySlug: Record<string, string> = {};
   for (const change of changes) {
     if (change.slug in sectionCountBySlug) continue;
     const page = pageBySlug[change.slug];
@@ -70,6 +72,8 @@ export const GET: APIRoute = async ({ site }) => {
     const { headings } = await render(page);
     sectionCountBySlug[change.slug] = getArticleToc(headings).length;
     wordCountBySlug[change.slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
+    categoriesBySlug[change.slug] = page.data.categories ?? [];
+    summaryBySlug[change.slug] = page.data.summary ?? '';
   }
   // revisionCount/firstEdited/lastEdited are the changed article's own commit-
   // history stats (history is newest-first) — the same trio info.json /
