@@ -45,9 +45,11 @@ const featuredPages = featuredSlugs
 // into the full Special:Subnets directory. Reuses the same buildSubnets() helper
 // that powers Special:Subnets and subnets.json, so the homepage can never
 // disagree with them on netuid, name, or slug. Refs #521.
-const featuredSubnets = buildSubnets({ pages, getPageSlug })
-  .filter((subnet) => !/deprecated/i.test(subnet.name))
-  .slice(0, 6);
+const allSubnets = buildSubnets({ pages, getPageSlug });
+const activeSubnets = allSubnets.filter((subnet) => !/deprecated/i.test(subnet.name));
+const featuredSubnets = activeSubnets.slice(0, 6);
+const siteTopicCount = categoryIndex.size;
+const siteSubnetCount = activeSubnets.length;
 
 // Most recently updated articles, newest first — the one piece of information
 // the landing page otherwise never shows (it carries no dates at all). Reuses
@@ -249,6 +251,24 @@ const initialLetter = alphabet[0] ?? '#';
       .search-suggestions span {
         color: var(--color-base-subtle);
         font-size: 13px;
+      }
+
+      .home-site-stats {
+        display: inline-flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+        color: var(--color-base-subtle);
+        font-size: 13px;
+      }
+
+      .home-site-stats a {
+        color: var(--color-link);
+        text-decoration: none;
+      }
+
+      .home-site-stats a:hover {
+        text-decoration: underline;
       }
 
       .search-suggestions a {
@@ -526,7 +546,13 @@ const initialLetter = alphabet[0] ?? '#';
             <button type="submit">Search</button>
           </form>
           <div class="search-suggestions" aria-label="Suggested searches">
-            <span>{pages.length} articles</span>
+            <span class="home-site-stats">
+              <a href="/wiki/special/allpages">{pages.length} articles</a>
+              <span aria-hidden="true">·</span>
+              <a href="/wiki/special/categories">{siteTopicCount} topics</a>
+              <span aria-hidden="true">·</span>
+              <a href="/wiki/special/subnets">{siteSubnetCount} subnets</a>
+            </span>
             <a href="/wiki/wallets/">wallets</a>
             <a href="/wiki/category/Staking/">staking</a>
             <a href="/wiki/yuma_consensus/">Yuma Consensus</a>
