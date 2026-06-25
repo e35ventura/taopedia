@@ -1,14 +1,12 @@
 import { compareTitles } from './title-sort.js';
 
 export function sortSearchEntries(entries = []) {
-  // Same-title tiebreak on the slug, matching the slug-based tiebreak every
-  // other article listing on the site uses (recent changes, references, related,
-  // backlinks, most-linked, category articles). Comparing the full canonical URL
-  // instead diverges when one slug is a prefix of another (e.g. "alpha" vs
-  // "alpha_beta"): the "/" boundary after the shared prefix flips the collation
-  // versus the "_" in the longer slug, so identical-title articles would order
-  // differently in search results than everywhere else on the site.
+  // Same-title tiebreak on the slug, matching sortPagesByTitle / getCategoryArticles /
+  // getArticleReferences: compareTitles on the title, then a PLAIN code-unit
+  // comparison of the slug — NOT compareTitles on the slug, whose numeric
+  // collation would order subnet_9 before subnet_10 while the HTML listings
+  // (raw id order) put subnet_10 first.
   return [...entries].sort(
-    (a, b) => compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug),
+    (a, b) => compareTitles(a.title, b.title) || (a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0),
   );
 }

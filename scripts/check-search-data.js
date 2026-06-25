@@ -36,6 +36,15 @@ assert.deepEqual(
   'same-title search entries must tiebreak on the slug (alpha before alpha_beta), matching the rest of the site, NOT the full canonical URL',
 );
 
+assert.deepEqual(
+  sortSearchEntries([
+    { title: 'Shared Title', slug: 'subnet_9', summary: '', url: `${ORIGIN}/wiki/subnet_9/`, categories: [] },
+    { title: 'Shared Title', slug: 'subnet_10', summary: '', url: `${ORIGIN}/wiki/subnet_10/`, categories: [] },
+  ]).map((entry) => entry.slug),
+  ['subnet_10', 'subnet_9'],
+  'same-title search entries must tiebreak on raw slug order (subnet_10 before subnet_9), not numeric slug collation',
+);
+
 assert.ok(Array.isArray(searchEntries), 'search data must serialize an array');
 assert.ok(searchEntries.length > 0, 'search data must include article entries');
 
@@ -78,10 +87,11 @@ assert.equal(
 );
 
 // The entries must be in a deterministic order: by title (numeric collation),
-// then by slug with the SAME numeric collation as a tiebreak. Re-derive the expected order
-// independently from the article sources using the SAME comparator the endpoint
-// uses, and assert the built file matches exactly — so the ordering is pinned
-// and cannot silently regress or vary with the unspecified getCollection() order.
+// then by raw slug code-unit order on tie — the same contract sortPagesByTitle
+// and getCategoryArticles use (NOT compareTitles on the slug). Re-derive the
+// expected order independently from the article sources using the SAME
+// comparator the endpoint uses, and assert the built file matches exactly.
+const slugTiebreak = (a, b) => (a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0);
 const contentDir = path.join(process.cwd(), 'src', 'content', 'pages');
 const expected = [];
 for (const dirent of fs.readdirSync(contentDir, { withFileTypes: true })) {
@@ -95,7 +105,7 @@ for (const dirent of fs.readdirSync(contentDir, { withFileTypes: true })) {
   if (!data || typeof data.title !== 'string') continue;
   expected.push({ title: data.title, slug, url: `${ORIGIN}/wiki/${slug}/` });
 }
-expected.sort((a, b) => compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug));
+expected.sort((a, b) => compareTitles(a.title, b.title) || slugTiebreak(a, b));
 
 assert.equal(
   searchEntries.length,
