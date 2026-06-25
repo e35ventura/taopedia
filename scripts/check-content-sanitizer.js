@@ -657,6 +657,12 @@ accepts('See <a href="/wiki/stake?style=compact">stake docs</a> for details.', '
 rejects('Intro.\n\n<table bgcolor="red"><tr><td>WALLET COMPROMISED</td></tr></table>', 'plain bgcolor attribute');
 rejects('Intro.\n\n<  td   bgcolor = "#ff0000">x</td>', 'spaced bgcolor attribute');
 accepts('The background colour of an infobox is set in the stylesheet, not inline.', 'benign bgcolor prose');
+// bordercolor=/bordercolordark=/bordercolorlight= are the obsolete IE border-colour
+// siblings of bgcolor= — same content-spoofing presentational injection.
+rejects('Intro.\n\n<table bordercolor="red"><tr><td>x</td></tr></table>', 'plain bordercolor attribute');
+rejects('Intro.\n\n<  td   bordercolordark = "#ff0000">x</td>', 'spaced bordercolordark attribute');
+rejects('Intro.\n\n<table src="x"bordercolorlight="#fff"><tr><td>x</td></tr></table>', 'quote-abutted bordercolorlight attribute');
+accepts('The table border colour comes from the stylesheet, described here only as prose.', 'benign border colour prose');
 
 // background= loads an arbitrary external image as a tiled background — a no-script
 // tracking beacon (like ping=) plus a content spoof. Blocked like bgcolor=/style=.
