@@ -441,6 +441,12 @@ rejects('See [x](shell:::{20D04FE0-3AEA-1069-A2D8-08002B30309D}).', 'shell:::{CL
 rejects('See [x](sh&#101;ll:Downloads).', 'entity-obfuscated shell: URL');
 accepts('The Bash shell: a command interpreter, described here only as prose.', 'benign "shell:" prose word is not the scheme');
 accepts('Discussing user intent and the #Intent label only as prose, far apart.', 'benign "intent" prose word with a distant #Intent is not the scheme');
+// ms-cxh:/ms-cxh-full: are the Windows CloudExperienceHost protocol handlers (a
+// documented LPE/UAC-bypass surface) — the OS resolves them, blocked like ms-msdt:.
+rejects('See [x](ms-cxh://localonly/?comingFromMSA=1).', 'plain ms-cxh: handler URL');
+rejects('See [x](ms-cxh-full://addworkorschool).', 'plain ms-cxh-full: handler URL');
+rejects('See [x](ms-c&#120;h://localonly).', 'entity-obfuscated ms-cxh:');
+accepts('The CloudExperienceHost setup component is described here only as prose.', 'benign prose without the ms-cxh: scheme');
 
 // MDX expression braces execute at build time in article bodies. They are only
 // allowed when escaped as literal prose or inside Markdown code examples.

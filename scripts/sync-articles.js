@@ -644,6 +644,13 @@ const unsafeContentPatterns = [
   // colon; the common prose word "shell" before a colon (e.g. "the Bash shell: a
   // command interpreter") keeps its trailing space and is unaffected.
   { pattern: /\bshell\s*:(?=[^\s"'<>)])/i, reason: 'shell: protocol-handler URLs are not allowed in article content' },
+  // ms-cxh:/ms-cxh-full: are the Windows CloudExperienceHost protocol handlers: a
+  // clicked ms-cxh:/ms-cxh-full: URL is resolved by the OS, not the browser, and
+  // launches CloudExperienceHost — a documented local-privilege-escalation / UAC-bypass
+  // surface (e.g. the ms-cxh:localonly setup flow). Same native Windows protocol-handler
+  // class as the blocked ms-msdt:/ms-appinstaller:/search-ms: handlers; the hyphenated
+  // "ms-cxh" token never occurs in glossary prose.
+  { pattern: /\bms-cxh(?:-full)?\s*:/i, reason: 'Windows CloudExperienceHost protocol-handler URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*image\/svg\+xml/i, reason: 'SVG data URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*application\/xhtml\+xml/i, reason: 'XHTML data URLs are not allowed in article content' },
@@ -680,6 +687,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:rdp|vnc|telnet|ssh)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
   { pattern: /intent\s*:[^\s"'<>)]*#\s*Intent\b/i, reason: 'intent: app-launch URLs are not allowed in article content' },
   { pattern: /\bshell\s*:(?=[^\s"'<>)])/i, reason: 'shell: protocol-handler URLs are not allowed in article content' },
+  { pattern: /\bms-cxh(?:-full)?\s*:/i, reason: 'Windows CloudExperienceHost protocol-handler URLs are not allowed in article content' },
   { pattern: /data\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
   { pattern: /data\s*:\s*image\/svg\+xml/i, reason: 'SVG data URLs are not allowed in article content' },
   { pattern: /data\s*:\s*application\/xhtml\+xml/i, reason: 'XHTML data URLs are not allowed in article content' },
@@ -700,6 +708,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:rdp|vnc|telnet|ssh)\s*:\/\//i,
   /intent\s*:[^\s"'<>)]*#\s*Intent\b/i,
   /\bshell\s*:(?=[^\s"'<>)])/i,
+  /\bms-cxh(?:-full)?\s*:/i,
   /data\s*:\s*text\/html/i,
   /data\s*:\s*image\/svg\+xml/i,
   /data\s*:\s*application\/xhtml\+xml/i,
