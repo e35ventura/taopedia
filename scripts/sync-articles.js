@@ -582,6 +582,19 @@ const tagNameSlashDelimitedInertAttrPattern = /<\s*[a-z][\w:-]*\/inert(?=[\s>/=]
 const whitespaceSlashDelimitedInertAttrPattern = /<[^>]*\s\/inert(?=[\s>/=])/i;
 const quoteSlashDelimitedInertAttrPattern = /<[^>]*["'`]\/inert(?=[\s>/=])/i;
 
+// is= is the customized-built-in-element attribute: `<ul is="x-evil">` upgrades the
+// element to a custom element registered via customElements.define(..., { extends })
+// — changing the element's semantics and behavior. DOMPurify forbids `is` by default
+// for exactly this reason: it is a mutation / sanitizer-evasion primitive (a filter
+// that permits <ul> but not the upgraded element is bypassed), and any custom element
+// the page or a third-party script later defines would silently activate on injected
+// markup. A glossary's prose never needs it, so block it like the slot=/template
+// component primitives already blocked above. The word "is" is common in prose, so the
+// scan is anchored to a real tag name and run against emptiedAttributeContent (quoted
+// values blanked) so an attribute value like class="x is = y" cannot trip it.
+const isAttrPattern = /<\s*[a-z][\w:-]*[^>]*\sis\s*=/i;
+const nonSpaceDelimitedIsAttrPattern = /<\s*[a-z][\w:-]*[^>]*[/"'`]is\s*=/i;
+
 // aria-label=/aria-labelledby= override an allowed element's accessible name.
 // On links and images this can make screen-reader output differ from the visible
 // text or destination (e.g. a visible "claim TAO" link announced as "official
@@ -1576,6 +1589,13 @@ export function validateArticleContent(slug, content) {
     || quoteSlashDelimitedInertAttrPattern.test(emptiedAttributeContent)
   ) {
     throw new Error(`Unsafe article content in "${slug}": inert attributes are not allowed in article content`);
+  }
+
+  if (
+    isAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedIsAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(`Unsafe article content in "${slug}": is attributes are not allowed in article content`);
   }
 
   if (

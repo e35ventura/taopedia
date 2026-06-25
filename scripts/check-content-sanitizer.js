@@ -291,6 +291,18 @@ accepts('A deactivated control is functionally inert in the DOM.', 'benign inert
 accepts('The inert attribute removes an element from the tab order.', 'benign inert attribute prose');
 accepts('<div class=x/inert>not an inert attribute</div>', 'benign slash inside unquoted class value before bare inert word');
 
+// is= is the customized-built-in-element attribute (`<ul is="x-evil">`): it upgrades an
+// allowed element to a custom element, the mutation / sanitizer-evasion primitive
+// DOMPurify forbids by default. The scan is tag-anchored and runs against emptied
+// attribute values so the common prose word "is" cannot trip it.
+rejects('Intro.\n\n<ul is="x-evil"><li>x</li></ul>', 'plain is attribute');
+rejects('Intro.\n\n<  p   is = "x-widget" >text</p>', 'spaced is attribute');
+rejects('<a href="x"is="y-link">go</a>', 'quote-abutted is attribute');
+rejects('Intro.\n\n<p/is="x">blocked</p>', 'slash-delimited is after tag name');
+accepts('Bittensor is a decentralized network and staking is rewarded.', 'benign "is" prose word');
+accepts('Intro.\n\n<p class="x is = y">text</p>', 'benign "is =" inside an emptied class value');
+accepts('A definition list item is described here only as prose.', 'benign is prose');
+
 // Plain dangerous URL schemes remain blocked.
 rejects('See [x](javascript:alert(1)).', 'plain javascript:');
 rejects('See [x](vbscript:msgbox(1)).', 'plain vbscript:');
