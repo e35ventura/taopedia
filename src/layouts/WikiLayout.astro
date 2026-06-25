@@ -165,37 +165,92 @@ const { title, description, image, type = 'website', path, feeds, robots } = Ast
       document.addEventListener('DOMContentLoaded', function() {
         // TOC collapse/expand functionality
         const tocToggles = document.querySelectorAll('.toc-toggle');
+        const tocExpandAll = document.querySelector('.toc-expand-all');
+        const tocCollapseAll = document.querySelector('.toc-collapse-all');
+
+        function tocLevel(item) {
+          return Number.parseInt(item?.dataset?.tocLevel || '', 10);
+        }
+
+        function tocBranchItems(parentLi) {
+          const parentLevel = tocLevel(parentLi);
+          const items = [];
+          let nextLi = parentLi?.nextElementSibling;
+          while (nextLi && nextLi.dataset.tocLevel) {
+            const nextLevel = tocLevel(nextLi);
+            if (nextLevel <= parentLevel) break;
+            items.push(nextLi);
+            nextLi = nextLi.nextElementSibling;
+          }
+          return items;
+        }
+
+        function hasCollapsedTocAncestor(item) {
+          let currentLevel = tocLevel(item);
+          let previous = item.previousElementSibling;
+          while (previous && previous.dataset.tocLevel) {
+            const previousLevel = tocLevel(previous);
+            if (previousLevel < currentLevel) {
+              if (previous.classList.contains('collapsed')) return true;
+              currentLevel = previousLevel;
+            }
+            previous = previous.previousElementSibling;
+          }
+          return false;
+        }
+
+        function syncTocVisibility() {
+          document.querySelectorAll('.toc-list li[data-toc-level]').forEach((item) => {
+            item.style.display = hasCollapsedTocAncestor(item) ? 'none' : '';
+          });
+        }
+
+        function setTocBranch(toggle, collapsed, resetDescendants) {
+          const parentLi = toggle.closest('li');
+          if (!parentLi) return;
+
+          parentLi.classList.toggle('collapsed', collapsed);
+          toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+
+          if (resetDescendants) {
+            tocBranchItems(parentLi).forEach((item) => {
+              item.classList.remove('collapsed');
+              const childToggle = item.querySelector('.toc-toggle');
+              if (childToggle) childToggle.setAttribute('aria-expanded', 'true');
+            });
+          }
+
+          syncTocVisibility();
+        }
+
+        function setAllTocBranches(collapsed) {
+          tocToggles.forEach((toggle) => {
+            const parentLi = toggle.closest('li');
+            if (!parentLi) return;
+            parentLi.classList.toggle('collapsed', collapsed);
+            toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+          });
+          syncTocVisibility();
+        }
+
         tocToggles.forEach(toggle => {
           toggle.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            
+
             const parentLi = this.closest('li');
-            const parentLevel = parseInt(parentLi.dataset.tocLevel);
-            
-            // Toggle collapsed state
-            parentLi.classList.toggle('collapsed');
-            
-            // Find all subsections
-            let nextLi = parentLi.nextElementSibling;
-            while (nextLi && nextLi.dataset.tocLevel) {
-              const nextLevel = parseInt(nextLi.dataset.tocLevel);
-              
-              // If we hit a same-level or higher-level heading, stop
-              if (nextLevel <= parentLevel) {
-                break;
-              }
-              
-              // Toggle subsection visibility
-              if (parentLi.classList.contains('collapsed')) {
-                nextLi.style.display = 'none';
-              } else {
-                nextLi.style.display = 'flex';
-              }
-              
-              nextLi = nextLi.nextElementSibling;
-            }
+            if (!parentLi) return;
+            const collapsed = !parentLi.classList.contains('collapsed');
+            setTocBranch(this, collapsed, !collapsed);
           });
+        });
+
+        tocExpandAll?.addEventListener('click', function() {
+          setAllTocBranches(false);
+        });
+
+        tocCollapseAll?.addEventListener('click', function() {
+          setAllTocBranches(true);
         });
         
         // Active section tracking for TOC
