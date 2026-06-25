@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { compareTitles } from '../src/lib/title-sort.js';
+import { buildMostLinkedPages } from './most-linked.js';
 
 // Load-bearing regression check for Special:MostLinkedPages. It pins the rendered
 // ranking to the build-time link graph: the page must list exactly the published
@@ -72,17 +72,14 @@ for (let i = 1; i < rows.length; i++) {
   );
 }
 
-// Re-derive the expected ranking independently from the link graph, using the
-// same published-only inbound count and the same deterministic sort as the page.
-const expected = Object.entries(backlinks)
-  .filter(([slug]) => slugmap[slug])
-  .map(([slug, links]) => ({
-    slug,
-    title: slugmap[slug].title,
-    count: links.filter((link) => slugmap[link.from]).length,
-  }))
-  .filter((entry) => entry.count > 0)
-  .sort((a, b) => b.count - a.count || compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug));
+// Re-derive the expected ranking from the link graph via the SAME shared builder
+// the page and mostlinkedpages.json use, so the check pins the exact rule the
+// surfaces produce: published-only inbound count, self-links excluded
+// (`from !== slug`), count-desc then compareTitles(title) then compareTitles(slug).
+const titleBySlug = Object.fromEntries(
+  Object.entries(slugmap).map(([slug, entry]) => [slug, entry?.title ?? slug]),
+);
+const expected = buildMostLinkedPages({ backlinks, titleBySlug });
 
 assert.deepEqual(
   renderedSlugs,

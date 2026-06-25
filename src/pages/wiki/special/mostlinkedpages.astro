@@ -2,7 +2,7 @@
 import WikiLayout from '../../../layouts/WikiLayout.astro';
 import { getCollection } from 'astro:content';
 import { getPageSlug } from '../../../lib/article-history';
-import { compareTitles } from '../../../lib/title-sort.js';
+import { buildMostLinkedPages } from '../../../../scripts/most-linked.js';
 
 // Most linked pages: articles ranked by how many other articles link to them,
 // from the build-time link graph (public/data/backlinks.json — the same inbound-
@@ -21,20 +21,15 @@ const backlinksModules = import.meta.glob('../../../../public/data/backlinks.jso
 >;
 const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
 
-// Rank published articles by their inbound-link count. The count includes only
-// links from other published articles (the same orphan-skipping join "What links
-// here" and Special:RecentChanges use), so it matches the count a reader sees on
-// each article's backlinks page. Targets that end up with no published inbound
-// links are dropped. Ties break by title then slug for a deterministic order.
-const mostLinked = Object.entries(backlinksData)
-  .filter(([slug]) => titleBySlug[slug])
-  .map(([slug, links]) => ({
-    slug,
-    title: titleBySlug[slug],
-    count: links.filter((link) => titleBySlug[link.from]).length,
-  }))
-  .filter((entry) => entry.count > 0)
-  .sort((a, b) => b.count - a.count || compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug));
+// Rank published articles by their inbound-link count, via the SAME shared
+// builder the machine-readable sibling (mostlinkedpages.json) and its regression
+// check (check-most-linked.js) use, so all three surfaces derive one ranking from
+// one source. buildMostLinkedPages counts only links from other published
+// articles AND excludes self-links (publishedInboundLinkCount: `from !== slug`),
+// matching getArticleReferences on the outbound side and the count each article's
+// backlinks page shows. Targets with no published inbound links are dropped; ties
+// break by title then slug.
+const mostLinked = buildMostLinkedPages({ backlinks: backlinksData, titleBySlug });
 ---
 
 <WikiLayout
