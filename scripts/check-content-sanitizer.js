@@ -416,6 +416,14 @@ rejects('See [x](intent://evil.example/#Intent;scheme=https;package=com.evil;end
 rejects('See [x](intent:#Intent;action=android.intent.action.VIEW;end).', 'intent: with bare #Intent fragment');
 rejects('See [x](intent:scan/#Intent;scheme=zxing;package=com.evil;end).', 'intent: with host/path before #Intent');
 accepts("The author's intent: clarity over cleverness in every article.", 'benign "intent:" prose word is not the scheme');
+// shell: is the Windows Explorer protocol handler (shell:startup opens the Startup
+// persistence folder; shell:::{CLSID} opens special folders) — the OS resolves it, no
+// script. A real shell: URL always carries a target, so a non-space char after the
+// colon is required, leaving the prose word "shell:" (with its trailing space) alone.
+rejects('See [x](shell:startup).', 'plain shell: URL');
+rejects('See [x](shell:::{20D04FE0-3AEA-1069-A2D8-08002B30309D}).', 'shell:::{CLSID} special-folder URL');
+rejects('See [x](sh&#101;ll:Downloads).', 'entity-obfuscated shell: URL');
+accepts('The Bash shell: a command interpreter, described here only as prose.', 'benign "shell:" prose word is not the scheme');
 accepts('Discussing user intent and the #Intent label only as prose, far apart.', 'benign "intent" prose word with a distant #Intent is not the scheme');
 
 // MDX expression braces execute at build time in article bodies. They are only

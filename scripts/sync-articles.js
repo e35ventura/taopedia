@@ -613,6 +613,15 @@ const unsafeContentPatterns = [
   // by any non-whitespace URL characters and then #Intent. The whitespace boundary means the
   // common prose word "intent" before a colon (e.g. "the author's intent: clarity") is unaffected.
   { pattern: /\bintent\s*:[^\s"'<>)]*#\s*Intent\b/i, reason: 'intent: app-launch URLs are not allowed in article content' },
+  // shell: is the Windows Explorer protocol handler: shell:startup opens the user's
+  // Startup folder (a drop-a-payload persistence path), shell:::{CLSID} opens special
+  // folders / Control-Panel applets, and the OS — not the browser — resolves it, with
+  // no script. Same native protocol-handler malware/persistence class as the blocked
+  // ms-msdt:/ms-appinstaller:/search-ms: handlers. A real shell: URL always carries a
+  // target (a folder name or a ::{CLSID}), so require a non-space character after the
+  // colon; the common prose word "shell" before a colon (e.g. "the Bash shell: a
+  // command interpreter") keeps its trailing space and is unaffected.
+  { pattern: /\bshell\s*:(?=[^\s"'<>)])/i, reason: 'shell: protocol-handler URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*image\/svg\+xml/i, reason: 'SVG data URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*application\/xhtml\+xml/i, reason: 'XHTML data URLs are not allowed in article content' },
@@ -646,6 +655,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /ms-(?:word|excel|powerpoint|visio|access|project|publisher|infopath|spd)\s*:/i, reason: 'Microsoft Office document protocol-handler URLs are not allowed in article content' },
   { pattern: /onenote\s*:/i, reason: 'onenote: application protocol-handler URLs are not allowed in article content' },
   { pattern: /intent\s*:[^\s"'<>)]*#\s*Intent\b/i, reason: 'intent: app-launch URLs are not allowed in article content' },
+  { pattern: /\bshell\s*:(?=[^\s"'<>)])/i, reason: 'shell: protocol-handler URLs are not allowed in article content' },
   { pattern: /data\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
   { pattern: /data\s*:\s*image\/svg\+xml/i, reason: 'SVG data URLs are not allowed in article content' },
   { pattern: /data\s*:\s*application\/xhtml\+xml/i, reason: 'XHTML data URLs are not allowed in article content' },
@@ -663,6 +673,7 @@ const infoboxRowValueSchemePatterns = [
   /ms-(?:word|excel|powerpoint|visio|access|project|publisher|infopath|spd)\s*:/i,
   /onenote\s*:/i,
   /intent\s*:[^\s"'<>)]*#\s*Intent\b/i,
+  /\bshell\s*:(?=[^\s"'<>)])/i,
   /data\s*:\s*text\/html/i,
   /data\s*:\s*image\/svg\+xml/i,
   /data\s*:\s*application\/xhtml\+xml/i,
