@@ -67,6 +67,13 @@ export function parseGitLog(stdout) {
       message: messageParts.join(FIELD_SEP),
     });
   }
+  // Sort newest author-date first. The dates come from %at (author time), but
+  // `git log` (even with --follow) emits commits in commit-graph/topo order, not
+  // author-date order, so a rebased / cherry-picked / amended / backdated commit
+  // would otherwise leave revisions[0] as not-the-newest. Every consumer treats
+  // revisions[0] as the latest edit (lastEdited / lastmod) and the last entry as
+  // the creation (firstEdited); make that invariant explicit here.
+  revisions.sort((a, b) => b.timestamp - a.timestamp);
   return revisions;
 }
 
