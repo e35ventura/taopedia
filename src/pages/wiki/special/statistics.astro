@@ -7,8 +7,8 @@ import categoriesIndex from '../../../../public/data/categories.json';
 
 // Shared with statistics.json via buildStatistics(). Topic counts come from
 // public/data/categories.json — the same artifact categories.json (#1403) reads —
-// instead of re-counting every article's categories frontmatter during the scan.
-// Word counts still need the article body from the content collection.
+// with distinct-slug dedupe matching #1502. Word counts still need the article
+// body from the content collection.
 const pages = await getCollection('pages');
 const stats = buildStatistics({
   pages,

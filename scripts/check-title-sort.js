@@ -169,6 +169,10 @@ assert.ok(
   !statsSource.includes('.localeCompare('),
   'statistics.astro must not use localeCompare for the topic tiebreak',
 );
+assert.ok(
+  statsSource.includes('new Set(page.data.categories'),
+  'statistics.astro must dedupe a page\'s own categories so a repeated frontmatter topic counts once',
+);
 
 // Search topic facets sort by result count, then by topic name. Topic names can
 // be numeric-prefixed (e.g. "Subnet 9" vs "Subnet 10"), so the name tiebreak must
