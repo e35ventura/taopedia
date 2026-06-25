@@ -609,6 +609,13 @@ accepts('The background colour of an infobox is set in the stylesheet, not inlin
 rejects('Intro.\n\n<body background="https://evil.example/track.png">x</body>', 'plain background attribute');
 rejects('Intro.\n\n<  table   background = "//evil.example/beacon.gif">x</table>', 'spaced background attribute');
 accepts('The page background is defined in the stylesheet and never set inline.', 'benign background prose');
+// lowsrc=/dynsrc= are the obsolete <img> external-resource loaders — same tracking-
+// beacon class as background=/crossorigin=. Full delimiter coverage.
+rejects('Intro.\n\n<img lowsrc="https://evil.example/track.png">', 'plain lowsrc attribute');
+rejects('Intro.\n\n<  img   dynsrc = "//evil.example/beacon.gif">', 'spaced dynsrc attribute');
+rejects('Intro.\n\n<img src="/a.png"lowsrc="https://evil.example/t.png">', 'quote-abutted lowsrc attribute');
+rejects('Intro.\n\n<img src=x/dynsrc="//evil.example/b">', 'slash-delimited dynsrc attribute');
+accepts('The lowsrc fallback technique is described here only as prose.', 'benign lowsrc prose word');
 
 // align=/valign= are obsolete presentational layout attributes that reposition
 // content without the blocked style= attribute or <center> element. Blocked like style=.
