@@ -128,12 +128,12 @@ assert.ok(
   'most-linked.js must not use localeCompare for the title tiebreak',
 );
 assert.ok(
-  mlSource.includes('compareTitles(a.slug, b.slug)'),
-  'most-linked.js must sort slug ties with compareTitles, not localeCompare',
+  mlSource.includes('a.slug < b.slug'),
+  'most-linked.js must tiebreak same-title slug ties on raw slug order, not compareTitles numeric slug collation',
 );
 assert.ok(
-  !mlSource.includes('a.slug.localeCompare(b.slug)'),
-  'most-linked.js must not use localeCompare for slug tiebreak',
+  !mlSource.includes('compareTitles(a.slug, b.slug)'),
+  'most-linked.js must not use compareTitles for slug tiebreak',
 );
 
 // Special:Categories lists all topics in alphabetical order. Category names
@@ -201,15 +201,6 @@ assert.ok(
 assert.ok(
   !backlinksSource.includes('a.slug.localeCompare(b.slug)'),
   'backlinks.astro must not use localeCompare for slug tiebreak',
-);
-
-const mostLinkedCheck = fs.readFileSync(
-  path.join(projectRoot, 'scripts/check-most-linked.js'),
-  'utf8',
-);
-assert.ok(
-  mostLinkedCheck.includes('compareTitles(a.slug, b.slug)'),
-  'check-most-linked.js must sort slug ties with compareTitles, not localeCompare',
 );
 
 const relatedPagesSource = fs.readFileSync(path.join(projectRoot, 'src/lib/related-pages.ts'), 'utf8');
