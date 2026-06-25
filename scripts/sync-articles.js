@@ -199,6 +199,14 @@ const unsafeContentPatterns = [
   // standalone <foreignObject> / <annotation-xml>, block them on their own so they
   // are caught even if the <svg>/<math> root that hosts them is split off.
   { pattern: /<\s*(animate|animateTransform|animateMotion|set|use)\b/i, reason: 'SVG animation and use sub-elements are not allowed in article content' },
+  // <image> (SVG) and <feImage> (SVG filter primitive) load an external resource
+  // via href/xlink:href. Because they are SVG-namespaced -- not the HTML <img>
+  // element -- they bypass the img-src and URL-scheme checks the sanitizer applies
+  // to <img>, so an injected one is a no-script external-resource / tracking-beacon
+  // load (and content-injection surface). Same external-load threat class as the
+  // <picture>/<source> block above. Like the SVG animation/use sub-elements, block
+  // them standalone so they are caught even if the <svg> root is split off.
+  { pattern: /<\s*(image|feImage)\b/i, reason: 'SVG image and feImage sub-elements are not allowed in article content' },
   // <noscript> is parsed under different rules depending on the browser's scripting
   // state, a known mutation-XSS / sanitizer-confusion surface (sanitizers such as
   // DOMPurify special-case it). A glossary never needs script-fallback markup, so
