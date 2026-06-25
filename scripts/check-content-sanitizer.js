@@ -377,6 +377,13 @@ rejects('![x](blob:https://evil.example/uuid)', 'blob: in an image src');
 rejects('See [x](filesystem:https://evil.example/temporary/x).', 'plain filesystem: URL');
 rejects('See [x](bl&#111;b:https://evil.example/uuid).', 'entity-obfuscated blob:');
 accepts('The blob of weights and the filesystem layout are described here only as prose.', 'benign blob/filesystem prose words (no scheme colon)');
+// mhtml:/jar: archive-extraction schemes historically rendered attacker HTML from
+// inside an archive (mhtml: IE CVE-2011-1894; jar: Firefox), blocked like data:.
+rejects('See [x](mhtml:https://evil.example/x.mht!sub).', 'plain mhtml: archive scheme');
+rejects('See [x](jar:https://evil.example/x.jar!/payload.html).', 'plain jar: archive scheme');
+rejects('![x](mhtml:https://evil.example/x!a)', 'mhtml: in an image src');
+rejects('See [x](m&#104;tml:https://evil.example/x!a).', 'entity-obfuscated mhtml:');
+accepts('A jar of configuration and an MHTML export are described here only as prose.', 'benign jar/mhtml prose words (no scheme colon)');
 // search-ms: opens Explorer search on a remote WebDAV/SMB share (malware-delivery
 // chain), and ms-officecmd: invokes Office deep-link commands (argument-injection
 // RCE) — two more native Windows handlers blocked like ms-msdt:/javascript:.
