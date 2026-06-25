@@ -57,6 +57,10 @@ rejects('Intro.\n\n<label>Enter your 12-word seed phrase:</label>', 'plain <labe
 rejects('Intro.\n\n<  label  >Wallet address</label>', 'spaced <label>');
 rejects('Intro.\n\n<label for="wallet">Recovery phrase</label>', 'label with for attribute');
 accepts('A field label in documentation refers to form captions described as prose.', 'benign label prose');
+rejects('Intro.\n\n<menu type="context"><menuitem label="Open wallet"></menu>', 'plain menu with menuitem');
+rejects('Intro.\n\n<  menu   type="context">', 'spaced menu');
+rejects('Intro.\n\n<menuitem label="Export seed phrase">', 'standalone menuitem');
+accepts('A context menu and menuitem element are described here only as prose.', 'benign menu prose');
 
 // The `ping` attribute on an allowed <a> is a no-JS tracking beacon: a click
 // POSTs to the listed URL. It passes every scheme/handler/element check, so it
