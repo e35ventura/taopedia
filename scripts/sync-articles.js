@@ -728,7 +728,11 @@ const unsafeContentPatterns = [
   // in prose, with no //) is never affected. sftp:// is the SSH file-transfer sibling
   // of ssh://: it launches a registered SFTP client (WinSCP/FileZilla) pointed at the
   // attacker's host, the same out-of-sandbox client-launch / credential-prompt surface.
-  { pattern: /\b(?:rdp|vnc|telnet|ssh|sftp)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
+  // ftp:// is the unencrypted file-transfer sibling of sftp://: modern browsers removed
+  // FTP support, so an injected ftp:// link launches a registered desktop FTP client
+  // pointed at the attacker's server and transfers over cleartext (credential/content
+  // exposure + MitM) — the same out-of-sandbox client-launch surface.
+  { pattern: /\b(?:ftp|rdp|vnc|telnet|ssh|sftp)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
   // ms-its: and mk:@MSITStore: are the InfoTech Storage System (compiled-HTML-help, .chm)
   // URL schemes: ms-its:<chm>::/page.htm and mk:@MSITStore:<chm>::/page.htm resolve a page
   // out of a local or remote .chm help archive through the native ITSS handler — a
@@ -861,7 +865,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:magnet|ed2k)\s*:/i, reason: 'peer-to-peer file-sharing URL schemes are not allowed in article content' },
   { pattern: /(?:vscode-insiders|vscodium|vscode)\s*:/i, reason: 'code-editor protocol-handler URLs are not allowed in article content' },
   { pattern: /(?:redis|rediss|mongodb(?:\+srv)?|mysql|postgresql|postgres)\s*:\/\//i, reason: 'database-connection URL schemes are not allowed in article content' },
-  { pattern: /(?:rdp|vnc|telnet|ssh|sftp)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
+  { pattern: /(?:ftp|rdp|vnc|telnet|ssh|sftp)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:ms-its\s*:|mk\s*:\s*@)/i, reason: 'compiled-HTML-help (CHM) URL schemes are not allowed in article content' },
   { pattern: /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i, reason: 'mobile app-store URL schemes are not allowed in article content' },
   { pattern: /(?:steam|com\.epicgames\.launcher)\s*:\/\//i, reason: 'game-launcher protocol-handler URLs are not allowed in article content' },
@@ -900,7 +904,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:magnet|ed2k)\s*:/i,
   /(?:vscode-insiders|vscodium|vscode)\s*:/i,
   /(?:redis|rediss|mongodb(?:\+srv)?|mysql|postgresql|postgres)\s*:\/\//i,
-  /(?:rdp|vnc|telnet|ssh|sftp)\s*:\/\//i,
+  /(?:ftp|rdp|vnc|telnet|ssh|sftp)\s*:\/\//i,
   /(?:ms-its\s*:|mk\s*:\s*@)/i,
   /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i,
   /(?:steam|com\.epicgames\.launcher)\s*:\/\//i,

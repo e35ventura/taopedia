@@ -452,6 +452,10 @@ rejects('See [x](sftp://user@evil.example/).', 'plain sftp:// URL (SSH file-tran
 accepts('SSH: Secure Shell and RDP: Remote Desktop Protocol are defined here as prose.', 'benign SSH:/RDP: glossary definitions (no // authority)');
 accepts('The sftp command and SFTP: SSH File Transfer Protocol are described here only as prose.', 'benign sftp/SFTP: prose (no // authority)');
 accepts('Connect over ssh and telnet are described only as protocol names here.', 'benign ssh/telnet prose words');
+// ftp:// is the unencrypted file-transfer sibling of sftp://; browsers removed FTP, so a
+// clicked ftp:// launches a desktop FTP client over cleartext. // keeps prose.
+rejects('See [x](ftp://anonymous@attacker.example/payload.exe).', 'plain ftp:// URL (cleartext file-transfer)');
+accepts('The FTP protocol and File Transfer Protocol are described here only as prose.', 'benign "FTP" prose (no // authority) is not the scheme');
 // ms-its: and mk:@MSITStore: resolve a page out of a compiled-HTML-help (.chm) archive
 // through the native ITSS handler (a documented RCE vector), blocked like mhtml:/jar:.
 rejects('See [x](ms-its:evil.chm::/exploit.htm).', 'plain ms-its: CHM scheme');
