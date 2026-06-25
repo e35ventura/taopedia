@@ -436,6 +436,13 @@ const unsafeContentPatterns = [
   // `ping=`, it leaks the reader's visit to an attacker-chosen URL — and a content
   // spoof, with no handler or flagged scheme. Article markup never sets it.
   { pattern: /\sbackground\s*=/i, reason: 'background attributes are not allowed in article content' },
+  // lowsrc=/dynsrc= are the obsolete image siblings of background=: on an allowed
+  // <img> each auto-loads an arbitrary external resource (lowsrc a low-res preview
+  // image, dynsrc a video/media source) the moment the image is laid out, outside the
+  // src/scheme checks — the same no-script external-resource / tracking-beacon load as
+  // background=/crossorigin=, leaking the reader's visit to an attacker-chosen URL with
+  // no handler or flagged scheme. Article markup never sets either.
+  { pattern: /\s(lowsrc|dynsrc)\s*=/i, reason: 'lowsrc and dynsrc attributes are not allowed in article content' },
   // align=/valign= are obsolete presentational layout attributes: on an allowed
   // element they reposition content (centre/float/right-align a block, top/bottom
   // a cell) without the blocked inline style= attribute or the blocked <center>
@@ -570,7 +577,7 @@ const nonSpaceDelimitedInteractionSurfaceAttrPattern =
 // overlays, content spoofing) — same presentational-injection family as the
 // rest of this alternation, so it lives in the same scan and error message.
 const nonSpaceDelimitedPresentationalLayoutAttrPattern =
-  /<[^>]*[/"'`](?:style|align|valign|bgcolor|background|border|cellpadding|cellspacing|hspace|vspace)\s*=/i;
+  /<[^>]*[/"'`](?:style|align|valign|bgcolor|background|lowsrc|dynsrc|border|cellpadding|cellspacing|hspace|vspace)\s*=/i;
 
 // width=/height= on an allowed <img> reserve an oversized layout box without the
 // blocked inline style= attribute — a layout-defacement surface (the same class
