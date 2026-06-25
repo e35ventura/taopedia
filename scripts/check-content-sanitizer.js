@@ -755,6 +755,12 @@ rejects('Intro.\n\n<  mglyph  src="x" />', 'spaced <mglyph> element');
 accepts('An image of the network topology is described here only as prose.', 'benign image prose word');
 accepts('Intro.\n\n<img src="/wiki/fig.png" alt="diagram">', 'benign HTML img element still passes');
 accepts('<mglyphs-demo>not an mglyph element</mglyphs-demo>', 'benign mglyphs-demo is not <mglyph>');
+// <malignmark> is the MathML mutation-XSS parser twin of <mglyph> (both stay in
+// foreign content inside a MathML text integration point) — blocked standalone too.
+rejects('Intro.\n\n<malignmark edge="left" />', 'plain <malignmark> element');
+rejects('Intro.\n\n<  malignmark  >x</malignmark>', 'spaced <malignmark> element');
+rejects('Intro.\n\n<math><mtext><malignmark/></mtext></math>', 'nested <malignmark> element');
+accepts('<malignmarker-note>not a malignmark element</malignmarker-note>', 'benign malignmarker substring is not <malignmark>');
 // SVG paint-server / reference sub-elements (clipPath/mask/filter/marker/symbol)
 // clone/reference subtrees and apply rendering effects — blocked like the other SVG
 // sub-elements.
