@@ -117,6 +117,34 @@ data.pages.forEach((row, i) => {
   );
 });
 
+// ---- 5) Parity with per-article backlinks.json + allpages.json ----------
+// check-backlinks-json.js requires withEmpty > 0 (articles whose backlinks.json
+// reports count === 0). orphanpages.json must list exactly those slugs.
+const orphanSlugs = new Set(data.pages.map((row) => row.slug));
+for (const row of data.pages) {
+  const backlinksJson = path.join(wikiDir, row.slug, 'backlinks.json');
+  assert.ok(fs.existsSync(backlinksJson), `${row.slug}: orphan must have a built backlinks.json`);
+  const doc = JSON.parse(fs.readFileSync(backlinksJson, 'utf8'));
+  assert.equal(doc.count, 0, `${row.slug}: backlinks.json count must be 0 for an orphan`);
+  assert.equal(
+    doc.incomingLinks ?? doc.backlinks,
+    0,
+    `${row.slug}: backlinks.json incomingLinks must be 0 for an orphan`,
+  );
+}
+
+const allpagesFile = path.join(wikiDir, 'special', 'allpages.json');
+assert.ok(fs.existsSync(allpagesFile), 'dist/wiki/special/allpages.json not found; run the build first');
+const allpages = JSON.parse(fs.readFileSync(allpagesFile, 'utf8'));
+for (const row of allpages.pages ?? []) {
+  const isOrphan = row.incomingLinks === 0;
+  assert.equal(
+    orphanSlugs.has(row.slug),
+    isOrphan,
+    `orphanpages.json membership must match allpages.json incomingLinks===0 for ${row.slug} (incomingLinks=${row.incomingLinks})`,
+  );
+}
+
 for (let i = 1; i < data.pages.length; i++) {
   const prev = data.pages[i - 1];
   const cur = data.pages[i];
