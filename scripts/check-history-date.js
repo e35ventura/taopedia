@@ -25,4 +25,12 @@ for (const tz of ['America/New_York', 'Asia/Kolkata', 'Pacific/Auckland', 'UTC']
   assert.equal(out, reference, `revision date must be timezone-independent (TZ=${tz})`);
 }
 
+// A missing or unparseable timestamp degrades to an empty string rather than the
+// literal "Invalid Date" the raw Date(...).toLocaleString() would otherwise emit
+// into the visible <time> element. collectRecentChanges keeps any entry that
+// merely carries a non-empty date string, so a malformed value can reach here.
+assert.equal(formatRevisionDate(''), '', 'an empty timestamp must render as an empty string');
+assert.equal(formatRevisionDate(undefined), '', 'a missing timestamp must render as an empty string');
+assert.equal(formatRevisionDate('not-a-date'), '', 'an unparseable timestamp must render as an empty string');
+
 console.log('History date check passed');
