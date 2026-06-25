@@ -456,6 +456,13 @@ accepts('Connect over ssh and telnet are described only as protocol names here.'
 // clicked ftp:// launches a desktop FTP client over cleartext. // keeps prose.
 rejects('See [x](ftp://anonymous@attacker.example/payload.exe).', 'plain ftp:// URL (cleartext file-transfer)');
 accepts('The FTP protocol and File Transfer Protocol are described here only as prose.', 'benign "FTP" prose (no // authority) is not the scheme');
+// rtsp://rtsps://rtspu:// (Real Time Streaming Protocol) and mms:// (Microsoft Media
+// Server) launch a native media player at the attacker's stream server. // keeps prose.
+rejects('See [x](rtsp://attacker.example/stream).', 'plain rtsp:// streaming URL');
+rejects('See [x](rtsps://attacker.example/stream).', 'plain rtsps:// streaming URL');
+rejects('See [x](rtspu://attacker.example/stream).', 'plain rtspu:// (RTSP-over-UDP) streaming URL');
+rejects('See [x](mms://attacker.example/stream).', 'plain mms:// streaming URL');
+accepts('The RTSP protocol and MMS streaming are described here only as prose.', 'benign "RTSP"/"MMS" prose is not the scheme');
 // ms-its: and mk:@MSITStore: resolve a page out of a compiled-HTML-help (.chm) archive
 // through the native ITSS handler (a documented RCE vector), blocked like mhtml:/jar:.
 rejects('See [x](ms-its:evil.chm::/exploit.htm).', 'plain ms-its: CHM scheme');
