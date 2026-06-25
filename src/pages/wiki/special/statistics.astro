@@ -20,7 +20,9 @@ for (const page of pages) {
   totalRevisions += history.length;
   const latest = history[0]?.date ?? '';
   if (latest > newestDate) newestDate = latest;
-  for (const topic of page.data.categories ?? []) {
+  // Dedupe a page's own categories so a frontmatter list that repeats a topic
+  // counts the article once — same rule buildStatistics uses for statistics.json.
+  for (const topic of new Set(page.data.categories ?? [])) {
     topicCounts.set(topic, (topicCounts.get(topic) ?? 0) + 1);
   }
 }
