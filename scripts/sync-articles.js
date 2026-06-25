@@ -300,6 +300,15 @@ const unsafeContentPatterns = [
   // <math> (already blocked), but block it standalone too so it is caught even if
   // the <math> root that hosts it is split off, like the other svg/math sub-elements.
   { pattern: /<\s*mglyph\b/i, reason: 'MathML mglyph sub-elements are not allowed in article content' },
+  // <clipPath>/<mask>/<filter>/<marker>/<symbol> are the SVG paint-server and
+  // reference-container sub-elements: <symbol>/<marker> are cloned and referenced by
+  // id like <use>, and <clipPath>/<mask>/<filter> are paint servers / effect
+  // containers applied via url(#…) that host filter primitives such as the already-
+  // blocked <feImage> external-resource loader. Same SVG sub-element class (reference
+  // / clone / rendering-manipulation) as the <use>/<animate> and <image>/<feImage>
+  // blocks above; block them standalone so they are caught even if the <svg> root is
+  // split off. A glossary's plain-prose Markdown body never authors raw SVG.
+  { pattern: /<\s*(clipPath|mask|filter|marker|symbol)\b/i, reason: 'SVG paint-server and reference sub-elements are not allowed in article content' },
   // <noscript> is parsed under different rules depending on the browser's scripting
   // state, a known mutation-XSS / sanitizer-confusion surface (sanitizers such as
   // DOMPurify special-case it). A glossary never needs script-fallback markup, so
