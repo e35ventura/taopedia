@@ -93,6 +93,14 @@ export function normalizeLinkTarget(rawTarget) {
 
 export function buildSlugAliases(slugMap) {
   const aliases = new Map();
+  // Seed every article's identity mapping (its own exact slug -> itself) FIRST,
+  // so a real slug always resolves to its own article. Otherwise a later article
+  // whose TITLE slugifies to an earlier article's exact slug would overwrite that
+  // identity mapping (Object.entries order is last-write-wins), making [[alpha]]
+  // / /wiki/alpha resolve to the wrong page.
+  for (const slug of Object.keys(slugMap)) {
+    aliases.set(slug, slug);
+  }
   for (const [slug, meta] of Object.entries(slugMap)) {
     const keys = new Set([
       slug,
@@ -102,7 +110,12 @@ export function buildSlugAliases(slugMap) {
       slugify(meta?.title || ''),
     ]);
     for (const key of keys) {
-      if (key) aliases.set(key, slug);
+      // Never overwrite an existing alias: a seeded identity mapping and the
+      // first article to claim a derived key both win over a later article's
+      // derived (title/lowercase/slugified) key, so a real slug is never
+      // clobbered by another article's title and the map is deterministic
+      // regardless of iteration order.
+      if (key && !aliases.has(key)) aliases.set(key, slug);
     }
   }
   return aliases;
