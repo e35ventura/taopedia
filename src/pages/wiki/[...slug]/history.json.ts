@@ -22,31 +22,52 @@ const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
-  const titleBySlug = Object.fromEntries(pages.map((page) => [getPageSlug(page), page.data.title]));
-
-  return Promise.all(
+  // Per-slug body word count, revision list, and table-of-contents section count —
+  // the stats the envelope carries. These depend only on each page itself; the
+  // wordCount and revision reads are folded into the render pass (rendering each
+  // page is async and is what requires a resolved page) so the collection is
+  // traversed once for all per-page stats, kept parallel via Promise.all — the
+  // same single combined pass backlinks.json (#1269), references.json (#1248),
+  // info.json (#1287), and cite.json (#1289) use.
+  const titleBySlug: Record<string, string> = {};
+  const wordCountBySlug: Record<string, number> = {};
+  const revisionsBySlug: Record<string, RawRevision[]> = {};
+  const sectionCountBySlug: Record<string, number> = {};
+  await Promise.all(
     pages.map(async (page) => {
       const slug = getPageSlug(page);
+      titleBySlug[slug] = page.data.title;
+      wordCountBySlug[slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
+      revisionsBySlug[slug] = historyForSlug(slug) as RawRevision[];
       const { headings } = await render(page);
-      // Precomputed once per route in getStaticPaths — GET used to load
-      // public/history/<slug>.json again via the eager glob. Matches
-      // info.json (#1037) / backlinks.json (#1042) thin-GET pattern.
-      const revisions = historyForSlug(slug) as RawRevision[];
-
-      return {
-        params: { slug },
-        props: {
-          page,
-          slug,
-          incomingLinks: publishedInboundLinkCount(backlinksData, slug, titleBySlug),
-          referencesCount: getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length,
-          sectionCount: getArticleToc(headings).length,
-          wordCount: (page.body ?? '').trim().split(/\s+/).filter(Boolean).length,
-          revisions,
-        },
-      };
+      sectionCountBySlug[slug] = getArticleToc(headings).length;
     }),
   );
+  // Published inbound-link count and outbound reference count — gathered in a
+  // single pass after titleBySlug is built (both resolve targets through it).
+  const inboundBySlug: Record<string, number> = {};
+  const referencesCountBySlug: Record<string, number> = {};
+  for (const page of pages) {
+    const slug = getPageSlug(page);
+    inboundBySlug[slug] = publishedInboundLinkCount(backlinksData, slug, titleBySlug);
+    referencesCountBySlug[slug] = getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length;
+  }
+
+  return pages.map((page) => {
+    const slug = getPageSlug(page);
+    return {
+      params: { slug },
+      props: {
+        page,
+        slug,
+        incomingLinks: inboundBySlug[slug] ?? 0,
+        referencesCount: referencesCountBySlug[slug] ?? 0,
+        sectionCount: sectionCountBySlug[slug] ?? 0,
+        wordCount: wordCountBySlug[slug] ?? 0,
+        revisions: revisionsBySlug[slug] ?? [],
+      },
+    };
+  });
 }
 
 // Machine-readable companion to /wiki/<slug>/history/. Exposes the full
