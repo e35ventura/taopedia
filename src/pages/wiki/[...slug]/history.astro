@@ -2,24 +2,25 @@
 import { getCollection } from 'astro:content';
 import WikiLayout from '../../../layouts/WikiLayout.astro';
 import { formatRevisionDate } from '../../../lib/format-date.js';
+import { getPageSlug, historyForSlug } from '../../../lib/article-history';
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
   return pages.map((page) => {
-    const slug = page.id.replace(/\/index\.(md|mdx)$/, '').replace(/\/index$/, '').replace(/\.(md|mdx)$/, '');
+    const slug = getPageSlug(page);
+    // Precomputed once per route in getStaticPaths — the page body used to run
+    // import.meta.glob on every history page, eagerly loading all of
+    // public/history/**/*.json (350 full-glob evaluations per build) just to
+    // read this one article's file. historyForSlug reads from the shared module-
+    // level glob in article-history.ts instead. Mirrors history.json (#1043).
     return {
       params: { slug },
-      props: { page, slug },
+      props: { page, slug, history: historyForSlug(slug) },
     };
   });
 }
 
-const { page, slug } = Astro.props;
-
-// Load history data
-const historyModules = import.meta.glob('../../../../public/history/**/*.json', { eager: true }) as Record<string, any>;
-const historyData = historyModules[`../../../../public/history/${slug}.json`];
-const history: any[] = historyData?.default?.history || historyData?.history || [];
+const { page, slug, history } = Astro.props;
 const articleUrl = `/wiki/${slug}/`;
 const pageDescription = `Revision history for the Taopedia article "${page.data.title}".`;
 ---
