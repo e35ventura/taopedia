@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { validateArticleContent } from './sync-articles.js';
+import { validateArticleContent, validateInfoboxJsonAsset } from './sync-articles.js';
 
 const TAB = String.fromCharCode(0x09);
 const ZERO_WIDTH_SPACE = String.fromCharCode(0x200b);
@@ -16,6 +16,15 @@ function rejects(content, label) {
 
 function accepts(content, label) {
   assert.doesNotThrow(() => validateArticleContent('fixture', content), label);
+}
+
+// Exercise the infobox-row-value scan path (infoboxRowValueSchemePatterns), which is
+// a separate validation surface from article content.
+function infoboxRowRejects(value, label) {
+  assert.throws(() => validateInfoboxJsonAsset('fixture.json', { rows: [{ label: 'Field', value }] }), label);
+}
+function infoboxRowAccepts(value, label) {
+  assert.doesNotThrow(() => validateInfoboxJsonAsset('fixture.json', { rows: [{ label: 'Field', value }] }), label);
 }
 
 // <base> tags are blocked: a single <base> rewrites every relative URL on the page.
@@ -433,6 +442,25 @@ accepts('A steamroller of demand and the Epic Games launcher are described here 
 rejects('See [x](android-app://com.evil.app).', 'plain android-app:// URL');
 rejects('See [x](itms-apps://itunes.apple.com/app/id0).', 'plain itms-apps:// App Store URL');
 accepts('The DeFi market: outlook and a token marketplace are described here as prose.', 'benign market: prose (no // authority)');
+// skype: callto: facetime: facetime-audio: sgnl: launch a native comm app at an attacker
+// contact (same class as intent:/zoommtg:). The non-space lookahead (shell: precedent)
+// blocks scheme:target URLs but not "Skype: a VoIP app" prose definitions. Coverage spans
+// the plain content scan, the entity-decoded obfuscated scan, and the infobox-row scan.
+rejects('See [x](skype:victim?call).', 'plain skype: call URL');
+rejects('See [x](callto:victim).', 'plain callto: URL');
+rejects('See [x](facetime:attacker@evil.example).', 'plain facetime: URL');
+rejects('See [x](facetime-audio:attacker@evil.example).', 'plain facetime-audio: URL');
+rejects('See [x](sgnl://signal.me/x).', 'plain sgnl: (Signal) URL');
+// Entity-obfuscated: the literal scan misses "sk&#121;pe:" but the decoded re-scan
+// (obfuscatedSchemePatterns) catches skype: after &#121; -> y.
+rejects('See [x](sk&#121;pe:victim?call).', 'entity-obfuscated skype: (obfuscated scan path)');
+rejects('See [x](facetim&#101;:attacker@evil.example).', 'entity-obfuscated facetime: (obfuscated scan path)');
+// Infobox-row-value scan path.
+infoboxRowRejects('skype:victim?call', 'skype: rejected in an infobox row value');
+infoboxRowRejects('facetime:attacker@evil.example', 'facetime: rejected in an infobox row value');
+infoboxRowAccepts('A VoIP video call app described as prose', 'benign comm prose allowed in an infobox row value');
+accepts('Skype: a VoIP app, FaceTime: Apple video calling, and Teams are defined here as prose.', 'benign Skype:/FaceTime: glossary definitions (colon then space)');
+accepts('A video call and a meeting link are described here only as prose.', 'benign call/meeting prose words');
 // search-ms: opens Explorer search on a remote WebDAV/SMB share (malware-delivery
 // chain), and ms-officecmd: invokes Office deep-link commands (argument-injection
 // RCE) — two more native Windows handlers blocked like ms-msdt:/javascript:.
