@@ -1,8 +1,7 @@
 ---
 import WikiLayout from '../../../layouts/WikiLayout.astro';
-import { getCollection } from 'astro:content';
-import { getPageSlug } from '../../../lib/article-history';
-import { buildSubnets } from '../../../../scripts/subnets.js';
+import { buildSubnetsFromSlugMap } from '../../../../scripts/subnets.js';
+import slugMap from '../../../../public/data/slugmap.json';
 
 // Special:Subnets — a netuid-ordered registry of every numbered Bittensor subnet
 // article. Subnets are the dominant content type of the knowledge base, but the
@@ -15,9 +14,9 @@ import { buildSubnets } from '../../../../scripts/subnets.js';
 // /wiki/special/subnets.json through scripts/subnets.js (the same single
 // source of truth statistics.js / most-linked.js / categories.js use), so the
 // JSON and HTML surfaces never disagree on which articles are subnets or what
-// order they render in.
-const pages = await getCollection('pages');
-const subnets = buildSubnets({ pages, getPageSlug });
+// order they render in. Registry metadata comes from public/data/slugmap.json —
+// the same artifact check-subnets-json.js uses as ground truth.
+const subnets = buildSubnetsFromSlugMap(slugMap);
 ---
 
 <WikiLayout

@@ -38,3 +38,20 @@ export function buildSubnets({ pages, getPageSlug }) {
   // produces via Array.prototype.sort.
   return subnets.sort((a, b) => a.netuid - b.netuid);
 }
+
+// Build the subnet registry from public/data/slugmap.json — the same artifact
+// check-subnets-json.js uses as ground truth — instead of calling
+// getCollection('pages') and re-reading every article's frontmatter.
+export function buildSubnetsFromSlugMap(slugMap = {}) {
+  return buildSubnets({
+    pages: Object.entries(slugMap).map(([slug, entry]) => ({
+      id: `${slug}/index.mdx`,
+      data: {
+        title: entry?.title ?? slug,
+        summary: entry?.summary ?? '',
+        categories: Array.isArray(entry?.categories) ? entry.categories : [],
+      },
+    })),
+    getPageSlug: (page) => String(page.id).replace(/\/index\.mdx$/, ''),
+  });
+}

@@ -1,10 +1,12 @@
 import type { APIRoute } from 'astro';
 import { getCollection, render } from 'astro:content';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
+import { publishedTitleBySlug } from '../../../lib/site-feed-context';
 import { getArticleReferences } from '../../../lib/article-references.js';
 import { getArticleToc } from '../../../lib/article-toc.js';
-import { buildSubnets } from '../../../../scripts/subnets.js';
+import { buildSubnetsFromSlugMap } from '../../../../scripts/subnets.js';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
+import slugMap from '../../../../public/data/slugmap.json';
 
 // Machine-readable subnet registry at /wiki/special/subnets.json. Mirrors the
 // HTML Special:Subnets page as structured JSON for programmatic consumers
@@ -28,16 +30,15 @@ const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
 
 export const GET: APIRoute = async ({ site }) => {
   const origin = (site ?? new URL('https://taopedia.org')).origin;
-  const pages = await getCollection('pages');
-  const titleBySlug: Record<string, string> = {};
-  const pageBySlug: Record<string, (typeof pages)[number]> = {};
-  for (const page of pages) {
-    const slug = getPageSlug(page);
-    titleBySlug[slug] = page.data.title;
-    pageBySlug[slug] = page;
-  }
+  const titleBySlug = publishedTitleBySlug();
+  const subnets = buildSubnetsFromSlugMap(slugMap);
 
-  const subnets = buildSubnets({ pages, getPageSlug });
+  const subnetSlugs = new Set(subnets.map((subnet) => subnet.slug));
+  const pageBySlug: Record<string, Awaited<ReturnType<typeof getCollection<'pages'>>>[number]> = {};
+  for (const page of await getCollection('pages')) {
+    const slug = getPageSlug(page);
+    if (subnetSlugs.has(slug)) pageBySlug[slug] = page;
+  }
 
   // sectionCount is the subnet article's table-of-contents section count — the
   // same figure toc.json exposes as `count` and info.json / history.json expose
