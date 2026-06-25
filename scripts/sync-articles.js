@@ -171,6 +171,16 @@ const unsafeContentPatterns = [
   // landmark these elements provide. A glossary's article body is plain prose — these
   // page-layout landmarks come from the site template, never from article Markdown.
   { pattern: /<\s*(nav|aside|main|header|footer)\b/i, reason: 'landmark elements (nav, aside, main, header, footer) are not allowed in article content' },
+  // <section> and <article> are the generic sectioning-content elements: each
+  // starts a new document section/outline node, and <section> with an accessible
+  // name (or <article>) is exposed to assistive technology as a "region"/"article"
+  // landmark — the same implicit-landmark / outline spoof the nav/aside/main/header/
+  // footer block above guards. An injected <article>/<section> forges the article's
+  // structure for a screen-reader user navigating by region or heading outline. A
+  // glossary's article body is plain prose built from Markdown headings; Markdown
+  // emits <h1>-<h6>/<p>, never a raw <section> or <article>, so the site template's
+  // own sectioning is unaffected.
+  { pattern: /<\s*(section|article)\b/i, reason: 'sectioning elements (section, article) are not allowed in article content' },
   // <data value="…"> and <time datetime="…"> carry a machine-readable value that a
   // scraper, screen reader, or "copy value" affordance reads instead of, and
   // independently from, the visible text — so an injected one makes the machine-read

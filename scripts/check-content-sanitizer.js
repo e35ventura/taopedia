@@ -170,6 +170,15 @@ rejects('Intro.\n\n<main>fake main region</main>', 'plain <main> element');
 rejects('Intro.\n\n<  header  >x</header>', 'spaced <header> element');
 rejects('Intro.\n\n<footer>fake contentinfo</footer>', 'plain <footer> element');
 accepts('The main navigation header and footer of the site are described here only as prose.', 'benign landmark prose words');
+
+// <section>/<article> are sectioning-content elements that forge the document
+// outline / region landmarks for AT (same class as the nav/aside landmark block);
+// Markdown emits headings, never raw <section>/<article>.
+rejects('Intro.\n\n<section aria-label="Verified">fake region</section>', 'plain <section> element');
+rejects('Intro.\n\n<article>fake article region</article>', 'plain <article> element');
+rejects('Intro.\n\n<  section  >x</section>', 'spaced <section> element');
+accepts('This article describes section 4 of the protocol specification as prose.', 'benign article/section prose words');
+accepts('<sections-list>not a section element</sections-list>', 'benign sections-list is not <section>');
 // <data>/<time> carry a machine-readable value/datetime that can diverge from the
 // visible text — the same auxiliary-text spoof class as title=/aria-label.
 rejects('Intro.\n\n<time datetime="2099-01-01">2020</time>', 'plain <time> element');
