@@ -3,36 +3,41 @@ import { getCollection } from 'astro:content';
 import WikiLayout from '../../../layouts/WikiLayout.astro';
 import { formatRevisionDate } from '../../../lib/format-date.js';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
+import { publishedTitleBySlug } from '../../../lib/site-feed-context';
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
+  const titleBySlug = publishedTitleBySlug();
+
   return pages.map((page) => {
     const slug = getPageSlug(page);
+    const title = titleBySlug[slug] ?? page.data.title;
     // Precomputed once per route in getStaticPaths — the page body used to run
     // import.meta.glob on every history page, eagerly loading all of
     // public/history/**/*.json (350 full-glob evaluations per build) just to
     // read this one article's file. historyForSlug reads from the shared module-
-    // level glob in article-history.ts instead. Mirrors history.json (#1043).
+    // level glob in article-history.ts instead. Title comes from
+    // public/data/slugmap.json — same artifact history.json reads.
     return {
       params: { slug },
-      props: { page, slug, history: historyForSlug(slug) },
+      props: { slug, title, history: historyForSlug(slug) },
     };
   });
 }
 
-const { page, slug, history } = Astro.props;
+const { slug, title, history } = Astro.props;
 const articleUrl = `/wiki/${slug}/`;
-const pageDescription = `Revision history for the Taopedia article "${page.data.title}".`;
+const pageDescription = `Revision history for the Taopedia article "${title}".`;
 ---
 
-<WikiLayout title={`Revision history of "${page.data.title}"`} description={pageDescription}>
+<WikiLayout title={`Revision history of "${title}"`} description={pageDescription} image={`/og/${slug}.png`}>
   <div class="mw-body-content">
     <nav class="mw-article-toolbar">
       <a href={articleUrl}>Article</a>
       <a href={`/wiki/${slug}/history/`} class="active" aria-current="page">History</a>
     </nav>
 
-    <h1 class="firstHeading">Revision history of "{page.data.title}"</h1>
+    <h1 class="firstHeading">Revision history of "{title}"</h1>
 
     <p style="margin-bottom: 16px; font-size: 13px;">
       This page shows the edit history from Git. Each revision represents a commit that modified this article.
