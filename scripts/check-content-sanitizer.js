@@ -61,6 +61,11 @@ rejects('Intro.\n\n<menu type="context"><menuitem label="Open wallet"></menu>', 
 rejects('Intro.\n\n<  menu   type="context">', 'spaced menu');
 rejects('Intro.\n\n<menuitem label="Export seed phrase">', 'standalone menuitem');
 accepts('A context menu and menuitem element are described here only as prose.', 'benign menu prose');
+// <selectedcontent> is the customizable-<select> element — only valid inside a blocked
+// <select>; the word-boundary on the <select> rule does not also match it.
+rejects('Intro.\n\n<select><button><selectedcontent></selectedcontent></button></select>', 'plain selectedcontent');
+rejects('Intro.\n\n<  selectedcontent  >x</selectedcontent>', 'spaced selectedcontent');
+accepts('The selected content of the dropdown is described here only as prose.', 'benign selected content prose words');
 
 // The `ping` attribute on an allowed <a> is a no-JS tracking beacon: a click
 // POSTs to the listed URL. It passes every scheme/handler/element check, so it

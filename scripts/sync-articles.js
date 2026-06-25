@@ -145,6 +145,12 @@ const unsafeContentPatterns = [
   // code-execution / embedding threat as the already-blocked <object> / <embed> /
   // <iframe>. Grouped with the active-embedding family it belongs to.
   { pattern: /<\s*(base|frame|frameset|iframe|object|embed|applet|link|meta|style|form|input|button|textarea|select|option|optgroup|fieldset|legend|datalist|output|label|menu|menuitem)\b/i, reason: 'active HTML elements are not allowed in article content' },
+  // <selectedcontent> is the customizable-<select> element: it clones the selected
+  // <option>'s rendered content into the select button. It only functions inside a
+  // <select> (already blocked above with option/optgroup/datalist/button), and the
+  // word-boundary on the <select> rule above does not also match <selectedcontent>. A
+  // glossary's prose never authors it, so block it alongside the form/select family.
+  { pattern: /<\s*selectedcontent\b/i, reason: 'selectedcontent elements are not allowed in article content' },
   // <dialog open> renders in the browser top layer -- above all page content, with
   // a backdrop -- with no script and no inline style. That makes a raw <dialog> a
   // clickjacking/phishing overlay primitive (e.g. a fake "wallet compromised" modal
