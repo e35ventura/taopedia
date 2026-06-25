@@ -913,6 +913,12 @@ rejects('Intro.\n\n<  dialog  >hidden modal</dialog>', 'spaced <dialog>');
 // Prose that merely mentions the word "dialog" without an opening tag must pass.
 accepts('A dialog box is a UI concept mentioned here only as prose.', 'benign dialog prose');
 
+// <permission> is Chrome's Page-Embedded Permission Control — an in-page button that
+// requests camera/microphone/geolocation access, a permission-prompt-spoofing surface.
+rejects('Intro.\n\n<permission type="camera"></permission>', 'plain <permission>');
+rejects('Intro.\n\n<  permission   type="microphone geolocation">x</permission>', 'spaced <permission>');
+accepts('File-system permission and read access are described here only as prose.', 'benign permission prose word');
+
 // <template> parses its contents into an inert fragment (DOM-clobbering /
 // mutation-XSS / sanitizer-evasion surface) and renders nothing, so block it.
 rejects('Intro.\n\n<template id="config"><a id="evil"></a></template>', 'plain <template>');
