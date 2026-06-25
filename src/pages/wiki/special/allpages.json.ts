@@ -40,13 +40,19 @@ export const GET: APIRoute = async ({ site }) => {
   // their envelopes, derived from the shared getArticleToc helper so a directory
   // consumer can sort or filter by article depth without an N-fetch sweep.
   const sectionCountBySlug: Record<string, number> = {};
-  for (const page of pages) {
-    const slug = getPageSlug(page);
-    titleBySlug[slug] = page.data.title;
-    wordCountBySlug[slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
-    const { headings } = await render(page);
-    sectionCountBySlug[slug] = getArticleToc(headings).length;
-  }
+  // Promise.all keeps the render step concurrent instead of serialized — a
+  // sequential for-await loop would render each of the ~350 pages one at a
+  // time, when Astro can render them concurrently. Same parallelization
+  // references.json's single-pass gather (#1239-style) already relies on.
+  await Promise.all(
+    pages.map(async (page) => {
+      const slug = getPageSlug(page);
+      titleBySlug[slug] = page.data.title;
+      wordCountBySlug[slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
+      const { headings } = await render(page);
+      sectionCountBySlug[slug] = getArticleToc(headings).length;
+    }),
+  );
 
   const articles = buildAllPages({ pages, getPageSlug, origin });
 
