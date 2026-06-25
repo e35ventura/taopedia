@@ -22,7 +22,11 @@ export function buildCategories({ pages, categoriesIndex } = {}) {
     return Object.entries(categoriesIndex)
       .map(([name, slugs]) => ({
         name,
-        count: Array.isArray(slugs) ? slugs.length : 0,
+        // Count DISTINCT article slugs: an article that lists this category twice
+        // in its frontmatter is one tagged article, and getCategoryArticles (the
+        // builder behind the rendered category page) dedupes the same way, so the
+        // count must not double-report it.
+        count: Array.isArray(slugs) ? new Set(slugs).size : 0,
         slug: categorySlug(name),
       }))
       .filter(({ count }) => count > 0)
@@ -30,7 +34,10 @@ export function buildCategories({ pages, categoriesIndex } = {}) {
   }
   const counts = new Map();
   for (const page of pages ?? []) {
-    for (const category of page?.data?.categories ?? []) {
+    // Dedupe a page's own categories so a frontmatter list that repeats a
+    // category (categories: ['TAO', 'TAO']) counts the article once, matching
+    // the categoriesIndex branch above and getCategoryArticles' dedupe.
+    for (const category of new Set(page?.data?.categories ?? [])) {
       counts.set(category, (counts.get(category) ?? 0) + 1);
     }
   }

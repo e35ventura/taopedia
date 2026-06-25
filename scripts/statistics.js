@@ -21,7 +21,11 @@ export function buildStatistics({ pages, historyForSlug, getPageSlug, categories
 
   if (categoriesIndex) {
     for (const [name, slugs] of Object.entries(categoriesIndex)) {
-      const count = Array.isArray(slugs) ? slugs.length : 0;
+      // Count DISTINCT article slugs per topic: an article that lists the same
+      // category twice in its frontmatter is one tagged article, and
+      // getCategoryArticles (behind the rendered category page) dedupes the same
+      // way, so totalTopics/largestTopic must not double-report it.
+      const count = Array.isArray(slugs) ? new Set(slugs).size : 0;
       if (count > 0) topicCounts.set(name, count);
     }
   }
@@ -41,7 +45,9 @@ export function buildStatistics({ pages, historyForSlug, getPageSlug, categories
       if (!oldestDate || date < oldestDate) oldestDate = date;
     }
     if (!categoriesIndex) {
-      for (const topic of page?.data?.categories ?? []) {
+      // Dedupe a page's own categories so a frontmatter list that repeats a
+      // topic counts the article once (see the categoriesIndex branch above).
+      for (const topic of new Set(page?.data?.categories ?? [])) {
         topicCounts.set(topic, (topicCounts.get(topic) ?? 0) + 1);
       }
     }

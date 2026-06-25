@@ -50,6 +50,39 @@ const projectRoot = path.resolve(__dirname, '..');
   );
 }
 
+// ---- 1a) a category repeated in one article's frontmatter counts once -----
+{
+  const stats = buildStatistics({
+    pages: [
+      { id: 'a/index.mdx', body: '', data: { categories: ['TAO', 'TAO'] } },
+    ],
+    historyForSlug: () => [],
+    getPageSlug: (page) => page.id.replace(/\/index\.(md|mdx)$/, ''),
+  });
+  assert.equal(stats.totalTopics, 1, 'a duplicated category is one distinct topic');
+  assert.deepEqual(
+    stats.topics,
+    [{ name: 'TAO', count: 1 }],
+    'a category listed twice by one article must count that article once (TAO => 1, not 2)',
+  );
+  assert.equal(stats.largestTopic.count, 1, 'largestTopic.count must reflect the deduped article count');
+}
+
+// ---- 1a') the categoriesIndex branch dedupes repeated slugs too -----------
+{
+  const stats = buildStatistics({
+    pages: [],
+    historyForSlug: () => [],
+    getPageSlug: (page) => page.id,
+    categoriesIndex: { TAO: ['alpha', 'alpha', 'beta'] },
+  });
+  assert.deepEqual(
+    stats.topics,
+    [{ name: 'TAO', count: 2 }],
+    'a slug repeated in a category index must count once (distinct alpha, beta => 2)',
+  );
+}
+
 // ---- 2) Tiebreak uses compareTitles (NOT raw string) — prevents HTML/JSON drift
 //
 // This is the exact regression Codex flagged on #388: raw string comparison
