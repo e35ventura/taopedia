@@ -20,12 +20,21 @@ const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
-  const titleBySlug = Object.fromEntries(pages.map((page) => [getPageSlug(page), page.data.title]));
-  const summaryBySlug = Object.fromEntries(pages.map((page) => [getPageSlug(page), page.data.summary ?? '']));
-  const categoriesBySlug = Object.fromEntries(pages.map((page) => [getPageSlug(page), page.data.categories ?? []]));
-  const wordCountBySlug = Object.fromEntries(
-    pages.map((page) => [getPageSlug(page), (page.body ?? '').trim().split(/\s+/).filter(Boolean).length]),
-  );
+  // Build the per-slug title/summary/categories/wordCount maps in a single pass
+  // over the collection (and resolve each page's slug once), instead of four
+  // separate Object.fromEntries(pages.map(...)) passes that each re-walked the
+  // collection and recomputed getPageSlug(page).
+  const titleBySlug: Record<string, string> = {};
+  const summaryBySlug: Record<string, string> = {};
+  const categoriesBySlug: Record<string, string[]> = {};
+  const wordCountBySlug: Record<string, number> = {};
+  for (const page of pages) {
+    const slug = getPageSlug(page);
+    titleBySlug[slug] = page.data.title;
+    summaryBySlug[slug] = page.data.summary ?? '';
+    categoriesBySlug[slug] = page.data.categories ?? [];
+    wordCountBySlug[slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
+  }
   // Per-slug table-of-contents section count — the same sectionCount info.json /
   // history.json expose (and the toc.json `count`). Built once from the content
   // collection so both this article's envelope and each backlink entry can carry
