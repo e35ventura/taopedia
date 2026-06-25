@@ -406,6 +406,14 @@ rejects('See [x](market://details?id=com.evil.app).', 'plain market:// Play Stor
 rejects('See [x](android-app://com.evil.app).', 'plain android-app:// URL');
 rejects('See [x](itms-apps://itunes.apple.com/app/id0).', 'plain itms-apps:// App Store URL');
 accepts('The DeFi market: outlook and a token marketplace are described here as prose.', 'benign market: prose (no // authority)');
+// skype: callto: zoommtg: msteams: facetime: sgnl: launch a native comm app at an
+// attacker contact/meeting, the same native app-launch class as intent:.
+rejects('See [x](skype:victim?call).', 'plain skype: call URL');
+rejects('See [x](zoommtg://zoom.us/join?confno=1).', 'plain zoommtg:// URL');
+rejects('See [x](msteams:/l/meetup-join/x).', 'plain msteams: URL');
+rejects('See [x](facetime:attacker@evil.example).', 'plain facetime: URL');
+rejects('See [x](sgnl://signal.me/x).', 'plain sgnl: (Signal) URL');
+accepts('A video call and a meeting link are described here only as prose.', 'benign call/meeting prose words');
 // search-ms: opens Explorer search on a remote WebDAV/SMB share (malware-delivery
 // chain), and ms-officecmd: invokes Office deep-link commands (argument-injection
 // RCE) — two more native Windows handlers blocked like ms-msdt:/javascript:.

@@ -634,6 +634,13 @@ const unsafeContentPatterns = [
   // same class as the blocked intent: app-launch scheme. The // authority form is required
   // so prose like "the market: outlook" (scheme name + colon, no //) is never affected.
   { pattern: /\b(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i, reason: 'mobile app-store URL schemes are not allowed in article content' },
+  // skype: callto: zoommtg: msteams: facetime: facetime-audio: sgnl: launch a native
+  // communication app pointed at an attacker-controlled contact or meeting: a clicked
+  // skype:victim?call, zoommtg://zoom.us/join?confno=… (Zoom), msteams:/l/meetup-join/…
+  // (Teams), facetime:attacker@evil, or sgnl://… (Signal) opens/dials in a desktop app
+  // outside the page sandbox with no script — the same native app-launch class as the
+  // blocked intent: scheme. These scheme names never occur in glossary prose.
+  { pattern: /\b(?:skype|callto|zoommtg|msteams|facetime-audio|facetime|sgnl)\s*:/i, reason: 'communication-app launch URL schemes are not allowed in article content' },
   // intent: is the Android app-launch scheme: a URI of the form intent:[//host/path]#Intent;…;end
   // hands the URL to the Android intent system, which opens or deep-links into a native app
   // outside the browser — a standalone app-launch attack on mobile readers, the same
@@ -694,6 +701,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:mhtml|jar)\s*:/i, reason: 'archive-extraction URL schemes are not allowed in article content' },
   { pattern: /(?:rdp|vnc|telnet|ssh)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i, reason: 'mobile app-store URL schemes are not allowed in article content' },
+  { pattern: /(?:skype|callto|zoommtg|msteams|facetime-audio|facetime|sgnl)\s*:/i, reason: 'communication-app launch URL schemes are not allowed in article content' },
   { pattern: /intent\s*:[^\s"'<>)]*#\s*Intent\b/i, reason: 'intent: app-launch URLs are not allowed in article content' },
   { pattern: /\bshell\s*:(?=[^\s"'<>)])/i, reason: 'shell: protocol-handler URLs are not allowed in article content' },
   { pattern: /\bms-cxh(?:-full)?\s*:/i, reason: 'Windows CloudExperienceHost protocol-handler URLs are not allowed in article content' },
@@ -716,6 +724,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:mhtml|jar)\s*:/i,
   /(?:rdp|vnc|telnet|ssh)\s*:\/\//i,
   /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i,
+  /(?:skype|callto|zoommtg|msteams|facetime-audio|facetime|sgnl)\s*:/i,
   /intent\s*:[^\s"'<>)]*#\s*Intent\b/i,
   /\bshell\s*:(?=[^\s"'<>)])/i,
   /\bms-cxh(?:-full)?\s*:/i,
