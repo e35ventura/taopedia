@@ -1,7 +1,5 @@
 import type { APIRoute } from 'astro';
-import {
-  buildRecentChangesAtomItems,
-} from '../../../../lib/recent-changes-feed.js';
+import { buildRecentChangesAtomItems } from '../../../../lib/recent-changes-feed.js';
 import { prepareRecentChangesFeedData } from '../../../../lib/recent-changes-feed-context';
 import { RECENT_LIMIT } from '../../../../lib/recent-changes.js';
 import { buildAtomFeed } from '../../../../../scripts/atom-feed.js';

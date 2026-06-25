@@ -1,7 +1,5 @@
 import type { APIRoute } from 'astro';
-import {
-  buildRecentChangesJsonFeedItems,
-} from '../../../../lib/recent-changes-feed.js';
+import { buildRecentChangesJsonFeedItems } from '../../../../lib/recent-changes-feed.js';
 import { prepareRecentChangesFeedData } from '../../../../lib/recent-changes-feed-context';
 import { RECENT_LIMIT } from '../../../../lib/recent-changes.js';
 import { buildJsonFeed } from '../../../../../scripts/json-feed.js';
