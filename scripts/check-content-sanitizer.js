@@ -383,6 +383,12 @@ rejects('![x](blob:https://evil.example/uuid)', 'blob: in an image src');
 rejects('See [x](filesystem:https://evil.example/temporary/x).', 'plain filesystem: URL');
 rejects('See [x](bl&#111;b:https://evil.example/uuid).', 'entity-obfuscated blob:');
 accepts('The blob of weights and the filesystem layout are described here only as prose.', 'benign blob/filesystem prose words (no scheme colon)');
+// webcal:// and feed: point a local app at a remote feed/calendar URL (calendar
+// subscription / feed-handler XSS surface), blocked like data:/blob:.
+rejects('See [x](webcal://evil.example/calendar.ics).', 'plain webcal:// subscription scheme');
+rejects('See [x](feed:https://evil.example/feed.xml).', 'plain feed:https subscription scheme');
+rejects('See [x](feed://evil.example/feed.xml).', 'plain feed:// subscription scheme');
+accepts('The RSS feed: a chronological list of updates, described here only as prose.', 'benign "feed:" prose (no // or https) is not the scheme');
 // mhtml:/jar: archive-extraction schemes historically rendered attacker HTML from
 // inside an archive (mhtml: IE CVE-2011-1894; jar: Firefox), blocked like data:.
 rejects('See [x](mhtml:https://evil.example/x.mht!sub).', 'plain mhtml: archive scheme');

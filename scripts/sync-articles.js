@@ -579,6 +579,15 @@ const unsafeContentPatterns = [
   // class as the already-blocked data: URLs. A glossary's prose never links to a
   // blob:/filesystem: URL, and the scheme names never occur in glossary text.
   { pattern: /\b(?:blob|filesystem)\s*:/i, reason: 'object-URL schemes are not allowed in article content' },
+  // webcal:// and feed: are remote-subscription URL schemes the OS/registered handler
+  // resolves to point a local app at an attacker-controlled remote URL: webcal://host/x.ics
+  // subscribes the calendar app to an attacker-hosted feed (persistent attacker-controlled
+  // entries with links), and feed:https://host or feed://host hands a remote feed to the
+  // registered feed handler (a documented feed-handler content-injection / XSS surface).
+  // Same non-http resource-load / native-handler class as the blocked data:/blob: and
+  // ms-* handlers. The // (webcal) and //|https: (feed) forms are required so the common
+  // prose word "feed" before a colon is never affected; "webcal" never occurs in prose.
+  { pattern: /\b(?:webcal\s*:\/\/|feed\s*:(?:\/\/|https?:))/i, reason: 'remote-subscription URL schemes are not allowed in article content' },
   // search-ms:/ms-officecmd: are two more native Windows protocol handlers a clicked
   // link hands to the OS instead of the browser, with no script. search-ms: opens
   // Windows Explorer search pointed at a remote WebDAV/SMB share so attacker-hosted
@@ -687,6 +696,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /javascript\s*:/i, reason: 'javascript: URLs are not allowed in article content' },
   { pattern: /vbscript\s*:/i, reason: 'vbscript: URLs are not allowed in article content' },
   { pattern: /(?:blob|filesystem)\s*:/i, reason: 'object-URL schemes are not allowed in article content' },
+  { pattern: /(?:webcal\s*:\/\/|feed\s*:(?:\/\/|https?:))/i, reason: 'remote-subscription URL schemes are not allowed in article content' },
   { pattern: /(?:search-ms|ms-officecmd)\s*:/i, reason: 'Windows protocol-handler URLs are not allowed in article content' },
   { pattern: /ms-(?:msdt|appinstaller)\s*:/i, reason: 'Windows protocol-handler URLs are not allowed in article content' },
   { pattern: /ms-(?:word|excel|powerpoint|visio|access|project|publisher|infopath|spd)\s*:/i, reason: 'Microsoft Office document protocol-handler URLs are not allowed in article content' },
@@ -709,6 +719,7 @@ const infoboxRowValueSchemePatterns = [
   /javascript\s*:/i,
   /vbscript\s*:/i,
   /(?:blob|filesystem)\s*:/i,
+  /(?:webcal\s*:\/\/|feed\s*:(?:\/\/|https?:))/i,
   /(?:search-ms|ms-officecmd)\s*:/i,
   /ms-(?:msdt|appinstaller)\s*:/i,
   /ms-(?:word|excel|powerpoint|visio|access|project|publisher|infopath|spd)\s*:/i,
