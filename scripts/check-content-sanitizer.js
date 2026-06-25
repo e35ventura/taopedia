@@ -505,6 +505,18 @@ rejects('See [x](disc&#111;rd://-/channels/123).', 'entity-obfuscated discord://
 infoboxRowRejects('tg://resolve?domain=evilchannel', 'tg:// rejected in an infobox row value');
 infoboxRowRejects('slack://open?team=T0', 'slack:// rejected in an infobox row value');
 accepts('Slack: a team chat app, Discord servers, and Telegram channels are described here only as prose.', 'benign Slack:/Discord/Telegram prose (no // authority)');
+// ts3server:// mumble:// ventrilo:// are voice-chat client-launch protocol handlers the OS
+// resolves to launch the native client at an attacker server (ts3server: had a documented
+// client RCE/launch vector) — same out-of-sandbox handler class as steam://launcher/tg://.
+// The // form keeps the prose words "mumble"/"ventrilo" safe.
+rejects('See [x](ts3server://attacker.example?port=9987).', 'plain ts3server:// (TeamSpeak) launch');
+rejects('See [x](mumble://attacker.example/).', 'plain mumble:// launch');
+rejects('See [x](ventrilo://attacker.example/).', 'plain ventrilo:// launch');
+// Entity-obfuscated: the literal scan misses "mum&#98;le://" but the decoded re-scan catches it.
+rejects('See [x](mum&#98;le://attacker.example/).', 'entity-obfuscated mumble:// (obfuscated scan path)');
+// Infobox-row-value scan path.
+infoboxRowRejects('ts3server://attacker.example?port=9987', 'ts3server:// rejected in an infobox row value');
+accepts('A speaker might mumble, and TeamSpeak and Ventrilo are described here only as prose.', 'benign mumble/Ventrilo prose words (no // authority)');
 // search-ms: opens Explorer search on a remote WebDAV/SMB share (malware-delivery
 // chain), and ms-officecmd: invokes Office deep-link commands (argument-injection
 // RCE) — two more native Windows handlers blocked like ms-msdt:/javascript:.

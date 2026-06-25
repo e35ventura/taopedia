@@ -773,6 +773,16 @@ const unsafeContentPatterns = [
   // "Slack: a team chat app" or "a Discord server" (a name then a colon/word, no ://) is
   // never affected; the scheme names never occur as URLs in glossary prose.
   { pattern: /\b(?:tg|whatsapp|discord|slack)\s*:\/\//i, reason: 'messaging-app deep-link URL schemes are not allowed in article content' },
+  // ts3server:// mumble:// ventrilo:// are voice-chat client-launch protocol handlers the OS
+  // resolves to launch the locally-installed client — not the browser — pointed at an
+  // attacker-chosen server. A clicked ts3server://attacker.example?port=… joins a TeamSpeak
+  // server (its handler's argument parsing was a documented client RCE/launch vector),
+  // mumble://attacker.example/ connects a Mumble client, and ventrilo://… a Ventrilo client —
+  // all driving a native app outside the page sandbox with no script, the same native
+  // protocol-handler class as the blocked steam://-launcher and tg:/zoommtg: handlers. The
+  // //-authority form is required so the prose words "mumble"/"ventrilo" before a colon are
+  // never affected; the scheme names never occur as URLs in glossary prose.
+  { pattern: /\b(?:ts3server|mumble|ventrilo)\s*:\/\//i, reason: 'voice-chat client-launch URL schemes are not allowed in article content' },
   // shell: is the Windows Explorer protocol handler: shell:startup opens the user's
   // Startup folder (a drop-a-payload persistence path), shell:::{CLSID} opens special
   // folders / Control-Panel applets, and the OS — not the browser — resolves it, with
@@ -839,6 +849,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:zoommtg|zoomus|msteams)\s*:/i, reason: 'video-conferencing client protocol-handler URLs are not allowed in article content' },
   { pattern: /\b(?:skype|callto|facetime-audio|facetime|sgnl)\s*:(?=[^\s"'<>)])/i, reason: 'communication-app launch URL schemes are not allowed in article content' },
   { pattern: /(?:tg|whatsapp|discord|slack)\s*:\/\//i, reason: 'messaging-app deep-link URL schemes are not allowed in article content' },
+  { pattern: /(?:ts3server|mumble|ventrilo)\s*:\/\//i, reason: 'voice-chat client-launch URL schemes are not allowed in article content' },
   { pattern: /\bshell\s*:(?=[^\s"'<>)])/i, reason: 'shell: protocol-handler URLs are not allowed in article content' },
   { pattern: /\bms-cxh(?:-full)?\s*:/i, reason: 'Windows CloudExperienceHost protocol-handler URLs are not allowed in article content' },
   { pattern: /data\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
@@ -875,6 +886,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:zoommtg|zoomus|msteams)\s*:/i,
   /\b(?:skype|callto|facetime-audio|facetime|sgnl)\s*:(?=[^\s"'<>)])/i,
   /(?:tg|whatsapp|discord|slack)\s*:\/\//i,
+  /(?:ts3server|mumble|ventrilo)\s*:\/\//i,
   /\bshell\s*:(?=[^\s"'<>)])/i,
   /\bms-cxh(?:-full)?\s*:/i,
   /data\s*:\s*text\/html/i,
