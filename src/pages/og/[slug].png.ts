@@ -1,18 +1,18 @@
 import type { APIRoute } from 'astro';
-import { getCollection } from 'astro:content';
 import { renderOgImage } from '../../lib/og-image';
-
-const getPageSlug = (page: { id: string }) =>
-  page.id.replace(/\/index\.(md|mdx)$/, '').replace(/\/index$/, '').replace(/\.(md|mdx)$/, '');
+import slugMap from '../../../public/data/slugmap.json';
 
 export async function getStaticPaths() {
-  const pages = await getCollection('pages');
-  const articlePaths = pages.map((page) => ({
-    params: { slug: getPageSlug(page) },
+  // Read public/data/slugmap.json for title/summary/categories — the same
+  // artifact search-data.json (#1405) and the site-wide feeds (#1422–#1423)
+  // use — instead of calling getCollection('pages') and re-reading frontmatter
+  // for every article's OG card props.
+  const articlePaths = Object.entries(slugMap).map(([slug, entry]) => ({
+    params: { slug },
     props: {
-      title: page.data.title,
-      description: page.data.summary,
-      label: page.data.categories?.[0] ?? 'Bittensor Knowledge Base',
+      title: entry?.title ?? slug,
+      description: entry?.summary ?? '',
+      label: entry?.categories?.[0] ?? 'Bittensor Knowledge Base',
       home: false,
     },
   }));
