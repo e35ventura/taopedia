@@ -7,29 +7,32 @@ const categorySlug = (categoryName: string) => categoryName.replace(/ /g, '_');
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
-  const categories = new Set<string>();
-  // Per-slug lastmod, computed once. lastmodForSlug is historyForSlug(slug)[0]?.date
-  // (a full revision-history lookup); an article in N categories is processed N
-  // times below, so calling it inside the per-category map recomputes each
-  // article's history once per category membership. Cache it here in the single
-  // page pass — only for pages that have categories — the same way category/
-  // atom.xml (#1192) and category/feed.json (#1195) cache their per-slug history.
+  // Group each article under every category it belongs to in a single pass.
+  // The per-category RSS feed below then reads its members by map lookup
+  // instead of re-scanning the whole collection with pages.filter() once per
+  // category — the old shape was O(categories × pages) (38 × 350 here);
+  // grouping once is O(pages) plus the membership pushes. membersByCategory
+  // preserves collection order, so each feed's item order is unchanged. The
+  // same grouping category/atom.xml (#1192) and category/feed.json (#1195) use.
+  // lastmodBySlug still caches each categorized article's history lookup once
+  // (an article in N categories was otherwise recomputing it per feed).
+  const membersByCategory = new Map<string, typeof pages>();
   const lastmodBySlug: Record<string, string> = {};
 
   for (const page of pages) {
     const slug = getPageSlug(page);
     const pageCategories = page.data.categories ?? [];
     if (pageCategories.length > 0) lastmodBySlug[slug] = lastmodForSlug(slug);
-    for (const category of pageCategories) categories.add(category);
+    for (const category of pageCategories) {
+      const members = membersByCategory.get(category) ?? [];
+      members.push(page);
+      membersByCategory.set(category, members);
+    }
   }
 
-  return [...categories].sort().map((categoryName) => {
+  return [...membersByCategory.keys()].sort().map((categoryName) => {
     const categoryPath = categorySlug(categoryName);
-    // Precomputed once per route in getStaticPaths — GET used to call
-    // getCollection('pages') again for every category RSS feed (38 redundant
-    // full collection reads per build). Matches category/atom.xml (#1128) and #1121.
-    const items = pages
-      .filter((page) => page.data.categories?.includes(categoryName))
+    const items = (membersByCategory.get(categoryName) ?? [])
       .map((page) => {
         const slug = getPageSlug(page);
         return {
