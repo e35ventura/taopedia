@@ -1119,6 +1119,20 @@ const nonSpaceDelimitedAriaActiveDescendantAttrPattern =
 const ariaRelevantAttrPattern = /<[^>]*\saria-relevant\s*=/i;
 const nonSpaceDelimitedAriaRelevantAttrPattern = /<[^>]*[/"'`]aria-relevant\s*=/i;
 
+// aria-grabbed=/aria-dropeffect= are the (deprecated but still AT-recognized)
+// ARIA drag-and-drop state attributes: aria-grabbed="true" announces an element as
+// "grabbed" / picked up for a drag operation, and aria-dropeffect="copy|move|…"
+// announces a node as a drop target offering a fake operation. On static glossary
+// prose they fabricate a drag-and-drop interaction that does not exist — a
+// non-visual reader is told plain text is being dragged or can receive a drop,
+// the same assistive-technology state/widget spoof (with no script, handler, or
+// flagged scheme) as the merged aria-pressed/aria-checked/aria-selected (#583),
+// aria-disabled/readonly/required (#587), aria-haspopup/aria-modal, and aria-busy
+// (#582) blocks. They are the last two state attributes of the ARIA set the
+// sanitizer has otherwise closed; complete it. Glossary articles never drag or drop.
+const ariaDragDropAttrPattern = /<[^>]*\saria-(?:grabbed|dropeffect)\s*=/i;
+const nonSpaceDelimitedAriaDragDropAttrPattern = /<[^>]*[/"'`](?:aria-(?:grabbed|dropeffect))\s*=/i;
+
 // nowrap on allowed <td>/<th> disables text wrapping in the cell — an injected
 // long URL, fake wallet address, or padded phishing line breaks out of the
 // column, reflowing the real article text off-screen (a layout-defacement /
@@ -2060,6 +2074,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": aria-relevant attributes are not allowed in article content`,
+    );
+  }
+
+  if (
+    ariaDragDropAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedAriaDragDropAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": aria-grabbed and aria-dropeffect attributes are not allowed in article content`,
     );
   }
 
