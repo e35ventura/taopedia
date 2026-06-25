@@ -1,12 +1,10 @@
 ---
-import { getCollection } from 'astro:content';
 import WikiLayout from '../../../layouts/WikiLayout.astro';
-import { getPageSlug } from '../../../lib/article-history';
-import { publishedTitleBySlug } from '../../../lib/site-feed-context';
 import { compareTitles } from '../../../lib/title-sort.js';
+import { pageFromSlug, publishedTitleBySlug } from '../../../lib/article-metadata';
+import slugMap from '../../../../public/data/slugmap.json';
 
 export async function getStaticPaths() {
-  const pages = await getCollection('pages');
   // Inbound links are computed at build time by scripts/build-linkgraph.js and
   // written to public/data/backlinks.json. Globbed inside getStaticPaths because
   // Astro runs this function in isolation from the module scope.
@@ -20,8 +18,10 @@ export async function getStaticPaths() {
   // backlinks.json and the site-wide feeds read.
   const titleBySlug = publishedTitleBySlug();
 
-  return pages.map((page) => {
-    const slug = getPageSlug(page);
+  return Object.keys(slugMap).flatMap((slug) => {
+    const page = pageFromSlug(slug, slugMap);
+    if (!page) return [];
+
     // Precomputed once per route in getStaticPaths — the page body used to re-run
     // getCollection('pages') and rebuild titleBySlug on every article page just
     // to derive this article's sorted backlink list (O(N) per page). Mirrors

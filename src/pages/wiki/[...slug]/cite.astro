@@ -1,18 +1,19 @@
 ---
-import { getCollection } from 'astro:content';
 import WikiLayout from '../../../layouts/WikiLayout.astro';
 import CiteCopyButtons from '../../../components/CiteCopyButtons.astro';
-import { getPageSlug, historyForSlug } from '../../../lib/article-history';
-import { publishedTitleBySlug } from '../../../lib/article-metadata';
+import { historyForSlug } from '../../../lib/article-history';
+import { pageFromSlug, publishedTitleBySlug } from '../../../lib/article-metadata';
 import { buildCitations, CITATION_FORMATS, CITATION_META } from '../../../../scripts/citations.js';
+import slugMap from '../../../../public/data/slugmap.json';
 
 export async function getStaticPaths() {
-  const pages = await getCollection('pages');
   const titleBySlug = publishedTitleBySlug();
   const origin = 'https://taopedia.org';
 
-  return pages.map((page) => {
-    const slug = getPageSlug(page);
+  return Object.keys(slugMap).flatMap((slug) => {
+    const page = pageFromSlug(slug, slugMap);
+    if (!page) return [];
+
     const title = titleBySlug[slug] ?? page.data.title;
     const lastRevision = historyForSlug(slug)[0]?.date ?? '';
     const url = `${origin}/wiki/${slug}/`;

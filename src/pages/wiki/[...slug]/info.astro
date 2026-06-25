@@ -1,12 +1,11 @@
 ---
-import { getCollection } from 'astro:content';
 import WikiLayout from '../../../layouts/WikiLayout.astro';
-import { getPageSlug, historyForSlug } from '../../../lib/article-history';
-import { publishedTitleBySlug } from '../../../lib/site-feed-context';
+import { historyForSlug } from '../../../lib/article-history';
+import { pageFromSlug, publishedTitleBySlug } from '../../../lib/article-metadata';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
+import slugMap from '../../../../public/data/slugmap.json';
 
 export async function getStaticPaths() {
-  const pages = await getCollection('pages');
   // backlinks.json is the same inbound-link graph Special:WhatLinksHere /
   // Special:MostLinkedPages read. Globbed inside getStaticPaths because Astro
   // runs this function in isolation from the module scope.
@@ -19,8 +18,10 @@ export async function getStaticPaths() {
   // info.json / backlinks.json and the site-wide feeds read.
   const titleBySlug = publishedTitleBySlug();
 
-  return pages.map((page) => {
-    const slug = getPageSlug(page);
+  return Object.keys(slugMap).flatMap((slug) => {
+    const page = pageFromSlug(slug, slugMap);
+    if (!page) return [];
+
     // Use the shared published-inbound-link counter the JSON endpoints
     // (info.json / backlinks.json / mostlinkedpages.json) already use, so the
     // "Incoming links" figure on this page can never disagree with them. It

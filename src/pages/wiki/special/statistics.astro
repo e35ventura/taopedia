@@ -2,46 +2,42 @@
 import WikiLayout from '../../../layouts/WikiLayout.astro';
 import { getCollection } from 'astro:content';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
-import { compareTitles } from '../../../lib/title-sort.js';
+import { buildStatistics } from '../../../../scripts/statistics.js';
+import categoriesIndex from '../../../../public/data/categories.json';
 
+// Shared with statistics.json via buildStatistics(). Topic counts come from
+// public/data/categories.json — the same artifact categories.json (#1403) reads —
+// instead of re-counting every article's categories frontmatter during the scan.
+// Word counts still need the article body from the content collection.
 const pages = await getCollection('pages');
+const stats = buildStatistics({
+  pages,
+  historyForSlug,
+  getPageSlug,
+  categoriesIndex,
+});
 
-// Aggregate the content collection with the build-time revision history (the
-// same source the sitemap <lastmod> and the article footer use) into a content
-// overview.
-let totalWords = 0;
-let totalRevisions = 0;
-let newestDate = '';
-const topicCounts = new Map<string, number>();
-
-for (const page of pages) {
-  totalWords += (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
-  const history = historyForSlug(getPageSlug(page));
-  totalRevisions += history.length;
-  const latest = history[0]?.date ?? '';
-  if (latest > newestDate) newestDate = latest;
-  for (const topic of page.data.categories ?? []) {
-    topicCounts.set(topic, (topicCounts.get(topic) ?? 0) + 1);
-  }
-}
-
-const totalArticles = pages.length;
-const totalTopics = topicCounts.size;
-const averageWords = totalArticles ? Math.round(totalWords / totalArticles) : 0;
-const largestTopic = [...topicCounts.entries()].sort((a, b) => b[1] - a[1] || compareTitles(a[0], b[0]))[0];
-const newestLabel = newestDate
-  ? new Date(newestDate).toLocaleDateString('en-US', { timeZone: 'UTC', year: 'numeric', month: 'long', day: 'numeric' })
+const newestLabel = stats.newestDate
+  ? new Date(stats.newestDate).toLocaleDateString('en-US', {
+      timeZone: 'UTC',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })
   : '';
 
-const stats: Array<{ label: string; value: string }> = [
-  { label: 'Articles', value: totalArticles.toLocaleString('en-US') },
-  { label: 'Topics', value: totalTopics.toLocaleString('en-US') },
-  { label: 'Total revisions', value: totalRevisions.toLocaleString('en-US') },
-  { label: 'Total words', value: totalWords.toLocaleString('en-US') },
-  { label: 'Average words per article', value: averageWords.toLocaleString('en-US') },
+const statsRows: Array<{ label: string; value: string }> = [
+  { label: 'Articles', value: stats.totalArticles.toLocaleString('en-US') },
+  { label: 'Topics', value: stats.totalTopics.toLocaleString('en-US') },
+  { label: 'Total revisions', value: stats.totalRevisions.toLocaleString('en-US') },
+  { label: 'Total words', value: stats.totalWords.toLocaleString('en-US') },
+  { label: 'Average words per article', value: stats.averageWords.toLocaleString('en-US') },
 ];
-if (largestTopic) {
-  stats.push({ label: 'Largest topic', value: `${largestTopic[0]} (${largestTopic[1].toLocaleString('en-US')})` });
+if (stats.largestTopic) {
+  statsRows.push({
+    label: 'Largest topic',
+    value: `${stats.largestTopic.name} (${stats.largestTopic.count.toLocaleString('en-US')})`,
+  });
 }
 ---
 
@@ -53,7 +49,7 @@ if (largestTopic) {
       <p>An overview of the Taopedia Bittensor knowledge base.</p>
 
       <dl class="mw-statistics">
-        {stats.map((stat) => (
+        {statsRows.map((stat) => (
           <div class="mw-statistics-row">
             <dt>{stat.label}</dt>
             <dd>{stat.value}</dd>
@@ -62,7 +58,7 @@ if (largestTopic) {
         {newestLabel && (
           <div class="mw-statistics-row">
             <dt>Most recently updated</dt>
-            <dd><time datetime={newestDate}>{newestLabel}</time> (UTC)</dd>
+            <dd><time datetime={stats.newestDate}>{newestLabel}</time> (UTC)</dd>
           </div>
         )}
       </dl>
