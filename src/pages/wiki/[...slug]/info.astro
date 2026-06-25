@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import WikiLayout from '../../../layouts/WikiLayout.astro';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
+import { publishedTitleBySlug } from '../../../lib/site-feed-context';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
 
 export async function getStaticPaths() {
@@ -14,13 +15,9 @@ export async function getStaticPaths() {
     { default?: Record<string, Array<{ from: string }>> }
   >;
   const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
-  // Build the published-title map once for the whole collection, then carry the
-  // per-article inbound-link count on props. The page body used to re-run
-  // getCollection('pages') and rebuild titleBySlug on every article page just
-  // to derive this one number (O(N) per page); precomputing it once here
-  // mirrors the info.json endpoint's getStaticPaths.
-  const titleBySlug: Record<string, string> = {};
-  for (const p of pages) titleBySlug[getPageSlug(p)] = p.data.title;
+  // titleBySlug comes from public/data/slugmap.json — the same artifact
+  // info.json / backlinks.json and the site-wide feeds read.
+  const titleBySlug = publishedTitleBySlug();
 
   return pages.map((page) => {
     const slug = getPageSlug(page);

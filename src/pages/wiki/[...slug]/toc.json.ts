@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getCollection, render } from 'astro:content';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
+import { publishedTitleBySlug } from '../../../lib/site-feed-context';
 import { getArticleReferences } from '../../../lib/article-references.js';
 import { buildArticleToc, getArticleToc } from '../../../lib/article-toc.js';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
@@ -19,6 +20,7 @@ const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
+  const titleBySlug = publishedTitleBySlug();
   // Per-slug body word count, revision history, and table-of-contents sections —
   // the stats the envelope carries. These depend only on each page itself; the
   // wordCount and history reads are folded into the render pass (rendering each
@@ -26,14 +28,12 @@ export async function getStaticPaths() {
   // traversed once for all per-page stats, kept parallel via Promise.all — the
   // same single combined pass backlinks.json (#1269), references.json (#1248),
   // info.json (#1287), and cite.json (#1289) use.
-  const titleBySlug: Record<string, string> = {};
   const wordCountBySlug: Record<string, number> = {};
   const historyBySlug: Record<string, ReturnType<typeof historyForSlug>> = {};
   const sectionsBySlug: Record<string, ReturnType<typeof getArticleToc>> = {};
   await Promise.all(
     pages.map(async (page) => {
       const slug = getPageSlug(page);
-      titleBySlug[slug] = page.data.title;
       wordCountBySlug[slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
       historyBySlug[slug] = historyForSlug(slug);
       const { headings } = await render(page);

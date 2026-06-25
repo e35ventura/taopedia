@@ -9,6 +9,34 @@ export function publishedTitleBySlug() {
   );
 }
 
+export function publishedSummaryBySlug() {
+  return Object.fromEntries(
+    Object.entries(slugMap).map(([slug, entry]) => [slug, entry?.summary ?? '']),
+  );
+}
+
+export function publishedCategoriesBySlug() {
+  return Object.fromEntries(
+    Object.entries(slugMap).map(([slug, entry]) => [
+      slug,
+      Array.isArray(entry?.categories) ? entry.categories : [],
+    ]),
+  );
+}
+
+// Page-shaped entries for helpers (sortPagesByTitle, buildAllPages) that only
+// need title/summary/categories — not the full content collection body.
+export function pagesFromSlugMap(map: Record<string, { title?: string; summary?: string; categories?: string[] }> = slugMap) {
+  return Object.entries(map).map(([slug, entry]) => ({
+    id: `${slug}/index.mdx`,
+    data: {
+      title: entry?.title ?? slug,
+      summary: entry?.summary ?? '',
+      categories: Array.isArray(entry?.categories) ? entry.categories : [],
+    },
+  }));
+}
+
 // Shared item builders for the site-wide JSON Feed, Atom, and RSS endpoints.
 // Read public/data/slugmap.json for title/summary/categories — the same artifact
 // search-data.json (#1405) and sitemap.xml (#1416) use — instead of calling

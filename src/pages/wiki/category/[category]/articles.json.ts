@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getCollection, render } from 'astro:content';
 import { buildCategoryArticlesDocument, getCategoryArticles } from '../../../../lib/category-articles.js';
+import { publishedTitleBySlug } from '../../../../lib/site-feed-context';
 import { publishedInboundLinkCount } from '../../../../../scripts/most-linked.js';
 import { getPageSlug, historyForSlug } from '../../../../lib/article-history';
 import { getArticleReferences } from '../../../../lib/article-references.js';
@@ -27,9 +28,7 @@ const categoriesIndex = Object.values(categoriesModules)[0]?.default ?? {};
 const slugMap = Object.values(slugmapModules)[0]?.default ?? {};
 const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
 const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
-const titleBySlug = Object.fromEntries(
-  Object.entries(slugMap).map(([slug, entry]) => [slug, entry?.title ?? slug]),
-);
+const titleBySlug = publishedTitleBySlug();
 
 const categorySlug = (categoryName: string) => categoryName.replace(/ /g, '_');
 

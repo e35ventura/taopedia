@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getCollection, render } from 'astro:content';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
+import { publishedTitleBySlug } from '../../../lib/site-feed-context';
 import { getArticleReferences } from '../../../lib/article-references.js';
 import { getArticleToc } from '../../../lib/article-toc.js';
 import { buildArticleHistory } from '../../../../scripts/article-history-json.js';
@@ -22,7 +23,7 @@ const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
-  const titleBySlug = Object.fromEntries(pages.map((page) => [getPageSlug(page), page.data.title]));
+  const titleBySlug = publishedTitleBySlug();
 
   return Promise.all(
     pages.map(async (page) => {
