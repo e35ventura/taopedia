@@ -537,6 +537,19 @@ accepts('The application settings and user preferences are described here only a
 rejects('See [x](onenote:https://evil.example/x.one).', 'plain onenote: scheme');
 rejects('See [x](on&#101;note:https://evil.example/x.one).', 'entity-obfuscated onenote: scheme');
 accepts('OneNote and the notebook app are described here only as prose.', 'benign OneNote app name is not the onenote: scheme');
+// sip: sips: xmpp: h323: real-time-communication schemes launch a native softphone/chat
+// client at an attacker address (same class as callto:/skype:). The non-space lookahead
+// (shell: precedent) blocks scheme:target URLs but not "SIP: Session Initiation Protocol"
+// prose definitions. Coverage spans plain content, entity-decoded, and infobox scans.
+rejects('See [x](sip:victim@evil.example).', 'plain sip: VoIP URL');
+rejects('See [x](sips:victim@evil.example).', 'plain sips: VoIP URL');
+rejects('See [x](xmpp:victim@evil.example).', 'plain xmpp: (Jabber) URL');
+rejects('See [x](h323:victim@evil.example).', 'plain h323: URL');
+rejects('See [x](s&#105;p:victim@evil.example).', 'entity-obfuscated sip: (obfuscated scan path)');
+infoboxRowRejects('sip:victim@evil.example', 'sip: rejected in an infobox row value');
+infoboxRowRejects('xmpp:victim@evil.example', 'xmpp: rejected in an infobox row value');
+infoboxRowAccepts('SIP and XMPP are described as prose', 'benign RTC-protocol prose allowed in an infobox row value');
+accepts('SIP: Session Initiation Protocol and XMPP are described here as prose; take a sip of tea.', 'benign SIP: definition / "a sip" prose (no scheme target)');
 // ms-settings:/ms-windows-store:/ms-gamingoverlay: are native Windows app protocol
 // handlers the OS launches out of the sandbox — blocked like onenote:/ms-cxh:.
 rejects('See [x](ms-windows-store://pdp/?productid=9WZDNCRFHVN5).', 'plain ms-windows-store: handler URL');
