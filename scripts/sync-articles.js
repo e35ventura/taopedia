@@ -190,7 +190,7 @@ const unsafeContentPatterns = [
   // parser re-enters HTML mode inside <annotation-xml>, the canonical MathML
   // mutation-XSS / sanitizer-bypass vector (the MathML counterpart of
   // foreignObject), so they are blocked standalone too.
-  { pattern: /<\s*(svg|math|foreignObject|annotation-xml)\b/i, reason: 'SVG and MathML elements are not allowed in article content' },
+  { pattern: /<\s*(svg|math|foreignObject|annotation-xml|mi|mn|mtext|mrow)\b/i, reason: 'SVG and MathML elements are not allowed in article content' },
   // <noscript> is parsed under different rules depending on the browser's scripting
   // state, a known mutation-XSS / sanitizer-confusion surface (sanitizers such as
   // DOMPurify special-case it). A glossary never needs script-fallback markup, so

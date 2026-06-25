@@ -591,11 +591,19 @@ rejects('Intro.\n\n<  foreignObject  ><p>x</p></foreignObject>', 'spaced <foreig
 rejects('Intro.\n\n<annotation-xml encoding="text/html"><div>evil</div></annotation-xml>', 'plain <annotation-xml> element');
 rejects('Intro.\n\n<math><annotation-xml encoding="application/xhtml+xml"><p>x</p></annotation-xml></math>', 'nested <annotation-xml> element');
 rejects('Intro.\n\n<  annotation-xml  >x</annotation-xml>', 'spaced <annotation-xml> element');
+// Standalone MathML fragment tags (<mi>, <mn>, <mtext>, <mrow>) bypass the <math>
+// root block the same way standalone <annotation-xml> did — foreign-content parsing
+// without the blocked root element.
+rejects('Intro.\n\n<mi>x</mi>', 'standalone <mi> element');
+rejects('Intro.\n\n<  mtext  >evil</mtext>', 'spaced <mtext> element');
+rejects('Intro.\n\n<mrow><mi>x</mi></mrow>', 'standalone <mrow> element');
+rejects('Intro.\n\n<mn>1</mn>', 'standalone <mn> element');
 
 // Prose that merely names these formats without an opening tag must still pass.
 accepts('SVG and MathML are XML-based formats, described here only as prose.', 'benign svg/math prose');
 accepts('A foreignObject wrapper is an SVG concept described here only as prose.', 'benign foreignObject prose');
 accepts('The annotation-xml integration point is described here only as prose.', 'benign annotation-xml prose');
+accepts('MathML mi and mrow elements are described here only as prose.', 'benign mathml fragment prose');
 
 // <dialog open> renders a top-layer overlay (with backdrop) and no script or
 // inline style, so a raw <dialog> is a clickjacking/phishing primitive. Blocked.
