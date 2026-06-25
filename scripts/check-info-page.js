@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildArticleInfo } from './article-info.js';
 import { getArticleReferences } from '../src/lib/article-references.js';
+import { publishedInboundLinkCount } from './most-linked.js';
 
 // Load-bearing regression check for the per-article "Page information"
 // (action=info) pages at /wiki/<slug>/info/ and their machine-readable companion
@@ -137,7 +138,11 @@ const walk = (dir) => {
 walk(wikiDir);
 assert.ok(articleSlugs.length > 0, 'no built article pages found to verify');
 
-const inboundCountFor = (slug) => (backlinksData[slug] ?? []).filter((entry) => slugmap[entry.from]).length;
+// Use the same shared published-inbound-link counter the info page, info.json,
+// backlinks.json and mostlinkedpages.json all use, so this regression check
+// asserts the exact rule the surfaces produce (published-only AND self-links
+// excluded, `from !== slug`) rather than re-deriving a subtly different count.
+const inboundCountFor = (slug) => publishedInboundLinkCount(backlinksData, slug, slugmap);
 const historyOf = (slug) => {
   const file = path.join(historyDir, `${slug}.json`);
   if (!fs.existsSync(file)) return [];
