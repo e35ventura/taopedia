@@ -654,6 +654,14 @@ const unsafeContentPatterns = [
   // non-http content-injection channel, the same class as the blocked
   // javascript:/vbscript:/data: schemes. Neither name occurs in glossary prose.
   { pattern: /\b(?:mhtml|jar)\s*:/i, reason: 'archive-extraction URL schemes are not allowed in article content' },
+  // vscode:/vscode-insiders:/vscodium: are the code-editor protocol handlers the OS
+  // resolves to launch the locally-installed editor — not the browser — when a link is
+  // clicked. A crafted vscode://… link can open an attacker-chosen folder/workspace
+  // (whose tasks or trusted-workspace settings then run), deep-link the extension
+  // marketplace to install an extension, or drive editor commands, all outside the page
+  // sandbox with no script. Same native protocol-handler class as the blocked
+  // ms-*/onenote: handlers; the editor scheme names never occur in glossary prose.
+  { pattern: /\b(?:vscode-insiders|vscodium|vscode)\s*:/i, reason: 'code-editor protocol-handler URLs are not allowed in article content' },
   // rdp:// vnc:// telnet:// ssh:// hand the URL's host to a native remote-session
   // client: a clicked rdp://attacker-host or telnet://internal-host opens an OS
   // client outside the page sandbox with no script — the same native protocol-handler
@@ -730,6 +738,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /onenote\s*:/i, reason: 'onenote: application protocol-handler URLs are not allowed in article content' },
   { pattern: /ms-(?:settings|windows-store|gamingoverlay)\s*:/i, reason: 'Windows app protocol-handler URLs are not allowed in article content' },
   { pattern: /(?:mhtml|jar)\s*:/i, reason: 'archive-extraction URL schemes are not allowed in article content' },
+  { pattern: /(?:vscode-insiders|vscodium|vscode)\s*:/i, reason: 'code-editor protocol-handler URLs are not allowed in article content' },
   { pattern: /(?:rdp|vnc|telnet|ssh)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i, reason: 'mobile app-store URL schemes are not allowed in article content' },
   { pattern: /intent\s*:[^\s"'<>)]*#\s*Intent\b/i, reason: 'intent: app-launch URLs are not allowed in article content' },
@@ -754,6 +763,7 @@ const infoboxRowValueSchemePatterns = [
   /onenote\s*:/i,
   /ms-(?:settings|windows-store|gamingoverlay)\s*:/i,
   /(?:mhtml|jar)\s*:/i,
+  /(?:vscode-insiders|vscodium|vscode)\s*:/i,
   /(?:rdp|vnc|telnet|ssh)\s*:\/\//i,
   /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i,
   /intent\s*:[^\s"'<>)]*#\s*Intent\b/i,
