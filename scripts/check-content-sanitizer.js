@@ -337,6 +337,16 @@ accepts('Bittensor is a decentralized network and staking is rewarded.', 'benign
 accepts('Intro.\n\n<p class="x is = y">text</p>', 'benign "is =" inside an emptied class value');
 accepts('A definition list item is described here only as prose.', 'benign is prose');
 
+// xml:base= overrides the base URI for resolving relative href/src in the subtree, a
+// resource-redirection hijack in the SVG/MathML/XML namespaces; tag-anchored and run
+// against emptied attribute values so a quoted value mentioning xml:base cannot trip it.
+rejects('Intro.\n\n<div xml:base="https://evil.example/">x</div>', 'plain xml:base attribute');
+rejects('Intro.\n\n<  p   xml:base = "https://evil.example/" >text</p>', 'spaced xml:base attribute');
+rejects('<a href="x"xml:base="https://evil.example/">go</a>', 'quote-abutted xml:base attribute');
+rejects('Intro.\n\n<p/xml:base="https://evil.example/">blocked</p>', 'slash-delimited xml:base after tag name');
+accepts('The xml:base attribute is described here only as prose.', 'benign "xml:base" prose word');
+accepts('Intro.\n\n<p class="x xml:base = y">text</p>', 'benign "xml:base =" inside an emptied class value');
+
 // Plain dangerous URL schemes remain blocked.
 rejects('See [x](javascript:alert(1)).', 'plain javascript:');
 rejects('See [x](vbscript:msgbox(1)).', 'plain vbscript:');
