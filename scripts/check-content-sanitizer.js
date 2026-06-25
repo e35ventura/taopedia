@@ -461,6 +461,21 @@ infoboxRowRejects('facetime:attacker@evil.example', 'facetime: rejected in an in
 infoboxRowAccepts('A VoIP video call app described as prose', 'benign comm prose allowed in an infobox row value');
 accepts('Skype: a VoIP app, FaceTime: Apple video calling, and Teams are defined here as prose.', 'benign Skype:/FaceTime: glossary definitions (colon then space)');
 accepts('A video call and a meeting link are described here only as prose.', 'benign call/meeting prose words');
+// tg:// whatsapp:// discord:// slack:// are messaging-app deep-link protocol handlers the
+// OS resolves to launch the native client (join an attacker channel / open a DM to an
+// attacker contact) outside the page sandbox with no script — same native app-launch class
+// as skype:/zoommtg:. The //-authority form keeps "Slack:"/"Discord" prose definitions safe.
+rejects('See [x](tg://resolve?domain=evilchannel).', 'plain tg:// (Telegram) deep-link');
+rejects('See [x](whatsapp://send?phone=10000000000&text=evil).', 'plain whatsapp:// deep-link');
+rejects('See [x](discord://-/channels/123/456).', 'plain discord:// deep-link');
+rejects('See [x](slack://open?team=T0&id=C0).', 'plain slack:// deep-link');
+// Entity-obfuscated: the literal scan misses "disc&#111;rd://" but the decoded re-scan
+// (obfuscatedSchemePatterns) catches discord:// after &#111; -> o.
+rejects('See [x](disc&#111;rd://-/channels/123).', 'entity-obfuscated discord:// (obfuscated scan path)');
+// Infobox-row-value scan path.
+infoboxRowRejects('tg://resolve?domain=evilchannel', 'tg:// rejected in an infobox row value');
+infoboxRowRejects('slack://open?team=T0', 'slack:// rejected in an infobox row value');
+accepts('Slack: a team chat app, Discord servers, and Telegram channels are described here only as prose.', 'benign Slack:/Discord/Telegram prose (no // authority)');
 // search-ms: opens Explorer search on a remote WebDAV/SMB share (malware-delivery
 // chain), and ms-officecmd: invokes Office deep-link commands (argument-injection
 // RCE) — two more native Windows handlers blocked like ms-msdt:/javascript:.
