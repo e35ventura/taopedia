@@ -224,6 +224,11 @@ accepts('Progressive enhancement and noscript fallbacks are described here as pr
 rejects('Intro.\n\n<noframes><img src="//evil.example/x"></noframes>', 'plain <noframes>');
 rejects('Intro.\n\n<  noembed  >fallback</noembed>', 'spaced <noembed>');
 accepts('Noframes and noembed fallbacks are described here only as prose.', 'benign noframes/noembed prose');
+// <title> is a RAWTEXT parsing-context element — its content is swallowed as plain
+// text until </title>, a content-hiding / parser-confusion surface like <noscript>.
+rejects('Intro.\n\n<title>Hidden page heading</title>rest', 'plain <title>');
+rejects('Intro.\n\n<  title  >swallowed</title>', 'spaced <title>');
+accepts('The article title is defined in frontmatter, described here only as prose.', 'benign title prose word');
 
 // <marquee> still renders an animated scrolling banner in current browsers, so an
 // injected one is a content-spoofing / phishing surface with no script. Blocked.
