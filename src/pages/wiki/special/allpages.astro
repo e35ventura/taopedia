@@ -1,26 +1,34 @@
 ---
 import WikiLayout from '../../../layouts/WikiLayout.astro';
-import { getCollection } from 'astro:content';
 import { sortPagesByTitle } from '../../../lib/title-sort.js';
+import { pageFromSlug, sortedPagesFromSlugMap } from '../../../lib/article-metadata';
+import slugMap from '../../../../public/data/slugmap.json';
+import categoriesIndex from '../../../../public/data/categories.json';
 
-const pages = await getCollection('pages');
-const sortedPages = sortPagesByTitle(pages);
+// Read public/data/slugmap.json for title/summary/categories and categories.json
+// for topic membership — the same artifacts allpages.json (#1240) and
+// categories.json (#1403) use — instead of calling getCollection('pages') and
+// re-scanning every article's frontmatter.
+const sortedPages = sortedPagesFromSlugMap(slugMap);
 const getPageSlug = (page: { id: string }) =>
   page.id.replace(/\/index\.(md|mdx)$/, '').replace(/\/index$/, '').replace(/\.(md|mdx)$/, '');
 
-const categoryIndex = new Map<string, typeof pages>();
-for (const page of sortedPages) {
-  for (const category of page.data.categories ?? []) {
-    const existing = categoryIndex.get(category) ?? [];
-    existing.push(page);
-    categoryIndex.set(category, existing);
-  }
+type PageEntry = (typeof sortedPages)[number];
+
+const categoryIndex = new Map<string, PageEntry[]>();
+for (const [categoryName, slugs] of Object.entries(categoriesIndex)) {
+  const topicPages = sortPagesByTitle(
+    (Array.isArray(slugs) ? slugs : [])
+      .map((slug) => pageFromSlug(slug, slugMap))
+      .filter((page): page is PageEntry => page !== null),
+  );
+  if (topicPages.length > 0) categoryIndex.set(categoryName, topicPages);
 }
 
 const priorityTopics = ['Wallets', 'Subnets', 'Mining', 'Staking', 'Consensus', 'Tokenomics'];
 const topicFilters = priorityTopics
   .map((topic) => [topic, categoryIndex.get(topic)] as const)
-  .filter((entry): entry is readonly [string, typeof pages] => Boolean(entry[1]));
+  .filter((entry): entry is readonly [string, PageEntry[]] => Boolean(entry[1]));
 
 // Articles whose categories include none of the featured topics would
 // otherwise not be rendered anywhere in the directory, so the title filter

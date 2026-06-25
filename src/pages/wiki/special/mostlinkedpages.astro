@@ -1,7 +1,6 @@
 ---
 import WikiLayout from '../../../layouts/WikiLayout.astro';
-import { getCollection } from 'astro:content';
-import { getPageSlug } from '../../../lib/article-history';
+import { publishedTitleBySlug } from '../../../lib/article-metadata';
 import { buildMostLinkedPages } from '../../../../scripts/most-linked.js';
 
 // Most linked pages: articles ranked by how many other articles link to them,
@@ -9,11 +8,9 @@ import { buildMostLinkedPages } from '../../../../scripts/most-linked.js';
 // link data the per-article "What links here" page uses). Surfaces the most-
 // referenced concepts across the wiki. Loaded via glob so a missing file (e.g. a
 // dev run before the link graph is built) degrades to an empty list.
-const pages = await getCollection('pages');
-const titleBySlug: Record<string, string> = {};
-for (const page of pages) {
-  titleBySlug[getPageSlug(page)] = page.data.title;
-}
+// titleBySlug comes from public/data/slugmap.json — the same artifact
+// mostlinkedpages.json (#1452) and the site-wide feeds read.
+const titleBySlug = publishedTitleBySlug();
 
 const backlinksModules = import.meta.glob('../../../../public/data/backlinks.json', { eager: true }) as Record<
   string,
