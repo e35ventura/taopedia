@@ -31,16 +31,10 @@ export const GET: APIRoute = async ({ site }) => {
   const pages = await getCollection('pages');
   const titleBySlug: Record<string, string> = {};
   const pageBySlug: Record<string, (typeof pages)[number]> = {};
-  // The article body's word count — the same figure info.json exposes and the
-  // article-page footer (mw-article-meta data-word-count) renders, computed from
-  // the raw markdown body so a subnet dashboard can gauge each subnet's article
-  // length without a second fetch.
-  const wordCountBySlug: Record<string, number> = {};
   for (const page of pages) {
     const slug = getPageSlug(page);
     titleBySlug[slug] = page.data.title;
     pageBySlug[slug] = page;
-    wordCountBySlug[slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
   }
 
   const subnets = buildSubnets({ pages, getPageSlug });
@@ -58,12 +52,20 @@ export const GET: APIRoute = async ({ site }) => {
   // byte-identical.
   const sectionCountBySlug: Record<string, number> = {};
   const historyBySlug: Record<string, ReturnType<typeof historyForSlug>> = {};
+  // wordCount is only ever read by subnet.slug below, for the registry's subnet
+  // articles (a subset of the full page collection — e.g. 128 of ~350) — not
+  // every published article. Previously tokenized for the full collection up
+  // front; gated into this same subnets-only loop that already scopes
+  // sectionCount, the same compute-only-for-used-members pattern #1213 / #1232 /
+  // #1240 use elsewhere.
+  const wordCountBySlug: Record<string, number> = {};
   for (const subnet of subnets) {
     historyBySlug[subnet.slug] = historyForSlug(subnet.slug);
     const page = pageBySlug[subnet.slug];
     if (!page) continue;
     const { headings } = await render(page);
     sectionCountBySlug[subnet.slug] = getArticleToc(headings).length;
+    wordCountBySlug[subnet.slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
   }
 
   const body = JSON.stringify(
