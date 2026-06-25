@@ -258,6 +258,14 @@ const unsafeContentPatterns = [
   // mutation-XSS / sanitizer-bypass vector (the MathML counterpart of
   // foreignObject), so they are blocked standalone too.
   { pattern: /<\s*(svg|math|foreignObject|annotation-xml)\b/i, reason: 'SVG and MathML elements are not allowed in article content' },
+  // The remaining SVG container / paint-server sub-elements -- <g> (group), <defs>,
+  // <pattern> (a paint server that tiles and can reference an external resource via
+  // href), and <linearGradient>/<radialGradient>/<stop> (gradient paint servers) --
+  // only render inside an <svg> root, which is already blocked. Block them
+  // standalone too, like the merged clipPath/mask/filter/marker/symbol (#1322) and
+  // switch/view (#1326) sub-element blocks, so they are caught even if the <svg>
+  // root that hosts them is split off. A glossary's prose never emits raw SVG.
+  { pattern: /<\s*(g|defs|pattern|linearGradient|radialGradient|stop)\b/i, reason: 'SVG container sub-elements are not allowed in article content' },
   // <maction> is the MathML interactive element: actiontype="toggle" makes clicking
   // cycle through sub-expressions, and actiontype="statusline"/"tooltip" shows
   // attacker-controlled text on interaction — an unwanted interactive surface in

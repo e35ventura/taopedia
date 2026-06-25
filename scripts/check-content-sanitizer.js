@@ -735,6 +735,17 @@ rejects('Intro.\n\n<view viewBox="0 0 1 1" />', 'plain <view> element');
 rejects('Intro.\n\n<  switch  >x</switch>', 'spaced <switch> element');
 accepts('Switch wallets and view your balance, described here only as prose.', 'benign switch/view prose words');
 
+// The remaining SVG container/paint-server sub-elements (g/defs/pattern/gradients/
+// stop) only render inside <svg> (blocked); block them standalone too.
+rejects('Intro.\n\n<g><rect /></g>', 'plain SVG <g> group element');
+rejects('Intro.\n\n<defs><pattern id="p" /></defs>', 'plain <defs>/<pattern>');
+rejects('Intro.\n\n<linearGradient><stop offset="0" /></linearGradient>', 'plain <linearGradient>/<stop>');
+rejects('Intro.\n\n<radialGradient />', 'plain <radialGradient> element');
+accepts('The usage pattern, where users stop to read, is described here only as prose.', 'benign pattern/stop prose words');
+accepts('<glyph>x</glyph>', 'benign <glyph> is not SVG <g>');
+accepts('<group-list>x</group-list>', 'benign group-list is not <g>');
+accepts('<stopwatch>x</stopwatch>', 'benign stopwatch is not <stop>');
+
 // <dialog open> renders a top-layer overlay (with backdrop) and no script or
 // inline style, so a raw <dialog> is a clickjacking/phishing primitive. Blocked.
 rejects('Intro.\n\n<dialog open>Your wallet is compromised. Visit evil.example.</dialog>', 'plain <dialog open>');
