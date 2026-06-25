@@ -173,7 +173,7 @@ const unsafeContentPatterns = [
   { pattern: /<\s*portal\b/i, reason: 'portal elements are not allowed in article content' },
   // <video>/<audio> render native media controls in article bodies even though CSP
   // sets media-src 'none' — an injected tag is still a distraction/phishing primitive.
-  { pattern: /<\s*(video|audio)\b/i, reason: 'media elements are not allowed in article content' },
+  { pattern: /<\s*(video|audio|track)\b/i, reason: 'media elements are not allowed in article content' },
   // <picture>/<source> steer responsive image loading to attacker-chosen URLs outside
   // the img-src checks that apply to plain <img> tags in article bodies alone.
   { pattern: /<\s*(picture|source)\b/i, reason: 'picture and source elements are not allowed in article content' },

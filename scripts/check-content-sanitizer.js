@@ -622,11 +622,14 @@ accepts('A Java applet is a legacy embedding primitive described here only as pr
 // stop the elements from appearing. Block them like dialog and fencedframe.
 rejects('Intro.\n\n<video src="/evil.mp4" controls></video>', 'plain <video>');
 rejects('Intro.\n\n<  audio  src="/evil.mp3"></audio>', 'spaced <audio>');
+rejects('Intro.\n\n<track src="/evil.vtt" kind="captions">', 'plain <track>');
+rejects('Intro.\n\n<  track  src="/evil.vtt">', 'spaced <track>');
 rejects('Intro.\n\n<picture><source srcset="https://evil.example/x.webp" type="image/webp"><img src="/wiki/fig.png" alt="x"></picture>', 'plain <picture>');
 rejects('Intro.\n\n<  source  srcset="https://evil.example/x.webp">', 'spaced <source>');
 
 // Prose that merely names these formats without an opening tag must still pass.
 accepts('Video and audio codecs are discussed here only as prose.', 'benign video/audio prose');
+accepts('A text track file is a media concept mentioned here without a tag.', 'benign track prose');
 accepts('A picture element is an HTML concept mentioned here without a tag.', 'benign picture prose');
 accepts('The source of truth for this term is documented in prose only.', 'benign source prose');
 
