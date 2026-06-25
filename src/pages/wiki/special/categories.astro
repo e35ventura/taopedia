@@ -1,23 +1,12 @@
 ---
 import WikiLayout from '../../../layouts/WikiLayout.astro';
-import { getCollection } from 'astro:content';
-import { compareTitles } from '../../../lib/title-sort.js';
+import { buildCategories } from '../../../../scripts/categories.js';
+import categoriesIndex from '../../../../public/data/categories.json';
 
-const pages = await getCollection('pages');
-
-// Build category index
-const categoryIndex = {};
-pages.forEach(page => {
-  page.data.categories?.forEach(cat => {
-    if (!categoryIndex[cat]) {
-      categoryIndex[cat] = [];
-    }
-    categoryIndex[cat].push(page);
-  });
-});
-
-const sortedCategories = Object.entries(categoryIndex)
-  .sort(([a], [b]) => compareTitles(a, b));
+// Read public/data/categories.json — the same artifact categories.json (#1403)
+// and feeds.opml (#1299) use — instead of calling getCollection('pages') and
+// re-scanning every article's categories frontmatter.
+const sortedCategories = buildCategories({ categoriesIndex });
 ---
 
 <WikiLayout title="Categories" description="Browse all topics in the Taopedia Bittensor knowledge base.">
@@ -28,13 +17,13 @@ const sortedCategories = Object.entries(categoryIndex)
       <div class="categories-list">
         <h2 id="categories">All Topics ({sortedCategories.length})</h2>
         <ul>
-          {sortedCategories.map(([categoryName, categoryPages]) => (
+          {sortedCategories.map((topic) => (
             <li>
-              <a href={`/wiki/category/${categoryName.replace(/ /g, '_')}/`}>
-                {categoryName}
+              <a href={`/wiki/category/${topic.slug}/`}>
+                {topic.name}
               </a>
               <span class="category-count">
-                ({categoryPages.length} page{categoryPages.length !== 1 ? 's' : ''})
+                ({topic.count} page{topic.count !== 1 ? 's' : ''})
               </span>
             </li>
           ))}
