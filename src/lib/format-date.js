@@ -14,3 +14,18 @@ export function formatRevisionDate(dateString) {
     timeZoneName: 'short',
   });
 }
+
+// Date-only labels for article footers, cite pages, and statistics summaries.
+// Degrades to an empty string for a missing or unparseable timestamp instead of
+// the literal "Invalid Date" raw Date(...).toLocaleDateString() would emit.
+export function formatArticleDate(dateString) {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleDateString('en-US', {
+    timeZone: 'UTC',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}

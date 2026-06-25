@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { formatRevisionDate } from '../src/lib/format-date.js';
+import { formatRevisionDate, formatArticleDate } from '../src/lib/format-date.js';
 
 const iso = '2026-06-01T16:55:13.000Z';
 const reference = formatRevisionDate(iso);
@@ -24,5 +24,10 @@ for (const tz of ['America/New_York', 'Asia/Kolkata', 'Pacific/Auckland', 'UTC']
   });
   assert.equal(out, reference, `revision date must be timezone-independent (TZ=${tz})`);
 }
+
+assert.equal(formatArticleDate(''), '', 'an empty article date must render as an empty string');
+assert.equal(formatArticleDate(undefined), '', 'a missing article date must render as an empty string');
+assert.equal(formatArticleDate('not-a-date'), '', 'an unparseable article date must render as an empty string');
+assert.match(formatArticleDate(iso), /June 1, 2026/, 'article date must render the correct UTC calendar date');
 
 console.log('History date check passed');

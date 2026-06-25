@@ -6,6 +6,7 @@ import ReadingProgress from '../../components/ReadingProgress.astro';
 import { resolveArticleImageSource } from '../../lib/article-image-assets.js';
 import { buildSlugAliases, parseWikiLinkTokens, resolveTargetSlug } from '../../../scripts/wiki-link-resolver.js';
 import { getPageSlug } from '../../lib/article-history';
+import { formatArticleDate } from '../../lib/format-date.js';
 import { publishedTitleBySlug } from '../../lib/article-metadata';
 import { getArticleToc } from '../../lib/article-toc.js';
 import { getRelatedPages } from '../../lib/related-pages';
@@ -147,9 +148,7 @@ const articleHistory = import.meta.glob('../../../public/history/**/*.json', { e
   { default?: { history?: Array<{ date?: string }> } }
 >;
 const lastUpdated = articleHistory[`../../../public/history/${slug}.json`]?.default?.history?.[0]?.date ?? '';
-const lastUpdatedLabel = lastUpdated
-  ? new Date(lastUpdated).toLocaleDateString('en-US', { timeZone: 'UTC', year: 'numeric', month: 'long', day: 'numeric' })
-  : '';
+const lastUpdatedLabel = formatArticleDate(lastUpdated);
 const wordCount = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
 // ~200 wpm, rounded UP so any non-empty article reads as at least 1 min and a
 // 201-word article reads as 2 min (not under-reported as 1).
