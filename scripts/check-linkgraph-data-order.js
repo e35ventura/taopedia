@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { orderGeneratedData } from './build-linkgraph.js';
+import { orderGeneratedData, dedupeOutgoingLinks } from './build-linkgraph.js';
 
 const projectRoot = path.resolve(new URL('..', import.meta.url).pathname);
 const dataDir = path.join(projectRoot, 'public', 'data');
@@ -71,6 +71,20 @@ assert.deepEqual(
   input.categoryIndex.Subnets,
   ['subnet_10', 'subnet_2'],
   'ordering helper must not mutate caller-owned category arrays',
+);
+
+assert.deepEqual(
+  dedupeOutgoingLinks([
+    { target: 'alpha', text: 'A' },
+    { target: 'alpha', text: 'B' },
+    { target: 'beta', text: 'B' },
+    { target: '', text: 'Empty' },
+  ]),
+  [
+    { target: 'alpha', text: 'A' },
+    { target: 'beta', text: 'B' },
+  ],
+  'outgoing link targets must be deduped after alias resolution',
 );
 
 const generatedFiles = ['linkgraph.json', 'backlinks.json', 'slugmap.json', 'categories.json']

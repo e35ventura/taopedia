@@ -75,6 +75,15 @@ export function getVisibleInfoboxRows(articleDir, frontmatterRows) {
   return Array.isArray(infobox?.rows) ? infobox.rows : undefined;
 }
 
+export function dedupeOutgoingLinks(links) {
+  const seen = new Set();
+  return links.filter((link) => {
+    if (!link?.target || seen.has(link.target)) return false;
+    seen.add(link.target);
+    return true;
+  });
+}
+
 function main() {
   console.log('Building link graph and backlinks...');
 
@@ -129,10 +138,12 @@ function main() {
 
   const slugAliases = buildSlugAliases(slugMap);
   for (const [fromSlug, links] of Object.entries(linkGraph)) {
-    linkGraph[fromSlug] = links.map(link => ({
-      target: resolveTargetSlug(link.target, slugAliases),
-      text: link.text,
-    })).filter(link => link.target);
+    linkGraph[fromSlug] = dedupeOutgoingLinks(
+      links.map(link => ({
+        target: resolveTargetSlug(link.target, slugAliases),
+        text: link.text,
+      })).filter(link => link.target),
+    );
   }
 
   // Second pass: build backlinks
