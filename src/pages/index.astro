@@ -5,6 +5,7 @@ import Seo from '../components/Seo.astro';
 import SearchSuggest from '../components/SearchSuggest.astro';
 import { sortPagesByTitle, compareTitles } from '../lib/title-sort.js';
 import { allRecentChanges } from '../lib/article-history';
+import { publishedTitleBySlug } from '../lib/site-feed-context';
 import { formatRevisionDate } from '../lib/format-date.js';
 import { buildSubnets } from '../../scripts/subnets.js';
 
@@ -55,8 +56,7 @@ const featuredSubnets = buildSubnets({ pages, getPageSlug })
 // featured Core Articles above are excluded so the two curated sections never
 // surface the same title twice on the page. limit 0 = consider every change,
 // then keep the newest distinct articles.
-const titleBySlug: Record<string, string> = {};
-for (const page of pages) titleBySlug[getPageSlug(page)] = page.data.title;
+const titleBySlug = publishedTitleBySlug();
 
 const featuredSlugSet = new Set(featuredSlugs);
 const seenRecent = new Set<string>();
