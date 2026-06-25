@@ -390,6 +390,14 @@ rejects('See [x](jar:https://evil.example/x.jar!/payload.html).', 'plain jar: ar
 rejects('![x](mhtml:https://evil.example/x!a)', 'mhtml: in an image src');
 rejects('See [x](m&#104;tml:https://evil.example/x!a).', 'entity-obfuscated mhtml:');
 accepts('A jar of configuration and an MHTML export are described here only as prose.', 'benign jar/mhtml prose words (no scheme colon)');
+// res:// is the Windows/IE resource scheme — res://<file.dll|exe>/<type>/<id> renders a resource
+// compiled into a local DLL/EXE in the page context (a documented mXSS / info-leak vector, e.g.
+// res://ieframe.dll), the same local-content family as mhtml:/jar:/ms-its:. The // authority form
+// is required so glossary prose never trips it.
+rejects('See [x](res://ieframe.dll/http_404.htm).', 'plain res:// local-resource URL');
+rejects('![x](res://evil.dll/214/1)', 'res:// pointing at a local DLL resource in an image src');
+rejects('See [x](r&#101;s://ieframe.dll/x).', 'entity-obfuscated res://');
+accepts('A research result: the resource layout is described here only as prose.', 'benign res/result/resource prose words (no res:// scheme)');
 // vscode:/vscode-insiders:/vscodium: are code-editor protocol handlers the OS launches
 // (open folder / run tasks / install extension), blocked like onenote:/ms-cxh:.
 rejects('See [x](vscode://file/etc/passwd).', 'plain vscode: editor scheme');

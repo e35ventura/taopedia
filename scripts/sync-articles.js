@@ -660,6 +660,15 @@ const unsafeContentPatterns = [
   // non-http content-injection channel, the same class as the blocked
   // javascript:/vbscript:/data: schemes. Neither name occurs in glossary prose.
   { pattern: /\b(?:mhtml|jar)\s*:/i, reason: 'archive-extraction URL schemes are not allowed in article content' },
+  // res:// is the Windows/IE "resource" scheme: res://<file.dll|exe>[/type]/<id> loads a
+  // resource (HTML, image, string) compiled INTO a local DLL/EXE and renders it in the page's
+  // own context — a documented mXSS / information-disclosure vector (e.g. the res://ieframe.dll
+  // error pages used in IE exploits). Same local-content family as the blocked mhtml:/jar:
+  // archive schemes and the ms-its: CHM scheme, resolved by the OS/legacy engine outside the
+  // http(s) link surface with no script. The //-authority form is required, so glossary prose
+  // ("a research result:", "the resource layout") — where "res" is never followed by "://" —
+  // is never affected.
+  { pattern: /\bres\s*:\/\//i, reason: 'res: local-resource URLs are not allowed in article content' },
   // vscode:/vscode-insiders:/vscodium: are the code-editor protocol handlers the OS
   // resolves to launch the locally-installed editor — not the browser — when a link is
   // clicked. A crafted vscode://… link can open an attacker-chosen folder/workspace
@@ -770,6 +779,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /ms-(?:settings|windows-store|gamingoverlay)\s*:/i, reason: 'Windows app protocol-handler URLs are not allowed in article content' },
   { pattern: /smb\s*:\/\//i, reason: 'smb: file-share URLs are not allowed in article content' },
   { pattern: /(?:mhtml|jar)\s*:/i, reason: 'archive-extraction URL schemes are not allowed in article content' },
+  { pattern: /res\s*:\/\//i, reason: 'res: local-resource URLs are not allowed in article content' },
   { pattern: /(?:vscode-insiders|vscodium|vscode)\s*:/i, reason: 'code-editor protocol-handler URLs are not allowed in article content' },
   { pattern: /(?:rdp|vnc|telnet|ssh)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:ms-its\s*:|mk\s*:\s*@)/i, reason: 'compiled-HTML-help (CHM) URL schemes are not allowed in article content' },
@@ -799,6 +809,7 @@ const infoboxRowValueSchemePatterns = [
   /ms-(?:settings|windows-store|gamingoverlay)\s*:/i,
   /smb\s*:\/\//i,
   /(?:mhtml|jar)\s*:/i,
+  /res\s*:\/\//i,
   /(?:vscode-insiders|vscodium|vscode)\s*:/i,
   /(?:rdp|vnc|telnet|ssh)\s*:\/\//i,
   /(?:ms-its\s*:|mk\s*:\s*@)/i,
