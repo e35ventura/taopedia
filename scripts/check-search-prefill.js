@@ -4,9 +4,11 @@ import path from 'node:path';
 
 const projectRoot = path.resolve(new URL('..', import.meta.url).pathname);
 const layoutPath = path.join(projectRoot, 'src', 'layouts', 'WikiLayout.astro');
+const searchSourcePath = path.join(projectRoot, 'src', 'pages', 'search.astro');
 const searchPagePath = path.join(projectRoot, 'dist', 'search', 'index.html');
 
 const layout = fs.readFileSync(layoutPath, 'utf8');
+const searchSource = fs.readFileSync(searchSourcePath, 'utf8');
 
 assert.match(
   layout,
@@ -23,6 +25,11 @@ assert.match(
   /searchInput\.value = query/,
   'wiki layout must assign the query as plain text to the input value',
 );
+assert.match(
+  layout,
+  /\.get\('q'\)\?\.trim\(\)/,
+  'wiki layout must trim the q parameter so whitespace-only values are ignored',
+);
 
 assert.ok(fs.existsSync(searchPagePath), 'dist/search/index.html must exist; run npm run build first');
 
@@ -31,6 +38,11 @@ assert.match(
   searchHtml,
   /URLSearchParams\(window\.location\.search\)\.get\('q'\)/,
   'built search page must ship the header search prefill script',
+);
+assert.match(
+  searchSource,
+  /\.get\('q'\)[^;]*\.trim\(\)/,
+  'search page must trim the q parameter so whitespace-only queries do not run a search',
 );
 assert.match(searchHtml, /class="mw-search-input"/, 'built search page must include the header search input');
 

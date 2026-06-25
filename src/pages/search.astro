@@ -20,7 +20,7 @@ import WikiLayout from '../layouts/WikiLayout.astro';
     // Show only the most relevant topics (highest result counts) as facets, not
     // every topic that appears — too many options is noise.
     const MAX_FACETS = 8;
-    const searchQuery = new URLSearchParams(window.location.search).get('q') || '';
+    const searchQuery = (new URLSearchParams(window.location.search).get('q') || '').trim();
     const resultsContainer = document.getElementById('search-results');
     const headingEl = document.getElementById('search-heading');
     let metadataEntriesPromise;
