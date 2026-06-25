@@ -61,6 +61,17 @@ const revisionStatsOf = (slug) => {
     'helper must exclude self/missing targets, dedupe repeated targets, and sort numerically by title',
   );
 
+  const tied = getArticleReferences({
+    slug: 'source',
+    linkGraph: { source: [{ target: 'subnet_9' }, { target: 'subnet_10' }] },
+    titleBySlug: { source: 'S', subnet_9: 'Shared Title', subnet_10: 'Shared Title' },
+  });
+  assert.deepEqual(
+    tied.map((entry) => entry.slug),
+    ['subnet_10', 'subnet_9'],
+    'same-title references must tiebreak on raw slug order (subnet_10 before subnet_9), not numeric slug collation',
+  );
+
   const doc = buildArticleReferences({
     slug: 'source',
     title: 'Source',
@@ -278,7 +289,9 @@ const expectedReferencesFor = (slug) => {
     references.push({ slug: target, title: titleBySlug[target] });
   }
 
-  return references.sort((a, b) => compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug));
+  return references.sort(
+    (a, b) => compareTitles(a.title, b.title) || (a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0),
+  );
 };
 
 const articleSlugs = [];
