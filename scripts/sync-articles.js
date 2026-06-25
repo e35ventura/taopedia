@@ -566,6 +566,15 @@ const unsafeContentPatterns = [
   { pattern: /\sdir\s*=/i, reason: 'dir attributes are not allowed in article content' },
   { pattern: /\bjavascript\s*:/i, reason: 'javascript: URLs are not allowed in article content' },
   { pattern: /\bvbscript\s*:/i, reason: 'vbscript: URLs are not allowed in article content' },
+  // search-ms:/ms-officecmd: are two more native Windows protocol handlers a clicked
+  // link hands to the OS instead of the browser, with no script. search-ms: opens
+  // Windows Explorer search pointed at a remote WebDAV/SMB share so attacker-hosted
+  // files render as local "search results" (a documented malware-delivery chain,
+  // often paired with the Follina ms-msdt: vector). ms-officecmd: invokes Office
+  // deep-link commands and was the argument-injection RCE reported against the Office
+  // protocol handler. Same native protocol-handler class as the blocked
+  // ms-msdt:/ms-appinstaller: schemes; the names never occur in glossary prose.
+  { pattern: /\b(?:search-ms|ms-officecmd)\s*:/i, reason: 'Windows protocol-handler URLs are not allowed in article content' },
   // ms-msdt:/ms-appinstaller: hand the URL to a native Windows protocol handler instead
   // of the browser: a clicked link launches the local app outside the page sandbox with
   // no script. ms-msdt: is the Follina RCE (CVE-2022-30190) and ms-appinstaller: the
@@ -601,6 +610,7 @@ const unsafeContentPatterns = [
 const obfuscatedSchemePatterns = [
   { pattern: /javascript\s*:/i, reason: 'javascript: URLs are not allowed in article content' },
   { pattern: /vbscript\s*:/i, reason: 'vbscript: URLs are not allowed in article content' },
+  { pattern: /(?:search-ms|ms-officecmd)\s*:/i, reason: 'Windows protocol-handler URLs are not allowed in article content' },
   { pattern: /ms-(?:msdt|appinstaller)\s*:/i, reason: 'Windows protocol-handler URLs are not allowed in article content' },
   { pattern: /ms-(?:word|excel|powerpoint|visio|access|project|publisher|infopath|spd)\s*:/i, reason: 'Microsoft Office document protocol-handler URLs are not allowed in article content' },
   { pattern: /data\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
@@ -613,6 +623,7 @@ const obfuscatedSchemePatterns = [
 const infoboxRowValueSchemePatterns = [
   /javascript\s*:/i,
   /vbscript\s*:/i,
+  /(?:search-ms|ms-officecmd)\s*:/i,
   /ms-(?:msdt|appinstaller)\s*:/i,
   /ms-(?:word|excel|powerpoint|visio|access|project|publisher|infopath|spd)\s*:/i,
   /data\s*:\s*text\/html/i,
