@@ -195,12 +195,12 @@ const backlinksSource = fs.readFileSync(
   'utf8',
 );
 assert.ok(
-  backlinksSource.includes('compareTitles(a.slug, b.slug)'),
-  'backlinks.astro must sort slug ties with compareTitles, not localeCompare',
+  backlinksSource.includes('a.slug < b.slug'),
+  'backlinks.astro must tiebreak same-title inbound links on raw slug order, not compareTitles numeric slug collation',
 );
 assert.ok(
-  !backlinksSource.includes('a.slug.localeCompare(b.slug)'),
-  'backlinks.astro must not use localeCompare for slug tiebreak',
+  !backlinksSource.includes('compareTitles(a.slug, b.slug)'),
+  'backlinks.astro must not use compareTitles for slug tiebreak',
 );
 
 const mostLinkedCheck = fs.readFileSync(

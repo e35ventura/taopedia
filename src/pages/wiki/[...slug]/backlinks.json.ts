@@ -79,7 +79,10 @@ export async function getStaticPaths() {
             lastEdited: entryHistory[0]?.date ?? null,
           };
         })
-        .sort((a, b) => compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug));
+        .sort(
+          (a, b) =>
+            compareTitles(a.title, b.title) || (a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0),
+        );
 
       return {
         params: { slug },
@@ -101,8 +104,8 @@ export async function getStaticPaths() {
 }
 
 // Machine-readable companion to /wiki/<slug>/backlinks/. Uses the same
-// published-only join and compareTitles sort as backlinks.astro so the two
-// surfaces never drift.
+// published-only join and title-then-raw-slug sort as backlinks.astro so the
+// two surfaces never drift.
 export const GET: APIRoute = async ({ props, site }) => {
   const { page, slug, incomingLinks, referencesCount, sectionCount, wordCount, revisionCount, firstEdited, lastEdited, backlinks } = props as {
     page: { data: { title: string; summary?: string; categories?: string[] } };

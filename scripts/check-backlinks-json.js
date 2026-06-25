@@ -157,6 +157,21 @@ const revisionStatsOf = (slug) => {
   assert.equal(empty.lastEdited, null, 'builder: default lastEdited is null');
 }
 
+// ---- 1a) same-title inbound links tiebreak on raw slug order --------------
+{
+  const sorted = [
+    { slug: 'subnet_9', title: 'Shared Title' },
+    { slug: 'subnet_10', title: 'Shared Title' },
+  ].sort(
+    (a, b) => compareTitles(a.title, b.title) || (a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0),
+  );
+  assert.deepEqual(
+    sorted.map((entry) => entry.slug),
+    ['subnet_10', 'subnet_9'],
+    'same-title backlinks must tiebreak on raw slug order (subnet_10 before subnet_9), not numeric slug collation',
+  );
+}
+
 // ---- 2–6) Built-output checks ----------------------------------------------
 assert.ok(fs.existsSync(wikiDir), 'dist/wiki not found; run the build first');
 assert.ok(fs.existsSync(backlinksFile), 'public/data/backlinks.json not found; run the build first');

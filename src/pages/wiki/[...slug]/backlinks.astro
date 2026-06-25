@@ -29,7 +29,10 @@ export async function getStaticPaths() {
     const backlinks = (backlinksData[slug] ?? [])
       .filter((entry) => titleBySlug[entry.from])
       .map((entry) => ({ slug: entry.from, title: titleBySlug[entry.from] }))
-      .sort((a, b) => compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug));
+      .sort(
+        (a, b) =>
+          compareTitles(a.title, b.title) || (a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0),
+      );
 
     return {
       params: { slug },
