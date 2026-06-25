@@ -383,6 +383,15 @@ rejects('See [x](ms-excel:ofv|u|https://evil.example/x.xlsm).', 'plain ms-excel:
 rejects('See [x](ms-powerpoint:ofe|u|https://evil.example/x.pptm).', 'plain ms-powerpoint: Office scheme');
 rejects('See [x](ms-w&#111;rd:ofe|u|https://evil.example/x.docm).', 'entity-obfuscated ms-word: Office scheme');
 accepts('Microsoft Word, Excel, and PowerPoint are described here only as prose.', 'benign Office app names are not the ms- schemes');
+// intent: is the Android app-launch scheme — intent:[//host/path]#Intent;…;end hands the
+// URL to a native app. Per Chrome's syntax an optional host/path may sit between the
+// scheme and the required #Intent marker, so all of these forms are rejected; the
+// whitespace boundary keeps the prose word "intent:".
+rejects('See [x](intent://evil.example/#Intent;scheme=https;package=com.evil;end).', 'plain intent:// url');
+rejects('See [x](intent:#Intent;action=android.intent.action.VIEW;end).', 'intent: with bare #Intent fragment');
+rejects('See [x](intent:scan/#Intent;scheme=zxing;package=com.evil;end).', 'intent: with host/path before #Intent');
+accepts("The author's intent: clarity over cleverness in every article.", 'benign "intent:" prose word is not the scheme');
+accepts('Discussing user intent and the #Intent label only as prose, far apart.', 'benign "intent" prose word with a distant #Intent is not the scheme');
 
 // MDX expression braces execute at build time in article bodies. They are only
 // allowed when escaped as literal prose or inside Markdown code examples.
