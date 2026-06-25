@@ -320,6 +320,15 @@ const unsafeContentPatterns = [
   // blocks above; block them standalone so they are caught even if the <svg> root is
   // split off. A glossary's plain-prose Markdown body never authors raw SVG.
   { pattern: /<\s*(clipPath|mask|filter|marker|symbol)\b/i, reason: 'SVG paint-server and reference sub-elements are not allowed in article content' },
+  // <switch> conditionally renders the first child whose test attributes
+  // (requiredFeatures/requiredExtensions/systemLanguage) pass — a content-cloaking
+  // primitive that shows different content to different locales/user agents (the
+  // same reader-dependent divergence class as the blocked <data>/<time> machine
+  // values). <view> defines a named view targetable by URL fragment, an SVG
+  // navigation/zoom primitive. Both are SVG sub-elements; block them standalone like
+  // the others so they are caught even if the <svg> root is split off. A glossary's
+  // plain-prose Markdown body never authors raw SVG.
+  { pattern: /<\s*(switch|view)\b/i, reason: 'SVG switch and view sub-elements are not allowed in article content' },
   // <noscript> is parsed under different rules depending on the browser's scripting
   // state, a known mutation-XSS / sanitizer-confusion surface (sanitizers such as
   // DOMPurify special-case it). A glossary never needs script-fallback markup, so
