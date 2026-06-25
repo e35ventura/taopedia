@@ -7,27 +7,31 @@ const categorySlug = (categoryName: string) => categoryName.replace(/ /g, '_');
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
-  const categories = new Set<string>();
-  // Cache each categorized article's history once. An article in N categories
-  // was otherwise having historyForSlug recomputed once per category feed; the
-  // map only depends on the article slug, so build it a single time here.
+  // Group each article under every category it belongs to in a single pass.
+  // The per-category feed below then reads its members by map lookup instead of
+  // re-scanning the whole collection with pages.filter() once per category — the
+  // old shape was O(categories × pages) (38 × 350 here); grouping once is O(pages)
+  // plus the membership pushes. membersByCategory preserves collection order, so
+  // each feed's item order is unchanged. historyBySlug still caches each
+  // categorized article's revision history once (an article in N categories was
+  // otherwise recomputing it per feed).
+  const membersByCategory = new Map<string, typeof pages>();
   const historyBySlug: Record<string, ReturnType<typeof historyForSlug>> = {};
 
   for (const page of pages) {
     const slug = getPageSlug(page);
     const pageCategories = page.data.categories ?? [];
     if (pageCategories.length > 0) historyBySlug[slug] = historyForSlug(slug);
-    for (const category of pageCategories) categories.add(category);
+    for (const category of pageCategories) {
+      const members = membersByCategory.get(category) ?? [];
+      members.push(page);
+      membersByCategory.set(category, members);
+    }
   }
 
-  return [...categories].sort().map((categoryName) => {
+  return [...membersByCategory.keys()].sort().map((categoryName) => {
     const categoryPath = categorySlug(categoryName);
-    // Precomputed once per route in getStaticPaths — GET used to call
-    // getCollection('pages') again for every category JSON feed (38 redundant
-    // full collection reads per build). Matches category/atom.xml (#1128) and
-    // category/rss.xml (#1131).
-    const items = pages
-      .filter((page) => page.data.categories?.includes(categoryName))
+    const items = (membersByCategory.get(categoryName) ?? [])
       .map((page) => {
         const slug = getPageSlug(page);
         const history = historyBySlug[slug] ?? [];
