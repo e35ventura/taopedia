@@ -162,6 +162,15 @@ const unsafeContentPatterns = [
   // glossary's prose never marks its own search regions — the site exposes search
   // through its own layout component — so block the element.
   { pattern: /<\s*search\b/i, reason: 'search elements are not allowed in article content' },
+  // <nav>/<aside>/<main>/<header>/<footer> expose implicit ARIA landmarks
+  // (navigation, complementary, main, banner, contentinfo) to assistive technology
+  // — like <search> above, an injected one in article content adds a spoofed
+  // landmark region to the AT landmark list (e.g. a fake "navigation" or "main"
+  // region steering a screen-reader user, navigating by landmark, to attacker-chosen
+  // content). role= (already blocked) is an attribute and cannot cover the implicit
+  // landmark these elements provide. A glossary's article body is plain prose — these
+  // page-layout landmarks come from the site template, never from article Markdown.
+  { pattern: /<\s*(nav|aside|main|header|footer)\b/i, reason: 'landmark elements (nav, aside, main, header, footer) are not allowed in article content' },
   // <data value="…"> and <time datetime="…"> carry a machine-readable value that a
   // scraper, screen reader, or "copy value" affordance reads instead of, and
   // independently from, the visible text — so an injected one makes the machine-read

@@ -162,6 +162,14 @@ rejects('Intro.\n\n<summary>Click here</summary>', 'standalone <summary>');
 rejects('Intro.\n\n<search><p>Find your wallet here</p></search>', 'plain <search> element');
 rejects('Intro.\n\n<  search  >x</search>', 'spaced <search> element');
 accepts('Search the documentation for staking guides, described here only as prose.', 'benign search prose word');
+// <nav>/<aside>/<main>/<header>/<footer> expose implicit ARIA landmarks; an injected
+// one adds a spoofed landmark region to the AT landmark list (like <search>).
+rejects('Intro.\n\n<nav><a href="https://evil.example">Official site</a></nav>', 'plain <nav> element');
+rejects('Intro.\n\n<aside>fake complementary region</aside>', 'plain <aside> element');
+rejects('Intro.\n\n<main>fake main region</main>', 'plain <main> element');
+rejects('Intro.\n\n<  header  >x</header>', 'spaced <header> element');
+rejects('Intro.\n\n<footer>fake contentinfo</footer>', 'plain <footer> element');
+accepts('The main navigation header and footer of the site are described here only as prose.', 'benign landmark prose words');
 // <data>/<time> carry a machine-readable value/datetime that can diverge from the
 // visible text — the same auxiliary-text spoof class as title=/aria-label.
 rejects('Intro.\n\n<time datetime="2099-01-01">2020</time>', 'plain <time> element');
