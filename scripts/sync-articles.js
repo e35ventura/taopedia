@@ -618,6 +618,14 @@ const unsafeContentPatterns = [
   // non-http content-injection channel, the same class as the blocked
   // javascript:/vbscript:/data: schemes. Neither name occurs in glossary prose.
   { pattern: /\b(?:mhtml|jar)\s*:/i, reason: 'archive-extraction URL schemes are not allowed in article content' },
+  // rdp:// vnc:// telnet:// ssh:// hand the URL's host to a native remote-session
+  // client: a clicked rdp://attacker-host or telnet://internal-host opens an OS
+  // client outside the page sandbox with no script — the same native protocol-handler
+  // class as the ms-*/shell: schemes above, and article links are limited to http(s)
+  // so these are never valid article links. The // authority form is required so a
+  // glossary definition like "SSH: Secure Shell" (a scheme name followed by a colon
+  // in prose, with no //) is never affected.
+  { pattern: /\b(?:rdp|vnc|telnet|ssh)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
   // intent: is the Android app-launch scheme: a URI of the form intent:[//host/path]#Intent;…;end
   // hands the URL to the Android intent system, which opens or deep-links into a native app
   // outside the browser — a standalone app-launch attack on mobile readers, the same
@@ -669,6 +677,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /ms-(?:word|excel|powerpoint|visio|access|project|publisher|infopath|spd)\s*:/i, reason: 'Microsoft Office document protocol-handler URLs are not allowed in article content' },
   { pattern: /onenote\s*:/i, reason: 'onenote: application protocol-handler URLs are not allowed in article content' },
   { pattern: /(?:mhtml|jar)\s*:/i, reason: 'archive-extraction URL schemes are not allowed in article content' },
+  { pattern: /(?:rdp|vnc|telnet|ssh)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
   { pattern: /intent\s*:[^\s"'<>)]*#\s*Intent\b/i, reason: 'intent: app-launch URLs are not allowed in article content' },
   { pattern: /\bshell\s*:(?=[^\s"'<>)])/i, reason: 'shell: protocol-handler URLs are not allowed in article content' },
   { pattern: /data\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
@@ -688,6 +697,7 @@ const infoboxRowValueSchemePatterns = [
   /ms-(?:word|excel|powerpoint|visio|access|project|publisher|infopath|spd)\s*:/i,
   /onenote\s*:/i,
   /(?:mhtml|jar)\s*:/i,
+  /(?:rdp|vnc|telnet|ssh)\s*:\/\//i,
   /intent\s*:[^\s"'<>)]*#\s*Intent\b/i,
   /\bshell\s*:(?=[^\s"'<>)])/i,
   /data\s*:\s*text\/html/i,

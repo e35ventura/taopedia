@@ -390,6 +390,15 @@ rejects('See [x](jar:https://evil.example/x.jar!/payload.html).', 'plain jar: ar
 rejects('![x](mhtml:https://evil.example/x!a)', 'mhtml: in an image src');
 rejects('See [x](m&#104;tml:https://evil.example/x!a).', 'entity-obfuscated mhtml:');
 accepts('A jar of configuration and an MHTML export are described here only as prose.', 'benign jar/mhtml prose words (no scheme colon)');
+// rdp:// vnc:// telnet:// ssh:// launch a native remote-session client at the host;
+// the // authority form is required so glossary definitions ("SSH: Secure Shell")
+// are unaffected.
+rejects('See [x](rdp://attacker-host/).', 'plain rdp:// remote-desktop URL');
+rejects('See [x](ssh://user@evil.example).', 'plain ssh:// URL');
+rejects('See [x](telnet://internal-host:23).', 'plain telnet:// URL');
+rejects('See [x](vnc://evil.example:5900).', 'plain vnc:// URL');
+accepts('SSH: Secure Shell and RDP: Remote Desktop Protocol are defined here as prose.', 'benign SSH:/RDP: glossary definitions (no // authority)');
+accepts('Connect over ssh and telnet are described only as protocol names here.', 'benign ssh/telnet prose words');
 // search-ms: opens Explorer search on a remote WebDAV/SMB share (malware-delivery
 // chain), and ms-officecmd: invokes Office deep-link commands (argument-injection
 // RCE) — two more native Windows handlers blocked like ms-msdt:/javascript:.
