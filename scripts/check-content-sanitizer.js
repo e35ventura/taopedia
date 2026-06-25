@@ -593,6 +593,19 @@ accepts('SVG and MathML are XML-based formats, described here only as prose.', '
 accepts('A foreignObject wrapper is an SVG concept described here only as prose.', 'benign foreignObject prose');
 accepts('The annotation-xml integration point is described here only as prose.', 'benign annotation-xml prose');
 
+// SVG animation sub-elements retarget an existing element's attributes (mutation-
+// XSS), and <use> clones another subtree; like <foreignObject>/<annotation-xml>
+// they are blocked standalone so they are caught even if the svg/math root is
+// split off.
+rejects('Intro.\n\n<animate attributeName="href" to="https://evil.example/" />', 'plain <animate> element');
+rejects('Intro.\n\n<animateTransform attributeName="transform" />', 'plain <animateTransform> element');
+rejects('Intro.\n\n<animateMotion path="M0,0" />', 'plain <animateMotion> element');
+rejects('Intro.\n\n<set attributeName="href" to="https://evil.example/" />', 'plain <set> element');
+rejects('Intro.\n\n<use href="#x" />', 'plain <use> element');
+rejects('Intro.\n\n<  set  attributeName="x" />', 'spaced <set> element');
+accepts('Intro.\n\n<section><p>Use a set of rules; select an option.</p></section>', 'benign section/use/set/select prose words');
+accepts('SVG animation and the use element are described here only as prose.', 'benign use/animation prose');
+
 // <dialog open> renders a top-layer overlay (with backdrop) and no script or
 // inline style, so a raw <dialog> is a clickjacking/phishing primitive. Blocked.
 rejects('Intro.\n\n<dialog open>Your wallet is compromised. Visit evil.example.</dialog>', 'plain <dialog open>');

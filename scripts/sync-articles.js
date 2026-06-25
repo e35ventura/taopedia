@@ -191,6 +191,14 @@ const unsafeContentPatterns = [
   // mutation-XSS / sanitizer-bypass vector (the MathML counterpart of
   // foreignObject), so they are blocked standalone too.
   { pattern: /<\s*(svg|math|foreignObject|annotation-xml)\b/i, reason: 'SVG and MathML elements are not allowed in article content' },
+  // <animate>/<animateTransform>/<animateMotion>/<set> are the SVG animation
+  // elements the rule above warns about ("animation elements that retarget
+  // attributes"): they mutate an existing element's attribute (e.g. animate an
+  // href/xlink:href or style to a new value after render), a classic mutation-XSS
+  // / sanitizer-evasion vector. <use> clones and references another subtree. Like
+  // standalone <foreignObject> / <annotation-xml>, block them on their own so they
+  // are caught even if the <svg>/<math> root that hosts them is split off.
+  { pattern: /<\s*(animate|animateTransform|animateMotion|set|use)\b/i, reason: 'SVG animation and use sub-elements are not allowed in article content' },
   // <noscript> is parsed under different rules depending on the browser's scripting
   // state, a known mutation-XSS / sanitizer-confusion surface (sanitizers such as
   // DOMPurify special-case it). A glossary never needs script-fallback markup, so
