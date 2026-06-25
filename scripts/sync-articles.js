@@ -329,6 +329,16 @@ const unsafeContentPatterns = [
   // the others so they are caught even if the <svg> root is split off. A glossary's
   // plain-prose Markdown body never authors raw SVG.
   { pattern: /<\s*(switch|view)\b/i, reason: 'SVG switch and view sub-elements are not allowed in article content' },
+  // The SVG filter PRIMITIVE elements (feBlend/feColorMatrix/feComponentTransfer/
+  // feComposite/feConvolveMatrix/feDiffuseLighting/feDisplacementMap/feDistantLight/
+  // feDropShadow/feFlood/feFuncR/feFuncG/feFuncB/feFuncA/feGaussianBlur/feMerge/
+  // feMergeNode/feMorphology/feOffset/fePointLight/feSpecularLighting/feSpotLight/
+  // feTile/feTurbulence) only operate inside a <filter> in <svg> -- both already
+  // blocked. <feImage> (#1278) loads external resources; the rest transform/compose
+  // image input. Block the whole filter-primitive set standalone too, like the other
+  // svg sub-elements, so they are caught even if the <svg>/<filter> that hosts them
+  // is split off. A glossary's prose never emits raw SVG filter markup.
+  { pattern: /<\s*(feBlend|feColorMatrix|feComponentTransfer|feComposite|feConvolveMatrix|feDiffuseLighting|feDisplacementMap|feDistantLight|feDropShadow|feFlood|feFuncR|feFuncG|feFuncB|feFuncA|feGaussianBlur|feMerge|feMergeNode|feMorphology|feOffset|fePointLight|feSpecularLighting|feSpotLight|feTile|feTurbulence)\b/i, reason: 'SVG filter primitive elements are not allowed in article content' },
   // <noscript> is parsed under different rules depending on the browser's scripting
   // state, a known mutation-XSS / sanitizer-confusion surface (sanitizers such as
   // DOMPurify special-case it). A glossary never needs script-fallback markup, so

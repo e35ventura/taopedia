@@ -735,6 +735,16 @@ rejects('Intro.\n\n<view viewBox="0 0 1 1" />', 'plain <view> element');
 rejects('Intro.\n\n<  switch  >x</switch>', 'spaced <switch> element');
 accepts('Switch wallets and view your balance, described here only as prose.', 'benign switch/view prose words');
 
+// SVG filter PRIMITIVE elements (fe*) operate only inside a <filter> in <svg>
+// (both blocked); block them standalone like the other svg sub-elements.
+rejects('Intro.\n\n<feFlood flood-color="red" />', 'plain <feFlood> filter primitive');
+rejects('Intro.\n\n<feGaussianBlur stdDeviation="5" />', 'plain <feGaussianBlur> filter primitive');
+rejects('Intro.\n\n<feMerge><feMergeNode /></feMerge>', 'plain <feMerge>/<feMergeNode>');
+rejects('Intro.\n\n<feColorMatrix type="saturate" />', 'plain <feColorMatrix> filter primitive');
+rejects('Intro.\n\n<  feTurbulence  />', 'spaced <feTurbulence>');
+accepts('A feature of the protocol and the feed format are described here as prose.', 'benign feature/feed prose words (not fe* filter primitives)');
+accepts('<female-icon>x</female-icon>', 'benign female-icon is not a filter primitive');
+
 // <dialog open> renders a top-layer overlay (with backdrop) and no script or
 // inline style, so a raw <dialog> is a clickjacking/phishing primitive. Blocked.
 rejects('Intro.\n\n<dialog open>Your wallet is compromised. Visit evil.example.</dialog>', 'plain <dialog open>');
