@@ -48,6 +48,20 @@ import matter from './frontmatter.js';
 }
 
 {
+  const parsed = matter('---\nseeAlso:\n  - Subnet 4: Targon\naliases:\n  - Yuma Consensus: overview\ninfoboxRows:\n  - label: Netuid\n    value: \"42\"\n---\nBody\n');
+  assert.deepEqual(
+    parsed.data,
+    {
+      seeAlso: ['Subnet 4: Targon'],
+      aliases: ['Yuma Consensus: overview'],
+      infoboxRows: [{ label: 'Netuid', value: '42' }],
+    },
+    'bare list scalars with colon-space parse as plain strings; mapping-style list entries are unchanged',
+  );
+  assert.equal(parsed.content, 'Body\n', 'bare list colon-scalar repair preserves the body');
+}
+
+{
   const parsed = matter('---\ntitle: Subnet 4: Targon # preferred label\nseo:\n  title: Subnet 4: Targon # preferred label\ninfoboxRows:\n  - label: Subnet 4: Targon # row label\n    value: Validator permit: required # row value\n---\nBody\n');
   assert.deepEqual(
     parsed.data,
