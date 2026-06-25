@@ -609,6 +609,13 @@ rejects('Intro.\n\n<use href="#x" />', 'plain <use> element');
 rejects('Intro.\n\n<  set  attributeName="x" />', 'spaced <set> element');
 accepts('Intro.\n\n<section><p>Use a set of rules; select an option.</p></section>', 'benign section/use/set/select prose words');
 accepts('SVG animation and the use element are described here only as prose.', 'benign use/animation prose');
+// <image>/<feImage> are SVG external-resource loaders (href/xlink:href) that bypass
+// the <img> img-src/scheme checks; blocked like the other SVG sub-elements.
+rejects('Intro.\n\n<image href="https://evil.example/track.png" />', 'plain <image> element');
+rejects('Intro.\n\n<  image  xlink:href="https://evil.example/x.png" />', 'spaced <image> element');
+rejects('Intro.\n\n<feImage href="https://evil.example/x.png" />', 'plain <feImage> element');
+accepts('An image of the network topology is described here only as prose.', 'benign image prose word');
+accepts('Intro.\n\n<img src="/wiki/fig.png" alt="diagram">', 'benign HTML img element still passes');
 
 // <dialog open> renders a top-layer overlay (with backdrop) and no script or
 // inline style, so a raw <dialog> is a clickjacking/phishing primitive. Blocked.
