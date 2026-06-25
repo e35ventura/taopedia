@@ -30,22 +30,39 @@ export const GET: APIRoute = async ({ site }) => {
   const origin = (site ?? new URL('https://taopedia.org')).origin;
   const pages = await getCollection('pages');
   const titleBySlug: Record<string, string> = {};
-  // The article body's word count — the same figure info.json exposes and the
-  // article-page footer (mw-article-meta data-word-count) renders, computed from
-  // the raw markdown body so a directory consumer can sort or filter the
-  // directory by article length without an N-fetch sweep.
+  for (const page of pages) {
+    titleBySlug[getPageSlug(page)] = page.data.title;
+  }
+
+  // Gather each article's body word count, table-of-contents section count, and
+  // revision history in a single parallel pass over the content collection —
+  // these were split across a sequential for-loop (title + wordCount + await
+  // render) and inline historyForSlug calls inside articles.map below. The
+  // wordCount and history reads are folded into the render pass (rendering is
+  // what requires a resolved page), kept parallel via Promise.all so the render
+  // step is not serialized across ~350 articles. Output is byte-identical.
   const wordCountBySlug: Record<string, number> = {};
-  // sectionCount is the article's table-of-contents section count — the same
-  // figure toc.json exposes as `count` and info.json / history.json expose on
-  // their envelopes, derived from the shared getArticleToc helper so a directory
-  // consumer can sort or filter by article depth without an N-fetch sweep.
   const sectionCountBySlug: Record<string, number> = {};
+  const historyBySlug: Record<string, ReturnType<typeof historyForSlug>> = {};
+  await Promise.all(
+    pages.map(async (page) => {
+      const slug = getPageSlug(page);
+      wordCountBySlug[slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
+      historyBySlug[slug] = historyForSlug(slug);
+      const { headings } = await render(page);
+      sectionCountBySlug[slug] = getArticleToc(headings).length;
+    }),
+  );
+  // Published inbound-link count and outbound reference count, gathered in a
+  // single pass after titleBySlug is built (both resolve targets through it).
+  // These were computed inline inside articles.map below; precomputing them per
+  // slug here keeps each directory entry's stats out of the final map.
+  const inboundBySlug: Record<string, number> = {};
+  const referencesCountBySlug: Record<string, number> = {};
   for (const page of pages) {
     const slug = getPageSlug(page);
-    titleBySlug[slug] = page.data.title;
-    wordCountBySlug[slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
-    const { headings } = await render(page);
-    sectionCountBySlug[slug] = getArticleToc(headings).length;
+    inboundBySlug[slug] = publishedInboundLinkCount(backlinksData, slug, titleBySlug);
+    referencesCountBySlug[slug] = getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length;
   }
 
   const articles = buildAllPages({ pages, getPageSlug, origin });
@@ -56,8 +73,8 @@ export const GET: APIRoute = async ({ site }) => {
       allpagesJsonUrl: `${origin}/wiki/special/allpages.json`,
       count: articles.length,
       articles: articles.map((article) => {
-        const history = historyForSlug(article.slug);
-        const inboundLinks = publishedInboundLinkCount(backlinksData, article.slug, titleBySlug);
+        const history = historyBySlug[article.slug] ?? [];
+        const inboundLinks = inboundBySlug[article.slug] ?? 0;
         return {
           slug: article.slug,
           title: article.title,
@@ -98,7 +115,7 @@ export const GET: APIRoute = async ({ site }) => {
           lastEdited: history[0]?.date ?? null,
           // The article's published outbound-reference count — the same figure
           // history.json and references.json expose (via getArticleReferences).
-          referencesCount: getArticleReferences({ slug: article.slug, linkGraph: linkgraphData, titleBySlug }).length,
+          referencesCount: referencesCountBySlug[article.slug] ?? 0,
           // The article body's word count — the same figure info.json exposes —
           // so the directory can be sorted or filtered by article length.
           wordCount: wordCountBySlug[article.slug] ?? 0,
