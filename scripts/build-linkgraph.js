@@ -33,7 +33,11 @@ export function orderGeneratedData({ linkGraph, backlinks, slugMap, categoryInde
     linkGraph: orderedObject(linkGraph),
     backlinks: orderedObject(backlinks, orderedBacklinks),
     slugMap: orderedObject(slugMap),
-    categoryIndex: orderedObject(categoryIndex, (slugs) => [...slugs].sort(compareGeneratedKeys)),
+    // De-dupe each category's member slugs: an article whose frontmatter repeats a
+    // category (e.g. categories: ['TAO', 'TAO']) otherwise lists its slug twice under
+    // that topic, double-counting it in category hubs and statistics. Mirrors the
+    // distinct-article counting (#1472) and the feed category de-dupe (#1494).
+    categoryIndex: orderedObject(categoryIndex, (slugs) => [...new Set(slugs)].sort(compareGeneratedKeys)),
   };
 }
 
