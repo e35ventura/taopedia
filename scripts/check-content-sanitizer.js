@@ -645,8 +645,13 @@ accepts('SVG animation and the use element are described here only as prose.', '
 rejects('Intro.\n\n<image href="https://evil.example/track.png" />', 'plain <image> element');
 rejects('Intro.\n\n<  image  xlink:href="https://evil.example/x.png" />', 'spaced <image> element');
 rejects('Intro.\n\n<feImage href="https://evil.example/x.png" />', 'plain <feImage> element');
+// <mglyph> is the MathML external-image loader (src/xlink:href), same external-
+// resource threat as SVG <image>/<feImage>.
+rejects('Intro.\n\n<mglyph src="https://evil.example/x.png" />', 'plain <mglyph> element');
+rejects('Intro.\n\n<  mglyph  src="x" />', 'spaced <mglyph> element');
 accepts('An image of the network topology is described here only as prose.', 'benign image prose word');
 accepts('Intro.\n\n<img src="/wiki/fig.png" alt="diagram">', 'benign HTML img element still passes');
+accepts('<mglyphs-demo>not an mglyph element</mglyphs-demo>', 'benign mglyphs-demo is not <mglyph>');
 
 // <dialog open> renders a top-layer overlay (with backdrop) and no script or
 // inline style, so a raw <dialog> is a clickjacking/phishing primitive. Blocked.
