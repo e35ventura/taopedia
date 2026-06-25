@@ -20,33 +20,59 @@ const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
-  const titleBySlug = Object.fromEntries(pages.map((page) => [getPageSlug(page), page.data.title]));
-
-  return Promise.all(
+  // Per-slug body word count, revision history, and table-of-contents section
+  // count — the stats the envelope carries. These depend only on each page itself;
+  // the wordCount and history reads are folded into the render pass (rendering each
+  // page is async and is what requires a resolved page) so the collection is
+  // traversed once for all per-page stats, kept parallel via Promise.all — the
+  // same single combined pass backlinks.json (#1269), references.json (#1248), and
+  // info.json (#1287) use.
+  const titleBySlug: Record<string, string> = {};
+  const wordCountBySlug: Record<string, number> = {};
+  const historyBySlug: Record<string, ReturnType<typeof historyForSlug>> = {};
+  const sectionCountBySlug: Record<string, number> = {};
+  await Promise.all(
     pages.map(async (page) => {
       const slug = getPageSlug(page);
-      const history = historyForSlug(slug);
+      titleBySlug[slug] = page.data.title;
+      wordCountBySlug[slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
+      historyBySlug[slug] = historyForSlug(slug);
       const { headings } = await render(page);
-      return {
-        params: { slug },
-        props: {
-          page,
-          slug,
-          incomingLinks: publishedInboundLinkCount(backlinksData, slug, titleBySlug),
-          referencesCount: getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length,
-          sectionCount: getArticleToc(headings).length,
-          wordCount: (page.body ?? '').trim().split(/\s+/).filter(Boolean).length,
-          // Precomputed once per route in getStaticPaths — the same revision
-          // stats GET used to re-derive via historyForSlug on every cite.json
-          // build. Matches info.json (#1037) / backlinks.json (#1042).
-          revisionCount: history.length,
-          firstEdited: history[history.length - 1]?.date ?? null,
-          lastEdited: history[0]?.date ?? null,
-          date: history[0]?.date ?? '',
-        },
-      };
+      sectionCountBySlug[slug] = getArticleToc(headings).length;
     }),
   );
+  // Published inbound-link count and outbound reference count — gathered in a
+  // single pass after titleBySlug is built (both resolve targets through it).
+  const inboundBySlug: Record<string, number> = {};
+  const referencesCountBySlug: Record<string, number> = {};
+  for (const page of pages) {
+    const slug = getPageSlug(page);
+    inboundBySlug[slug] = publishedInboundLinkCount(backlinksData, slug, titleBySlug);
+    referencesCountBySlug[slug] = getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length;
+  }
+
+  return pages.map((page) => {
+    const slug = getPageSlug(page);
+    const history = historyBySlug[slug] ?? [];
+    return {
+      params: { slug },
+      props: {
+        page,
+        slug,
+        incomingLinks: inboundBySlug[slug] ?? 0,
+        referencesCount: referencesCountBySlug[slug] ?? 0,
+        sectionCount: sectionCountBySlug[slug] ?? 0,
+        wordCount: wordCountBySlug[slug] ?? 0,
+        // Precomputed once per route in getStaticPaths — the same revision
+        // stats GET used to re-derive via historyForSlug on every cite.json
+        // build. Matches info.json (#1037) / backlinks.json (#1042).
+        revisionCount: history.length,
+        firstEdited: history[history.length - 1]?.date ?? null,
+        lastEdited: history[0]?.date ?? null,
+        date: history[0]?.date ?? '',
+      },
+    };
+  });
 }
 
 export const GET: APIRoute = async ({ site, props }) => {
