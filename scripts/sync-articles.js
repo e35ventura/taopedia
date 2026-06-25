@@ -118,6 +118,19 @@ const additionalInvisibleCharPattern = new RegExp(
 // this source.
 const invisibleSmugglingCharPattern = /[\u{FFF9}-\u{FFFB}\u{E0000}-\u{E007F}]/u;
 
+// LINE SEPARATOR (U+2028) and PARAGRAPH SEPARATOR (U+2029) are invisible, no-glyph
+// format characters a browser treats as a line/paragraph break. Like the zero-width
+// characters above, an injected one splits a flagged term or wallet address
+// invisibly (it reads as a normal line wrap but breaks naive substring/address
+// detection) and forces an unexpected break mid-prose. Markdown produces paragraph
+// breaks from blank lines, never from raw U+2028/U+2029, so neither has any use in
+// the glossary English prose it emits. Built from code points with
+// String.fromCharCode (no literal separator byte in this source), matching
+// additionalInvisibleCharPattern.
+const separatorFormatCharPattern = new RegExp(
+  '[' + [0x2028, 0x2029].map((code) => String.fromCharCode(code)).join('') + ']',
+);
+
 const unsafeContentPatterns = [
   { pattern: /^\s*import\s/m, reason: 'MDX imports are not allowed in article content' },
   { pattern: /^\s*export\s/m, reason: 'MDX exports are not allowed in article content' },
@@ -313,6 +326,7 @@ const unsafeContentPatterns = [
   { pattern: controlCharPattern, reason: 'control characters are not allowed in article content' },
   { pattern: additionalInvisibleCharPattern, reason: 'invisible format characters are not allowed in article content' },
   { pattern: invisibleSmugglingCharPattern, reason: 'invisible tag and annotation characters are not allowed in article content' },
+  { pattern: separatorFormatCharPattern, reason: 'invisible line and paragraph separator characters are not allowed in article content' },
   ...directivePatterns,
 ];
 

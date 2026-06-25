@@ -363,6 +363,14 @@ rejects('An' + String.fromCodePoint(0xfff9) + 'interlinear anchor hides here.', 
 accepts('Ordinary prose with an emoji 😀 and math symbol 𝐀 passes fine.', 'benign emoji and astral math characters pass');
 accepts('Tag characters and interlinear annotation are described here only as prose.', 'benign invisible-smuggling-char prose with none present');
 
+// Line/paragraph separators (U+2028/U+2029) are invisible no-glyph format characters
+// a browser treats as a break; an injected one splits a term invisibly. Built with
+// String.fromCharCode so no literal separator byte appears in this source.
+rejects('A split' + String.fromCharCode(0x2028) + 'address hides a break here.', 'line separator U+2028');
+rejects('A paragraph' + String.fromCharCode(0x2029) + 'separator hides here.', 'paragraph separator U+2029');
+accepts('Ordinary prose with normal sentences and spacing passes fine.', 'benign prose with no separator characters');
+accepts('Paragraph one ends.' + String.fromCharCode(0x0a) + String.fromCharCode(0x0a) + 'Paragraph two via blank line passes.', 'benign Markdown blank-line paragraph break passes');
+
 // Inline event handlers are blocked regardless of the attribute delimiter — a
 // slash, or a quote abutting the handler — not just a leading space.
 rejects('<img src=x onerror=alert(1)>', 'space-delimited handler');
