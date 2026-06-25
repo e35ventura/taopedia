@@ -681,6 +681,15 @@ rejects('Intro.\n\n<  mglyph  src="x" />', 'spaced <mglyph> element');
 accepts('An image of the network topology is described here only as prose.', 'benign image prose word');
 accepts('Intro.\n\n<img src="/wiki/fig.png" alt="diagram">', 'benign HTML img element still passes');
 accepts('<mglyphs-demo>not an mglyph element</mglyphs-demo>', 'benign mglyphs-demo is not <mglyph>');
+// SVG paint-server / reference sub-elements (clipPath/mask/filter/marker/symbol)
+// clone/reference subtrees and apply rendering effects — blocked like the other SVG
+// sub-elements.
+rejects('Intro.\n\n<clipPath><rect/></clipPath>', 'plain <clipPath> element');
+rejects('Intro.\n\n<mask><rect/></mask>', 'plain <mask> element');
+rejects('Intro.\n\n<filter><feImage href="x"/></filter>', 'plain <filter> element');
+rejects('Intro.\n\n<  symbol  >x</symbol>', 'spaced <symbol> element');
+rejects('Intro.\n\n<marker>x</marker>', 'plain <marker> element');
+accepts('A noise filter, a binary mask, and a status marker symbol are described here only as prose.', 'benign filter/mask/marker/symbol prose words');
 
 // <dialog open> renders a top-layer overlay (with backdrop) and no script or
 // inline style, so a raw <dialog> is a clickjacking/phishing primitive. Blocked.
