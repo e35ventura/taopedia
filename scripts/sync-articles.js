@@ -572,6 +572,15 @@ const unsafeContentPatterns = [
   { pattern: /\sdir\s*=/i, reason: 'dir attributes are not allowed in article content' },
   { pattern: /\bjavascript\s*:/i, reason: 'javascript: URLs are not allowed in article content' },
   { pattern: /\bvbscript\s*:/i, reason: 'vbscript: URLs are not allowed in article content' },
+  // livescript: and mocha: are Netscape's original aliases for the javascript: URL
+  // scheme — engines that honor them execute the URL body as script exactly like
+  // javascript: does. They are the same executable-URL class as the blocked
+  // javascript:/vbscript: schemes and are blocked here defensively for the same
+  // legacy-engine reason vbscript: is (neither is needed by a modern browser, but a
+  // mailer, embedded webview, or older engine may still run them). The trailing
+  // colon (and the accept tests for the words "mocha"/"livescript" in prose) keep a
+  // bare mention of the Mocha test framework or LiveScript language unaffected.
+  { pattern: /\b(?:livescript|mocha)\s*:/i, reason: 'livescript: and mocha: javascript-alias URLs are not allowed in article content' },
   // blob:/filesystem: object-URL schemes reference a resource fetched from an
   // opaque origin (a Blob or the sandboxed filesystem) rather than a normal http(s)
   // URL. In an injected <a href> or <img src> they are a resource-load/navigation
@@ -678,6 +687,7 @@ const unsafeContentPatterns = [
 const obfuscatedSchemePatterns = [
   { pattern: /javascript\s*:/i, reason: 'javascript: URLs are not allowed in article content' },
   { pattern: /vbscript\s*:/i, reason: 'vbscript: URLs are not allowed in article content' },
+  { pattern: /(?:livescript|mocha)\s*:/i, reason: 'livescript: and mocha: javascript-alias URLs are not allowed in article content' },
   { pattern: /(?:blob|filesystem)\s*:/i, reason: 'object-URL schemes are not allowed in article content' },
   { pattern: /(?:search-ms|ms-officecmd)\s*:/i, reason: 'Windows protocol-handler URLs are not allowed in article content' },
   { pattern: /ms-(?:msdt|appinstaller)\s*:/i, reason: 'Windows protocol-handler URLs are not allowed in article content' },
@@ -699,6 +709,7 @@ const obfuscatedSchemePatterns = [
 const infoboxRowValueSchemePatterns = [
   /javascript\s*:/i,
   /vbscript\s*:/i,
+  /(?:livescript|mocha)\s*:/i,
   /(?:blob|filesystem)\s*:/i,
   /(?:search-ms|ms-officecmd)\s*:/i,
   /ms-(?:msdt|appinstaller)\s*:/i,

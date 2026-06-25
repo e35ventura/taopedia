@@ -363,6 +363,12 @@ accepts('Intro.\n\n<p class="x xml:base = y">text</p>', 'benign "xml:base =" ins
 // Plain dangerous URL schemes remain blocked.
 rejects('See [x](javascript:alert(1)).', 'plain javascript:');
 rejects('See [x](vbscript:msgbox(1)).', 'plain vbscript:');
+// livescript:/mocha: are Netscape's legacy aliases for javascript: — executable URL
+// schemes blocked defensively like vbscript:.
+rejects('See [x](livescript:alert(1)).', 'plain livescript:');
+rejects('See [x](mocha:alert(1)).', 'plain mocha:');
+rejects('See [x](livescr&#105;pt:alert(1)).', 'entity-obfuscated livescript:');
+accepts('The Mocha test framework and the LiveScript language are described here only as prose.', 'benign mocha/livescript words are not the alias schemes');
 rejects('See [x](data:text/html;base64,PHNjcmlwdD4=).', 'plain data:text/html');
 rejects('See [x](data:image/svg+xml,<svg></svg>).', 'plain svg data uri');
 rejects('See [x](data:image/svg+xml;base64,PHN2ZyBvbmxvYWQ9YWxlcnQoMSk+).', 'base64 svg data uri (script hidden in blob)');
