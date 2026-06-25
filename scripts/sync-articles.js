@@ -132,6 +132,14 @@ const unsafeContentPatterns = [
   // code-execution / embedding threat as the already-blocked <object> / <embed> /
   // <iframe>. Grouped with the active-embedding family it belongs to.
   { pattern: /<\s*(base|frame|frameset|iframe|object|embed|applet|link|meta|style|form|input|button|textarea|select|option|fieldset|legend|datalist|output)\b/i, reason: 'active HTML elements are not allowed in article content' },
+  // <label> is the form-field caption element. <form>, <input>, <button>, and the
+  // rest of the control family are blocked above, but a standalone <label> still
+  // renders as clickable form chrome (and can associate with a control via for=
+  // or by wrapping one). That makes it a content-spoof / fake-form primitive in
+  // article prose — e.g. a styled "Enter your seed phrase:" label above injected
+  // text — with no script, handler, or flagged scheme. Glossary articles never
+  // embed native form UI, so block it alongside the other control elements.
+  { pattern: /<\s*label\b/i, reason: 'label elements are not allowed in article content' },
   // <dialog open> renders in the browser top layer -- above all page content, with
   // a backdrop -- with no script and no inline style. That makes a raw <dialog> a
   // clickjacking/phishing overlay primitive (e.g. a fake "wallet compromised" modal
