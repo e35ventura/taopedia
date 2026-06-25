@@ -1,25 +1,25 @@
 import type { APIRoute } from 'astro';
-import { getCollection } from 'astro:content';
-import { getPageSlug, historyForSlug } from '../lib/article-history';
+import { historyForSlug } from '../lib/article-history';
 import { buildAtomFeed } from '../../scripts/atom-feed.js';
+import slugMap from '../../public/data/slugmap.json';
 
-export const GET: APIRoute = async ({ site }) => {
-  const base = site ?? new URL('https://taopedia.org');
-  const origin = base.origin;
-  const pages = await getCollection('pages');
+export const GET: APIRoute = ({ site }) => {
+  const origin = (site ?? new URL('https://taopedia.org')).origin;
 
-  // Mirror /rss.xml and /feed.json: same canonical article URLs and
-  // newest-first ordering, but serialize as Atom 1.0 for clients that prefer the
-  // Atom syndication format.
-  const items = pages.map((page) => {
-    const slug = getPageSlug(page);
-    const history = historyForSlug(slug);
+  // Read public/data/slugmap.json for title/summary/categories — the same
+  // artifact feed.json (#1422), search-data.json (#1405), and sitemap.xml (#1416)
+  // use — instead of calling getCollection('pages') and re-reading frontmatter.
+  // historyBySlug caches each article's revision history once for datePublished
+  // and dateModified (historyForSlug is a full revision-history lookup per slug).
+  const historyBySlug: Record<string, ReturnType<typeof historyForSlug>> = {};
+  const items = Object.entries(slugMap).map(([slug, entry]) => {
+    const history = (historyBySlug[slug] ??= historyForSlug(slug));
     return {
-      title: page.data.title,
+      title: entry?.title ?? slug,
       url: `${origin}/wiki/${slug}/`,
       image: `${origin}/og/${slug}.png`,
-      description: page.data.summary ?? '',
-      categories: page.data.categories ?? [],
+      description: entry?.summary ?? '',
+      categories: entry?.categories ?? [],
       datePublished: history[history.length - 1]?.date ?? '',
       dateModified: history[0]?.date ?? '',
     };
