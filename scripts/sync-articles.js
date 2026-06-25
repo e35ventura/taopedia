@@ -154,6 +154,15 @@ const unsafeContentPatterns = [
   // no script and no inline style — the same unwanted interactive surface as dialog.
   { pattern: /<\s*details\b/i, reason: 'details elements are not allowed in article content' },
   { pattern: /<\s*summary\b/i, reason: 'summary elements are not allowed in article content' },
+  // <permission> is Chrome's Page-Embedded Permission Control (PEPC): it renders a
+  // browser-controlled in-page button that, when clicked, requests a powerful device
+  // permission such as camera, microphone, or geolocation (`<permission type="camera">`).
+  // An injected one is a permission-prompt-spoofing / unwanted-capability-grant surface
+  // — a reader sees a legitimate-looking browser permission button embedded in the
+  // article prose and may grant attacker-requested access — the same unwanted
+  // interactive/permission surface class as the blocked <dialog>/<details> elements.
+  // A glossary's article body never requests device permissions, so block the element.
+  { pattern: /<\s*permission\b/i, reason: 'permission elements are not allowed in article content' },
   // <search> exposes the implicit `search` landmark to assistive technology — an
   // injected one adds a fake "search" region to the AT landmark list (e.g. a
   // spoofed "search" area steering a screen-reader user to attacker-chosen content),
