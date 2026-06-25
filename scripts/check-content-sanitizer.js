@@ -376,6 +376,12 @@ rejects('See [x](ms-msdt:/id PCWDiagnostic).', 'plain ms-msdt:');
 rejects('See [x](ms-appinstaller://evil.example/x.msix).', 'plain ms-appinstaller:');
 rejects('See [x](ms-m&#115;dt:/id).', 'entity-obfuscated ms-msdt:');
 accepts('Forms-msdt and other terms ending in ms are described here only as prose.', 'benign words ending in ms are not the ms- scheme');
+// intent: is the Android app-launch scheme — intent://…#Intent;…;end or intent:#Intent;…
+// hands the URL to a native app; the //-or-#Intent guard keeps the prose word "intent:".
+rejects('See [x](intent://evil.example/#Intent;scheme=https;package=com.evil;end).', 'plain intent:// url');
+rejects('See [x](intent:#Intent;action=android.intent.action.VIEW;end).', 'intent: with #Intent fragment');
+accepts("The author's intent: clarity over cleverness in every article.", 'benign "intent:" prose word is not the scheme');
+accepts('Discussing user intent and search intent only as prose here.', 'benign intent prose word');
 
 // MDX expression braces execute at build time in article bodies. They are only
 // allowed when escaped as literal prose or inside Markdown code examples.

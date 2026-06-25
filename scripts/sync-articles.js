@@ -572,6 +572,13 @@ const unsafeContentPatterns = [
   // App Installer malware-delivery vector (CVE-2021-43890). Block them like the
   // javascript:/vbscript: executable schemes; the names never occur in glossary prose.
   { pattern: /\bms-(?:msdt|appinstaller)\s*:/i, reason: 'Windows protocol-handler URLs are not allowed in article content' },
+  // intent: is the Android app-launch scheme: clicking intent://…#Intent;…;end (or
+  // intent:#Intent;…) hands the URL to the Android intent system, which opens or deep-
+  // links into a native app outside the browser — a standalone app-launch / deep-link
+  // attack on mobile readers, the same out-of-browser executable-scheme class as the
+  // ms-msdt:/javascript: handlers. The // or #Intent guard means the common prose word
+  // "intent" followed by a colon (e.g. "the author's intent: clarity") is not affected.
+  { pattern: /\bintent\s*:\s*(?:\/\/|#\s*Intent\b)/i, reason: 'intent: app-launch URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*image\/svg\+xml/i, reason: 'SVG data URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*application\/xhtml\+xml/i, reason: 'XHTML data URLs are not allowed in article content' },
@@ -593,6 +600,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /javascript\s*:/i, reason: 'javascript: URLs are not allowed in article content' },
   { pattern: /vbscript\s*:/i, reason: 'vbscript: URLs are not allowed in article content' },
   { pattern: /ms-(?:msdt|appinstaller)\s*:/i, reason: 'Windows protocol-handler URLs are not allowed in article content' },
+  { pattern: /intent\s*:\s*(?:\/\/|#\s*Intent\b)/i, reason: 'intent: app-launch URLs are not allowed in article content' },
   { pattern: /data\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
   { pattern: /data\s*:\s*image\/svg\+xml/i, reason: 'SVG data URLs are not allowed in article content' },
   { pattern: /data\s*:\s*application\/xhtml\+xml/i, reason: 'XHTML data URLs are not allowed in article content' },
@@ -604,6 +612,7 @@ const infoboxRowValueSchemePatterns = [
   /javascript\s*:/i,
   /vbscript\s*:/i,
   /ms-(?:msdt|appinstaller)\s*:/i,
+  /intent\s*:\s*(?:\/\/|#\s*Intent\b)/i,
   /data\s*:\s*text\/html/i,
   /data\s*:\s*image\/svg\+xml/i,
   /data\s*:\s*application\/xhtml\+xml/i,
