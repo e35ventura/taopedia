@@ -262,6 +262,13 @@ const unsafeContentPatterns = [
   // <picture>/<source> block above. Like the SVG animation/use sub-elements, block
   // them standalone so they are caught even if the <svg> root is split off.
   { pattern: /<\s*(image|feImage)\b/i, reason: 'SVG image and feImage sub-elements are not allowed in article content' },
+  // <mglyph> is the MathML counterpart: it renders a non-standard math symbol by
+  // loading an external image via its src/xlink:href, outside the HTML <img>
+  // src/scheme checks -- the same no-script external-resource / tracking-beacon
+  // load as the SVG <image>/<feImage> block above. <mglyph> is only valid inside
+  // <math> (already blocked), but block it standalone too so it is caught even if
+  // the <math> root that hosts it is split off, like the other svg/math sub-elements.
+  { pattern: /<\s*mglyph\b/i, reason: 'MathML mglyph sub-elements are not allowed in article content' },
   // <noscript> is parsed under different rules depending on the browser's scripting
   // state, a known mutation-XSS / sanitizer-confusion surface (sanitizers such as
   // DOMPurify special-case it). A glossary never needs script-fallback markup, so
