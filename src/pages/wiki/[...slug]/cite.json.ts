@@ -1,11 +1,17 @@
 import type { APIRoute } from 'astro';
 import { getCollection, render } from 'astro:content';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
-import { publishedTitleBySlug } from '../../../lib/site-feed-context';
+import {
+  pageFromSlug,
+  publishedCategoriesBySlug,
+  publishedSummaryBySlug,
+  publishedTitleBySlug,
+} from '../../../lib/article-metadata';
 import { getArticleReferences } from '../../../lib/article-references.js';
 import { getArticleToc } from '../../../lib/article-toc.js';
 import { buildCiteJson } from '../../../../scripts/cite-json.js';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
+import slugMap from '../../../../public/data/slugmap.json';
 
 const backlinksModules = import.meta.glob('../../../../public/data/backlinks.json', { eager: true }) as Record<
   string,
@@ -22,6 +28,8 @@ const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
   const titleBySlug = publishedTitleBySlug();
+  const summaryBySlug = publishedSummaryBySlug();
+  const categoriesBySlug = publishedCategoriesBySlug();
   // Per-slug body word count, revision history, and table-of-contents section
   // count — the stats the envelope carries. These depend only on each page itself;
   // the wordCount and history reads are folded into the render pass (rendering each
@@ -45,20 +53,24 @@ export async function getStaticPaths() {
   // single pass after titleBySlug is built (both resolve targets through it).
   const inboundBySlug: Record<string, number> = {};
   const referencesCountBySlug: Record<string, number> = {};
-  for (const page of pages) {
-    const slug = getPageSlug(page);
+  for (const slug of Object.keys(slugMap)) {
+    if (!pageFromSlug(slug, slugMap)) continue;
     inboundBySlug[slug] = publishedInboundLinkCount(backlinksData, slug, titleBySlug);
     referencesCountBySlug[slug] = getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length;
   }
 
-  return pages.map((page) => {
-    const slug = getPageSlug(page);
+  return Object.keys(slugMap).flatMap((slug) => {
+    const page = pageFromSlug(slug, slugMap);
+    if (!page) return [];
+
     const history = historyBySlug[slug] ?? [];
     return {
       params: { slug },
       props: {
-        page,
         slug,
+        title: titleBySlug[slug] ?? page.data.title,
+        summary: summaryBySlug[slug] ?? '',
+        categories: categoriesBySlug[slug] ?? [],
         incomingLinks: inboundBySlug[slug] ?? 0,
         referencesCount: referencesCountBySlug[slug] ?? 0,
         sectionCount: sectionCountBySlug[slug] ?? 0,
@@ -76,9 +88,24 @@ export async function getStaticPaths() {
 }
 
 export const GET: APIRoute = async ({ site, props }) => {
-  const { page, slug, incomingLinks, referencesCount, sectionCount, wordCount, revisionCount, firstEdited, lastEdited, date } = props as {
-    page: { data: { title: string; summary?: string; categories?: string[] } };
+  const {
+    slug,
+    title,
+    summary,
+    categories,
+    incomingLinks,
+    referencesCount,
+    sectionCount,
+    wordCount,
+    revisionCount,
+    firstEdited,
+    lastEdited,
+    date,
+  } = props as {
     slug: string;
+    title: string;
+    summary: string;
+    categories: string[];
     incomingLinks: number;
     referencesCount: number;
     sectionCount: number;
@@ -92,11 +119,11 @@ export const GET: APIRoute = async ({ site, props }) => {
 
   const body = JSON.stringify(
     buildCiteJson({
-      title: page.data.title,
+      title,
       slug,
       origin,
-      summary: page.data.summary ?? '',
-      categories: page.data.categories ?? [],
+      summary,
+      categories,
       incomingLinks,
       referencesCount,
       sectionCount,
