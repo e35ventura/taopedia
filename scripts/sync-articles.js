@@ -603,6 +603,15 @@ const unsafeContentPatterns = [
   // blocked ms-appinstaller:/ms-msdt: schemes. A glossary's prose never links to a
   // local Office app, and the names never occur in glossary text.
   { pattern: /\bms-(?:word|excel|powerpoint|visio|access|project|publisher|infopath|spd)\s*:/i, reason: 'Microsoft Office document protocol-handler URLs are not allowed in article content' },
+  // ms-settings: is the Windows Settings application protocol handler: a clicked
+  // ms-settings:<page> (e.g. ms-settings:windowsdefender, ms-settings:privacy-webcam) is
+  // resolved by the OS, not the browser, and deep-links the local Settings app to a
+  // specific pane outside the page sandbox with no script — a native-app-launch / settings
+  // social-engineering surface (steering a reader to a settings pane to toggle off a
+  // security/privacy control). Same native Windows protocol-handler class as the blocked
+  // ms-msdt:/ms-officecmd:/ms-cxh: handlers; the hyphenated "ms-settings" token never
+  // occurs in glossary prose.
+  { pattern: /\bms-settings\s*:/i, reason: 'Windows Settings protocol-handler URLs are not allowed in article content' },
   // onenote: is the OneNote application protocol handler, the sibling of the ms-word:/
   // ms-excel: Office schemes above: a clicked onenote:https://evil.example/x.one launches
   // the locally-installed OneNote app pointed at an attacker-hosted notebook outside the
@@ -682,6 +691,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:search-ms|ms-officecmd)\s*:/i, reason: 'Windows protocol-handler URLs are not allowed in article content' },
   { pattern: /ms-(?:msdt|appinstaller)\s*:/i, reason: 'Windows protocol-handler URLs are not allowed in article content' },
   { pattern: /ms-(?:word|excel|powerpoint|visio|access|project|publisher|infopath|spd)\s*:/i, reason: 'Microsoft Office document protocol-handler URLs are not allowed in article content' },
+  { pattern: /ms-settings\s*:/i, reason: 'Windows Settings protocol-handler URLs are not allowed in article content' },
   { pattern: /onenote\s*:/i, reason: 'onenote: application protocol-handler URLs are not allowed in article content' },
   { pattern: /(?:mhtml|jar)\s*:/i, reason: 'archive-extraction URL schemes are not allowed in article content' },
   { pattern: /(?:rdp|vnc|telnet|ssh)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
@@ -703,6 +713,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:search-ms|ms-officecmd)\s*:/i,
   /ms-(?:msdt|appinstaller)\s*:/i,
   /ms-(?:word|excel|powerpoint|visio|access|project|publisher|infopath|spd)\s*:/i,
+  /ms-settings\s*:/i,
   /onenote\s*:/i,
   /(?:mhtml|jar)\s*:/i,
   /(?:rdp|vnc|telnet|ssh)\s*:\/\//i,

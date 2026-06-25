@@ -419,6 +419,13 @@ rejects('See [x](ms-excel:ofv|u|https://evil.example/x.xlsm).', 'plain ms-excel:
 rejects('See [x](ms-powerpoint:ofe|u|https://evil.example/x.pptm).', 'plain ms-powerpoint: Office scheme');
 rejects('See [x](ms-w&#111;rd:ofe|u|https://evil.example/x.docm).', 'entity-obfuscated ms-word: Office scheme');
 accepts('Microsoft Word, Excel, and PowerPoint are described here only as prose.', 'benign Office app names are not the ms- schemes');
+// ms-settings: is the Windows Settings protocol handler — ms-settings:<page> deep-links
+// the local Settings app to a pane (a native-launch / settings social-engineering surface),
+// blocked like the ms-msdt:/ms-officecmd:/ms-cxh: handlers.
+rejects('See [x](ms-settings:windowsdefender).', 'plain ms-settings: handler URL');
+rejects('See [x](ms-settings:privacy-webcam).', 'ms-settings: privacy pane deep-link');
+rejects('See [x](ms-s&#101;ttings:privacy-webcam).', 'entity-obfuscated ms-settings:');
+accepts('The application settings and user preferences are described here only as prose.', 'benign "settings" prose word is not the ms-settings: scheme');
 // onenote: is the OneNote app protocol handler, sibling of the ms-word:/ms-excel: Office
 // schemes — it launches the local OneNote app pointed at an attacker-hosted notebook.
 rejects('See [x](onenote:https://evil.example/x.one).', 'plain onenote: scheme');
