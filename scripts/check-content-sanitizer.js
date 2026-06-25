@@ -963,6 +963,12 @@ accepts('A text track file is a media concept mentioned here without a tag.', 'b
 accepts('A picture element is an HTML concept mentioned here without a tag.', 'benign picture prose');
 accepts('The source of truth for this term is documented in prose only.', 'benign source prose');
 
+// <model> embeds an interactive 3D model loaded from an external src — an external
+// resource load (outside the img-src checks) plus an interactive widget. Block it.
+rejects('Intro.\n\n<model src="https://evil.example/x.usdz"></model>', 'plain <model>');
+rejects('Intro.\n\n<  model   src="//evil.example/x.glb">x</model>', 'spaced <model>');
+accepts('A machine-learning model is a concept described here only as prose.', 'benign model prose word');
+
 // <map>/<area> plus usemap= on <img> are client-side image-map clickjacking primitives.
 rejects('Intro.\n\n<map name="evil"><area shape="rect" coords="0,0,999,999" href="https://evil.example/"></map>', 'plain <map>');
 rejects('Intro.\n\n<  area  shape="rect" coords="0,0,1,1" href="https://evil.example/">', 'spaced <area>');
