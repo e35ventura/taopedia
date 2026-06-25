@@ -351,6 +351,10 @@ rejects('A soft' + String.fromCharCode(0x00ad) + 'hyphen splits a term.', 'soft 
 rejects('Invisible' + String.fromCharCode(0x2062) + 'times hides here.', 'invisible times U+2062');
 rejects('A mongolian' + String.fromCharCode(0x180e) + 'separator hides.', 'mongolian vowel separator U+180E');
 rejects('A hangul' + String.fromCharCode(0x3164) + 'filler hides here.', 'hangul filler U+3164');
+// COMBINING GRAPHEME JOINER (U+034F) is an invisible format character that alters
+// grapheme-cluster boundaries without a visible glyph — same token-splitting class
+// as the zero-width characters; ZWJ (U+200D) is deliberately not blocked for emoji.
+rejects('A wallet' + String.fromCharCode(0x034f) + 'address splits here.', 'combining grapheme joiner U+034F');
 // U+206A-U+206F (inhibit/activate symmetric swapping, Arabic form shaping, national/
 // nominal digit shapes) complete the invisible format-character range the U+2061-U+2064
 // math operators above started; all render nothing in Latin prose.
