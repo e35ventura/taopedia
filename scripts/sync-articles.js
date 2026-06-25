@@ -250,6 +250,14 @@ const unsafeContentPatterns = [
   // <video>/<audio> render native media controls in article bodies even though CSP
   // sets media-src 'none' — an injected tag is still a distraction/phishing primitive.
   { pattern: /<\s*(video|audio|track)\b/i, reason: 'media elements are not allowed in article content' },
+  // <model> embeds an interactive 3D model (USDZ/glTF) loaded from an external src and
+  // rendered as a rotatable, user-manipulable viewer. An injected one both loads an
+  // attacker-chosen external resource outside the img-src checks that gate plain <img>
+  // (a no-script tracking-beacon / external-load, like the blocked <picture>/<source>)
+  // and drops an interactive embedded widget into article prose (a distraction/spoof
+  // surface like the blocked <video>/<audio> media elements). A glossary's prose is
+  // plain text and never embeds 3D models, so block it with the rest of the media family.
+  { pattern: /<\s*model\b/i, reason: 'model elements are not allowed in article content' },
   // <bgsound> is the obsolete IE background-audio element: it auto-loads and plays an
   // external audio file from its src the moment it is parsed, outside the media-src
   // checks — the same no-script external-resource / tracking-beacon load as the
@@ -612,6 +620,15 @@ const unsafeContentPatterns = [
   // blocked ms-appinstaller:/ms-msdt: schemes. A glossary's prose never links to a
   // local Office app, and the names never occur in glossary text.
   { pattern: /\bms-(?:word|excel|powerpoint|visio|access|project|publisher|infopath|spd)\s*:/i, reason: 'Microsoft Office document protocol-handler URLs are not allowed in article content' },
+  // ms-settings: is the Windows Settings application protocol handler: a clicked
+  // ms-settings:<page> (e.g. ms-settings:windowsdefender, ms-settings:privacy-webcam) is
+  // resolved by the OS, not the browser, and deep-links the local Settings app to a
+  // specific pane outside the page sandbox with no script — a native-app-launch / settings
+  // social-engineering surface (steering a reader to a settings pane to toggle off a
+  // security/privacy control). Same native Windows protocol-handler class as the blocked
+  // ms-msdt:/ms-officecmd:/ms-cxh: handlers; the hyphenated "ms-settings" token never
+  // occurs in glossary prose.
+  { pattern: /\bms-settings\s*:/i, reason: 'Windows Settings protocol-handler URLs are not allowed in article content' },
   // onenote: is the OneNote application protocol handler, the sibling of the ms-word:/
   // ms-excel: Office schemes above: a clicked onenote:https://evil.example/x.one launches
   // the locally-installed OneNote app pointed at an attacker-hosted notebook outside the
@@ -619,6 +636,22 @@ const unsafeContentPatterns = [
   // class (OneNote's handler has a documented history of malware abuse). A glossary's
   // prose never links to a local OneNote app, and the scheme name never occurs in prose.
   { pattern: /\bonenote\s*:/i, reason: 'onenote: application protocol-handler URLs are not allowed in article content' },
+  // ms-settings:/ms-windows-store:/ms-gamingoverlay: are three more native Windows app
+  // protocol handlers the OS — not the browser — resolves when a link is clicked, the
+  // same out-of-sandbox launch class as the blocked onenote:/ms-cxh: handlers.
+  // ms-windows-store:pdp/?productid=… deep-links the Store straight to an app's install
+  // page (an app-install social-engineering surface); ms-settings:windowsdefender and
+  // friends deep-link the Settings app to security pages an attacker wants the reader to
+  // toggle; and ms-gamingoverlay: is the handler whose unregistered/abused form pops the
+  // documented system error dialog (a no-script annoyance / DoS). The hyphenated/compound
+  // "ms-" tokens never occur in glossary prose.
+  { pattern: /\bms-(?:settings|windows-store|gamingoverlay)\s*:/i, reason: 'Windows app protocol-handler URLs are not allowed in article content' },
+  // smb:// is the Windows file-share scheme: a clicked smb://attacker.example/share makes
+  // Windows open an SMB connection to the attacker's server, which silently performs NTLM
+  // authentication and leaks the reader's hashed credentials (an NTLM-leak / relay
+  // credential-theft attack) outside the browser with no script. A glossary never links
+  // to a file share; the // form means prose about the "SMB protocol" is unaffected.
+  { pattern: /\bsmb\s*:\/\//i, reason: 'smb: file-share URLs are not allowed in article content' },
   // mhtml: and jar: are archive-extraction URL schemes that historically rendered
   // attacker-controlled HTML pulled from inside an archive in the page's own
   // context: mhtml:https://host/x!sub (the IE/Edge MHTML handler, CVE-2011-1894)
@@ -627,6 +660,14 @@ const unsafeContentPatterns = [
   // non-http content-injection channel, the same class as the blocked
   // javascript:/vbscript:/data: schemes. Neither name occurs in glossary prose.
   { pattern: /\b(?:mhtml|jar)\s*:/i, reason: 'archive-extraction URL schemes are not allowed in article content' },
+  // vscode:/vscode-insiders:/vscodium: are the code-editor protocol handlers the OS
+  // resolves to launch the locally-installed editor — not the browser — when a link is
+  // clicked. A crafted vscode://… link can open an attacker-chosen folder/workspace
+  // (whose tasks or trusted-workspace settings then run), deep-link the extension
+  // marketplace to install an extension, or drive editor commands, all outside the page
+  // sandbox with no script. Same native protocol-handler class as the blocked
+  // ms-*/onenote: handlers; the editor scheme names never occur in glossary prose.
+  { pattern: /\b(?:vscode-insiders|vscodium|vscode)\s*:/i, reason: 'code-editor protocol-handler URLs are not allowed in article content' },
   // rdp:// vnc:// telnet:// ssh:// hand the URL's host to a native remote-session
   // client: a clicked rdp://attacker-host or telnet://internal-host opens an OS
   // client outside the page sandbox with no script — the same native protocol-handler
@@ -635,6 +676,14 @@ const unsafeContentPatterns = [
   // glossary definition like "SSH: Secure Shell" (a scheme name followed by a colon
   // in prose, with no //) is never affected.
   { pattern: /\b(?:rdp|vnc|telnet|ssh)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
+  // ms-its: and mk:@MSITStore: are the InfoTech Storage System (compiled-HTML-help, .chm)
+  // URL schemes: ms-its:<chm>::/page.htm and mk:@MSITStore:<chm>::/page.htm resolve a page
+  // out of a local or remote .chm help archive through the native ITSS handler — a
+  // documented remote-code-execution / content-injection vector (.chm files run script in
+  // the Local Machine zone). Same native-handler / archive-extraction class as the blocked
+  // mhtml:/jar:/ms-msdt: schemes. The mk: form requires the literal `:@` so the two-letter
+  // "mk:" never matches a prose abbreviation, and "ms-its" never occurs in glossary prose.
+  { pattern: /\b(?:ms-its\s*:|mk\s*:\s*@)/i, reason: 'compiled-HTML-help (CHM) URL schemes are not allowed in article content' },
   // itms-services:// itms-apps:// itms:// market:// android-app:// are mobile app-store
   // schemes: itms-services://?action=download-manifest&url=… triggers an iOS over-the-air
   // app install from an attacker-hosted manifest, itms://itms-apps:// open the App Store,
@@ -643,6 +692,15 @@ const unsafeContentPatterns = [
   // same class as the blocked intent: app-launch scheme. The // authority form is required
   // so prose like "the market: outlook" (scheme name + colon, no //) is never affected.
   { pattern: /\b(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i, reason: 'mobile app-store URL schemes are not allowed in article content' },
+  // steam:// and com.epicgames.launcher:// are game-launcher protocol handlers the OS
+  // resolves to drive the locally-installed client — not the browser. steam://run/<id>
+  // and steam://install/<id> launch or install games and were a documented RCE surface
+  // via the client's argument handling, and com.epicgames.launcher:// had its own
+  // documented launcher RCE. A clicked link drives a native app outside the page sandbox
+  // with no script — the same native protocol-handler class as the blocked
+  // ms-*/onenote: handlers. The //-authority form is required so the prose word "steam"
+  // before a colon is never affected; the names never occur as URLs in glossary prose.
+  { pattern: /\b(?:steam|com\.epicgames\.launcher)\s*:\/\//i, reason: 'game-launcher protocol-handler URLs are not allowed in article content' },
   // intent: is the Android app-launch scheme: a URI of the form intent:[//host/path]#Intent;…;end
   // hands the URL to the Android intent system, which opens or deep-links into a native app
   // outside the browser — a standalone app-launch attack on mobile readers, the same
@@ -652,6 +710,14 @@ const unsafeContentPatterns = [
   // by any non-whitespace URL characters and then #Intent. The whitespace boundary means the
   // common prose word "intent" before a colon (e.g. "the author's intent: clarity") is unaffected.
   { pattern: /\bintent\s*:[^\s"'<>)]*#\s*Intent\b/i, reason: 'intent: app-launch URLs are not allowed in article content' },
+  // zoommtg:/zoomus:/msteams: are video-conferencing client protocol handlers the OS
+  // resolves to launch the locally-installed client — not the browser — at an
+  // attacker-chosen meeting/host. zoommtg: is the Zoom launch scheme whose argument
+  // handling was a documented client RCE/launch vector (CVE-2018-15715), and msteams:
+  // deep-links the Teams client. A clicked link drives a native app outside the page
+  // sandbox with no script — the same native protocol-handler class as the blocked
+  // ms-*/onenote: handlers; the scheme names never occur in glossary prose.
+  { pattern: /\b(?:zoommtg|zoomus|msteams)\s*:/i, reason: 'video-conferencing client protocol-handler URLs are not allowed in article content' },
   // shell: is the Windows Explorer protocol handler: shell:startup opens the user's
   // Startup folder (a drop-a-payload persistence path), shell:::{CLSID} opens special
   // folders / Control-Panel applets, and the OS — not the browser — resolves it, with
@@ -699,11 +765,18 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:search-ms|ms-officecmd)\s*:/i, reason: 'Windows protocol-handler URLs are not allowed in article content' },
   { pattern: /ms-(?:msdt|appinstaller)\s*:/i, reason: 'Windows protocol-handler URLs are not allowed in article content' },
   { pattern: /ms-(?:word|excel|powerpoint|visio|access|project|publisher|infopath|spd)\s*:/i, reason: 'Microsoft Office document protocol-handler URLs are not allowed in article content' },
+  { pattern: /ms-settings\s*:/i, reason: 'Windows Settings protocol-handler URLs are not allowed in article content' },
   { pattern: /onenote\s*:/i, reason: 'onenote: application protocol-handler URLs are not allowed in article content' },
+  { pattern: /ms-(?:settings|windows-store|gamingoverlay)\s*:/i, reason: 'Windows app protocol-handler URLs are not allowed in article content' },
+  { pattern: /smb\s*:\/\//i, reason: 'smb: file-share URLs are not allowed in article content' },
   { pattern: /(?:mhtml|jar)\s*:/i, reason: 'archive-extraction URL schemes are not allowed in article content' },
+  { pattern: /(?:vscode-insiders|vscodium|vscode)\s*:/i, reason: 'code-editor protocol-handler URLs are not allowed in article content' },
   { pattern: /(?:rdp|vnc|telnet|ssh)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
+  { pattern: /(?:ms-its\s*:|mk\s*:\s*@)/i, reason: 'compiled-HTML-help (CHM) URL schemes are not allowed in article content' },
   { pattern: /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i, reason: 'mobile app-store URL schemes are not allowed in article content' },
+  { pattern: /(?:steam|com\.epicgames\.launcher)\s*:\/\//i, reason: 'game-launcher protocol-handler URLs are not allowed in article content' },
   { pattern: /intent\s*:[^\s"'<>)]*#\s*Intent\b/i, reason: 'intent: app-launch URLs are not allowed in article content' },
+  { pattern: /(?:zoommtg|zoomus|msteams)\s*:/i, reason: 'video-conferencing client protocol-handler URLs are not allowed in article content' },
   { pattern: /\bshell\s*:(?=[^\s"'<>)])/i, reason: 'shell: protocol-handler URLs are not allowed in article content' },
   { pattern: /\bms-cxh(?:-full)?\s*:/i, reason: 'Windows CloudExperienceHost protocol-handler URLs are not allowed in article content' },
   { pattern: /data\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
@@ -721,11 +794,18 @@ const infoboxRowValueSchemePatterns = [
   /(?:search-ms|ms-officecmd)\s*:/i,
   /ms-(?:msdt|appinstaller)\s*:/i,
   /ms-(?:word|excel|powerpoint|visio|access|project|publisher|infopath|spd)\s*:/i,
+  /ms-settings\s*:/i,
   /onenote\s*:/i,
+  /ms-(?:settings|windows-store|gamingoverlay)\s*:/i,
+  /smb\s*:\/\//i,
   /(?:mhtml|jar)\s*:/i,
+  /(?:vscode-insiders|vscodium|vscode)\s*:/i,
   /(?:rdp|vnc|telnet|ssh)\s*:\/\//i,
+  /(?:ms-its\s*:|mk\s*:\s*@)/i,
   /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i,
+  /(?:steam|com\.epicgames\.launcher)\s*:\/\//i,
   /intent\s*:[^\s"'<>)]*#\s*Intent\b/i,
+  /(?:zoommtg|zoomus|msteams)\s*:/i,
   /\bshell\s*:(?=[^\s"'<>)])/i,
   /\bms-cxh(?:-full)?\s*:/i,
   /data\s*:\s*text\/html/i,

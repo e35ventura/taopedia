@@ -390,6 +390,13 @@ rejects('See [x](jar:https://evil.example/x.jar!/payload.html).', 'plain jar: ar
 rejects('![x](mhtml:https://evil.example/x!a)', 'mhtml: in an image src');
 rejects('See [x](m&#104;tml:https://evil.example/x!a).', 'entity-obfuscated mhtml:');
 accepts('A jar of configuration and an MHTML export are described here only as prose.', 'benign jar/mhtml prose words (no scheme colon)');
+// vscode:/vscode-insiders:/vscodium: are code-editor protocol handlers the OS launches
+// (open folder / run tasks / install extension), blocked like onenote:/ms-cxh:.
+rejects('See [x](vscode://file/etc/passwd).', 'plain vscode: editor scheme');
+rejects('See [x](vscode-insiders://vscode.git/clone?url=https://evil.example/x).', 'plain vscode-insiders: editor scheme');
+rejects('See [x](vscodium://extension/evil.publisher.evil).', 'plain vscodium: editor scheme');
+rejects('See [x](vscod&#101;://file/x).', 'entity-obfuscated vscode:');
+accepts('The VS Code editor and the VSCodium build are described here only as prose.', 'benign editor names are not the vscode: schemes');
 // rdp:// vnc:// telnet:// ssh:// launch a native remote-session client at the host;
 // the // authority form is required so glossary definitions ("SSH: Secure Shell")
 // are unaffected.
@@ -399,10 +406,22 @@ rejects('See [x](telnet://internal-host:23).', 'plain telnet:// URL');
 rejects('See [x](vnc://evil.example:5900).', 'plain vnc:// URL');
 accepts('SSH: Secure Shell and RDP: Remote Desktop Protocol are defined here as prose.', 'benign SSH:/RDP: glossary definitions (no // authority)');
 accepts('Connect over ssh and telnet are described only as protocol names here.', 'benign ssh/telnet prose words');
+// ms-its: and mk:@MSITStore: resolve a page out of a compiled-HTML-help (.chm) archive
+// through the native ITSS handler (a documented RCE vector), blocked like mhtml:/jar:.
+rejects('See [x](ms-its:evil.chm::/exploit.htm).', 'plain ms-its: CHM scheme');
+rejects('See [x](mk:@MSITStore:evil.chm::/exploit.htm).', 'plain mk:@MSITStore: CHM scheme');
+rejects('See [x](ms-i&#116;s:evil.chm::/x.htm).', 'entity-obfuscated ms-its:');
+accepts('The mk abbreviation and an ITSS help archive are described here only as prose.', 'benign mk/ITSS prose words (no :@ or ms-its: scheme)');
 // itms-services:// market:// android-app:// etc. are mobile app-store install/launch
 // schemes (itms-services:// = iOS OTA install), blocked like intent:; //-guarded.
 rejects('See [x](itms-services://?action=download-manifest&url=https://evil.example/m.plist).', 'plain itms-services:// iOS OTA install');
 rejects('See [x](market://details?id=com.evil.app).', 'plain market:// Play Store URL');
+// steam:// and com.epicgames.launcher:// drive a native game client (steam://run /
+// steam://install RCE history; Epic launcher RCE), blocked like itms-services://.
+rejects('See [x](steam://run/123456//evil-arg).', 'plain steam:// game-launcher scheme');
+rejects('See [x](steam://install/123456).', 'plain steam://install scheme');
+rejects('See [x](com.epicgames.launcher://store/evil).', 'plain Epic launcher scheme');
+accepts('A steamroller of demand and the Epic Games launcher are described here only as prose.', 'benign steam/epic prose words (no scheme //)');
 rejects('See [x](android-app://com.evil.app).', 'plain android-app:// URL');
 rejects('See [x](itms-apps://itunes.apple.com/app/id0).', 'plain itms-apps:// App Store URL');
 accepts('The DeFi market: outlook and a token marketplace are described here as prose.', 'benign market: prose (no // authority)');
@@ -426,11 +445,31 @@ rejects('See [x](ms-excel:ofv|u|https://evil.example/x.xlsm).', 'plain ms-excel:
 rejects('See [x](ms-powerpoint:ofe|u|https://evil.example/x.pptm).', 'plain ms-powerpoint: Office scheme');
 rejects('See [x](ms-w&#111;rd:ofe|u|https://evil.example/x.docm).', 'entity-obfuscated ms-word: Office scheme');
 accepts('Microsoft Word, Excel, and PowerPoint are described here only as prose.', 'benign Office app names are not the ms- schemes');
+// ms-settings: is the Windows Settings protocol handler — ms-settings:<page> deep-links
+// the local Settings app to a pane (a native-launch / settings social-engineering surface),
+// blocked like the ms-msdt:/ms-officecmd:/ms-cxh: handlers.
+rejects('See [x](ms-settings:windowsdefender).', 'plain ms-settings: handler URL');
+rejects('See [x](ms-settings:privacy-webcam).', 'ms-settings: privacy pane deep-link');
+rejects('See [x](ms-s&#101;ttings:privacy-webcam).', 'entity-obfuscated ms-settings:');
+accepts('The application settings and user preferences are described here only as prose.', 'benign "settings" prose word is not the ms-settings: scheme');
 // onenote: is the OneNote app protocol handler, sibling of the ms-word:/ms-excel: Office
 // schemes — it launches the local OneNote app pointed at an attacker-hosted notebook.
 rejects('See [x](onenote:https://evil.example/x.one).', 'plain onenote: scheme');
 rejects('See [x](on&#101;note:https://evil.example/x.one).', 'entity-obfuscated onenote: scheme');
 accepts('OneNote and the notebook app are described here only as prose.', 'benign OneNote app name is not the onenote: scheme');
+// ms-settings:/ms-windows-store:/ms-gamingoverlay: are native Windows app protocol
+// handlers the OS launches out of the sandbox — blocked like onenote:/ms-cxh:.
+rejects('See [x](ms-windows-store://pdp/?productid=9WZDNCRFHVN5).', 'plain ms-windows-store: handler URL');
+rejects('See [x](ms-settings:windowsdefender).', 'plain ms-settings: handler URL');
+rejects('See [x](ms-gamingoverlay:broadcast).', 'plain ms-gamingoverlay: handler URL');
+rejects('See [x](ms-setti&#110;gs:windowsdefender).', 'entity-obfuscated ms-settings:');
+accepts('The Microsoft Store and the Settings app are described here only as prose.', 'benign Store/Settings app names are not the ms- schemes');
+// smb:// makes Windows open an SMB connection to the host, silently leaking the reader's
+// NTLM credentials — an NTLM-leak / relay credential-theft attack. The // form keeps prose
+// about the "SMB protocol".
+rejects('See [x](smb://attacker.example/share).', 'plain smb:// file-share URL');
+rejects('See [x](s&#109;b://attacker.example/share).', 'entity-obfuscated smb:// URL');
+accepts('The SMB protocol and Server Message Block are described here only as prose.', 'benign "SMB" prose is not the smb:// scheme');
 // intent: is the Android app-launch scheme — intent:[//host/path]#Intent;…;end hands the
 // URL to a native app. Per Chrome's syntax an optional host/path may sit between the
 // scheme and the required #Intent marker, so all of these forms are rejected; the
@@ -448,6 +487,13 @@ rejects('See [x](shell:::{20D04FE0-3AEA-1069-A2D8-08002B30309D}).', 'shell:::{CL
 rejects('See [x](sh&#101;ll:Downloads).', 'entity-obfuscated shell: URL');
 accepts('The Bash shell: a command interpreter, described here only as prose.', 'benign "shell:" prose word is not the scheme');
 accepts('Discussing user intent and the #Intent label only as prose, far apart.', 'benign "intent" prose word with a distant #Intent is not the scheme');
+// zoommtg:/zoomus:/msteams: launch a native conferencing client at an attacker host
+// (zoommtg: = documented Zoom launch/RCE vector), blocked like onenote:/ms-cxh:.
+rejects('See [x](zoommtg://zoom.us/join?confno=123&pwd=evil).', 'plain zoommtg: conferencing scheme');
+rejects('See [x](zoomus://zoom.us/join?confno=123).', 'plain zoomus: conferencing scheme');
+rejects('See [x](msteams:/l/meetup-join/evil).', 'plain msteams: conferencing scheme');
+rejects('See [x](zoom&#109;tg://zoom.us/join).', 'entity-obfuscated zoommtg:');
+accepts('Zoom and Microsoft Teams meetings are described here only as prose.', 'benign conferencing app names are not the schemes');
 // ms-cxh:/ms-cxh-full: are the Windows CloudExperienceHost protocol handlers (a
 // documented LPE/UAC-bypass surface) — the OS resolves them, blocked like ms-msdt:.
 rejects('See [x](ms-cxh://localonly/?comingFromMSA=1).', 'plain ms-cxh: handler URL');
@@ -975,6 +1021,12 @@ accepts('Video and audio codecs are discussed here only as prose.', 'benign vide
 accepts('A text track file is a media concept mentioned here without a tag.', 'benign track prose');
 accepts('A picture element is an HTML concept mentioned here without a tag.', 'benign picture prose');
 accepts('The source of truth for this term is documented in prose only.', 'benign source prose');
+
+// <model> embeds an interactive 3D model loaded from an external src — an external
+// resource load (outside the img-src checks) plus an interactive widget. Block it.
+rejects('Intro.\n\n<model src="https://evil.example/x.usdz"></model>', 'plain <model>');
+rejects('Intro.\n\n<  model   src="//evil.example/x.glb">x</model>', 'spaced <model>');
+accepts('A machine-learning model is a concept described here only as prose.', 'benign model prose word');
 
 // <map>/<area> plus usemap= on <img> are client-side image-map clickjacking primitives.
 rejects('Intro.\n\n<map name="evil"><area shape="rect" coords="0,0,999,999" href="https://evil.example/"></map>', 'plain <map>');
