@@ -403,6 +403,12 @@ accepts('Connect over ssh and telnet are described only as protocol names here.'
 // schemes (itms-services:// = iOS OTA install), blocked like intent:; //-guarded.
 rejects('See [x](itms-services://?action=download-manifest&url=https://evil.example/m.plist).', 'plain itms-services:// iOS OTA install');
 rejects('See [x](market://details?id=com.evil.app).', 'plain market:// Play Store URL');
+// steam:// and com.epicgames.launcher:// drive a native game client (steam://run /
+// steam://install RCE history; Epic launcher RCE), blocked like itms-services://.
+rejects('See [x](steam://run/123456//evil-arg).', 'plain steam:// game-launcher scheme');
+rejects('See [x](steam://install/123456).', 'plain steam://install scheme');
+rejects('See [x](com.epicgames.launcher://store/evil).', 'plain Epic launcher scheme');
+accepts('A steamroller of demand and the Epic Games launcher are described here only as prose.', 'benign steam/epic prose words (no scheme //)');
 rejects('See [x](android-app://com.evil.app).', 'plain android-app:// URL');
 rejects('See [x](itms-apps://itunes.apple.com/app/id0).', 'plain itms-apps:// App Store URL');
 accepts('The DeFi market: outlook and a token marketplace are described here as prose.', 'benign market: prose (no // authority)');
