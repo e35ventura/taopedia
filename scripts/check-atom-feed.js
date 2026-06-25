@@ -91,6 +91,34 @@ assert.ok(!undatedEntry.includes('<published>'), 'undated entries omit published
 assert.ok(!/<summary>\s*<\/summary>/.test(feed), 'never emits an empty summary tag');
 assert.ok(!/<category term="\s*" \/>/.test(feed), 'never emits an empty category');
 
+// A duplicated frontmatter category (categories: ['TAO', 'TAO']) — the same data
+// condition buildCategories/buildStatistics were fixed to count distinctly (#1472)
+// — must emit a single <category> element. Whitespace-only variants collapse to
+// the same category because blanks are trimmed before dedupe.
+{
+  const dupCategoryFeed = buildAtomFeed({
+    siteUrl,
+    items: [
+      {
+        title: 'Duplicated Category',
+        url: 'https://taopedia.org/wiki/duplicated_category/',
+        categories: ['TAO', 'TAO', '  TAO  ', 'Concepts'],
+        dateModified: '2026-06-05T00:00:00Z',
+      },
+    ],
+  });
+  assert.equal(
+    (dupCategoryFeed.match(/<category term="TAO" \/>/g) || []).length,
+    1,
+    'a duplicated category is emitted only once',
+  );
+  assert.equal(
+    (dupCategoryFeed.match(/<category term="Concepts" \/>/g) || []).length,
+    1,
+    'distinct categories are still each emitted once',
+  );
+}
+
 {
   const categoryFeed = buildAtomFeed({
     siteUrl,

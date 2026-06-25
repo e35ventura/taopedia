@@ -89,6 +89,34 @@ assert.ok(!/<description>\s*<\/description>/.test(feed), 'never emits an empty d
   assert.ok(!/<category>\s*<\/category>/.test(blankCategoryFeed), 'never emits an empty category tag');
 }
 
+// A duplicated frontmatter category (categories: ['TAO', 'TAO']) — the same data
+// condition buildCategories/buildStatistics were fixed to count distinctly (#1472)
+// — must emit a single <category> element, not one per occurrence. Whitespace-only
+// variants collapse to the same category because blanks are trimmed before dedupe.
+{
+  const dupCategoryFeed = buildRssFeed({
+    siteUrl,
+    items: [
+      {
+        title: 'Duplicated Category',
+        url: 'https://taopedia.org/wiki/duplicated_category/',
+        categories: ['TAO', 'TAO', '  TAO  ', 'Concepts'],
+        date: '2026-06-05T00:00:00Z',
+      },
+    ],
+  });
+  assert.equal(
+    (dupCategoryFeed.match(/<category>TAO<\/category>/g) || []).length,
+    1,
+    'a duplicated category is emitted only once',
+  );
+  assert.equal(
+    (dupCategoryFeed.match(/<category>Concepts<\/category>/g) || []).length,
+    1,
+    'distinct categories are still each emitted once',
+  );
+}
+
 // Revision-event feeds can point multiple items at the same article URL, so the
 // shared serializer must support a caller-supplied non-permalink guid.
 {
