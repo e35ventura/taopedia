@@ -329,6 +329,13 @@ const unsafeContentPatterns = [
   // the others so they are caught even if the <svg> root is split off. A glossary's
   // plain-prose Markdown body never authors raw SVG.
   { pattern: /<\s*(switch|view)\b/i, reason: 'SVG switch and view sub-elements are not allowed in article content' },
+  // <textPath> renders its text along a path referenced via href/xlink:href — a
+  // reference primitive in the same class as the blocked <use> (which references
+  // another subtree by URL), and the href can point at an external resource. It only
+  // functions inside <svg> (already blocked); block it standalone like the other SVG
+  // sub-elements so it is caught even if the <svg> root is split off. A glossary's
+  // plain-prose Markdown body never authors raw SVG.
+  { pattern: /<\s*textPath\b/i, reason: 'SVG textPath sub-elements are not allowed in article content' },
   // <noscript> is parsed under different rules depending on the browser's scripting
   // state, a known mutation-XSS / sanitizer-confusion surface (sanitizers such as
   // DOMPurify special-case it). A glossary never needs script-fallback markup, so
