@@ -145,6 +145,17 @@ const unsafeContentPatterns = [
   // code-execution / embedding threat as the already-blocked <object> / <embed> /
   // <iframe>. Grouped with the active-embedding family it belongs to.
   { pattern: /<\s*(base|frame|frameset|iframe|object|embed|applet|link|meta|style|form|input|button|textarea|select|option|optgroup|fieldset|legend|datalist|output|label|menu|menuitem)\b/i, reason: 'active HTML elements are not allowed in article content' },
+  // <isindex> and <keygen> are obsolete form-creating / form-control elements that the
+  // HTML parser still honors. <isindex> implicitly creates a <form> wrapping a text input
+  // (it generates the form and input even when no <form> tag is present), and <keygen> is a
+  // form-associated control (historically a client-cert key-pair generator). Both render a
+  // submittable control that can exfiltrate reader input to an attacker action URL with no
+  // script — the same form-injection / data-exfiltration class as the already-blocked
+  // <form>/<input>/<button>/<textarea> controls above — and both are forbidden by DOMPurify
+  // by default. <isindex> is additionally a documented parser-confusion vector (it mutates
+  // the surrounding parse tree). A glossary's Markdown body never authors either element, so
+  // block them standalone like the rest of the form-control family.
+  { pattern: /<\s*(isindex|keygen)\b/i, reason: 'isindex and keygen elements are not allowed in article content' },
   // <dialog open> renders in the browser top layer -- above all page content, with
   // a backdrop -- with no script and no inline style. That makes a raw <dialog> a
   // clickjacking/phishing overlay primitive (e.g. a fake "wallet compromised" modal

