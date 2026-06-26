@@ -465,6 +465,12 @@ const unsafeContentPatterns = [
   // same no-attribute content-styling spoof as <font>/<center> above, with no
   // script, handler, or flagged scheme. Block them with the rest.
   { pattern: /<\s*(big|strike|tt|nobr)\b/i, reason: 'big, strike, tt, and nobr elements are not allowed in article content' },
+  // <kbd>/<samp>/<mark>/<var> are HTML text-semantics elements that restyle or
+  // highlight prose (monospace keyboard font, sample output, highlighted mark,
+  // variable formatting) without the blocked inline style= attribute — the same
+  // no-attribute content-styling spoof as <big>/<tt> above. Markdown never emits
+  // them; glossary prose never needs keyboard/sample/mark/variable markup.
+  { pattern: /<\s*(kbd|samp|mark|var)\b/i, reason: 'kbd, samp, mark, and var elements are not allowed in article content' },
   // <plaintext>/<xmp>/<listing> are obsolete raw-text elements that browsers still
   // honor in the parser. A single injected <plaintext> makes the browser render
   // EVERYTHING after it — the rest of the article and page — as literal text: a
@@ -494,6 +500,12 @@ const unsafeContentPatterns = [
   // hidden-URL class). Markdown never emits <ins>/<del>; glossary prose never needs edit
   // tracking markup, so block the elements like the other non-prose rendered primitives.
   { pattern: /<\s*(ins|del)\b/i, reason: 'insertion and deletion (ins, del) elements are not allowed in article content' },
+  // <abbr>/<dfn>/<sub>/<sup> carry semantic abbreviation/definition/subscript/
+  // superscript markup that Markdown never emits in article bodies. An injected
+  // <abbr title="Official support">scam</abbr> or <sup>TM</sup> fake-trust-mark
+  // restyles prose without the blocked style= attribute — same content-spoof
+  // class as the blocked <ins>/<del> edit-markup elements.
+  { pattern: /<\s*(abbr|dfn|sub|sup)\b/i, reason: 'abbr, dfn, sub, and sup elements are not allowed in article content' },
   // <meter>/<progress> render native gauge and progress-bar widgets in every
   // current browser. An injected one in article prose is a content-spoofing
   // surface — e.g. a fake "wallet scan 80%" progress bar or a coloured risk

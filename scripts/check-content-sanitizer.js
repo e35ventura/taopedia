@@ -301,6 +301,14 @@ rejects('Intro.\n\n<del datetime="2020-01-01">removed</del>', 'plain del element
 accepts('Insertion, deletion, and ins/del markup are described here only as prose.', 'benign ins/del prose');
 accepts('<insert>not an ins element</insert>', 'benign insert substring is not <ins>');
 
+// <abbr>/<dfn>/<sub>/<sup> carry semantic text markup Markdown never emits — an
+// injected abbr/dfn can fake official definitions and sub/sup can fake trust marks.
+rejects('Intro.\n\n<abbr title="Official support">scam</abbr>', 'plain abbr element');
+rejects('Intro.\n\n<  dfn  >term</dfn>', 'spaced dfn element');
+rejects('Intro.\n\n<sub>2</sub>', 'plain sub element');
+rejects('Intro.\n\n<sup>TM</sup>', 'plain sup fake-trust-mark');
+accepts('An abbreviation in prose is described here without markup.', 'benign abbr/dfn prose');
+
 // <meter>/<progress> render native gauge/progress-bar widgets — an injected one
 // is a content-spoofing surface (a fake "scan 80%" bar or risk gauge) a glossary
 // never needs, blocked like the other non-prose rendered elements.
