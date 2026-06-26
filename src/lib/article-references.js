@@ -31,9 +31,10 @@ export const buildArticleReferences = ({ slug, title, origin, summary = '', cate
   imageUrl: `${origin}/og/${slug}.png`,
   // Dedupe repeated frontmatter topics on the envelope and each reference entry.
   categories: [...new Set(categories)],
-  // The article's own published inbound-link count — the same figure info.json /
-  // history.json / cite.json expose on their envelopes (via the shared helper).
-  incomingLinks,
+  // Coerce to a finite number — the same guard history.json / cite.json / info.json
+  // apply on their envelopes — so a non-finite input can never serialize as JSON
+  // null where a consumer expects an integer.
+  incomingLinks: Number.isFinite(incomingLinks) ? incomingLinks : 0,
   // The article's revision count (its commit-history length) — the same figure
   // info.json / history.json / cite.json expose on their envelopes.
   revisionCount: Number.isFinite(revisionCount) ? revisionCount : 0,

@@ -113,6 +113,23 @@ const revisionStatsOf = (slug) => {
   assert.equal(doc.imageUrl, `${ORIGIN}/og/source.png`, 'builder: imageUrl');
   assert.deepEqual(doc.categories, ['Consensus', 'Security'], 'builder: categories field');
   assert.equal(doc.incomingLinks, 5, 'builder: incomingLinks field');
+  // Default params only catch `undefined`, so an explicit NaN/Infinity would otherwise
+  // leak through and JSON.stringify would serialize it as null.
+  const nonFinite = buildArticleReferences({
+    slug: 'x',
+    title: 'X',
+    origin: ORIGIN,
+    incomingLinks: NaN,
+    revisionCount: Infinity,
+    sectionCount: NaN,
+    wordCount: -Infinity,
+    references: [],
+  });
+  assert.equal(nonFinite.incomingLinks, 0, 'builder: non-finite incomingLinks coerces to 0');
+  assert.equal(nonFinite.revisionCount, 0, 'builder: non-finite revisionCount coerces to 0');
+  assert.equal(nonFinite.sectionCount, 0, 'builder: non-finite sectionCount coerces to 0');
+  assert.equal(nonFinite.wordCount, 0, 'builder: non-finite wordCount coerces to 0');
+  assert.equal(nonFinite.readingMinutes, 1, 'builder: non-finite wordCount yields readingMinutes 1 (ceil(0/200))');
   assert.equal(doc.revisionCount, 12, 'builder: revisionCount field threaded verbatim');
   assert.equal(doc.firstEdited, '2024-01-01T00:00:00.000Z', 'builder: firstEdited field threaded verbatim');
   assert.equal(doc.lastEdited, '2024-06-01T00:00:00.000Z', 'builder: lastEdited field threaded verbatim');
