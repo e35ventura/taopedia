@@ -5,7 +5,8 @@
 //
 // Every page advertises the WebSite entity plus a SearchAction so search engines
 // can offer a sitelinks search box that targets /search. Article pages also
-// describe the Article itself, a Home -> [topic] -> article BreadcrumbList, and a DefinedTerm
+// describe the Article itself (including its mainEntityOfPage, the canonical page
+// the article is the main entity of), a Home -> [topic] -> article BreadcrumbList, and a DefinedTerm
 // in the site's glossary (each Taopedia article defines a Bittensor term). URLs
 // are passed in already resolved (canonical/image), matching the canonical <link>
 // in Seo.astro, so this function never has to re-derive origins or trailing slashes.
@@ -71,6 +72,11 @@ export function buildStructuredData({
       '@id': `${canonicalUrl}#article`,
       isPartOf: { '@id': websiteId },
       url: canonicalUrl,
+      // The canonical web page this article is the main entity of. It mirrors the
+      // article url and the canonical <link>, but as the dedicated Schema.org
+      // property search engines use to bind the Article to its source page (and
+      // to disambiguate when the same article is syndicated elsewhere).
+      mainEntityOfPage: canonicalUrl,
       ...(title ? { headline: title, name: title } : {}),
       ...(description ? { description } : {}),
       ...(imageUrl ? { image: imageUrl } : {}),

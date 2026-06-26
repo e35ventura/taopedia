@@ -69,6 +69,11 @@ const breadcrumb = article['@graph'].find((node) => node['@type'] === 'Breadcrum
 assert.ok(articleNode, 'article pages must include an Article node');
 assert.equal(articleNode.headline, 'TAO', 'Article headline must be the page title');
 assert.equal(articleNode.url, 'https://taopedia.org/wiki/tao/', 'Article url must be canonical');
+assert.equal(
+  articleNode.mainEntityOfPage,
+  'https://taopedia.org/wiki/tao/',
+  'Article must declare the canonical page it is the main entity of',
+);
 assert.equal(articleNode.image, 'https://taopedia.org/og/tao.png', 'Article must carry the OG image');
 assert.equal(articleNode.datePublished, '2024-01-01T00:00:00.000Z', 'Article must carry datePublished from history');
 assert.equal(articleNode.dateModified, '2024-06-01T00:00:00.000Z', 'Article must carry dateModified from history');
@@ -87,6 +92,11 @@ const articleNoDatesNode = articleNoDates['@graph'].find((node) => node['@type']
 assert.equal('datePublished' in articleNoDatesNode, false, 'datePublished must be omitted when no history exists');
 assert.equal('dateModified' in articleNoDatesNode, false, 'dateModified must be omitted when no history exists');
 assert.equal(articleNoDatesNode.author?.['@id'], 'https://taopedia.org/#organization', 'author reference must be present even without dates');
+assert.equal(
+  articleNoDatesNode.mainEntityOfPage,
+  'https://taopedia.org/wiki/tao/',
+  'mainEntityOfPage must be present even when no history/dates exist (it derives from the canonical URL)',
+);
 assert.ok(breadcrumb, 'article pages must include a BreadcrumbList');
 assert.equal(breadcrumb.itemListElement.length, 2, 'breadcrumb must list Home and the article');
 assert.equal(breadcrumb.itemListElement[1].item, 'https://taopedia.org/wiki/tao/', 'breadcrumb leaf must be canonical');
