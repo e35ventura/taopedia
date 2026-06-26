@@ -914,6 +914,18 @@ const unsafeContentPatterns = [
   { pattern: additionalInvisibleCharPattern, reason: 'invisible format characters are not allowed in article content' },
   { pattern: invisibleSmugglingCharPattern, reason: 'invisible tag and annotation characters are not allowed in article content' },
   { pattern: separatorFormatCharPattern, reason: 'invisible line and paragraph separator characters are not allowed in article content' },
+  // chrome:// chrome-extension:// moz-extension:// edge:// brave:// opera:// vivaldi://
+  // resource:// and view-source: are privileged browser-internal URL schemes the browser
+  // resolves to a context article links must never reach. chrome://settings / edge://settings
+  // / brave://settings / opera:// / vivaldi:// navigate the reader to a privileged
+  // browser-internal page (a UI-spoof / settings social-engineering surface), chrome-extension://
+  // and moz-extension:// load a resource from an installed extension's origin, resource:// reads
+  // a Firefox-internal chrome resource, and view-source:https://internal/ renders the raw source
+  // of an arbitrary (e.g. intranet) page. None is an http(s) link, the same non-http /
+  // out-of-scope navigation class as the blocked about:/data: and app-handler schemes. The
+  // //-authority form (and the hyphenated "view-source" token, which never occurs in prose)
+  // keeps benign words like "the cutting edge" or "a browser extension" unaffected.
+  { pattern: /\b(?:chrome|chrome-extension|moz-extension|edge|brave|opera|vivaldi|resource)\s*:\/\/|\bview-source\s*:/i, reason: 'privileged browser-internal URL schemes are not allowed in article content' },
   ...directivePatterns,
 ];
 
@@ -965,6 +977,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /data\s*:\s*application\/xhtml\+xml/i, reason: 'XHTML data URLs are not allowed in article content' },
   { pattern: /data\s*:\s*(?:text|application)\/xml\b/i, reason: 'XML data URLs are not allowed in article content' },
   { pattern: /data\s*:\s*(?:text|application)\/(?:javascript|ecmascript)/i, reason: 'script data URLs are not allowed in article content' },
+  { pattern: /(?:chrome|chrome-extension|moz-extension|edge|brave|opera|vivaldi|resource)\s*:\/\/|view-source\s*:/i, reason: 'privileged browser-internal URL schemes are not allowed in article content' },
   ...directivePatterns,
 ];
 
@@ -1012,6 +1025,7 @@ const infoboxRowValueSchemePatterns = [
   /data\s*:\s*application\/xhtml\+xml/i,
   /data\s*:\s*(?:text|application)\/xml\b/i,
   /data\s*:\s*(?:text|application)\/(?:javascript|ecmascript)/i,
+  /(?:chrome|chrome-extension|moz-extension|edge|brave|opera|vivaldi|resource)\s*:\/\/|view-source\s*:/i,
 ];
 
 function assertSafeInfoboxRowValue(value, filePath, index) {
