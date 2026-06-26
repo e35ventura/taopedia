@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
-import { getCollection, render } from 'astro:content';
-import { getPageSlug, historyForSlug } from '../../../lib/article-history';
+import { render } from 'astro:content';
+import { historyForSlug } from '../../../lib/article-history';
+import { contentPagesBySlug } from '../../../lib/content-pages-by-slug';
 import {
   pageFromSlug,
   publishedCategoriesBySlug,
@@ -25,25 +26,21 @@ const backlinksModules = import.meta.glob('../../../../public/data/backlinks.jso
 const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
 
 export async function getStaticPaths() {
-  const pages = await getCollection('pages');
   const titleBySlug = publishedTitleBySlug();
   const summaryBySlug = publishedSummaryBySlug();
   const categoriesBySlug = publishedCategoriesBySlug();
-  // Gather every title-independent per-slug map in a single pass over the
-  // content collection — title, summary, categories, body word count, revision
-  // history, and table-of-contents section count were six separate
-  // pages.map / Object.fromEntries loops. The word-count and history reads are
-  // folded into the render pass (rendering is what needs a resolved page), kept
-  // parallel via Promise.all so the render step is not serialized. Each is a
-  // per-slug stat the envelope and reference entries carry (the same figures
-  // info.json / history.json / toc.json expose); output is byte-identical. This
-  // is the same single-pass gather merged for related.json (#1239).
+  const publishedSlugList = Object.keys(slugMap).filter((slug) => slugMap[slug]?.title);
+  const pageBySlug = await contentPagesBySlug(publishedSlugList);
+  // Body word count, revision history, and table-of-contents section count —
+  // scoped to published slugmap members (routes already enumerate via slugmap
+  // in #1606) instead of rendering every content-collection entry up front.
   const wordCountBySlug: Record<string, number> = {};
   const historyBySlug: Record<string, ReturnType<typeof historyForSlug>> = {};
   const sectionCountBySlug: Record<string, number> = {};
   await Promise.all(
-    pages.map(async (page) => {
-      const slug = getPageSlug(page);
+    publishedSlugList.map(async (slug) => {
+      const page = pageBySlug[slug];
+      if (!page) return;
       wordCountBySlug[slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
       historyBySlug[slug] = historyForSlug(slug);
       const { headings } = await render(page);
