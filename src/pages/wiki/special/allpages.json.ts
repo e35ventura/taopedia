@@ -2,8 +2,7 @@ import type { APIRoute } from 'astro';
 import { render } from 'astro:content';
 import { historyForSlug } from '../../../lib/article-history';
 import { contentPagesBySlug } from '../../../lib/content-pages-by-slug';
-import { pagesFromSlugMap, publishedTitleBySlug } from '../../../lib/article-metadata';
-import slugMap from '../../../../public/data/slugmap.json';
+import { pagesFromSlugMap, publishedSlugList, publishedTitleBySlug } from '../../../lib/article-metadata';
 import { getArticleReferences } from '../../../lib/article-references.js';
 import { getArticleToc } from '../../../lib/article-toc.js';
 import { buildAllPages } from '../../../../scripts/allpages.js';
@@ -38,7 +37,7 @@ export const GET: APIRoute = async ({ site }) => {
   // Published slugs come from public/data/slugmap.json — the same artifact the
   // directory listing itself is built from — instead of scanning every content-
   // collection entry twice (render pass + inbound/references pass).
-  const publishedSlugs = Object.keys(slugMap).filter((slug) => slugMap[slug]?.title);
+  const publishedSlugs = publishedSlugList();
   const pageBySlug = await contentPagesBySlug(publishedSlugs);
 
   // Gather each article's body word count, table-of-contents section count, and

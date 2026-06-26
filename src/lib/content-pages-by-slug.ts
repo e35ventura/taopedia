@@ -1,6 +1,9 @@
 import { getCollection } from 'astro:content';
 import { getPageSlug } from './article-history';
 
+import slugMap from '../../public/data/slugmap.json';
+import { publishedSlugList } from './article-metadata';
+
 export type ContentPage = Awaited<ReturnType<typeof getCollection<'pages'>>>[number];
 
 // Resolve content-collection pages for a slug subset. Special-listing JSON
@@ -16,4 +19,10 @@ export async function contentPagesBySlug(slugs: Iterable<string>): Promise<Recor
     if (slugSet.has(slug)) pageBySlug[slug] = page;
   }
   return pageBySlug;
+}
+
+export async function contentPagesForPublishedSlugMap(
+  map: Record<string, { title?: string }> = slugMap,
+): Promise<Record<string, ContentPage>> {
+  return contentPagesBySlug(publishedSlugList(map));
 }

@@ -98,3 +98,13 @@ export const buildCategoryArticlesDocument = ({ origin, categoryName, categoryPa
     imageUrl: `${origin}/og/${article.slug}.png`,
   })),
 });
+
+// Distinct article slugs listed in public/data/categories.json — the membership
+// set category/articles.json scopes render()/body work to.
+export function categoryMemberSlugs(categoriesIndex = {}) {
+  const memberSlugs = new Set();
+  for (const slugs of Object.values(categoriesIndex)) {
+    for (const slug of Array.isArray(slugs) ? slugs : []) memberSlugs.add(slug);
+  }
+  return memberSlugs;
+}

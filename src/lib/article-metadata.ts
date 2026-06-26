@@ -57,3 +57,9 @@ export function pageFromSlug(slug: string, map: Record<string, SlugMapEntry> = s
     },
   };
 }
+
+// Published slugs with a title in public/data/slugmap.json — the membership set
+// every JSON endpoint scopes render()/body work to after #1611/#1627/#1632.
+export function publishedSlugList(map: Record<string, SlugMapEntry> = slugMap) {
+  return Object.keys(map).filter((slug) => map[slug]?.title);
+}

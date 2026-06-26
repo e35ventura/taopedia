@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { render } from 'astro:content';
-import { buildCategoryArticlesDocument, getCategoryArticles } from '../../../../lib/category-articles.js';
+import { buildCategoryArticlesDocument, categoryMemberSlugs, getCategoryArticles } from '../../../../lib/category-articles.js';
 import { publishedTitleBySlug } from '../../../../lib/article-metadata';
 import { contentPagesBySlug } from '../../../../lib/content-pages-by-slug';
 import { publishedInboundLinkCount } from '../../../../../scripts/most-linked.js';
@@ -37,10 +37,7 @@ export async function getStaticPaths() {
   // Only category-member slugs need render()/body stats — not every published
   // article — keyed from public/data/categories.json, the same artifact the
   // category hub pages read.
-  const memberSlugs = new Set<string>();
-  for (const slugs of Object.values(categoriesIndex)) {
-    for (const slug of Array.isArray(slugs) ? slugs : []) memberSlugs.add(slug);
-  }
+  const memberSlugs = categoryMemberSlugs(categoriesIndex);
   const pageBySlug = await contentPagesBySlug(memberSlugs);
 
   // Gather each member's body word count, table-of-contents section count, and
