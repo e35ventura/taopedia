@@ -1,3 +1,5 @@
+import { articleJsonCompanionUrls, wikiArticleHref } from './wiki-article-path.js';
+
 export const getArticleToc = (headings = []) => {
   const visible = headings.filter((heading) => heading.depth >= 2 && heading.depth <= 4);
   if (visible.length <= 1) return [];
@@ -22,21 +24,7 @@ export const buildArticleToc = ({ slug, title, origin, summary = '', categories 
   slug,
   title,
   summary: summary || null,
-  url: `${origin}/wiki/${slug}/`,
-  tocJsonUrl: `${origin}/wiki/${slug}/toc.json`,
-  infoUrl: `${origin}/wiki/${slug}/info/`,
-  infoJsonUrl: `${origin}/wiki/${slug}/info.json`,
-  historyUrl: `${origin}/wiki/${slug}/history/`,
-  historyJsonUrl: `${origin}/wiki/${slug}/history.json`,
-  backlinksUrl: `${origin}/wiki/${slug}/backlinks/`,
-  backlinksJsonUrl: `${origin}/wiki/${slug}/backlinks.json`,
-  citeUrl: `${origin}/wiki/${slug}/cite/`,
-  citeJsonUrl: `${origin}/wiki/${slug}/cite.json`,
-  bibtexUrl: `${origin}/wiki/${slug}/cite.bib`,
-  referencesUrl: `${origin}/wiki/${slug}/references.json`,
-  referencesJsonUrl: `${origin}/wiki/${slug}/references.json`,
-  relatedUrl: `${origin}/wiki/${slug}/related.json`,
-  relatedJsonUrl: `${origin}/wiki/${slug}/related.json`,
+  ...articleJsonCompanionUrls(origin, slug),
   imageUrl: `${origin}/og/${slug}.png`,
   // Dedupe repeated frontmatter topics so toc.json cannot list the same category twice.
   categories: [...new Set(categories)],
@@ -62,6 +50,6 @@ export const buildArticleToc = ({ slug, title, origin, summary = '', categories 
     depth: section.depth,
     slug: section.slug,
     title: section.title,
-    url: `${origin}/wiki/${slug}/#${section.slug}`,
+    url: `${wikiArticleHref(origin, slug)}#${section.slug}`,
   })),
 });

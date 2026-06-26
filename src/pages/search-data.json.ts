@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { sortSearchEntries } from '../lib/search-data.js';
+import { wikiArticleHref } from '../lib/wiki-article-path.js';
 import slugMap from '../../public/data/slugmap.json';
 
 // Prebuilt article metadata for the client-side search fallback and typeahead.
@@ -18,7 +19,7 @@ export const GET: APIRoute = ({ site }) => {
       slug,
       title: entry?.title ?? slug,
       summary: entry?.summary ?? '',
-      url: `${origin}/wiki/${slug}/`,
+      url: wikiArticleHref(origin, slug),
       categories: [...new Set(entry?.categories ?? [])],
     })),
   );

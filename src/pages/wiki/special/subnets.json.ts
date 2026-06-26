@@ -7,6 +7,7 @@ import { getArticleReferences } from '../../../lib/article-references.js';
 import { getArticleToc } from '../../../lib/article-toc.js';
 import { buildSubnetsFromSlugMap } from '../../../../scripts/subnets.js';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
+import { articleJsonCompanionUrls } from '../../../lib/wiki-article-path.js';
 import slugMap from '../../../../public/data/slugmap.json';
 
 // Machine-readable subnet registry at /wiki/special/subnets.json. Mirrors the
@@ -86,26 +87,7 @@ export const GET: APIRoute = async ({ site }) => {
           name: subnet.name,
           slug: subnet.slug,
           summary: subnet.summary || null,
-          url: `${origin}/wiki/${subnet.slug}/`,
-          infoUrl: `${origin}/wiki/${subnet.slug}/info/`,
-          infoJsonUrl: `${origin}/wiki/${subnet.slug}/info.json`,
-          historyUrl: `${origin}/wiki/${subnet.slug}/history/`,
-          historyJsonUrl: `${origin}/wiki/${subnet.slug}/history.json`,
-          backlinksUrl: `${origin}/wiki/${subnet.slug}/backlinks/`,
-          backlinksJsonUrl: `${origin}/wiki/${subnet.slug}/backlinks.json`,
-          citeUrl: `${origin}/wiki/${subnet.slug}/cite/`,
-          citeJsonUrl: `${origin}/wiki/${subnet.slug}/cite.json`,
-          bibtexUrl: `${origin}/wiki/${subnet.slug}/cite.bib`,
-          referencesUrl: `${origin}/wiki/${subnet.slug}/references.json`,
-          // referencesJsonUrl / relatedJsonUrl are the same companion links under the
-          // consistent <name>JsonUrl key every other JSON companion uses here
-          // (infoJsonUrl, historyJsonUrl, backlinksJsonUrl, citeJsonUrl, tocJsonUrl).
-          // referencesUrl / relatedUrl were the only two companions lacking the Json
-          // suffix; they are kept for backwards compatibility.
-          referencesJsonUrl: `${origin}/wiki/${subnet.slug}/references.json`,
-          relatedUrl: `${origin}/wiki/${subnet.slug}/related.json`,
-          relatedJsonUrl: `${origin}/wiki/${subnet.slug}/related.json`,
-          tocJsonUrl: `${origin}/wiki/${subnet.slug}/toc.json`,
+          ...articleJsonCompanionUrls(origin, subnet.slug),
           imageUrl: `${origin}/og/${subnet.slug}.png`,
           categories: subnet.categories,
           backlinks: inboundLinks,

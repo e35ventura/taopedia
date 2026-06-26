@@ -1,4 +1,5 @@
 import { buildCitations, CITATION_META } from './citations.js';
+import { articleJsonCompanionUrls, wikiArticleHref } from '../src/lib/wiki-article-path.js';
 
 // Machine-readable companion to /wiki/<slug>/cite/. Serializes the same citation
 // formats the HTML cite page renders, plus the article metadata envelope the
@@ -20,32 +21,14 @@ export const buildCiteJson = ({
   lastEdited = null,
   date = '',
 }) => {
-  const url = `${origin}/wiki/${slug}/`;
+  const url = wikiArticleHref(origin, slug);
   const citations = buildCitations({ title, url, slug, date });
 
   return {
     title,
     slug,
     summary: summary || null,
-    url,
-    citeJsonUrl: `${origin}/wiki/${slug}/cite.json`,
-    citeUrl: `${origin}/wiki/${slug}/cite/`,
-    bibtexUrl: `${origin}/wiki/${slug}/cite.bib`,
-    historyUrl: `${origin}/wiki/${slug}/history/`,
-    historyJsonUrl: `${origin}/wiki/${slug}/history.json`,
-    backlinksUrl: `${origin}/wiki/${slug}/backlinks/`,
-    backlinksJsonUrl: `${origin}/wiki/${slug}/backlinks.json`,
-    infoUrl: `${origin}/wiki/${slug}/info/`,
-    infoJsonUrl: `${origin}/wiki/${slug}/info.json`,
-    tocJsonUrl: `${origin}/wiki/${slug}/toc.json`,
-    referencesUrl: `${origin}/wiki/${slug}/references.json`,
-    relatedUrl: `${origin}/wiki/${slug}/related.json`,
-    // referencesJsonUrl / relatedJsonUrl are the consistently-named `*JsonUrl`
-    // aliases for referencesUrl / relatedUrl, matching the infoJsonUrl /
-    // historyJsonUrl / backlinksJsonUrl / citeJsonUrl / tocJsonUrl companions
-    // this envelope already exposes. referencesUrl / relatedUrl kept for back-compat.
-    referencesJsonUrl: `${origin}/wiki/${slug}/references.json`,
-    relatedJsonUrl: `${origin}/wiki/${slug}/related.json`,
+    ...articleJsonCompanionUrls(origin, slug),
     imageUrl: `${origin}/og/${slug}.png`,
     // Dedupe repeated frontmatter topics so cite.json cannot list the same category twice.
     categories: [...new Set(categories)],

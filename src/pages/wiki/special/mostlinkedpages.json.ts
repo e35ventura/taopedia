@@ -10,6 +10,7 @@ import { contentPagesBySlug } from '../../../lib/content-pages-by-slug';
 import { getArticleReferences } from '../../../lib/article-references.js';
 import { getArticleToc } from '../../../lib/article-toc.js';
 import { buildMostLinkedPages } from '../../../../scripts/most-linked.js';
+import { articleJsonCompanionUrls } from '../../../lib/wiki-article-path.js';
 
 // Machine-readable inbound-link ranking at /wiki/special/mostlinkedpages.json.
 // Mirrors the HTML Special:MostLinkedPages page as structured JSON for
@@ -73,26 +74,7 @@ export const GET: APIRoute = async ({ site }) => {
         slug: entry.slug,
         title: entry.title,
         summary: summaryBySlug[entry.slug] || null,
-        url: `${origin}/wiki/${entry.slug}/`,
-        infoUrl: `${origin}/wiki/${entry.slug}/info/`,
-        infoJsonUrl: `${origin}/wiki/${entry.slug}/info.json`,
-        historyUrl: `${origin}/wiki/${entry.slug}/history/`,
-        historyJsonUrl: `${origin}/wiki/${entry.slug}/history.json`,
-        backlinksUrl: `${origin}/wiki/${entry.slug}/backlinks/`,
-        backlinksJsonUrl: `${origin}/wiki/${entry.slug}/backlinks.json`,
-        citeUrl: `${origin}/wiki/${entry.slug}/cite/`,
-        citeJsonUrl: `${origin}/wiki/${entry.slug}/cite.json`,
-        bibtexUrl: `${origin}/wiki/${entry.slug}/cite.bib`,
-        referencesUrl: `${origin}/wiki/${entry.slug}/references.json`,
-        // referencesJsonUrl / relatedJsonUrl are the same companion links under the
-        // consistent <name>JsonUrl key every other JSON companion uses here
-        // (infoJsonUrl, historyJsonUrl, backlinksJsonUrl, citeJsonUrl, tocJsonUrl).
-        // referencesUrl / relatedUrl were the only two companions lacking the Json
-        // suffix; they are kept for backwards compatibility.
-        referencesJsonUrl: `${origin}/wiki/${entry.slug}/references.json`,
-        relatedUrl: `${origin}/wiki/${entry.slug}/related.json`,
-        relatedJsonUrl: `${origin}/wiki/${entry.slug}/related.json`,
-        tocJsonUrl: `${origin}/wiki/${entry.slug}/toc.json`,
+        ...articleJsonCompanionUrls(origin, entry.slug),
         imageUrl: `${origin}/og/${entry.slug}.png`,
         categories: categoriesBySlug[entry.slug] ?? [],
         backlinks: entry.count,

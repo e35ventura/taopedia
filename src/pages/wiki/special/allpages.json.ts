@@ -6,6 +6,7 @@ import { pagesFromSlugMap, publishedTitleBySlug } from '../../../lib/article-met
 import slugMap from '../../../../public/data/slugmap.json';
 import { getArticleToc } from '../../../lib/article-toc.js';
 import { gatherLinkStatsBySlug } from '../../../lib/article-link-stats';
+import { articleJsonCompanionUrls } from '../../../lib/wiki-article-path.js';
 import { buildAllPages } from '../../../../scripts/allpages.js';
 
 // Machine-readable article directory at /wiki/special/allpages.json. Mirrors
@@ -82,26 +83,7 @@ export const GET: APIRoute = async ({ site }) => {
           slug: article.slug,
           title: article.title,
           summary: article.summary || null,
-          url: article.url,
-          infoUrl: `${origin}/wiki/${article.slug}/info/`,
-          infoJsonUrl: `${origin}/wiki/${article.slug}/info.json`,
-          backlinksUrl: `${origin}/wiki/${article.slug}/backlinks/`,
-          backlinksJsonUrl: `${origin}/wiki/${article.slug}/backlinks.json`,
-          historyUrl: `${origin}/wiki/${article.slug}/history/`,
-          historyJsonUrl: `${origin}/wiki/${article.slug}/history.json`,
-          citeUrl: `${origin}/wiki/${article.slug}/cite/`,
-          citeJsonUrl: `${origin}/wiki/${article.slug}/cite.json`,
-          bibtexUrl: `${origin}/wiki/${article.slug}/cite.bib`,
-          referencesUrl: `${origin}/wiki/${article.slug}/references.json`,
-          // referencesJsonUrl / relatedJsonUrl are the same companion links under the
-          // consistent <name>JsonUrl key every other JSON companion uses here
-          // (infoJsonUrl, historyJsonUrl, backlinksJsonUrl, citeJsonUrl, tocJsonUrl).
-          // referencesUrl / relatedUrl were the only two companions lacking the Json
-          // suffix; they are kept for backwards compatibility.
-          referencesJsonUrl: `${origin}/wiki/${article.slug}/references.json`,
-          relatedUrl: `${origin}/wiki/${article.slug}/related.json`,
-          relatedJsonUrl: `${origin}/wiki/${article.slug}/related.json`,
-          tocJsonUrl: `${origin}/wiki/${article.slug}/toc.json`,
+          ...articleJsonCompanionUrls(origin, article.slug),
           imageUrl: `${origin}/og/${article.slug}.png`,
           categories: article.categories,
           backlinks: inboundLinks,

@@ -1,3 +1,5 @@
+import { articleJsonCompanionUrls } from '../src/lib/wiki-article-path.js';
+
 export const buildArticleInfo = ({
   title,
   slug,
@@ -15,7 +17,8 @@ export const buildArticleInfo = ({
   title,
   slug,
   summary: summary || null,
-  url: `${origin}/wiki/${slug}/`,
+  ...articleJsonCompanionUrls(origin, slug),
+  imageUrl: `${origin}/og/${slug}.png`,
   // Dedupe repeated frontmatter topics so Page-information JSON cannot list the
   // same category twice when an article's YAML repeats a topic tag.
   categories: [...new Set(categories)],
@@ -32,26 +35,7 @@ export const buildArticleInfo = ({
   // Estimated reading time in minutes — the same ~200 wpm ceil formula the
   // article-page footer ("N min read") renders from wordCount.
   readingMinutes: Math.max(1, Math.ceil((Number.isFinite(wordCount) ? wordCount : 0) / 200)),
-  backlinksUrl: `${origin}/wiki/${slug}/backlinks/`,
-  backlinksJsonUrl: `${origin}/wiki/${slug}/backlinks.json`,
-  citeUrl: `${origin}/wiki/${slug}/cite/`,
-  citeJsonUrl: `${origin}/wiki/${slug}/cite.json`,
-  bibtexUrl: `${origin}/wiki/${slug}/cite.bib`,
-  infoUrl: `${origin}/wiki/${slug}/info/`,
-  infoJsonUrl: `${origin}/wiki/${slug}/info.json`,
-  historyJsonUrl: `${origin}/wiki/${slug}/history.json`,
-  referencesUrl: `${origin}/wiki/${slug}/references.json`,
-  relatedUrl: `${origin}/wiki/${slug}/related.json`,
-  // referencesJsonUrl / relatedJsonUrl are the consistently-named *JsonUrl aliases
-  // for referencesUrl / relatedUrl, matching the infoJsonUrl / historyJsonUrl /
-  // backlinksJsonUrl / citeJsonUrl / tocJsonUrl companions this envelope already
-  // exposes. referencesUrl / relatedUrl kept for back-compat.
-  referencesJsonUrl: `${origin}/wiki/${slug}/references.json`,
-  relatedJsonUrl: `${origin}/wiki/${slug}/related.json`,
-  tocJsonUrl: `${origin}/wiki/${slug}/toc.json`,
-  imageUrl: `${origin}/og/${slug}.png`,
   revisionCount,
-  historyUrl: `${origin}/wiki/${slug}/history/`,
   firstEdited: firstEdited ?? null,
   lastEdited: lastEdited ?? null,
 });

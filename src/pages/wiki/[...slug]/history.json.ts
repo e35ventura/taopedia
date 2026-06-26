@@ -8,10 +8,9 @@ import {
   publishedSummaryBySlug,
   publishedTitleBySlug,
 } from '../../../lib/article-metadata';
-import { getArticleReferences } from '../../../lib/article-references.js';
 import { getArticleToc } from '../../../lib/article-toc.js';
 import { buildArticleHistory } from '../../../../scripts/article-history-json.js';
-import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
+import { gatherLinkStatsBySlug } from '../../../lib/article-link-stats';
 import slugMap from '../../../../public/data/slugmap.json';
 
 type RawRevision = { sha: string; date: string; authorName: string; message?: string };
@@ -47,6 +46,13 @@ export async function getStaticPaths() {
     }),
   );
 
+  const linkStatSlugs = Object.keys(slugMap).filter((slug) => pageFromSlug(slug, slugMap));
+  const { inboundBySlug, referencesCountBySlug } = gatherLinkStatsBySlug(linkStatSlugs, {
+    titleBySlug,
+    backlinksData,
+    linkgraphData,
+  });
+
   return Object.keys(slugMap).flatMap((slug) => {
     const page = pageFromSlug(slug, slugMap);
     if (!page) return [];
@@ -59,8 +65,8 @@ export async function getStaticPaths() {
         title: titleBySlug[slug] ?? page.data.title,
         summary: summaryBySlug[slug] ?? '',
         categories: categoriesBySlug[slug] ?? [],
-        incomingLinks: publishedInboundLinkCount(backlinksData, slug, titleBySlug),
-        referencesCount: getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length,
+        incomingLinks: inboundBySlug[slug] ?? 0,
+        referencesCount: referencesCountBySlug[slug] ?? 0,
         sectionCount: sectionCountBySlug[slug] ?? 0,
         wordCount: wordCountBySlug[slug] ?? 0,
         revisions,

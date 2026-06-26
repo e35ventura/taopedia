@@ -1,4 +1,5 @@
 import { compareTitles } from './title-sort.js';
+import { articleJsonCompanionUrls } from './wiki-article-path.js';
 
 export const getArticleReferences = ({ slug, linkGraph = {}, titleBySlug = {} }) => {
   const links = Array.isArray(linkGraph[slug]) ? linkGraph[slug] : [];
@@ -26,32 +27,7 @@ export const buildArticleReferences = ({ slug, title, origin, summary = '', cate
   slug,
   title,
   summary: summary || null,
-  url: `${origin}/wiki/${slug}/`,
-  referencesUrl: `${origin}/wiki/${slug}/references.json`,
-  // referencesJsonUrl is the endpoint's own canonical self-link named to match
-  // the <name>JsonUrl convention every sibling endpoint uses for its self-link
-  // (info.json → infoJsonUrl, history.json → historyJsonUrl, backlinks.json →
-  // backlinksJsonUrl, cite.json → citeJsonUrl, toc.json → tocJsonUrl). references.json
-  // was the lone outlier naming its self-link without the Json suffix; referencesUrl
-  // is kept for backwards compatibility and referencesJsonUrl is the consistent name.
-  referencesJsonUrl: `${origin}/wiki/${slug}/references.json`,
-  historyUrl: `${origin}/wiki/${slug}/history/`,
-  historyJsonUrl: `${origin}/wiki/${slug}/history.json`,
-  backlinksUrl: `${origin}/wiki/${slug}/backlinks/`,
-  backlinksJsonUrl: `${origin}/wiki/${slug}/backlinks.json`,
-  infoUrl: `${origin}/wiki/${slug}/info/`,
-  infoJsonUrl: `${origin}/wiki/${slug}/info.json`,
-  citeUrl: `${origin}/wiki/${slug}/cite/`,
-  citeJsonUrl: `${origin}/wiki/${slug}/cite.json`,
-  bibtexUrl: `${origin}/wiki/${slug}/cite.bib`,
-  relatedUrl: `${origin}/wiki/${slug}/related.json`,
-  // relatedJsonUrl is the same related.json cross-link under the consistent
-  // <name>JsonUrl key every other JSON companion uses on this envelope
-  // (infoJsonUrl, historyJsonUrl, backlinksJsonUrl, citeJsonUrl, referencesJsonUrl).
-  // relatedUrl was the last cross-link lacking the Json suffix; it is kept for
-  // backwards compatibility.
-  relatedJsonUrl: `${origin}/wiki/${slug}/related.json`,
-  tocJsonUrl: `${origin}/wiki/${slug}/toc.json`,
+  ...articleJsonCompanionUrls(origin, slug),
   imageUrl: `${origin}/og/${slug}.png`,
   // Dedupe repeated frontmatter topics on the envelope and each reference entry.
   categories: [...new Set(categories)],
@@ -105,26 +81,7 @@ export const buildArticleReferences = ({ slug, title, origin, summary = '', cate
     revisionCount: Number.isFinite(link.revisionCount) ? link.revisionCount : 0,
     firstEdited: link.firstEdited ?? null,
     lastEdited: link.lastEdited ?? null,
-    url: `${origin}/wiki/${link.slug}/`,
-    infoUrl: `${origin}/wiki/${link.slug}/info/`,
-    infoJsonUrl: `${origin}/wiki/${link.slug}/info.json`,
-    backlinksUrl: `${origin}/wiki/${link.slug}/backlinks/`,
-    backlinksJsonUrl: `${origin}/wiki/${link.slug}/backlinks.json`,
-    historyUrl: `${origin}/wiki/${link.slug}/history/`,
-    historyJsonUrl: `${origin}/wiki/${link.slug}/history.json`,
-    citeUrl: `${origin}/wiki/${link.slug}/cite/`,
-    citeJsonUrl: `${origin}/wiki/${link.slug}/cite.json`,
-    bibtexUrl: `${origin}/wiki/${link.slug}/cite.bib`,
-    referencesUrl: `${origin}/wiki/${link.slug}/references.json`,
-    // referencesJsonUrl / relatedJsonUrl are the same companion links under the
-    // consistent <name>JsonUrl key every other JSON companion uses here
-    // (infoJsonUrl, historyJsonUrl, backlinksJsonUrl, citeJsonUrl, tocJsonUrl).
-    // referencesUrl / relatedUrl were the only two companions lacking the Json
-    // suffix; they are kept for backwards compatibility.
-    referencesJsonUrl: `${origin}/wiki/${link.slug}/references.json`,
-    relatedUrl: `${origin}/wiki/${link.slug}/related.json`,
-    relatedJsonUrl: `${origin}/wiki/${link.slug}/related.json`,
-    tocJsonUrl: `${origin}/wiki/${link.slug}/toc.json`,
+    ...articleJsonCompanionUrls(origin, link.slug),
     imageUrl: `${origin}/og/${link.slug}.png`,
   })),
 });

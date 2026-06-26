@@ -64,3 +64,24 @@ export function wikiCompanionFileHref(origin, slug, filename) {
   const file = String(filename ?? '').replace(/^\/+/, '');
   return file ? `${article}/${file}` : `${article}/`;
 }
+
+/** Standard per-article JSON companion URL fields shared by every envelope builder. */
+export function articleJsonCompanionUrls(origin, slug) {
+  return {
+    url: wikiArticleHref(origin, slug),
+    infoUrl: wikiCompanionHref(origin, slug, 'info'),
+    infoJsonUrl: wikiCompanionJsonHref(origin, slug, 'info'),
+    historyUrl: wikiCompanionHref(origin, slug, 'history'),
+    historyJsonUrl: wikiCompanionJsonHref(origin, slug, 'history'),
+    backlinksUrl: wikiCompanionHref(origin, slug, 'backlinks'),
+    backlinksJsonUrl: wikiCompanionJsonHref(origin, slug, 'backlinks'),
+    citeUrl: wikiCompanionHref(origin, slug, 'cite'),
+    citeJsonUrl: wikiCompanionJsonHref(origin, slug, 'cite'),
+    bibtexUrl: wikiCompanionFileHref(origin, slug, 'cite.bib'),
+    referencesUrl: wikiCompanionJsonHref(origin, slug, 'references'),
+    referencesJsonUrl: wikiCompanionJsonHref(origin, slug, 'references'),
+    relatedUrl: wikiCompanionJsonHref(origin, slug, 'related'),
+    relatedJsonUrl: wikiCompanionJsonHref(origin, slug, 'related'),
+    tocJsonUrl: wikiCompanionJsonHref(origin, slug, 'toc'),
+  };
+}

@@ -12,6 +12,7 @@
 // long one.
 
 import { compareTitles } from './title-sort.js';
+import { articleJsonCompanionUrls } from './wiki-article-path.js';
 
 export interface SlugMapEntry {
   title?: string;
@@ -256,34 +257,7 @@ export function buildArticleRelatedPages({
     // same firstEdited/lastEdited pair info.json and history.json expose.
     firstEdited: firstEdited ?? null,
     lastEdited: lastEdited ?? null,
-    url: `${origin}/wiki/${slug}/`,
-    relatedUrl: `${origin}/wiki/${slug}/related.json`,
-    // relatedJsonUrl is the endpoint's own canonical self-link named to match
-    // the <name>JsonUrl convention every sibling endpoint uses for its self-link
-    // (info.json → infoJsonUrl, history.json → historyJsonUrl, backlinks.json →
-    // backlinksJsonUrl, cite.json → citeJsonUrl, toc.json → tocJsonUrl). related.json
-    // was the lone outlier naming its self-link without the Json suffix; relatedUrl
-    // is kept for backwards compatibility and relatedJsonUrl is the consistent name.
-    relatedJsonUrl: `${origin}/wiki/${slug}/related.json`,
-    historyUrl: `${origin}/wiki/${slug}/history/`,
-    historyJsonUrl: `${origin}/wiki/${slug}/history.json`,
-    backlinksUrl: `${origin}/wiki/${slug}/backlinks/`,
-    backlinksJsonUrl: `${origin}/wiki/${slug}/backlinks.json`,
-    infoUrl: `${origin}/wiki/${slug}/info/`,
-    infoJsonUrl: `${origin}/wiki/${slug}/info.json`,
-    tocJsonUrl: `${origin}/wiki/${slug}/toc.json`,
-    citeUrl: `${origin}/wiki/${slug}/cite/`,
-    citeJsonUrl: `${origin}/wiki/${slug}/cite.json`,
-    bibtexUrl: `${origin}/wiki/${slug}/cite.bib`,
-    referencesUrl: `${origin}/wiki/${slug}/references.json`,
-    // referencesJsonUrl is the consistently-named *JsonUrl alias for referencesUrl,
-    // matching the infoJsonUrl / historyJsonUrl / backlinksJsonUrl / citeJsonUrl /
-    // tocJsonUrl / relatedJsonUrl companions this envelope already exposes (and the
-    // referencesJsonUrl every sibling envelope — info/history/backlinks/cite/toc/
-    // references — exposes at top level). related.json's top level was the lone
-    // outlier exposing referencesUrl without its .json companion, even though its own
-    // per-entry rows already carry referencesJsonUrl. referencesUrl kept for back-compat.
-    referencesJsonUrl: `${origin}/wiki/${slug}/references.json`,
+    ...articleJsonCompanionUrls(origin, slug),
     imageUrl: `${origin}/og/${slug}.png`,
     count: relatedPages.length,
     related: relatedPages.map((entry) => ({
@@ -303,26 +277,7 @@ export function buildArticleRelatedPages({
       revisionCount: Number.isFinite(entry.revisionCount) ? entry.revisionCount : 0,
       firstEdited: entry.firstEdited ?? null,
       lastEdited: entry.lastEdited ?? null,
-      url: `${origin}/wiki/${entry.slug}/`,
-      infoUrl: `${origin}/wiki/${entry.slug}/info/`,
-      infoJsonUrl: `${origin}/wiki/${entry.slug}/info.json`,
-      backlinksUrl: `${origin}/wiki/${entry.slug}/backlinks/`,
-      backlinksJsonUrl: `${origin}/wiki/${entry.slug}/backlinks.json`,
-      historyUrl: `${origin}/wiki/${entry.slug}/history/`,
-      historyJsonUrl: `${origin}/wiki/${entry.slug}/history.json`,
-      citeUrl: `${origin}/wiki/${entry.slug}/cite/`,
-      citeJsonUrl: `${origin}/wiki/${entry.slug}/cite.json`,
-      bibtexUrl: `${origin}/wiki/${entry.slug}/cite.bib`,
-      referencesUrl: `${origin}/wiki/${entry.slug}/references.json`,
-      // referencesJsonUrl / relatedJsonUrl are the same companion links under the
-      // consistent <name>JsonUrl key every other JSON companion uses here
-      // (infoJsonUrl, historyJsonUrl, backlinksJsonUrl, citeJsonUrl, tocJsonUrl).
-      // referencesUrl / relatedUrl were the only two companions lacking the Json
-      // suffix; they are kept for backwards compatibility.
-      referencesJsonUrl: `${origin}/wiki/${entry.slug}/references.json`,
-      relatedUrl: `${origin}/wiki/${entry.slug}/related.json`,
-      relatedJsonUrl: `${origin}/wiki/${entry.slug}/related.json`,
-      tocJsonUrl: `${origin}/wiki/${entry.slug}/toc.json`,
+      ...articleJsonCompanionUrls(origin, entry.slug),
       imageUrl: `${origin}/og/${entry.slug}.png`,
     })),
   };
