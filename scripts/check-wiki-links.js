@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { slugFromWikiHref } from '../src/lib/wiki-article-path.js';
 
 const distWikiDir = path.join(process.cwd(), 'dist', 'wiki');
 const slugMapPath = path.join(process.cwd(), 'public', 'data', 'slugmap.json');
@@ -17,14 +18,6 @@ function walkHtmlFiles(dir, fileList = []) {
     }
   }
   return fileList;
-}
-
-function normalizeHrefSlug(rawSlug) {
-  try {
-    return decodeURIComponent(rawSlug).replace(/^\/+|\/+$/g, '');
-  } catch {
-    return rawSlug.replace(/^\/+|\/+$/g, '');
-  }
 }
 
 assert.ok(fs.existsSync(distWikiDir), 'dist/wiki must exist; run npm run build first');
@@ -61,13 +54,13 @@ for (const filePath of htmlFiles) {
   for (const match of html.matchAll(/<a\b[^>]*>/g)) {
     const anchor = match[0];
     const classMatch = anchor.match(/\bclass="([^"]*)"/);
-    const hrefMatch = anchor.match(/\bhref="\/wiki\/([^"#?]+)[^"]*"/);
+    const hrefMatch = anchor.match(/\bhref="(\/wiki\/[^"]+)"/);
     if (!classMatch || !hrefMatch) continue;
 
     const classes = classMatch[1].split(/\s+/);
     if (!classes.includes('internal') || !classes.includes('new')) continue;
 
-    const slug = normalizeHrefSlug(hrefMatch[1]);
+    const slug = slugFromWikiHref(hrefMatch[1]);
     if (Object.prototype.hasOwnProperty.call(slugMap, slug)) {
       knownSlugMarkedNew.push(`${relativePath}: ${anchor}`);
     }

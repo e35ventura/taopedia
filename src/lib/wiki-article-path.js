@@ -43,3 +43,24 @@ export function wikiArticleHref(origin, slug) {
     .join('/');
   return clean ? `${base}/wiki/${clean}/` : `${base}/wiki/`;
 }
+
+/** Build /wiki/<slug>/<companion>/ URLs (history, backlinks, cite, info, …). */
+export function wikiCompanionHref(origin, slug, companion) {
+  const article = wikiArticleHref(origin, slug).replace(/\/$/, '');
+  const segment = String(companion ?? '').replace(/^\/+|\/+$/g, '');
+  return segment ? `${article}/${segment}/` : `${article}/`;
+}
+
+/** Build /wiki/<slug>/<name>.json machine-readable companion URLs. */
+export function wikiCompanionJsonHref(origin, slug, name) {
+  const article = wikiArticleHref(origin, slug).replace(/\/$/, '');
+  const base = String(name ?? '').replace(/^\/+|\/+$/g, '').replace(/\.json$/i, '');
+  return base ? `${article}/${base}.json` : `${article}.json`;
+}
+
+/** Build /wiki/<slug>/<filename> static companion files (e.g. cite.bib). */
+export function wikiCompanionFileHref(origin, slug, filename) {
+  const article = wikiArticleHref(origin, slug).replace(/\/$/, '');
+  const file = String(filename ?? '').replace(/^\/+/, '');
+  return file ? `${article}/${file}` : `${article}/`;
+}
