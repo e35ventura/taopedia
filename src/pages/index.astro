@@ -12,8 +12,10 @@ import {
 } from '../lib/article-metadata';
 import { formatRevisionDate } from '../lib/format-date.js';
 import { buildSubnets } from '../../scripts/subnets.js';
+import { buildMostLinkedPages } from '../../scripts/most-linked.js';
 import slugMap from '../../public/data/slugmap.json';
 import categoriesIndex from '../../public/data/categories.json';
+import backlinksIndex from '../../public/data/backlinks.json';
 
 // Read public/data/slugmap.json and categories.json for landing-page directory
 // metadata — the same artifacts allpages.json (#1240) and categories.json
@@ -79,6 +81,20 @@ for (const change of allRecentChanges(titleBySlug, 0)) {
   recentlyUpdated.push(change);
   if (recentlyUpdated.length >= 6) break;
 }
+
+// Most linked articles — the wiki's "hub" concepts, ranked by how many other
+// published articles point at them. The homepage curates four Core Articles by
+// hand and lists everything A–Z, but it never surfaces which topics are the most
+// connected, so the structural backbone of the wiki is only visible on the
+// Special:MostLinkedPages page that few readers reach. Reuses the same
+// buildMostLinkedPages() helper (and the public/data/backlinks.json artifact)
+// that powers Special:MostLinkedPages and mostlinkedpages.json, so the homepage
+// can never disagree with them on count or ordering. The hand-picked Core
+// Articles are excluded so the two sections never surface the same title twice.
+// Refs #521.
+const mostLinkedArticles = buildMostLinkedPages({ backlinks: backlinksIndex, titleBySlug })
+  .filter((entry) => !featuredSlugSet.has(entry.slug))
+  .slice(0, 6);
 
 const alphaGroups = new Map<string, PageEntry[]>();
 for (const page of sortedPages) {
@@ -608,6 +624,23 @@ const initialLetter = alphabet[0] ?? '#';
               </li>
             ))}
           </ul>
+        </section>
+      )}
+
+      {mostLinkedArticles.length > 0 && (
+        <section class="home-section">
+          <div class="section-heading">
+            <h2>Most Linked</h2>
+            <a href="/wiki/special/mostlinkedpages">All linked pages</a>
+          </div>
+          <div class="article-grid">
+            {mostLinkedArticles.map((entry) => (
+              <a class="article-card" href={`/wiki/${entry.slug}/`}>
+                <strong>{entry.title}</strong>
+                <span>{entry.count} {entry.count === 1 ? 'incoming link' : 'incoming links'}</span>
+              </a>
+            ))}
+          </div>
         </section>
       )}
 
