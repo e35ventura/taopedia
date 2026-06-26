@@ -827,6 +827,12 @@ const unsafeContentPatterns = [
   // canonical SSRF target for reaching internal devices. The // authority form keeps prose
   // about "CoAP" unaffected.
   { pattern: /\b(?:coaps|coap)\s*:\/\//i, reason: 'CoAP IoT connection URL schemes are not allowed in article content' },
+  // ws:// wss:// gemini:// snmp:// are non-http network-protocol schemes: a clicked
+  // ws(s):// URL opens a raw WebSocket to the host (SSRF / internal-service reach),
+  // gemini:// hands off to a Gemini client, and snmp:// to an SNMP manager — all
+  // outside the page sandbox with no script. Article links are limited to http(s);
+  // the // authority form keeps prose like "SNMP: Simple Network Management Protocol" unaffected.
+  { pattern: /\b(?:wss|ws|gemini|snmp)\s*:\/\//i, reason: 'non-http network-protocol URL schemes are not allowed in article content' },
   // rdp:// vnc:// telnet:// ssh:// sftp:// hand the URL's host to a native remote-session
   // client: a clicked rdp://attacker-host or telnet://internal-host opens an OS
   // client outside the page sandbox with no script — the same native protocol-handler
@@ -1136,6 +1142,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats|rabbitmq|pulsar)\s*:\/\//i, reason: 'message-broker connection URL schemes are not allowed in article content' },
   { pattern: /(?:clickhouse|cassandra|couchbase|couchdb|neo4j|bolt|dynamodb|elasticsearch|arangodb|zookeeper|hdfs|hazelcast|riak|minio|solr)\s*:\/\//i, reason: 'data-store connection URL schemes are not allowed in article content' },
   { pattern: /(?:coaps|coap)\s*:\/\//i, reason: 'CoAP IoT connection URL schemes are not allowed in article content' },
+  { pattern: /(?:wss|ws|gemini|snmp)\s*:\/\//i, reason: 'non-http network-protocol URL schemes are not allowed in article content' },
   { pattern: /(?:ftp|rdp|vnc|spice|teamviewer|anydesk|rustdesk|logmein|parsec|nomachine|ultraviewer|splashtop|chrome-remote-desktop|googlechromeremotedesktop|telnet|ssh|sftp|fish|rlogin|rsh|tn3270)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:rtsps?|rtspu|mms)\s*:\/\//i, reason: 'media-streaming client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:rtmpte|rtmpts|rtmpt|rtmpe|rtmps|rtmp)\s*:\/\//i, reason: 'media-streaming client-launch URL schemes are not allowed in article content' },
@@ -1206,6 +1213,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats|rabbitmq|pulsar)\s*:\/\//i,
   /(?:clickhouse|cassandra|couchbase|couchdb|neo4j|bolt|dynamodb|elasticsearch|arangodb|zookeeper|hdfs|hazelcast|riak|minio|solr)\s*:\/\//i,
   /(?:coaps|coap)\s*:\/\//i,
+  /(?:wss|ws|gemini|snmp)\s*:\/\//i,
   /(?:ftp|rdp|vnc|spice|teamviewer|anydesk|rustdesk|logmein|parsec|nomachine|ultraviewer|splashtop|chrome-remote-desktop|googlechromeremotedesktop|telnet|ssh|sftp|fish|rlogin|rsh|tn3270)\s*:\/\//i,
   /(?:rtsps?|rtspu|mms)\s*:\/\//i,
   /(?:rtmpte|rtmpts|rtmpt|rtmpe|rtmps|rtmp)\s*:\/\//i,
