@@ -71,6 +71,14 @@ assert.equal(
   'protocol-relative encoded canonical Taopedia article URLs should normalize before alias resolution',
 );
 
+// Double slashes in wiki paths must collapse and must not leak a leading slash
+// into the normalized slug (which would make hrefTemplate emit /wiki//slug/).
+assert.equal(normalizeLinkTarget('/wiki//dynamic_tao/'), 'dynamic_tao', 'double slash after /wiki/ collapses');
+assert.equal(normalizeLinkTarget('wiki//dynamic_tao'), 'dynamic_tao', 'double slash after wiki prefix collapses');
+assert.equal(normalizeLinkTarget('https://taopedia.org/wiki//dynamic_tao/'), 'dynamic_tao', 'canonical URL with double slash collapses');
+assert.equal(normalizeLinkTarget('/wiki///foo/bar/'), 'foo/bar', 'repeated slashes collapse to nested slug');
+assert.equal(normalizeLinkTarget('/wiki/foo//bar/'), 'foo/bar', 'internal double slash collapses in nested slug');
+
 assert.equal(
   resolveTargetSlug('/wiki/dynamic_tao', aliases),
   'dynamic_tao',
@@ -142,6 +150,23 @@ assert.equal(
   options.hrefTemplate('dynamic_tao'),
   '/wiki/dynamic_tao/',
   'hrefTemplate must emit the canonical trailing-slash article URL',
+);
+
+assert.equal(
+  options.hrefTemplate('/dynamic_tao'),
+  '/wiki/dynamic_tao/',
+  'hrefTemplate must strip a leaked leading slash from permalink candidates',
+);
+
+assert.equal(
+  options.hrefTemplate('foo/bar'),
+  '/wiki/foo/bar/',
+  'hrefTemplate must preserve nested article slugs',
+);
+
+assert.ok(
+  !options.pageResolver('/wiki//dynamic_tao/').some((candidate) => String(candidate).startsWith('/')),
+  'pageResolver must not return permalink candidates with a leaked leading slash',
 );
 
 // The article page unlink script strips the trailing slash (and any fragment/

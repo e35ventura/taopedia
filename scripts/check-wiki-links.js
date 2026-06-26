@@ -35,12 +35,17 @@ const slugMap = JSON.parse(fs.readFileSync(slugMapPath, 'utf8'));
 const linkGraph = JSON.parse(fs.readFileSync(linkGraphPath, 'utf8'));
 const htmlFiles = walkHtmlFiles(distWikiDir);
 const pipeHrefMatches = [];
+const doubleSlashWikiHrefs = [];
 const knownSlugMarkedNew = [];
 const rawInfoboxWikiLinks = [];
 
 for (const filePath of htmlFiles) {
   const relativePath = path.relative(process.cwd(), filePath);
   const html = fs.readFileSync(filePath, 'utf8');
+
+  for (const match of html.matchAll(/href="\/wiki\/\/[^"]*"/g)) {
+    doubleSlashWikiHrefs.push(`${relativePath}: ${match[0]}`);
+  }
 
   for (const match of html.matchAll(/href="\/wiki\/[^"]*\|[^"]*"/g)) {
     pipeHrefMatches.push(`${relativePath}: ${match[0]}`);
@@ -68,6 +73,12 @@ for (const filePath of htmlFiles) {
     }
   }
 }
+
+assert.equal(
+  doubleSlashWikiHrefs.length,
+  0,
+  `rendered wiki hrefs must not contain a double slash after /wiki/:\n${doubleSlashWikiHrefs.slice(0, 10).join('\n')}`,
+);
 
 assert.equal(
   pipeHrefMatches.length,

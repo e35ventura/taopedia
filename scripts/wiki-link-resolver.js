@@ -85,10 +85,16 @@ export function normalizeLinkTarget(rawTarget) {
   const withoutFragmentOrQuery = target.trim().split(/[?#]/)[0];
   const withoutRoutePrefix = withoutFragmentOrQuery
     .replace(/^\/+/, '')
-    .replace(/^wiki\//i, '')
-    .replace(/\/+$/g, '');
+    .replace(/^wiki\/?/i, '');
 
-  return withoutRoutePrefix.split('/').map(decodePathSegment).join('/');
+  // Collapse repeated slashes and drop empty segments so /wiki//dynamic_tao/ and
+  // /wiki/foo//bar/ normalize to dynamic_tao and foo/bar — never a leaked
+  // leading slash (/dynamic_tao) or internal double slashes (foo//bar).
+  return withoutRoutePrefix
+    .split('/')
+    .filter(Boolean)
+    .map(decodePathSegment)
+    .join('/');
 }
 
 export function buildSlugAliases(slugMap) {
@@ -193,8 +199,15 @@ export function createRemarkWikiLinkOptions(slugMap) {
         normalized.toLowerCase(),
         slugify(normalized),
         slugify(normalized.replaceAll('_', ' ')),
-      ].filter(Boolean)));
+      ].filter(Boolean).filter((candidate) => !String(candidate).startsWith('/'))));
     },
-    hrefTemplate: (permalink) => `/wiki/${permalink}/`,
+    hrefTemplate: (permalink) => {
+      const slug = String(permalink ?? '')
+        .replace(/^\/+/, '')
+        .split('/')
+        .filter(Boolean)
+        .join('/');
+      return slug ? `/wiki/${slug}/` : '/wiki/';
+    },
   };
 }
