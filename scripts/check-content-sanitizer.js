@@ -788,6 +788,18 @@ infoboxRowRejects('solana:7EqQdEUYHqE8d8u2b9j8j8j8j8j8j8j8j8j8j8j8j8j', 'solana:
 accepts('Bitcoin: A Peer-to-Peer Electronic Cash System is described here only as prose.', 'benign "Bitcoin:" prose (colon then space)');
 accepts('Ethereum: a decentralized platform, and Litecoin are described here only as prose.', 'benign "Ethereum:" prose (colon then space)');
 accepts('Solana: a high-throughput chain, Cardano: proof of stake, and Ripple: the company are described here only as prose.', 'benign altcoin-name prose (colon then space)');
+// wc: is the WalletConnect pairing URI (wc:<topic>@<version>?…) — a clicked link opens the
+// reader's crypto wallet and starts a session with the initiator's dApp, which can then push
+// malicious approval requests (wallet drain). It requires the @<version> marker, so prose like
+// "WC: a water closet" (colon then space, no @) passes.
+rejects('See [x](wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=irn&symKey=abc).', 'plain WalletConnect v2 pairing URI');
+rejects('See [x](wc:8a5e5bdc-a0e4-4702-ba63-8f1a5655744f@1?bridge=https%3A%2F%2Fevil.example&key=deadbeef).', 'plain WalletConnect v1 pairing URI');
+// Entity-obfuscated: the literal scan misses the entity-encoded "@", but the decoded re-scan catches it.
+rejects('See [x](wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9&#64;2?relay-protocol=irn&symKey=abc).', 'entity-obfuscated wc: (obfuscated scan path)');
+// Infobox-row-value scan path.
+infoboxRowRejects('wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=irn', 'wc: rejected in an infobox row value');
+// Prose: "WC:" with a space and no @<version> marker must pass.
+accepts('WC: a water closet, also written wc in floor plans, is described here only as prose.', 'benign "WC:" prose (colon then space, no @ marker)');
 // payto: (RFC 8905) and upi: (UPI deep link) are bank / instant-payment app-launch URI
 // schemes — a clicked link opens the reader's banking / payment app pre-filled with the
 // attacker's payee and amount (fund redirection on a fiat/bank rail, distinct from the
