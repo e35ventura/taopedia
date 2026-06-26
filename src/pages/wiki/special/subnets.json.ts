@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { render } from 'astro:content';
-import { historyForSlug } from '../../../lib/article-history';
+import { historyForSlug, revisionStatsFromHistory } from '../../../lib/article-history';
 import { publishedTitleBySlug } from '../../../lib/article-metadata';
 import { contentPagesBySlug } from '../../../lib/content-pages-by-slug';
 import { getArticleReferences } from '../../../lib/article-references.js';
@@ -113,10 +113,10 @@ export const GET: APIRoute = async ({ site }) => {
           // revisionCount / firstEdited / lastEdited trio info.json / history.json
           // expose per article and allpages.json / mostlinkedpages.json expose per
           // directory entry — so a subnet dashboard can show each subnet's age and
-          // recency without a second fetch.
-          revisionCount: historyBySlug[subnet.slug]?.length ?? 0,
-          firstEdited: historyBySlug[subnet.slug]?.at(-1)?.date ?? null,
-          lastEdited: historyBySlug[subnet.slug]?.[0]?.date ?? null,
+          // recency without a second fetch. Derived from the shared
+          // revisionStatsFromHistory helper (as recentchanges.json / allpages.json do)
+          // so the trio is computed identically everywhere from one source of truth.
+          ...revisionStatsFromHistory(historyBySlug[subnet.slug] ?? []),
         };
       }),
     },
