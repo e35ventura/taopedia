@@ -712,6 +712,18 @@ infoboxRowRejects('geo:37.7749,-122.4194', 'geo: rejected in an infobox row valu
 // Prose: a name followed by a colon and a space must pass.
 accepts('Maps: a mapping service, and geospatial data are described here only as prose.', 'benign "Maps:" prose (colon then space)');
 accepts('Geo: a prefix meaning earth is described here only as prose.', 'benign "Geo:" prose (colon then space)');
+// matrix: (MSC2312) opens a native Matrix client to DM an attacker account (matrix:u/…)
+// or join an attacker room (matrix:r/…) outside the page — the same social-engineering /
+// native-app-launch class as tg:/discord:/skype:. The non-space lookahead keeps prose like
+// "Matrix: a federated chat protocol" (colon then space) passing.
+rejects('See [x](matrix:u/alice:evil.example).', 'plain matrix: user DM URI');
+rejects('See [x](matrix:r/room:evil.example).', 'plain matrix: room-join URI');
+// Entity-obfuscated: the literal scan misses "matri&#120;:" but the decoded re-scan catches it.
+rejects('See [x](matri&#120;:r/room:evil.example).', 'entity-obfuscated matrix: (obfuscated scan path)');
+// Infobox-row-value scan path.
+infoboxRowRejects('matrix:u/alice:evil.example', 'matrix: rejected in an infobox row value');
+// Prose: a name followed by a colon and a space must pass.
+accepts('Matrix: a federated, decentralized chat protocol is described here only as prose.', 'benign "Matrix:" prose (colon then space)');
 // search-ms: opens Explorer search on a remote WebDAV/SMB share (malware-delivery
 // chain), and ms-officecmd: invokes Office deep-link commands (argument-injection
 // RCE) — two more native Windows handlers blocked like ms-msdt:/javascript:.
