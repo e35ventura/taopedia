@@ -509,6 +509,29 @@ const unsafeContentPatterns = [
   // glossary prose is single-script English and never uses ruby annotations, so
   // block the whole ruby element family.
   { pattern: /<\s*(ruby|rt|rp|rtc|rb)\b/i, reason: 'ruby annotation elements are not allowed in article content' },
+  // <figure>/<figcaption> render a captioned media block in every browser. An injected
+  // <figure><figcaption>Official audit diagram</figcaption>…</figure> lends false
+  // document-structure legitimacy to attacker content — a content-spoof / fake-trust
+  // primitive with no script, handler, or flagged scheme. Glossary prose is plain text,
+  // never captioned figure markup, so block the element pair like ruby/canvas.
+  { pattern: /<\s*(figure|figcaption)\b/i, reason: 'figure and figcaption elements are not allowed in article content' },
+  // <mark> renders browser-native highlighted text. An injected <mark>VERIFIED</mark>
+  // or <mark>audited</mark> around a scam address mimics an official editorial highlight
+  // with no script or inline style — the highlight primitive sibling of the blocked
+  // <ruby>/<font> fake-trust-mark family.
+  { pattern: /<\s*mark\b/i, reason: 'mark elements are not allowed in article content' },
+  // <kbd> renders keyboard-style input glyphs. An injected <kbd>Ctrl+Enter to confirm</kbd>
+  // fakes an interactive UI affordance that implies the reader should take an action —
+  // a content-spoof / social-engineering primitive with no script.
+  { pattern: /<\s*kbd\b/i, reason: 'kbd elements are not allowed in article content' },
+  // <cite> is the semantic citation element (distinct from the cite= URL attribute already
+  // blocked on blockquote/q/del/ins). An injected <cite>Taostats official docs</cite> lends
+  // false bibliographic authority to attacker text with no visible link the reader can vet.
+  { pattern: /<\s*cite\b/i, reason: 'cite elements are not allowed in article content' },
+  // <abbr>/<dfn> are semantic abbreviation/definition elements. An injected
+  // <abbr>…</abbr> or <dfn>…</dfn> pair styles attacker text as glossary-defined
+  // terminology — a fake-trust primitive even though title= is separately blocked.
+  { pattern: /<\s*(abbr|dfn)\b/i, reason: 'abbreviation and definition (abbr, dfn) elements are not allowed in article content' },
   { pattern: /\sslot\s*=/i, reason: 'slot attributes are not allowed in article content' },
   // The <style> element is already blocked above, but an inline `style=`
   // attribute on any allowed element is the matching gap: it lets injected CSS
@@ -791,6 +814,11 @@ const unsafeContentPatterns = [
   // canonical SSRF target for reaching internal devices. The // authority form keeps prose
   // about "CoAP" unaffected.
   { pattern: /\b(?:coaps|coap)\s*:\/\//i, reason: 'CoAP IoT connection URL schemes are not allowed in article content' },
+  // cockroachdb:// scylladb:// orientdb:// are distributed data-store connection URL
+  // schemes addressing internal clusters at a host:port — SSRF siblings of clickhouse://
+  // and neo4j:// already blocked above, not an http(s) resource. The // authority form is
+  // required so prose like "CockroachDB: a distributed database" (colon then space) is unaffected.
+  { pattern: /\b(?:cockroachdb|scylladb|orientdb)\s*:\/\//i, reason: 'data-store connection URL schemes are not allowed in article content' },
   // rdp:// vnc:// telnet:// ssh:// sftp:// hand the URL's host to a native remote-session
   // client: a clicked rdp://attacker-host or telnet://internal-host opens an OS
   // client outside the page sandbox with no script — the same native protocol-handler
@@ -854,6 +882,11 @@ const unsafeContentPatterns = [
   // onenote:/spotify: handlers. The (?=non-space) lookahead blocks real scheme URIs while
   // prose like "Obsidian: a note app" (colon then space) is never affected.
   { pattern: /\b(?:obsidian|notion|evernote|logseq)\s*:(?=[^\s"'<>)])/i, reason: 'note-taking app deep-link URL schemes are not allowed in article content' },
+  // joplin:, roamresearch:, and standardnotes: are additional note-taking app deep-link
+  // schemes the OS resolves to launch the locally-installed client — siblings of the
+  // blocked obsidian:/notion:/evernote:/logseq: handlers above. The (?=non-space)
+  // lookahead blocks real scheme URIs while prose like "Joplin: a note app" is unaffected.
+  { pattern: /\b(?:joplin|roamresearch|standardnotes)\s*:(?=[^\s"'<>)])/i, reason: 'note-taking app deep-link URL schemes are not allowed in article content' },
   // ms-its: and mk:@MSITStore: are the InfoTech Storage System (compiled-HTML-help, .chm)
   // URL schemes: ms-its:<chm>::/page.htm and mk:@MSITStore:<chm>::/page.htm resolve a page
   // out of a local or remote .chm help archive through the native ITSS handler — a
@@ -1089,6 +1122,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats|rabbitmq|pulsar)\s*:\/\//i, reason: 'message-broker connection URL schemes are not allowed in article content' },
   { pattern: /(?:clickhouse|cassandra|couchbase|couchdb|neo4j|bolt|dynamodb|elasticsearch)\s*:\/\//i, reason: 'data-store connection URL schemes are not allowed in article content' },
   { pattern: /(?:coaps|coap)\s*:\/\//i, reason: 'CoAP IoT connection URL schemes are not allowed in article content' },
+  { pattern: /(?:cockroachdb|scylladb|orientdb)\s*:\/\//i, reason: 'data-store connection URL schemes are not allowed in article content' },
   { pattern: /(?:ftp|rdp|vnc|spice|teamviewer|anydesk|rustdesk|logmein|parsec|nomachine|ultraviewer|splashtop|chrome-remote-desktop|googlechromeremotedesktop|telnet|ssh|sftp|fish|rlogin|rsh|tn3270)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:rtsps?|rtspu|mms)\s*:\/\//i, reason: 'media-streaming client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:rtmpte|rtmpts|rtmpt|rtmpe|rtmps|rtmp)\s*:\/\//i, reason: 'media-streaming client-launch URL schemes are not allowed in article content' },
@@ -1101,6 +1135,11 @@ const obfuscatedSchemePatterns = [
   // onenote:/spotify: handlers. The (?=non-space) lookahead blocks real scheme URIs while
   // prose like "Obsidian: a note app" (colon then space) is never affected.
   { pattern: /\b(?:obsidian|notion|evernote|logseq)\s*:(?=[^\s"'<>)])/i, reason: 'note-taking app deep-link URL schemes are not allowed in article content' },
+  // joplin:, roamresearch:, and standardnotes: are additional note-taking app deep-link
+  // schemes the OS resolves to launch the locally-installed client — siblings of the
+  // blocked obsidian:/notion:/evernote:/logseq: handlers above. The (?=non-space)
+  // lookahead blocks real scheme URIs while prose like "Joplin: a note app" is unaffected.
+  { pattern: /\b(?:joplin|roamresearch|standardnotes)\s*:(?=[^\s"'<>)])/i, reason: 'note-taking app deep-link URL schemes are not allowed in article content' },
   { pattern: /(?:ms-its\s*:|mk\s*:\s*@)/i, reason: 'compiled-HTML-help (CHM) URL schemes are not allowed in article content' },
   { pattern: /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i, reason: 'mobile app-store URL schemes are not allowed in article content' },
   { pattern: /(?:steam|com\.epicgames\.launcher)\s*:\/\//i, reason: 'game-launcher protocol-handler URLs are not allowed in article content' },
@@ -1156,11 +1195,13 @@ const infoboxRowValueSchemePatterns = [
   /(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats|rabbitmq|pulsar)\s*:\/\//i,
   /(?:clickhouse|cassandra|couchbase|couchdb|neo4j|bolt|dynamodb|elasticsearch)\s*:\/\//i,
   /(?:coaps|coap)\s*:\/\//i,
+  /(?:cockroachdb|scylladb|orientdb)\s*:\/\//i,
   /(?:ftp|rdp|vnc|spice|teamviewer|anydesk|rustdesk|logmein|parsec|nomachine|ultraviewer|splashtop|chrome-remote-desktop|googlechromeremotedesktop|telnet|ssh|sftp|fish|rlogin|rsh|tn3270)\s*:\/\//i,
   /(?:rtsps?|rtspu|mms)\s*:\/\//i,
   /(?:rtmpte|rtmpts|rtmpt|rtmpe|rtmps|rtmp)\s*:\/\//i,
   /\b(?:spotify|deezer)\s*:(?=[^\s"'<>)])/i,
   /\b(?:obsidian|notion|evernote|logseq)\s*:(?=[^\s"'<>)])/i,
+  /\b(?:joplin|roamresearch|standardnotes)\s*:(?=[^\s"'<>)])/i,
   /(?:ms-its\s*:|mk\s*:\s*@)/i,
   /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i,
   /(?:steam|com\.epicgames\.launcher)\s*:\/\//i,

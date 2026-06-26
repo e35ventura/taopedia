@@ -317,6 +317,29 @@ rejects('Intro.\n\n<rb>base</rb>', 'standalone <rb>');
 accepts('The HTML ruby element is described here only as prose.', 'benign ruby prose');
 accepts('A ruby gemstone and the Ruby language are ordinary words.', 'benign ruby/Ruby words');
 
+// <figure>/<figcaption> render captioned media blocks — an injected pair can fake an
+// official diagram caption with no script; blocked like ruby/canvas.
+rejects('Intro.\n\n<figure><figcaption>Official audit diagram</figcaption><p>scam</p></figure>', 'plain figure with figcaption');
+rejects('Intro.\n\n<  figcaption  >caption</figcaption>', 'spaced figcaption element');
+accepts('A figure of speech and figure captions are described here only as prose.', 'benign figure prose');
+// <mark> renders browser-native highlighted text — fake "VERIFIED" / "audited" highlights.
+rejects('Intro.\n\n<mark>VERIFIED</mark> 5Fake…address', 'plain mark highlight spoof');
+rejects('Intro.\n\n<  mark  >audited</mark>', 'spaced mark element');
+accepts('A watermark and remark are ordinary words, not mark elements.', 'benign mark prose');
+// <kbd> fakes keyboard UI affordances — e.g. "Press Ctrl+Enter to confirm".
+rejects('Intro.\n\nPress <kbd>Ctrl+Enter</kbd> to confirm your wallet.', 'plain kbd UI spoof');
+rejects('Intro.\n\n<  kbd  >Enter</kbd>', 'spaced kbd element');
+accepts('A keyboard shortcut is described here only as prose.', 'benign kbd prose');
+// <cite> is the semantic citation element (distinct from cite= on blockquote/q/del/ins).
+rejects('Intro.\n\n<cite>Taostats official documentation</cite>', 'plain cite element');
+rejects('Intro.\n\n<  cite  >Bittensor whitepaper</cite>', 'spaced cite element');
+accepts('A citation and cite attribute are described here only as prose.', 'benign cite prose');
+// <abbr>/<dfn> style attacker text as glossary-defined terminology.
+rejects('Intro.\n\n<abbr>TAO</abbr> is verified.', 'plain abbr element');
+rejects('Intro.\n\n<dfn>subnet</dfn> is official.', 'plain dfn element');
+rejects('Intro.\n\n<  abbr  >TAO</abbr>', 'spaced abbr element');
+accepts('An abbreviation and a definition term are described here only as prose.', 'benign abbr/dfn prose');
+
 // referrerpolicy= overrides the site's strict Referrer-Policy header for one
 // element — an injected referrerpolicy="unsafe-url" leaks the full referring URL
 // to an external destination. Blocked like the other interaction attributes.
@@ -561,6 +584,13 @@ rejects('See [x](coaps://internal-device:5684/sensor).', 'plain coaps:// IoT URL
 rejects('See [x](co&#97;p://internal-device:5683/sensor).', 'entity-obfuscated coap:// (obfuscated scan path)');
 infoboxRowRejects('coap://internal-device:5683/sensor', 'coap:// rejected in an infobox row value');
 accepts('The CoAP protocol for IoT is described here only as prose.', 'benign "CoAP" prose (no // authority)');
+// cockroachdb:// scylladb:// orientdb:// distributed data-store connection schemes.
+rejects('See [x](cockroachdb://internal-host:26257/defaultdb).', 'plain cockroachdb:// connection URL');
+rejects('See [x](scylladb://internal-host:9042/ks).', 'plain scylladb:// connection URL');
+rejects('See [x](orientdb://internal-host:2424/db).', 'plain orientdb:// connection URL');
+rejects('See [x](cockr&#111;achdb://internal-host:26257/defaultdb).', 'entity-obfuscated cockroachdb:// (obfuscated scan path)');
+infoboxRowRejects('orientdb://internal-host:2424/db', 'orientdb:// rejected in an infobox row value');
+accepts('CockroachDB: a distributed database, ScyllaDB clusters, and OrientDB graphs are described here only as prose.', 'benign data-store prose (colon then space, no // authority)');
 // rdp:// vnc:// telnet:// ssh:// launch a native remote-session client at the host;
 // the // authority form is required so glossary definitions ("SSH: Secure Shell")
 // are unaffected.
@@ -663,6 +693,13 @@ rejects('See [x](evern&#111;te://x-callback-url/open-note?guid=evil).', 'entity-
 infoboxRowRejects('notion://www.notion.so/evil-page', 'notion:// rejected in an infobox row value');
 infoboxRowRejects('logseq://graph/evil-graph', 'logseq:// rejected in an infobox row value');
 accepts('Obsidian: a note-taking app, Evernote: a notebook service, and Notion workspaces are described here only as prose.', 'benign note-app prose (colon then space)');
+// joplin:/roamresearch:/standardnotes: are additional note-taking app deep-link schemes.
+rejects('See [x](joplin://x-callback/open?file=evil.md).', 'plain joplin:// deep-link');
+rejects('See [x](roamresearch://#/app/evil-page).', 'plain roamresearch:// deep-link');
+rejects('See [x](standardnotes://open?note=evil).', 'plain standardnotes:// deep-link');
+rejects('See [x](jopl&#105;n://x-callback/open?file=evil.md).', 'entity-obfuscated joplin:// (obfuscated scan path)');
+infoboxRowRejects('standardnotes://open?note=evil', 'standardnotes:// rejected in an infobox row value');
+accepts('Joplin: a note app, Roam Research, and Standard Notes are described here only as prose.', 'benign additional note-app prose (colon then space)');
 // ms-its: and mk:@MSITStore: resolve a page out of a compiled-HTML-help (.chm) archive
 // through the native ITSS handler (a documented RCE vector), blocked like mhtml:/jar:.
 rejects('See [x](ms-its:evil.chm::/exploit.htm).', 'plain ms-its: CHM scheme');
