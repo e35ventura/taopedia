@@ -74,6 +74,17 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(empty.lastEdited, null, 'builder: empty lastEdited is null');
   assert.deepEqual(empty.revisions, [], 'builder: empty revisions is []');
   assert.deepEqual(empty.categories, [], 'builder: default categories is []');
+  const deduped = buildArticleHistory({
+    slug: 'dup',
+    title: 'Dup',
+    origin: ORIGIN,
+    categories: ['Consensus', 'Mining', 'Consensus'],
+  });
+  assert.deepEqual(
+    deduped.categories,
+    ['Consensus', 'Mining'],
+    'builder: repeated frontmatter categories must be deduped while preserving first-seen order',
+  );
   assert.equal(empty.summary, null, 'builder: default summary is null');
   assert.equal(empty.incomingLinks, 0, 'builder: default incomingLinks is 0');
   assert.equal(empty.referencesCount, 0, 'builder: default referencesCount is 0');

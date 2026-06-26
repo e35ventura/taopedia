@@ -25,7 +25,9 @@ export const buildArticleHistory = ({ slug, title, origin, summary = '', categor
   relatedJsonUrl: `${origin}/wiki/${slug}/related.json`,
   tocJsonUrl: `${origin}/wiki/${slug}/toc.json`,
   imageUrl: `${origin}/og/${slug}.png`,
-  categories,
+  // Dedupe repeated frontmatter topics so history.json cannot list the same
+  // category twice when an article's YAML repeats a topic tag.
+  categories: [...new Set(categories)],
   incomingLinks: Number.isFinite(incomingLinks) ? incomingLinks : 0,
   // The article's published outbound-reference count — the same figure
   // references.json exposes as `count` (via the shared getArticleReferences helper).
