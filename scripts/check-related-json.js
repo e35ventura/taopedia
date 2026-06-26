@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { buildArticleRelatedPages, getRelatedPages } from '../src/lib/related-pages.ts';
 import { publishedInboundLinkCount } from '../scripts/most-linked.js';
 import { getArticleReferences } from '../src/lib/article-references.js';
+import { slugFromWikiHref } from '../src/lib/wiki-article-path.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
@@ -629,7 +630,12 @@ for (const slug of articleSlugs) {
       .map((match) => {
         const tag = match[0];
         if (!tag.includes('related-pages-card')) return null;
-        return tag.match(/href="\/wiki\/([^"/]+)\/"/)?.[1] ?? null;
+        // Use the shared slugFromWikiHref helper (#1610) rather than an inline
+        // /wiki/([^"/]+)/ regex: the inline single-segment capture fails outright
+        // on a nested multi-segment slug (e.g. /wiki/alpha_tokens/notes/), which
+        // would drop that card and break the HTML/JSON order parity assertion.
+        const href = tag.match(/href="([^"]+)"/)?.[1] ?? '';
+        return slugFromWikiHref(href) || null;
       })
       .filter(Boolean);
     const orderedJsonSlugs = doc.related.map((entry) => entry.slug);
