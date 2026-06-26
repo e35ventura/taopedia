@@ -12,9 +12,10 @@
 // markup. Follows the WAI-ARIA combobox/listbox pattern.
 ---
 
-<script is:inline>
-  (function () {
-    if (window.__taopediaSearchSuggest) return;
+<script>
+  import { applySearchSubmit } from '../../scripts/search-suggest-submit.js';
+
+  if (!window.__taopediaSearchSuggest) {
     window.__taopediaSearchSuggest = true;
 
     var MAX = 8; // suggestions shown before the "Search for …" row
@@ -232,6 +233,13 @@
         // Delay so a mousedown on an option resolves before we tear the list down.
         setTimeout(closeList, 120);
       });
+      form.addEventListener('submit', function (e) {
+        applySearchSubmit(input.value, {
+          preventDefault: function () { e.preventDefault(); },
+          setValue: function (v) { input.value = v; },
+          closeList: closeList,
+        });
+      });
     }
 
     function init() {
@@ -241,5 +249,5 @@
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
     else init();
-  })();
+  }
 </script>
