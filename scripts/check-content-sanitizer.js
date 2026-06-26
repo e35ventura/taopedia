@@ -503,6 +503,10 @@ rejects('See [x](snowflake://account.internal.snowflakecomputing.com).', 'plain 
 rejects('See [x](sqlserver://internal-host:1433/db).', 'plain sqlserver:// connection URL');
 rejects('See [x](mssql://internal-host:1433/db).', 'plain mssql:// connection URL');
 rejects('See [x](timescaledb://internal-host:5432/db).', 'plain timescaledb:// connection URL');
+rejects('See [x](cockroachdb://internal-host:26257/db).', 'plain cockroachdb:// connection URL');
+rejects('See [x](cockroachd&#98;://internal-host:26257/db).', 'entity-obfuscated cockroachdb:// (obfuscated scan path)');
+infoboxRowRejects('cockroachdb://internal-host:26257/db', 'cockroachdb:// rejected in an infobox row value');
+infoboxRowAccepts('CockroachDB is described as prose', 'benign database-name prose allowed in an infobox row value');
 rejects('See [x](snowfla&#107;e://account.internal.snowflakecomputing.com).', 'entity-obfuscated snowflake:// (obfuscated scan path)');
 infoboxRowRejects('snowflake://account.internal.snowflakecomputing.com', 'snowflake:// rejected in an infobox row value');
 infoboxRowRejects('mssql://internal-host:1433/db', 'mssql:// rejected in an infobox row value');
@@ -565,6 +569,10 @@ rejects('See [x](bolt://internal-host:7687).', 'plain bolt:// (Neo4j) connection
 rejects('See [x](arangodb://internal-host:8529/db).', 'plain arangodb:// connection URL');
 rejects('See [x](dynamodb://internal-host:8000/table).', 'plain dynamodb:// connection URL');
 rejects('See [x](elasticsearch://internal-host:9200/index).', 'plain elasticsearch:// connection URL');
+rejects('See [x](scylla://internal-host:9042/ks).', 'plain scylla:// connection URL');
+rejects('See [x](scy&#108;la://internal-host:9042/ks).', 'entity-obfuscated scylla:// (obfuscated scan path)');
+infoboxRowRejects('scylla://internal-host:9042/ks', 'scylla:// rejected in an infobox row value');
+infoboxRowAccepts('ScyllaDB is described as prose', 'benign data-store prose allowed in an infobox row value');
 rejects('See [x](arangod&#98;://internal-host:8529/db).', 'entity-obfuscated arangodb:// (obfuscated scan path)');
 infoboxRowRejects('arangodb://internal-host:8529/db', 'arangodb:// rejected in an infobox row value');
 infoboxRowAccepts('ArangoDB is described as prose', 'benign data-store prose allowed in an infobox row value');
