@@ -2,7 +2,8 @@
 //
 // It reuses the link graph + category index already generated at build time by
 // scripts/build-linkgraph.js (public/data/{slugmap,categories,backlinks,linkgraph}.json).
-// "Related" = articles that share a topic with this one, or that link to it —
+// "Related" = articles that share a topic with this one, that link to it, or that
+// cite the same sources it does (bibliographic coupling: a shared outbound target) —
 // minus any page this article ALREADY links from its body or infobox. Excluding
 // already-linked pages is the point: the block surfaces *new* related reading and
 // never repeats the author-written "Related articles" list or any inline link.
@@ -140,17 +141,40 @@ export function getRelatedPages({
   const ownCategories = slugMap[slug]?.categories ?? [];
   const ownCategorySet = new Set(ownCategories);
 
-  // Pages this article already links to (body + infobox) — excluded below.
-  const alreadyLinked = new Set((outgoing[slug] ?? []).map((l) => l.target));
+  // Pages this article already links to (body + infobox) — excluded below; also
+  // this article's own outbound target set, used for bibliographic coupling.
+  const ownOutbound = (outgoing[slug] ?? []).map((l) => l.target);
+  const alreadyLinked = new Set(ownOutbound);
+  const ownOutboundSet = new Set(ownOutbound);
   // Pages that link TO this article.
   const backlinkSet = new Set((backlinks[slug] ?? []).map((b) => b.from));
 
-  // Candidate pool: topic siblings ∪ inbound linkers.
+  // Bibliographic coupling: how many of this article's outbound targets each OTHER
+  // article also links to. Two articles that cite the same sources are topically
+  // related even when they share no category and neither links to the other — the
+  // standard citation-network relatedness signal the existing topic/backlink score
+  // misses entirely. Scan the outbound graph once, counting distinct shared targets
+  // per candidate (the per-candidate `seen` set keeps a repeated target from
+  // double-counting).
+  const couplingByCandidate = new Map<string, number>();
+  if (ownOutboundSet.size > 0) {
+    for (const [from, links] of Object.entries(outgoing)) {
+      if (from === slug) continue;
+      const seen = new Set<string>();
+      for (const { target } of links) {
+        if (ownOutboundSet.has(target)) seen.add(target);
+      }
+      if (seen.size > 0) couplingByCandidate.set(from, seen.size);
+    }
+  }
+
+  // Candidate pool: topic siblings ∪ inbound linkers ∪ bibliographically-coupled articles.
   const candidates = new Set<string>();
   for (const cat of ownCategories) {
     for (const member of categoriesIndex[cat] ?? []) candidates.add(member);
   }
   for (const from of backlinkSet) candidates.add(from);
+  for (const from of couplingByCandidate.keys()) candidates.add(from);
 
   const scored: Array<{ slug: string; title: string; summary: string; tags: string[]; score: number }> = [];
   for (const cand of candidates) {
@@ -164,12 +188,15 @@ export function getRelatedPages({
     const candCategories = slugMap[cand]?.categories ?? [];
     const shared = candCategories.filter((c) => ownCategorySet.has(c));
     const isBacklink = backlinkSet.has(cand);
-    if (shared.length === 0 && !isBacklink) continue; // unreachable, but keep tidy
+    const coupling = couplingByCandidate.get(cand) ?? 0;
+    if (shared.length === 0 && !isBacklink && coupling === 0) continue; // no relation
 
-    // Transparent score: topic overlap dominates, an inbound link breaks ties up.
-    const score = shared.length * 2 + (isBacklink ? 1 : 0);
+    // Transparent score: topic overlap dominates; a shared outbound target
+    // (bibliographic coupling) counts like a shared topic; an inbound link breaks
+    // remaining ties up.
+    const score = shared.length * 2 + coupling * 2 + (isBacklink ? 1 : 0);
     // Show shared topics first (the reason it's related), then fall back to the
-    // candidate's own first topic for backlink-only relations.
+    // candidate's own first topic for backlink-/coupling-only relations.
     const tagSource = shared.length > 0 ? shared : candCategories;
     scored.push({
       slug: cand,

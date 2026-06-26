@@ -102,6 +102,40 @@ const sectionCountOf = (slug) => {
     'same-score same-title related pages must tiebreak on raw slug order (subnet_10 before subnet_9), matching references.json',
   );
 
+  // Bibliographic coupling: a candidate that cites the same sources as `source`
+  // (shares outbound targets) is surfaced as related even with no shared topic and
+  // no inbound link, ranked by the number of distinct shared targets. cand_x shares
+  // two of source's two outbound targets (score 4), cand_y shares one (score 2), and
+  // cand_z shares none so it never enters the candidate pool.
+  const coupled = getRelatedPages({
+    slug: 'source',
+    slugMap: {
+      source: { title: 'Source', categories: [] },
+      cand_x: { title: 'Cand X', categories: [], summary: 'x summary' },
+      cand_y: { title: 'Cand Y', categories: [], summary: 'y summary' },
+      cand_z: { title: 'Cand Z', categories: [], summary: 'z summary' },
+    },
+    categoriesIndex: {},
+    backlinks: {},
+    outgoing: {
+      source: [{ target: 't1' }, { target: 't2' }],
+      cand_x: [{ target: 't1' }, { target: 't2' }, { target: 't3' }],
+      cand_y: [{ target: 't1' }],
+      cand_z: [{ target: 't9' }],
+    },
+    publishedSlugs: new Set(['source', 'cand_x', 'cand_y', 'cand_z']),
+    titleBySlug: { source: 'Source', cand_x: 'Cand X', cand_y: 'Cand Y', cand_z: 'Cand Z' },
+    max: 10,
+  });
+  assert.deepEqual(
+    coupled.map((entry) => ({ slug: entry.slug, tags: entry.tags })),
+    [
+      { slug: 'cand_x', tags: [] },
+      { slug: 'cand_y', tags: [] },
+    ],
+    'bibliographic coupling must surface articles citing the same sources (cand_x shares 2 targets, cand_y shares 1) ranked by distinct shared-target count, and exclude an article that shares none (cand_z)',
+  );
+
   const doc = buildArticleRelatedPages({
     slug: 'source',
     title: 'Source',
