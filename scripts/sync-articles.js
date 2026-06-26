@@ -925,6 +925,17 @@ const unsafeContentPatterns = [
   // after the colon, so prose like "Maps: a mapping service" (colon then space) is
   // never affected; these scheme names never occur as live URLs in glossary prose.
   { pattern: /\b(?:geo|maps|comgooglemaps)\s*:(?=[^\s"'<>)])/i, reason: 'native maps and geolocation app-launch URL schemes are not allowed in article content' },
+  // matrix: is the Matrix decentralized-chat URI scheme (MSC2312): a clicked
+  // matrix:u/user:server hands the reader to a locally-installed Matrix client (Element,
+  // etc.) to start a DM with an attacker-controlled account, and matrix:r/room:server /
+  // matrix:roomid/… joins an attacker-controlled room — the OS, not the browser, resolves
+  // it to launch a native client outside the page sandbox with no script, the same
+  // social-engineering / native-app-launch class as the blocked tg:/discord:/skype:
+  // handlers. matrix: carries an opaque path (matrix:u/…, matrix:r/…) with no //-authority,
+  // so it needs the (?=non-space) lookahead form rather than the //-anchored messaging
+  // pattern; prose like "Matrix: a federated chat protocol" (colon then space) is never
+  // affected, and the scheme name never occurs as a live URL in glossary prose.
+  { pattern: /\bmatrix\s*:(?=[^\s"'<>)])/i, reason: 'Matrix chat client-launch URL scheme is not allowed in article content' },
   // shell: is the Windows Explorer protocol handler: shell:startup opens the user's
   // Startup folder (a drop-a-payload persistence path), shell:::{CLSID} opens special
   // folders / Control-Panel applets, and the OS — not the browser — resolves it, with
@@ -1007,6 +1018,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:webcal|webcals|feed|itpc|pcast)\s*:\/\//i, reason: 'subscription-handler URL schemes are not allowed in article content' },
   { pattern: /(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash)\s*:(?=[^\s"'<>)])/i, reason: 'cryptocurrency payment URI schemes are not allowed in article content' },
   { pattern: /\b(?:geo|maps|comgooglemaps)\s*:(?=[^\s"'<>)])/i, reason: 'native maps and geolocation app-launch URL schemes are not allowed in article content' },
+  { pattern: /\bmatrix\s*:(?=[^\s"'<>)])/i, reason: 'Matrix chat client-launch URL scheme is not allowed in article content' },
   { pattern: /\bshell\s*:(?=[^\s"'<>)])/i, reason: 'shell: protocol-handler URLs are not allowed in article content' },
   { pattern: /\bms-cxh(?:-full)?\s*:/i, reason: 'Windows CloudExperienceHost protocol-handler URLs are not allowed in article content' },
   { pattern: /data\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
@@ -1059,6 +1071,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:webcal|webcals|feed|itpc|pcast)\s*:\/\//i,
   /(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash)\s*:(?=[^\s"'<>)])/i,
   /\b(?:geo|maps|comgooglemaps)\s*:(?=[^\s"'<>)])/i,
+  /\bmatrix\s*:(?=[^\s"'<>)])/i,
   /\bshell\s*:(?=[^\s"'<>)])/i,
   /\bms-cxh(?:-full)?\s*:/i,
   /data\s*:\s*text\/html/i,
