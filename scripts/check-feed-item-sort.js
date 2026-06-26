@@ -33,6 +33,12 @@ assert.equal(
   'wiki slug extraction ignores URL fragments',
 );
 
+assert.equal(
+  feedItemSortKey({ url: 'https://taopedia.org/wiki/alpha_tokens/notes/' }),
+  'alpha_tokens/notes',
+  'wiki slug extraction preserves nested multi-segment paths',
+);
+
 const sameDate = '2026-06-01T06:01:22Z';
 const alpha = { title: 'Shared', url: 'https://taopedia.org/wiki/alpha/', date: sameDate };
 const alphaBeta = { title: 'Shared', url: 'https://taopedia.org/wiki/alpha_beta/', date: sameDate };
@@ -44,6 +50,18 @@ assert.ok(
 assert.ok(
   compareFeedItemsByDateAndKey(alphaBeta, alpha, itemDate) > 0,
   'prefix slug ordering must be independent of input order',
+);
+
+const nestedA = { title: 'A', url: 'https://taopedia.org/wiki/alpha_tokens/a/', date: sameDate };
+const nestedB = { title: 'B', url: 'https://taopedia.org/wiki/alpha_tokens/b/', date: sameDate };
+assert.ok(
+  compareFeedItemsByDateAndKey(nestedA, nestedB, itemDate) < 0,
+  'nested slugs must tiebreak on the full path (alpha_tokens/a before alpha_tokens/b)',
+);
+assert.notEqual(
+  feedItemSortKey(nestedA),
+  feedItemSortKey({ url: 'https://taopedia.org/wiki/alpha_tokens/' }),
+  'nested slug tiebreak must not collapse to the first path segment only',
 );
 
 const nine = { title: 'Subnet 9', url: 'https://taopedia.org/wiki/subnet_9/', date: sameDate };
