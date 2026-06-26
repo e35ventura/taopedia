@@ -777,13 +777,14 @@ const unsafeContentPatterns = [
   // limited to http(s), so these are never a valid article link. The // authority form is
   // required so prose about "AMQP", "MQTT", or "Kafka" is unaffected.
   { pattern: /\b(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats|rabbitmq|pulsar)\s*:\/\//i, reason: 'message-broker connection URL schemes are not allowed in article content' },
-  // clickhouse:// cassandra:// couchbase:// couchdb:// neo4j:// bolt:// are additional
-  // data-store connection URL schemes (analytics / graph / NoSQL), the sibling of the
-  // database-connection and message-broker schemes above: each addresses an internal data
-  // store at a host:port (an SSRF target), not an http(s) resource. Article links are limited
-  // to http(s), so these are never a valid article link. The // authority form is required so
-  // prose ("a bolt of lightning", "the Cassandra prophecy") is unaffected.
-  { pattern: /\b(?:clickhouse|cassandra|couchbase|couchdb|neo4j|bolt)\s*:\/\//i, reason: 'data-store connection URL schemes are not allowed in article content' },
+  // clickhouse:// cassandra:// couchbase:// couchdb:// neo4j:// bolt:// dynamodb://
+  // elasticsearch:// are additional data-store connection URL schemes (analytics / graph /
+  // NoSQL / search), the sibling of the database-connection and message-broker schemes above:
+  // each addresses an internal data store at a host:port (an SSRF target), not an http(s)
+  // resource. Article links are limited to http(s), so these are never a valid article link.
+  // The // authority form is required so prose ("a bolt of lightning", "the Cassandra prophecy",
+  // "DynamoDB: a key-value store") is unaffected.
+  { pattern: /\b(?:clickhouse|cassandra|couchbase|couchdb|neo4j|bolt|dynamodb|elasticsearch)\s*:\/\//i, reason: 'data-store connection URL schemes are not allowed in article content' },
   // coap:// coaps:// are the Constrained Application Protocol (IoT) schemes: like the
   // message-broker/database schemes above they address a non-http service at a host:port
   // (an IoT device or gateway), not an http(s) resource — never a valid article link and a
@@ -1075,7 +1076,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:redis|rediss|mongodb(?:\+srv)?|mysql|mariadb|sqlite|influxdb|postgresql|postgres|memcached|etcd|consul)\s*:\/\//i, reason: 'database-connection URL schemes are not allowed in article content' },
   { pattern: /(?:git|svn|cvs)\s*:\/\//i, reason: 'version-control protocol URL schemes are not allowed in article content' },
   { pattern: /(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats|rabbitmq|pulsar)\s*:\/\//i, reason: 'message-broker connection URL schemes are not allowed in article content' },
-  { pattern: /(?:clickhouse|cassandra|couchbase|couchdb|neo4j|bolt)\s*:\/\//i, reason: 'data-store connection URL schemes are not allowed in article content' },
+  { pattern: /(?:clickhouse|cassandra|couchbase|couchdb|neo4j|bolt|dynamodb|elasticsearch)\s*:\/\//i, reason: 'data-store connection URL schemes are not allowed in article content' },
   { pattern: /(?:coaps|coap)\s*:\/\//i, reason: 'CoAP IoT connection URL schemes are not allowed in article content' },
   { pattern: /(?:ftp|rdp|vnc|spice|teamviewer|anydesk|rustdesk|logmein|parsec|nomachine|ultraviewer|splashtop|chrome-remote-desktop|googlechromeremotedesktop|telnet|ssh|sftp|fish|rlogin|rsh|tn3270)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:rtsps?|rtspu|mms)\s*:\/\//i, reason: 'media-streaming client-launch URL schemes are not allowed in article content' },
@@ -1141,7 +1142,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:redis|rediss|mongodb(?:\+srv)?|mysql|mariadb|sqlite|influxdb|postgresql|postgres|memcached|etcd|consul)\s*:\/\//i,
   /(?:git|svn|cvs)\s*:\/\//i,
   /(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats|rabbitmq|pulsar)\s*:\/\//i,
-  /(?:clickhouse|cassandra|couchbase|couchdb|neo4j|bolt)\s*:\/\//i,
+  /(?:clickhouse|cassandra|couchbase|couchdb|neo4j|bolt|dynamodb|elasticsearch)\s*:\/\//i,
   /(?:coaps|coap)\s*:\/\//i,
   /(?:ftp|rdp|vnc|spice|teamviewer|anydesk|rustdesk|logmein|parsec|nomachine|ultraviewer|splashtop|chrome-remote-desktop|googlechromeremotedesktop|telnet|ssh|sftp|fish|rlogin|rsh|tn3270)\s*:\/\//i,
   /(?:rtsps?|rtspu|mms)\s*:\/\//i,
