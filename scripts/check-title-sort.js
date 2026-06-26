@@ -216,13 +216,33 @@ const backlinksSource = fs.readFileSync(
   path.join(projectRoot, 'src/pages/wiki/[...slug]/backlinks.astro'),
   'utf8',
 );
-assert.ok(
-  backlinksSource.includes('compareTitles(a.slug, b.slug)'),
-  'backlinks.astro must sort slug ties with compareTitles, not localeCompare',
+const backlinksJsonSource = fs.readFileSync(
+  path.join(projectRoot, 'src/pages/wiki/[...slug]/backlinks.json.ts'),
+  'utf8',
+);
+const backlinksBuilderSource = fs.readFileSync(
+  path.join(projectRoot, 'scripts/article-backlinks.js'),
+  'utf8',
 );
 assert.ok(
-  !backlinksSource.includes('a.slug.localeCompare(b.slug)'),
-  'backlinks.astro must not use localeCompare for slug tiebreak',
+  backlinksBuilderSource.includes('sortInboundBacklinkEntries'),
+  'article-backlinks.js must own the shared inbound-backlink sort',
+);
+assert.ok(
+  backlinksSource.includes('sortInboundBacklinkEntries'),
+  'backlinks.astro must sort through the shared inbound-backlink sorter',
+);
+assert.ok(
+  backlinksJsonSource.includes('sortInboundBacklinkEntries'),
+  'backlinks.json.ts must sort through the shared inbound-backlink sorter',
+);
+assert.ok(
+  !backlinksSource.includes('compareTitles(a.slug, b.slug)'),
+  'backlinks.astro must not use compareTitles for slug tiebreak',
+);
+assert.ok(
+  !backlinksJsonSource.includes('compareTitles(a.slug, b.slug)'),
+  'backlinks.json.ts must not use compareTitles for slug tiebreak',
 );
 
 const relatedPagesSource = fs.readFileSync(path.join(projectRoot, 'src/lib/related-pages.ts'), 'utf8');

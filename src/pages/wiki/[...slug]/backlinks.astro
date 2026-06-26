@@ -3,7 +3,7 @@ import { getCollection } from 'astro:content';
 import WikiLayout from '../../../layouts/WikiLayout.astro';
 import { getPageSlug } from '../../../lib/article-history';
 import { publishedTitleBySlug } from '../../../lib/site-feed-context';
-import { compareTitles } from '../../../lib/title-sort.js';
+import { sortInboundBacklinkEntries } from '../../../../scripts/article-backlinks.js';
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
@@ -26,10 +26,11 @@ export async function getStaticPaths() {
     // getCollection('pages') and rebuild titleBySlug on every article page just
     // to derive this article's sorted backlink list (O(N) per page). Mirrors
     // backlinks.json (#1042) and the category-page getStaticPaths fix (#1206).
-    const backlinks = (backlinksData[slug] ?? [])
+    const backlinks = sortInboundBacklinkEntries(
+      (backlinksData[slug] ?? [])
       .filter((entry) => titleBySlug[entry.from])
-      .map((entry) => ({ slug: entry.from, title: titleBySlug[entry.from] }))
-      .sort((a, b) => compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug));
+      .map((entry) => ({ slug: entry.from, title: titleBySlug[entry.from] })),
+    );
 
     return {
       params: { slug },
