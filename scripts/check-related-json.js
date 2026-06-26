@@ -82,6 +82,26 @@ const sectionCountOf = (slug) => {
     'helper must exclude already-linked pages, keep published candidates only, rank by shared topics then backlinks, and sort numeric title ties correctly',
   );
 
+  const tied = getRelatedPages({
+    slug: 'source',
+    slugMap: {
+      source: { title: 'Source', categories: ['Mining'] },
+      subnet_9: { title: 'Shared Title', categories: ['Mining'] },
+      subnet_10: { title: 'Shared Title', categories: ['Mining'] },
+    },
+    categoriesIndex: { Mining: ['source', 'subnet_9', 'subnet_10'] },
+    backlinks: {},
+    outgoing: {},
+    publishedSlugs: new Set(['source', 'subnet_9', 'subnet_10']),
+    titleBySlug: { source: 'Source', subnet_9: 'Shared Title', subnet_10: 'Shared Title' },
+    max: 10,
+  });
+  assert.deepEqual(
+    tied.map((entry) => entry.slug),
+    ['subnet_10', 'subnet_9'],
+    'same-score same-title related pages must tiebreak on raw slug order (subnet_10 before subnet_9), matching references.json',
+  );
+
   const doc = buildArticleRelatedPages({
     slug: 'source',
     title: 'Source',
