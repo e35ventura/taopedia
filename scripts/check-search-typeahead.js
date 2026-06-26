@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { applySearchSubmit, resolveSearchSubmit } from './search-suggest-submit.js';
 
 // Load-bearing check for the search typeahead. It guards the contract the
 // feature depends on: (1) the /search-data.json it reads is served with the
@@ -13,6 +14,36 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
 const distDir = path.join(projectRoot, 'dist');
+
+// Behavioral regression: whitespace-only submit is blocked; real queries are trimmed.
+assert.deepEqual(resolveSearchSubmit('   '), { submit: false, value: '' });
+assert.deepEqual(resolveSearchSubmit(''), { submit: false, value: '' });
+assert.deepEqual(resolveSearchSubmit(' staking '), { submit: true, value: 'staking' });
+
+let prevented = false;
+let inputValue = '   ';
+let listClosed = false;
+applySearchSubmit(inputValue, {
+  preventDefault: () => { prevented = true; },
+  setValue: (v) => { inputValue = v; },
+  closeList: () => { listClosed = true; },
+});
+assert.equal(prevented, true, 'whitespace-only submit must call preventDefault');
+assert.equal(inputValue, '', 'whitespace-only submit must clear the input');
+assert.equal(listClosed, true, 'whitespace-only submit must close the suggestion list');
+
+prevented = false;
+inputValue = '  foo  ';
+listClosed = false;
+applySearchSubmit(inputValue, {
+  preventDefault: () => { prevented = true; },
+  setValue: (v) => { inputValue = v; },
+  closeList: () => { listClosed = true; },
+});
+assert.equal(prevented, false, 'trimmed queries must submit normally');
+assert.equal(inputValue, 'foo', 'leading/trailing spaces must be trimmed before submit');
+assert.equal(listClosed, false);
+
 assert.ok(fs.existsSync(distDir), 'dist not found; run the build first');
 
 // 1) The suggestion data must be served with the fields the typeahead uses.
