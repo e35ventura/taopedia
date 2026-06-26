@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { publishedTitleBySlug } from '../../../lib/article-metadata';
 import { buildWantedPages } from '../../../../scripts/wanted-pages.js';
+import { wikiArticleHref } from '../../../lib/wiki-article-path.js';
 
 // Machine-readable Special:WantedPages report at /wiki/special/wantedpages.json:
 // link targets that no published article satisfies (red links), ranked by how many
@@ -32,10 +33,15 @@ export const GET: APIRoute = async ({ site }) => {
         count: entry.count,
         // The articles requesting it, each with its canonical URL so a consumer
         // can jump straight to the article that wants the missing page created.
+        // Build the URL with the shared wikiArticleHref helper (the same canonical
+        // article-URL source the per-article JSON envelopes and the site/category
+        // feeds use) instead of hand-concatenating `${origin}/wiki/${from}/`, so a
+        // requester link can't drift from the site-wide form (origin trailing-slash
+        // and nested multi-segment slug normalization) the rest of the wiki emits.
         requestedBy: entry.requestedBy.map((from) => ({
           slug: from,
           title: titleBySlug[from],
-          url: `${origin}/wiki/${from}/`,
+          url: wikiArticleHref(origin, from),
         })),
       })),
     },

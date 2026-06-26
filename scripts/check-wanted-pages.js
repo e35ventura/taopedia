@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildWantedPages, collectWantedRequesters, isWantedTarget } from './wanted-pages.js';
+import { wikiArticleHref } from '../src/lib/wiki-article-path.js';
 
 // titleBySlug = the published articles. linkGraph = each article's resolved
 // outbound targets (build-linkgraph.js shape), where a target absent from
@@ -112,7 +113,10 @@ data.pages.forEach((row, i) => {
   for (const req of row.requestedBy) {
     assert.ok(realTitleBySlug[req.slug], `requester ${req.slug} for ${row.slug} must be a published article`);
     assert.equal(req.title, realTitleBySlug[req.slug], `requester ${req.slug} title must match the slug map`);
-    assert.equal(req.url, `${data.site}/wiki/${req.slug}/`, `requester ${req.slug} url must be the canonical article URL`);
+    // The requester URL must be the canonical article href the shared wikiArticleHref
+    // helper produces — the same source the per-article JSON envelopes and the
+    // site/category feeds use — so this surface can't drift from the site-wide form.
+    assert.equal(req.url, wikiArticleHref(data.site, req.slug), `requester ${req.slug} url must be the canonical wikiArticleHref article URL`);
   }
 });
 
