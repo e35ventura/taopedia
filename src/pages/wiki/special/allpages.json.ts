@@ -1,7 +1,9 @@
 import type { APIRoute } from 'astro';
-import { getCollection, render } from 'astro:content';
-import { getPageSlug, historyForSlug } from '../../../lib/article-history';
-import { publishedTitleBySlug, pagesFromSlugMap } from '../../../lib/site-feed-context';
+import { render } from 'astro:content';
+import { historyForSlug } from '../../../lib/article-history';
+import { contentPagesBySlug } from '../../../lib/content-pages-by-slug';
+import { pagesFromSlugMap, publishedTitleBySlug } from '../../../lib/article-metadata';
+import slugMap from '../../../../public/data/slugmap.json';
 import { getArticleReferences } from '../../../lib/article-references.js';
 import { getArticleToc } from '../../../lib/article-toc.js';
 import { buildAllPages } from '../../../../scripts/allpages.js';
@@ -33,10 +35,14 @@ export const GET: APIRoute = async ({ site }) => {
   const slugPages = pagesFromSlugMap();
   const getSlugFromPage = (page: { id: string }) => page.id.replace(/\/index\.mdx$/, '');
 
-  const pages = await getCollection('pages');
+  // Published slugs come from public/data/slugmap.json — the same artifact the
+  // directory listing itself is built from — instead of scanning every content-
+  // collection entry twice (render pass + inbound/references pass).
+  const publishedSlugs = Object.keys(slugMap).filter((slug) => slugMap[slug]?.title);
+  const pageBySlug = await contentPagesBySlug(publishedSlugs);
 
   // Gather each article's body word count, table-of-contents section count, and
-  // revision history in a single parallel pass over the content collection —
+  // revision history in a single parallel pass over the published slug set —
   // these were split across a sequential for-loop (title + wordCount + await
   // render) and inline historyForSlug calls inside articles.map below. The
   // wordCount and history reads are folded into the render pass (rendering is
@@ -46,8 +52,9 @@ export const GET: APIRoute = async ({ site }) => {
   const sectionCountBySlug: Record<string, number> = {};
   const historyBySlug: Record<string, ReturnType<typeof historyForSlug>> = {};
   await Promise.all(
-    pages.map(async (page) => {
-      const slug = getPageSlug(page);
+    publishedSlugs.map(async (slug) => {
+      const page = pageBySlug[slug];
+      if (!page) return;
       wordCountBySlug[slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
       historyBySlug[slug] = historyForSlug(slug);
       const { headings } = await render(page);
@@ -55,13 +62,12 @@ export const GET: APIRoute = async ({ site }) => {
     }),
   );
   // Published inbound-link count and outbound reference count, gathered in a
-  // single pass after titleBySlug is built (both resolve targets through it).
+  // single pass keyed by slugmap slugs (both resolve targets through titleBySlug).
   // These were computed inline inside articles.map below; precomputing them per
   // slug here keeps each directory entry's stats out of the final map.
   const inboundBySlug: Record<string, number> = {};
   const referencesCountBySlug: Record<string, number> = {};
-  for (const page of pages) {
-    const slug = getPageSlug(page);
+  for (const slug of publishedSlugs) {
     inboundBySlug[slug] = publishedInboundLinkCount(backlinksData, slug, titleBySlug);
     referencesCountBySlug[slug] = getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length;
   }

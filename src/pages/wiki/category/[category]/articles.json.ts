@@ -1,9 +1,10 @@
 import type { APIRoute } from 'astro';
-import { getCollection, render } from 'astro:content';
+import { render } from 'astro:content';
 import { buildCategoryArticlesDocument, getCategoryArticles } from '../../../../lib/category-articles.js';
-import { publishedTitleBySlug } from '../../../../lib/site-feed-context';
+import { publishedTitleBySlug } from '../../../../lib/article-metadata';
+import { contentPagesBySlug } from '../../../../lib/content-pages-by-slug';
 import { publishedInboundLinkCount } from '../../../../../scripts/most-linked.js';
-import { getPageSlug, historyForSlug } from '../../../../lib/article-history';
+import { historyForSlug } from '../../../../lib/article-history';
 import { getArticleReferences } from '../../../../lib/article-references.js';
 import { getArticleToc } from '../../../../lib/article-toc.js';
 
@@ -33,23 +34,29 @@ const titleBySlug = publishedTitleBySlug();
 const categorySlug = (categoryName: string) => categoryName.replace(/ /g, '_');
 
 export async function getStaticPaths() {
-  // The article body's word count — the same figure info.json exposes and the
-  // article-page footer (mw-article-meta data-word-count) renders, computed from
-  // the raw markdown body so a category consumer can sort or filter the list by
-  // article length without an N-fetch sweep.
-  const pages = await getCollection('pages');
-  // Gather each article's body word count, table-of-contents section count, and
-  // revision history in a single pass over the content collection — these were
-  // three separate loops. The wordCount and history reads are folded into the
-  // render pass (rendering is what requires a resolved page), kept parallel via
-  // Promise.all so the render step is not serialized. sectionCount is the same
-  // figure toc.json exposes as `count`; each is a per-entry stat the list carries.
+  // Only category-member slugs need render()/body stats — not every published
+  // article — keyed from public/data/categories.json, the same artifact the
+  // category hub pages read.
+  const memberSlugs = new Set<string>();
+  for (const slugs of Object.values(categoriesIndex)) {
+    for (const slug of Array.isArray(slugs) ? slugs : []) memberSlugs.add(slug);
+  }
+  const pageBySlug = await contentPagesBySlug(memberSlugs);
+
+  // Gather each member's body word count, table-of-contents section count, and
+  // revision history in a single pass over the member slug set — these were
+  // three separate loops over the full content collection. The wordCount and
+  // history reads are folded into the render pass (rendering is what requires a
+  // resolved page), kept parallel via Promise.all so the render step is not
+  // serialized. sectionCount is the same figure toc.json exposes as `count`;
+  // each is a per-entry stat the list carries.
   const wordCountBySlug: Record<string, number> = {};
   const sectionCountBySlug: Record<string, number> = {};
   const historyBySlug: Record<string, ReturnType<typeof historyForSlug>> = {};
   await Promise.all(
-    pages.map(async (page) => {
-      const slug = getPageSlug(page);
+    [...memberSlugs].map(async (slug) => {
+      const page = pageBySlug[slug];
+      if (!page) return;
       wordCountBySlug[slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
       historyBySlug[slug] = historyForSlug(slug);
       const { headings } = await render(page);
@@ -57,15 +64,15 @@ export async function getStaticPaths() {
     }),
   );
   // Published inbound-link count and outbound reference count, gathered in a single
-  // pass (both resolve titles through titleBySlug). These were two separate loops;
-  // getArticleReferences is a full link-graph join. Precomputing them per slug here
-  // keeps each article's stats out of the per-category article loop below, which
-  // would otherwise recompute them once per category membership (an article in N
-  // categories is visited N times).
+  // pass over member slugs (both resolve titles through titleBySlug). These were
+  // two separate loops over the full collection; getArticleReferences is a full
+  // link-graph join. Precomputing them per slug here keeps each article's stats
+  // out of the per-category article loop below, which would otherwise recompute
+  // them once per category membership (an article in N categories is visited N
+  // times).
   const inboundBySlug: Record<string, number> = {};
   const referencesCountBySlug: Record<string, number> = {};
-  for (const page of pages) {
-    const slug = getPageSlug(page);
+  for (const slug of memberSlugs) {
     inboundBySlug[slug] = publishedInboundLinkCount(backlinksData, slug, titleBySlug);
     referencesCountBySlug[slug] = getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length;
   }

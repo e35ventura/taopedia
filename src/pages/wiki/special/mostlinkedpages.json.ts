@@ -1,11 +1,15 @@
 import type { APIRoute } from 'astro';
-import { getCollection, render } from 'astro:content';
-import { getPageSlug, historyForSlug } from '../../../lib/article-history';
-import { publishedTitleBySlug } from '../../../lib/recent-changes-feed-context';
+import { render } from 'astro:content';
+import { historyForSlug } from '../../../lib/article-history';
+import {
+  publishedCategoriesBySlug,
+  publishedSummaryBySlug,
+  publishedTitleBySlug,
+} from '../../../lib/article-metadata';
+import { contentPagesBySlug } from '../../../lib/content-pages-by-slug';
 import { getArticleReferences } from '../../../lib/article-references.js';
 import { getArticleToc } from '../../../lib/article-toc.js';
 import { buildMostLinkedPages } from '../../../../scripts/most-linked.js';
-import slugMap from '../../../../public/data/slugmap.json';
 
 // Machine-readable inbound-link ranking at /wiki/special/mostlinkedpages.json.
 // Mirrors the HTML Special:MostLinkedPages page as structured JSON for
@@ -33,18 +37,9 @@ export const GET: APIRoute = async ({ site }) => {
   // the same artifact search-data.json (#1405) reads — instead of copying
   // page.data for every published article up front.
   const rankedSlugs = new Set(ranked.map((entry) => entry.slug));
-  const categoriesBySlug: Record<string, string[]> = {};
-  const summaryBySlug: Record<string, string> = {};
-  for (const slug of rankedSlugs) {
-    categoriesBySlug[slug] = slugMap[slug]?.categories ?? [];
-    summaryBySlug[slug] = slugMap[slug]?.summary ?? '';
-  }
-
-  const pageBySlug: Record<string, Awaited<ReturnType<typeof getCollection<'pages'>>>[number]> = {};
-  for (const page of await getCollection('pages')) {
-    const slug = getPageSlug(page);
-    if (rankedSlugs.has(slug)) pageBySlug[slug] = page;
-  }
+  const categoriesBySlug = publishedCategoriesBySlug();
+  const summaryBySlug = publishedSummaryBySlug();
+  const pageBySlug = await contentPagesBySlug(rankedSlugs);
 
   // sectionCount is the article's table-of-contents section count — the same
   // figure toc.json exposes as `count` and info.json / history.json expose on
