@@ -706,6 +706,18 @@ rejects('See [x](otpaut&#104;://totp/x?secret=y).', 'entity-obfuscated otpauth:/
 infoboxRowRejects('otpauth://totp/Evil:victim?secret=JBSWY3DPEHPK3PXP', 'otpauth:// rejected in an infobox row value');
 infoboxRowAccepts('TOTP and one-time passwords are described as prose', 'benign OTP prose allowed in an infobox row value');
 accepts('TOTP one-time passwords and authenticator apps are described here only as prose.', 'benign OTP prose is not the otpauth: scheme');
+// ws:// wss:// gemini:// snmp:// non-http network-protocol schemes open a connection outside
+// the http(s) surface (snmp:// is an SSRF target); //-guarded. Plain reject for EVERY
+// variant, plus entity-decoded and infobox coverage.
+rejects('See [x](ws://internal-host:8080/socket).', 'plain ws:// WebSocket URL');
+rejects('See [x](wss://internal-host/socket).', 'plain wss:// WebSocket URL');
+rejects('See [x](gemini://internal-host/page).', 'plain gemini:// URL');
+rejects('See [x](snmp://internal-host:161/public).', 'plain snmp:// (SSRF) URL');
+rejects('See [x](w&#115;s://internal-host/socket).', 'entity-obfuscated wss:// (obfuscated scan path)');
+infoboxRowRejects('ws://internal-host:8080/socket', 'ws:// rejected in an infobox row value');
+infoboxRowRejects('snmp://internal-host:161/public', 'snmp:// rejected in an infobox row value');
+infoboxRowAccepts('WebSocket and the Gemini protocol are described as prose', 'benign protocol prose allowed in an infobox row value');
+accepts('A WebSocket endpoint, the Gemini protocol, and SNMP monitoring are described here only as prose.', 'benign ws/gemini/snmp prose (no // authority)');
 // sip: sips: xmpp: h323: real-time-communication schemes launch a native softphone/chat
 // client at an attacker address (same class as callto:/skype:). The non-space lookahead
 // (shell: precedent) blocks scheme:target URLs but not "SIP: Session Initiation Protocol"

@@ -665,6 +665,13 @@ const unsafeContentPatterns = [
   // Never a valid http(s) article link; block as a non-http scheme. The // form keeps
   // prose unaffected and the scheme names never occur in glossary prose.
   { pattern: /\botpauth(?:-migration)?\s*:\/\//i, reason: 'OTP key-provisioning URL schemes are not allowed in article content' },
+  // ws:// wss:// (WebSocket), gemini:// (Gemini protocol), and snmp:// (SNMP network
+  // management) are non-http network-protocol URL schemes that open a connection to a host
+  // outside the http(s) surface — snmp:// is also a classic server-side-request (SSRF)
+  // target for internal network devices. Article links are limited to http(s), so these are
+  // never a valid article link. The // authority form is required so prose ("a WS endpoint",
+  // "the Gemini protocol") is unaffected.
+  { pattern: /\b(?:wss|ws|gemini|snmp)\s*:\/\//i, reason: 'non-http network-protocol URL schemes are not allowed in article content' },
   // sip: sips: xmpp: h323: are real-time-communication URL schemes the OS hands to a
   // native softphone / chat client: a clicked sip:victim@host or xmpp:victim@host dials
   // or messages an attacker-controlled address in a desktop VoIP/Jabber client outside
@@ -951,6 +958,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /ms-settings\s*:/i, reason: 'Windows Settings protocol-handler URLs are not allowed in article content' },
   { pattern: /onenote\s*:/i, reason: 'onenote: application protocol-handler URLs are not allowed in article content' },
   { pattern: /otpauth(?:-migration)?\s*:\/\//i, reason: 'OTP key-provisioning URL schemes are not allowed in article content' },
+  { pattern: /(?:wss|ws|gemini|snmp)\s*:\/\//i, reason: 'non-http network-protocol URL schemes are not allowed in article content' },
   { pattern: /\b(?:sips|sip|xmpp|h323)\s*:(?=[^\s"'<>)])/i, reason: 'real-time-communication URL schemes are not allowed in article content' },
   { pattern: /ms-(?:settings|windows-store|gamingoverlay)\s*:/i, reason: 'Windows app protocol-handler URLs are not allowed in article content' },
   { pattern: /smb\s*:\/\//i, reason: 'smb: file-share URLs are not allowed in article content' },
@@ -1000,6 +1008,7 @@ const infoboxRowValueSchemePatterns = [
   /ms-settings\s*:/i,
   /onenote\s*:/i,
   /otpauth(?:-migration)?\s*:\/\//i,
+  /(?:wss|ws|gemini|snmp)\s*:\/\//i,
   /\b(?:sips|sip|xmpp|h323)\s*:(?=[^\s"'<>)])/i,
   /ms-(?:settings|windows-store|gamingoverlay)\s*:/i,
   /smb\s*:\/\//i,
