@@ -493,6 +493,9 @@ rejects('See [x](postgresql://user@internal-host:5432/db).', 'plain postgresql:/
 rejects('See [x](memcached://internal-host:11211/).', 'plain memcached:// connection URL');
 rejects('See [x](etcd://internal-host:2379/).', 'plain etcd:// connection URL');
 rejects('See [x](consul://internal-host:8500/).', 'plain consul:// connection URL');
+rejects('See [x](mariadb://root@internal-host:3306/db).', 'plain mariadb:// connection URL');
+rejects('See [x](sqlite:///var/lib/data.db).', 'plain sqlite:// connection URL');
+rejects('See [x](influxdb://internal-host:8086/).', 'plain influxdb:// connection URL');
 // git://svn://cvs:// version-control protocol-handler schemes launch a native VC client to
 // connect to the attacker's host. Covered across plain, entity-decoded, and infobox scans.
 rejects('See [x](git://attacker.example/evil.git).', 'plain git:// clone URL');
@@ -506,11 +509,13 @@ accepts('The git command, an svn repo, and cvs history are described here only a
 infoboxRowAccepts('The git command and an svn repo are described as prose', 'benign git/svn prose allowed in an infobox row value');
 rejects('See [x](red&#105;s://internal-host:6379/0).', 'entity-obfuscated redis:// (obfuscated scan path)');
 rejects('See [x](memc&#097;ched://internal-host:11211/).', 'entity-obfuscated memcached:// (obfuscated scan path)');
+rejects('See [x](mar&#105;adb://root@internal-host:3306/db).', 'entity-obfuscated mariadb:// (obfuscated scan path)');
 infoboxRowRejects('redis://internal-host:6379/0', 'redis:// rejected in an infobox row value');
 infoboxRowRejects('etcd://internal-host:2379/', 'etcd:// rejected in an infobox row value');
 infoboxRowRejects('postgres://user@internal-host:5432/db', 'postgres:// rejected in an infobox row value');
+infoboxRowRejects('sqlite:///var/lib/data.db', 'sqlite:// rejected in an infobox row value');
 infoboxRowAccepts('Redis and PostgreSQL are described as prose', 'benign DB-name prose allowed in an infobox row value');
-accepts('Redis, MongoDB, MySQL, PostgreSQL, Memcached, etcd, and Consul are described here only as prose.', 'benign database/service-name prose (no // authority)');
+accepts('Redis, MongoDB, MySQL, MariaDB, SQLite, InfluxDB, PostgreSQL, Memcached, etcd, and Consul are described here only as prose.', 'benign database/service-name prose (no // authority)');
 // amqp:// mqtt:// stomp:// kafka:// nats:// message-broker connection schemes address an
 // internal broker (SSRF targets), never an http(s) article link; //-guarded. Coverage spans
 // the plain content scan, the entity-decoded scan, and the infobox scan.
@@ -539,9 +544,14 @@ rejects('See [x](couchbase://internal-host/bucket).', 'plain couchbase:// connec
 rejects('See [x](couchdb://internal-host:5984/db).', 'plain couchdb:// connection URL');
 rejects('See [x](neo4j://internal-host:7687).', 'plain neo4j:// connection URL');
 rejects('See [x](bolt://internal-host:7687).', 'plain bolt:// (Neo4j) connection URL');
+rejects('See [x](dynamodb://internal-host:8000/table).', 'plain dynamodb:// connection URL');
+rejects('See [x](elasticsearch://internal-host:9200/index).', 'plain elasticsearch:// connection URL');
 rejects('See [x](cl&#105;ckhouse://internal-host:9000/db).', 'entity-obfuscated clickhouse:// (obfuscated scan path)');
+rejects('See [x](dynam&#111;db://internal-host:8000/table).', 'entity-obfuscated dynamodb:// (obfuscated scan path)');
 infoboxRowRejects('neo4j://internal-host:7687', 'neo4j:// rejected in an infobox row value');
 infoboxRowRejects('cassandra://internal-host:9042/ks', 'cassandra:// rejected in an infobox row value');
+infoboxRowRejects('dynamodb://internal-host:8000/table', 'dynamodb:// rejected in an infobox row value');
+infoboxRowRejects('elasticsearch://internal-host:9200/index', 'elasticsearch:// rejected in an infobox row value');
 infoboxRowAccepts('Cassandra and Neo4j are described as prose', 'benign data-store prose allowed in an infobox row value');
 accepts('A bolt of lightning, the Cassandra prophecy, and a Neo4j graph are described here only as prose.', 'benign bolt/cassandra/neo4j prose (no // authority)');
 // coap://coaps:// (Constrained Application Protocol, IoT) address a non-http device at a
@@ -641,14 +651,18 @@ rejects('See [x](spotif&#121;:track:4cOdK2wGLETKBW3PvgPWqT).', 'entity-obfuscate
 infoboxRowRejects('spotify:track:4cOdK2wGLETKBW3PvgPWqT', 'spotify: rejected in an infobox row value');
 // Prose: a brand name followed by a colon and a space must pass.
 accepts('Spotify: a music-streaming service, and Deezer are described here only as prose.', 'benign "Spotify:" prose (colon then space)');
-// obsidian:/notion: are note-taking app deep-link schemes — a clicked link opens the
-// native client on attacker-chosen content outside the page, the same app-launch class
-// as onenote:/spotify:. The non-space lookahead keeps prose like "Obsidian: a note app" passing.
+// obsidian:/notion:/evernote:/logseq: are note-taking app deep-link schemes — a clicked link
+// opens the native client on attacker-chosen content outside the page, the same app-launch
+// class as onenote:/spotify:. The non-space lookahead keeps prose like "Obsidian: a note app" passing.
 rejects('See [x](obsidian://open?vault=evil&file=note).', 'plain obsidian:// deep-link');
 rejects('See [x](notion://www.notion.so/evil-page).', 'plain notion:// deep-link');
+rejects('See [x](evernote://x-callback-url/open-note?guid=evil).', 'plain evernote:// deep-link');
+rejects('See [x](logseq://graph/evil-graph).', 'plain logseq:// deep-link');
 rejects('See [x](obsid&#105;an://open?vault=evil).', 'entity-obfuscated obsidian:// (obfuscated scan path)');
+rejects('See [x](evern&#111;te://x-callback-url/open-note?guid=evil).', 'entity-obfuscated evernote:// (obfuscated scan path)');
 infoboxRowRejects('notion://www.notion.so/evil-page', 'notion:// rejected in an infobox row value');
-accepts('Obsidian: a note-taking app, and Notion workspaces are described here only as prose.', 'benign "Obsidian:" prose (colon then space)');
+infoboxRowRejects('logseq://graph/evil-graph', 'logseq:// rejected in an infobox row value');
+accepts('Obsidian: a note-taking app, Evernote: a notebook service, and Notion workspaces are described here only as prose.', 'benign note-app prose (colon then space)');
 // ms-its: and mk:@MSITStore: resolve a page out of a compiled-HTML-help (.chm) archive
 // through the native ITSS handler (a documented RCE vector), blocked like mhtml:/jar:.
 rejects('See [x](ms-its:evil.chm::/exploit.htm).', 'plain ms-its: CHM scheme');
@@ -774,6 +788,18 @@ infoboxRowRejects('solana:7EqQdEUYHqE8d8u2b9j8j8j8j8j8j8j8j8j8j8j8j8j', 'solana:
 accepts('Bitcoin: A Peer-to-Peer Electronic Cash System is described here only as prose.', 'benign "Bitcoin:" prose (colon then space)');
 accepts('Ethereum: a decentralized platform, and Litecoin are described here only as prose.', 'benign "Ethereum:" prose (colon then space)');
 accepts('Solana: a high-throughput chain, Cardano: proof of stake, and Ripple: the company are described here only as prose.', 'benign altcoin-name prose (colon then space)');
+// wc: is the WalletConnect pairing URI (wc:<topic>@<version>?…) — a clicked link opens the
+// reader's crypto wallet and starts a session with the initiator's dApp, which can then push
+// malicious approval requests (wallet drain). It requires the @<version> marker, so prose like
+// "WC: a water closet" (colon then space, no @) passes.
+rejects('See [x](wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=irn&symKey=abc).', 'plain WalletConnect v2 pairing URI');
+rejects('See [x](wc:8a5e5bdc-a0e4-4702-ba63-8f1a5655744f@1?bridge=https%3A%2F%2Fevil.example&key=deadbeef).', 'plain WalletConnect v1 pairing URI');
+// Entity-obfuscated: the literal scan misses the entity-encoded "@", but the decoded re-scan catches it.
+rejects('See [x](wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9&#64;2?relay-protocol=irn&symKey=abc).', 'entity-obfuscated wc: (obfuscated scan path)');
+// Infobox-row-value scan path.
+infoboxRowRejects('wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=irn', 'wc: rejected in an infobox row value');
+// Prose: "WC:" with a space and no @<version> marker must pass.
+accepts('WC: a water closet, also written wc in floor plans, is described here only as prose.', 'benign "WC:" prose (colon then space, no @ marker)');
 // payto: (RFC 8905) and upi: (UPI deep link) are bank / instant-payment app-launch URI
 // schemes — a clicked link opens the reader's banking / payment app pre-filled with the
 // attacker's payee and amount (fund redirection on a fiat/bank rail, distinct from the
