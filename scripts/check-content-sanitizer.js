@@ -528,6 +528,13 @@ infoboxRowRejects('neo4j://internal-host:7687', 'neo4j:// rejected in an infobox
 infoboxRowRejects('cassandra://internal-host:9042/ks', 'cassandra:// rejected in an infobox row value');
 infoboxRowAccepts('Cassandra and Neo4j are described as prose', 'benign data-store prose allowed in an infobox row value');
 accepts('A bolt of lightning, the Cassandra prophecy, and a Neo4j graph are described here only as prose.', 'benign bolt/cassandra/neo4j prose (no // authority)');
+// coap://coaps:// (Constrained Application Protocol, IoT) address a non-http device at a
+// host:port — an SSRF target. Covered across plain, entity-decoded, and infobox scans.
+rejects('See [x](coap://internal-device:5683/sensor).', 'plain coap:// IoT URL');
+rejects('See [x](coaps://internal-device:5684/sensor).', 'plain coaps:// IoT URL');
+rejects('See [x](co&#97;p://internal-device:5683/sensor).', 'entity-obfuscated coap:// (obfuscated scan path)');
+infoboxRowRejects('coap://internal-device:5683/sensor', 'coap:// rejected in an infobox row value');
+accepts('The CoAP protocol for IoT is described here only as prose.', 'benign "CoAP" prose (no // authority)');
 // rdp:// vnc:// telnet:// ssh:// launch a native remote-session client at the host;
 // the // authority form is required so glossary definitions ("SSH: Secure Shell")
 // are unaffected.
