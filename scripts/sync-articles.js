@@ -777,13 +777,14 @@ const unsafeContentPatterns = [
   // an out-of-browser external-client launch like the blocked sftp://ssh:// schemes, and
   // never a valid http(s) article link. The // authority form keeps prose about "git" safe.
   { pattern: /\b(?:git|svn|cvs)\s*:\/\//i, reason: 'version-control protocol URL schemes are not allowed in article content' },
-  // amqp:// amqps:// mqtt:// mqtts:// stomp:// kafka:// nats:// rabbitmq:// pulsar:// are
-  // message-broker / queue connection URL schemes that address an internal messaging service at a host:port, not an
+  // amqp:// amqps:// mqtt:// mqtts:// stomp:// kafka:// nats:// rabbitmq:// pulsar://
+  // redpanda:// activemq:// nsq:// are message-broker / queue connection URL schemes that
+  // address an internal messaging service at a host:port, not an http(s) resource — the
   // http(s) resource — the sibling of the database-connection schemes above and the canonical
   // server-side-request (SSRF) targets used to reach internal brokers. Article links are
   // limited to http(s), so these are never a valid article link. The // authority form is
   // required so prose about "AMQP", "MQTT", or "Kafka" is unaffected.
-  { pattern: /\b(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats|rabbitmq|pulsar)\s*:\/\//i, reason: 'message-broker connection URL schemes are not allowed in article content' },
+  { pattern: /\b(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats|rabbitmq|pulsar|redpanda|activemq|nsq)\s*:\/\//i, reason: 'message-broker connection URL schemes are not allowed in article content' },
   // clickhouse:// cassandra:// couchbase:// couchdb:// neo4j:// bolt:// dynamodb://
   // elasticsearch:// arangodb:// are additional data-store connection URL schemes
   // (analytics / graph / NoSQL / search), the sibling of the database-connection and
@@ -1102,7 +1103,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:chrome-untrusted|chrome|edge|opera|vivaldi|brave|devtools)\s*:\/\//i, reason: 'browser-internal page URL schemes are not allowed in article content' },
   { pattern: /(?:redis|rediss|mongodb(?:\+srv)?|mysql|mariadb|sqlite|influxdb|postgresql|postgres|memcached|etcd|consul|snowflake|sqlserver|mssql|timescaledb)\s*:\/\//i, reason: 'database-connection URL schemes are not allowed in article content' },
   { pattern: /(?:git|svn|cvs)\s*:\/\//i, reason: 'version-control protocol URL schemes are not allowed in article content' },
-  { pattern: /(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats|rabbitmq|pulsar)\s*:\/\//i, reason: 'message-broker connection URL schemes are not allowed in article content' },
+  { pattern: /(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats|rabbitmq|pulsar|redpanda|activemq|nsq)\s*:\/\//i, reason: 'message-broker connection URL schemes are not allowed in article content' },
   { pattern: /(?:clickhouse|cassandra|couchbase|couchdb|neo4j|bolt|dynamodb|elasticsearch|arangodb)\s*:\/\//i, reason: 'data-store connection URL schemes are not allowed in article content' },
   { pattern: /(?:coaps|coap)\s*:\/\//i, reason: 'CoAP IoT connection URL schemes are not allowed in article content' },
   { pattern: /(?:ftp|rdp|vnc|spice|teamviewer|anydesk|rustdesk|logmein|parsec|nomachine|ultraviewer|splashtop|chrome-remote-desktop|googlechromeremotedesktop|telnet|ssh|sftp|fish|rlogin|rsh|tn3270)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
@@ -1170,7 +1171,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:chrome-untrusted|chrome|edge|opera|vivaldi|brave|devtools)\s*:\/\//i,
   /(?:redis|rediss|mongodb(?:\+srv)?|mysql|mariadb|sqlite|influxdb|postgresql|postgres|memcached|etcd|consul|snowflake|sqlserver|mssql|timescaledb)\s*:\/\//i,
   /(?:git|svn|cvs)\s*:\/\//i,
-  /(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats|rabbitmq|pulsar)\s*:\/\//i,
+  /(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats|rabbitmq|pulsar|redpanda|activemq|nsq)\s*:\/\//i,
   /(?:clickhouse|cassandra|couchbase|couchdb|neo4j|bolt|dynamodb|elasticsearch|arangodb)\s*:\/\//i,
   /(?:coaps|coap)\s*:\/\//i,
   /(?:ftp|rdp|vnc|spice|teamviewer|anydesk|rustdesk|logmein|parsec|nomachine|ultraviewer|splashtop|chrome-remote-desktop|googlechromeremotedesktop|telnet|ssh|sftp|fish|rlogin|rsh|tn3270)\s*:\/\//i,
