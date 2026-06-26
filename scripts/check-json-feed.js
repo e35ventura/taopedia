@@ -49,6 +49,13 @@ assert.equal(
   'feed carries the default description',
 );
 assert.equal(feed.language, 'en', 'declares the language');
+// JSON Feed 1.1 authors mirror the Atom feed's <author><name>Taopedia</name>
+// (check-atom-feed.js) so a JSON Feed reader gets the same author attribution.
+// The 1.1 plural `authors` array is used (singular `author` is deprecated in 1.1),
+// name only — no url/email — consistent with the site keeping contributor
+// identities private. RSS omits author because RSS 2.0 author fields require an email.
+assert.deepEqual(feed.authors, [{ name: 'Taopedia' }], 'feed declares the JSON Feed 1.1 authors array with the site name, matching the Atom author');
+assert.equal('author' in feed, false, 'uses the JSON Feed 1.1 plural authors, not the deprecated singular author');
 assert.ok(Array.isArray(feed.items), 'items must be an array');
 
 // Newest-updated first; undated items sort last.
@@ -234,6 +241,23 @@ assert.equal('tags' in undated, false, 'omits blank tags');
     item.date_published,
     '2026-06-02T00:00:00.000Z',
     'date_published is unchanged when the empty date_modified falls through to datePublished',
+  );
+}
+
+// A caller-supplied authorName (e.g. a per-category feed) flows through to the
+// authors array, the same way the Atom builder threads a custom author.
+{
+  const customAuthor = JSON.parse(
+    buildJsonFeed({
+      siteUrl,
+      authorName: 'Taopedia — Concepts',
+      items: [{ title: 'X', url: 'https://taopedia.org/wiki/x/', dateModified: '2026-06-05T00:00:00Z' }],
+    }),
+  );
+  assert.deepEqual(
+    customAuthor.authors,
+    [{ name: 'Taopedia — Concepts' }],
+    'a caller-supplied authorName is threaded into the JSON Feed authors array',
   );
 }
 

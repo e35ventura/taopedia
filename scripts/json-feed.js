@@ -23,6 +23,7 @@ export function buildJsonFeed({
   description = FEED_DESCRIPTION,
   language = 'en',
   homePageUrl,
+  authorName = SITE_NAME,
 }) {
   const root = `${String(siteUrl ?? '').replace(/\/+$/, '')}/`;
   const feedUrl = `${root.replace(/\/$/, '')}${feedPath}`;
@@ -43,6 +44,14 @@ export function buildJsonFeed({
     icon: `${root}apple-touch-icon.png`,
     favicon: `${root}favicon-32x32.png`,
     language,
+    // JSON Feed 1.1 `authors` (the singular `author` is deprecated in 1.1): the
+    // collaborative site name, mirroring the Atom feed's <author><name> so a
+    // JSON Feed reader gets the same author attribution an Atom reader does. Name
+    // only, no url/email — consistent with Atom and with the site's policy of not
+    // exposing individual contributor identities (see scripts/citations.js). RSS
+    // legitimately omits it because RSS 2.0 <author>/<managingEditor> require an
+    // email address, which the site deliberately does not publish.
+    authors: [{ name: authorName }],
     items: sortedItems.map((item) => {
       const url = cleanText(item.url);
       const itemTitle = cleanText(item.title);
