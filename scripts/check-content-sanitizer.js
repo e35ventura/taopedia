@@ -752,6 +752,15 @@ rejects('See [x](web&#43;coin:pay?to=attacker).', 'entity-obfuscated web+coin: (
 infoboxRowRejects('web+coin:pay?to=attacker', 'web+ custom handler rejected in an infobox row value');
 // Prose: a name followed by a colon and a space must pass; "web" without the + is unaffected.
 accepts('Web: the World Wide Web, and web applications are described here only as prose.', 'benign "Web:" prose (no + prefix)');
+// x-apple.systempreferences: is the macOS System Settings protocol handler (the macOS
+// counterpart of ms-settings:): a clicked link deep-links the reader into a specific
+// Settings pane outside the page — a "click here to fix your settings" social-engineering
+// surface. The token never occurs in prose; the non-space lookahead requires a real target.
+rejects('See [x](x-apple.systempreferences:com.apple.preference.security?Privacy).', 'plain x-apple.systempreferences: settings handler');
+// Entity-obfuscated: the literal scan misses "x-apple&#46;systempreferences:" but the decoded re-scan catches it.
+rejects('See [x](x-apple&#46;systempreferences:com.apple.preference.security).', 'entity-obfuscated x-apple.systempreferences: (obfuscated scan path)');
+// Infobox-row-value scan path.
+infoboxRowRejects('x-apple.systempreferences:com.apple.preference.security?Privacy', 'x-apple.systempreferences: rejected in an infobox row value');
 // search-ms: opens Explorer search on a remote WebDAV/SMB share (malware-delivery
 // chain), and ms-officecmd: invokes Office deep-link commands (argument-injection
 // RCE) — two more native Windows handlers blocked like ms-msdt:/javascript:.
