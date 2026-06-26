@@ -888,6 +888,14 @@ accepts('The AFP protocol and Apple Filing Protocol are described here only as p
 rejects('See [x](nfs://attacker.example/export).', 'plain nfs:// file-share URL');
 rejects('See [x](n&#102;s://attacker.example/export).', 'entity-obfuscated nfs:// URL');
 accepts('The NFS protocol and Network File System are described here only as prose.', 'benign "NFS" prose is not the nfs:// scheme');
+// file:// is the local / UNC file URL scheme: file:///… reads a local file (disclosure) and
+// file://host/share triggers a Windows UNC/SMB fetch that leaks NetNTLM credentials — the same
+// out-of-http local/remote file-access class as smb://afp://nfs://. // keeps prose unaffected.
+rejects('See [x](file:///etc/passwd).', 'plain file:/// local-file URL');
+rejects('See [x](file://attacker.example/share).', 'plain file:// UNC share URL');
+rejects('See [x](fil&#101;://attacker.example/share).', 'entity-obfuscated file:// (obfuscated scan path)');
+infoboxRowRejects('file://attacker.example/share', 'file:// rejected in an infobox row value');
+accepts('Open the config file: settings are described here only as prose, and the file protocol is mentioned without a URL.', 'benign "file:" prose (no // authority)');
 // ldap:// ldaps:// dav:// davs:// the remaining directory / WebDAV schemes (ldap:// is the
 // Log4Shell/JNDI SSRF class); //-guarded so prose is unaffected. Coverage spans the plain
 // content scan, the entity-decoded obfuscated scan, and the infobox scan.
