@@ -8,8 +8,7 @@ import {
 } from '../../../lib/article-metadata';
 import { contentPagesBySlug } from '../../../lib/content-pages-by-slug';
 import { RECENT_LIMIT } from '../../../lib/recent-changes.js';
-import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
-import { getArticleReferences } from '../../../lib/article-references.js';
+import { gatherLinkStatsBySlug } from '../../../lib/article-link-stats';
 import { getArticleToc } from '../../../lib/article-toc.js';
 import { articleJsonCompanionUrls } from '../../../lib/wiki-article-path.js';
 
@@ -67,37 +66,32 @@ export const GET: APIRoute = async ({ site }) => {
     sectionCountBySlug[slug] = getArticleToc(headings).length;
     wordCountBySlug[slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
   }
-  // revisionCount/firstEdited/lastEdited are the changed article's own commit-
-  // history stats (history is newest-first) — the same trio info.json /
-  // allpages.json expose per article, and mostlinkedpages.json / subnets.json /
-  // category articles.json expose per directory entry — so a change-feed
-  // consumer can see the changed article's overall edit age/activity, not just
-  // this one change's date, without a second fetch. Cached per slug because an
-  // article can appear in multiple changes.
   // inbound link count (exposed as both `backlinks` and the `incomingLinks`
-  // alias) and outbound reference count, cached once per slug like
-  // sectionCountBySlug above — an article can appear in multiple changes, and the
-  // inbound count was otherwise computed twice per entry (once for each key)
-  // while getArticleReferences is a full link-graph join. These three stat maps
-  // are gathered in a single pass over the change feed: history, inbound and
-  // references are all keyed by the change's slug and need no resolved page (only
-  // sectionCount above does), so they were folded out of two separate change
-  // loops into one. Same compute-once pattern subnets.json / mostlinkedpages.json
-  // use.
+  // alias) and outbound reference count, gathered via the shared
+  // gatherLinkStatsBySlug helper — the same single pass allpages.json /
+  // category-articles.json / subnets.json / mostlinkedpages.json and the
+  // per-article info/cite/backlinks/related/toc/history endpoints use, so the
+  // change feed cannot disagree with them on inbound or outbound degree. Cached
+  // once per distinct change slug (an article can appear in multiple changes);
+  // gather resolves targets through titleBySlug exactly as the inline calls it
+  // replaced did (publishedInboundLinkCount + getArticleReferences).
+  const distinctChangeSlugs: string[] = [];
   const revisionStatsBySlug: Record<string, { revisionCount: number; firstEdited: string | null; lastEdited: string | null }> = {};
-  const inboundBySlug: Record<string, number> = {};
-  const referencesCountBySlug: Record<string, number> = {};
   for (const change of changes) {
     if (change.slug in revisionStatsBySlug) continue;
+    distinctChangeSlugs.push(change.slug);
     const history = historyForSlug(change.slug);
     revisionStatsBySlug[change.slug] = {
       revisionCount: history.length,
       firstEdited: history[history.length - 1]?.date ?? null,
       lastEdited: history[0]?.date ?? null,
     };
-    inboundBySlug[change.slug] = publishedInboundLinkCount(backlinksData, change.slug, titleBySlug);
-    referencesCountBySlug[change.slug] = getArticleReferences({ slug: change.slug, linkGraph: linkgraphData, titleBySlug }).length;
   }
+  const { inboundBySlug, referencesCountBySlug } = gatherLinkStatsBySlug(distinctChangeSlugs, {
+    titleBySlug,
+    backlinksData,
+    linkgraphData,
+  });
   const dateRange =
     changes.length > 0
       ? { newest: changes[0].date, oldest: changes[changes.length - 1].date }
