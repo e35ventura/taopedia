@@ -487,6 +487,13 @@ const unsafeContentPatterns = [
   // <bdo> override already blocked above (Trojan Source, CVE-2021-42574). A
   // glossary's single-script prose never needs bidi isolation markup.
   { pattern: /<\s*bdi\b/i, reason: 'bidirectional isolate (bdi) elements are not allowed in article content' },
+  // <ins>/<del> render visible insertion/deletion markup in every browser. An injected
+  // <del>real wallet</del><ins>attacker wallet</ins> fakes an official editorial correction
+  // — a content-spoof / fake-trust primitive with no script, handler, or flagged scheme —
+  // the element-level sibling of the cite= attribute already blocked on these tags (the
+  // hidden-URL class). Markdown never emits <ins>/<del>; glossary prose never needs edit
+  // tracking markup, so block the elements like the other non-prose rendered primitives.
+  { pattern: /<\s*(ins|del)\b/i, reason: 'insertion and deletion (ins, del) elements are not allowed in article content' },
   // <meter>/<progress> render native gauge and progress-bar widgets in every
   // current browser. An injected one in article prose is a content-spoofing
   // surface — e.g. a fake "wallet scan 80%" progress bar or a coloured risk
@@ -522,6 +529,13 @@ const unsafeContentPatterns = [
   // "alert" box around injected text) with no script, handler, or flagged scheme.
   // Article tables never set colours, so block the attribute like style=.
   { pattern: /\sbgcolor\s*=/i, reason: 'bgcolor attributes are not allowed in article content' },
+  // color=/size=/face= are the obsolete presentational siblings of bgcolor= on allowed
+  // elements (<font> itself is element-blocked in #433, but <p color="red"> or
+  // <span face="Arial"> still paint arbitrary text colour/size/font without the
+  // blocked style= attribute — the same content-styling spoof class as bgcolor=.
+  { pattern: /\scolor\s*=/i, reason: 'color attributes are not allowed in article content' },
+  { pattern: /\ssize\s*=/i, reason: 'size attributes are not allowed in article content' },
+  { pattern: /\sface\s*=/i, reason: 'face attributes are not allowed in article content' },
   // bordercolor=/bordercolordark=/bordercolorlight= are the obsolete IE presentational
   // siblings of bgcolor=: on an allowed <table>/<td>/<tr> they recolour the cell/table
   // borders with no style= rule covering them — the same content-spoofing surface (e.g.
@@ -1037,6 +1051,15 @@ const unsafeContentPatterns = [
   // class as the blocked ms-msdt:/ms-appinstaller:/search-ms: handlers; the hyphenated
   // "ms-cxh" token never occurs in glossary prose.
   { pattern: /\bms-cxh(?:-full)?\s*:/i, reason: 'Windows CloudExperienceHost protocol-handler URLs are not allowed in article content' },
+  // microsoft-edge: is a Windows protocol handler — distinct from the edge:// browser-internal
+  // pages blocked above. A clicked microsoft-edge:https://attacker.example is resolved by the
+  // OS to force the target URL open in Edge, bypassing the reader's default browser and its
+  // SmartScreen / safe-browsing prompts; it is a documented malware-delivery / control-bypass
+  // vector (e.g. the NOBELIUM lures) and has been chained with other handlers for RCE. Same
+  // native Windows protocol-handler class as the blocked ms-cxh:/ms-msdt:/search-ms: handlers.
+  // The (?=non-space) lookahead requires a real target after the colon, and the hyphenated
+  // "microsoft-edge" token never occurs in glossary prose.
+  { pattern: /\bmicrosoft-edge\s*:(?=[^\s"'<>)])/i, reason: 'microsoft-edge: protocol-handler URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*image\/svg\+xml/i, reason: 'SVG data URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*application\/xhtml\+xml/i, reason: 'XHTML data URLs are not allowed in article content' },
@@ -1120,6 +1143,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /\bx-apple\.systempreferences\s*:(?=[^\s"'<>)])/i, reason: 'macOS System Settings protocol-handler URLs are not allowed in article content' },
   { pattern: /\bshell\s*:(?=[^\s"'<>)])/i, reason: 'shell: protocol-handler URLs are not allowed in article content' },
   { pattern: /\bms-cxh(?:-full)?\s*:/i, reason: 'Windows CloudExperienceHost protocol-handler URLs are not allowed in article content' },
+  { pattern: /\bmicrosoft-edge\s*:(?=[^\s"'<>)])/i, reason: 'microsoft-edge: protocol-handler URLs are not allowed in article content' },
   { pattern: /data\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
   { pattern: /data\s*:\s*image\/svg\+xml/i, reason: 'SVG data URLs are not allowed in article content' },
   { pattern: /data\s*:\s*application\/xhtml\+xml/i, reason: 'XHTML data URLs are not allowed in article content' },
@@ -1180,6 +1204,7 @@ const infoboxRowValueSchemePatterns = [
   /\bx-apple\.systempreferences\s*:(?=[^\s"'<>)])/i,
   /\bshell\s*:(?=[^\s"'<>)])/i,
   /\bms-cxh(?:-full)?\s*:/i,
+  /\bmicrosoft-edge\s*:(?=[^\s"'<>)])/i,
   /data\s*:\s*text\/html/i,
   /data\s*:\s*image\/svg\+xml/i,
   /data\s*:\s*application\/xhtml\+xml/i,
@@ -1236,7 +1261,7 @@ const nonSpaceDelimitedInteractionSurfaceAttrPattern =
 // overlays, content spoofing) — same presentational-injection family as the
 // rest of this alternation, so it lives in the same scan and error message.
 const nonSpaceDelimitedPresentationalLayoutAttrPattern =
-  /<[^>]*[/"'`](?:style|align|valign|bgcolor|bordercolor(?:dark|light)?|background|lowsrc|dynsrc|longdesc|border|cellpadding|cellspacing|hspace|vspace)\s*=/i;
+  /<[^>]*[/"'`](?:style|align|valign|bgcolor|color|size|face|bordercolor(?:dark|light)?|background|lowsrc|dynsrc|longdesc|border|cellpadding|cellspacing|hspace|vspace)\s*=/i;
 
 // width=/height= on an allowed <img> reserve an oversized layout box without the
 // blocked inline style= attribute — a layout-defacement surface (the same class
@@ -1280,6 +1305,14 @@ const nonSpaceDelimitedRowHrPreDimensionAttrPattern = /<\s*(?:tr|hr|pre)\b[^>]*[
 // "width"/"span" pass.
 const colDimensionAttrPattern = /<\s*(?:col|colgroup)\b[^>]*\s(?:width|span)\s*=/i;
 const nonSpaceDelimitedColDimensionAttrPattern = /<\s*(?:col|colgroup)\b[^>]*[/"'`](?:width|span)\s*=/i;
+
+// width=/height= on allowed <div>/<p>/<span> reserve oversized layout boxes without
+// the blocked inline style= attribute — the remaining block-container half of the
+// dimension-attribute surface merged #451 / #465 close for <img> / table-family /
+// <tr>/<hr>/<pre> / <col>/<colgroup>. A <div width="5000" height="2000"> pushes the
+// real article off-screen — same layout-defacement class as the merged rules.
+const blockDimensionAttrPattern = /<\s*(?:div|p|span)\b[^>]*\s(?:width|height)\s*=/i;
+const nonSpaceDelimitedBlockDimensionAttrPattern = /<\s*(?:div|p|span)\b[^>]*[/"'`](?:width|height)\s*=/i;
 
 // autofocus steals keyboard focus on page load — a focus-theft primitive on allowed
 // elements with no script. Tag-boundary lookahead catches autofocus before another
@@ -2317,7 +2350,7 @@ export function validateArticleContent(slug, content) {
 
   if (nonSpaceDelimitedPresentationalLayoutAttrPattern.test(emptiedAttributeContent)) {
     throw new Error(
-      `Unsafe article content in "${slug}": style, align, valign, bgcolor, background, border, cellpadding, cellspacing, hspace, and vspace attributes are not allowed in article content`,
+      `Unsafe article content in "${slug}": style, align, valign, bgcolor, color, size, face, background, border, cellpadding, cellspacing, hspace, and vspace attributes are not allowed in article content`,
     );
   }
 
@@ -2375,6 +2408,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": width and span attributes are not allowed on col or colgroup elements`,
+    );
+  }
+
+  if (
+    blockDimensionAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedBlockDimensionAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": width and height attributes are not allowed on div, p, or span elements`,
     );
   }
 

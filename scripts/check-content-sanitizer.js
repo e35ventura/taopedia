@@ -292,6 +292,15 @@ rejects('Intro.\n\n<  bdi   dir="ltr">x</bdi>', 'spaced <bdi>');
 accepts('Bidirectional isolate and the bdi element are described here only as prose.', 'benign bdi prose');
 accepts('<bditem>not a bdi element</bditem>', 'benign bditem is not <bdi>');
 
+// <ins>/<del> render visible edit-tracking markup — an injected pair can fake an
+// official correction (<del>real</del><ins>scam</ins>) with no script; the element-level
+// gap left after the cite= attribute block on these tags.
+rejects('Intro.\n\n<del>5Real…address</del><ins>5Fake…address</ins>', 'plain del/ins edit spoof');
+rejects('Intro.\n\n<  ins   >added text</ins>', 'spaced ins element');
+rejects('Intro.\n\n<del datetime="2020-01-01">removed</del>', 'plain del element');
+accepts('Insertion, deletion, and ins/del markup are described here only as prose.', 'benign ins/del prose');
+accepts('<insert>not an ins element</insert>', 'benign insert substring is not <ins>');
+
 // <meter>/<progress> render native gauge/progress-bar widgets — an injected one
 // is a content-spoofing surface (a fake "scan 80%" bar or risk gauge) a glossary
 // never needs, blocked like the other non-prose rendered elements.
@@ -1007,6 +1016,15 @@ rejects('See [x](ms-cxh://localonly/?comingFromMSA=1).', 'plain ms-cxh: handler 
 rejects('See [x](ms-cxh-full://addworkorschool).', 'plain ms-cxh-full: handler URL');
 rejects('See [x](ms-c&#120;h://localonly).', 'entity-obfuscated ms-cxh:');
 accepts('The CloudExperienceHost setup component is described here only as prose.', 'benign prose without the ms-cxh: scheme');
+// microsoft-edge: is the Windows protocol handler that forces a URL open in Edge, bypassing
+// the default browser and SmartScreen (a documented malware-delivery / control-bypass vector).
+// It is distinct from the edge:// browser-internal pages. The non-space lookahead keeps prose
+// like "Microsoft Edge: a web browser" (colon then space) passing.
+rejects('See [x](microsoft-edge:https://attacker.example/phish).', 'plain microsoft-edge: forced-open handler URL');
+rejects('See [x](microsoft-edge:https%3A%2F%2Fattacker.example).', 'plain microsoft-edge: with encoded target');
+rejects('See [x](microsoft-e&#100;ge:https://attacker.example).', 'entity-obfuscated microsoft-edge: (obfuscated scan path)');
+infoboxRowRejects('microsoft-edge:https://attacker.example/phish', 'microsoft-edge: rejected in an infobox row value');
+accepts('Microsoft Edge: a Chromium-based web browser is described here only as prose.', 'benign "Microsoft Edge:" prose (colon then space)');
 
 // MDX expression braces execute at build time in article bodies. They are only
 // allowed when escaped as literal prose or inside Markdown code examples.
@@ -2398,5 +2416,23 @@ rejects('<hr class=x/noshade>', 'slash-delimited hr noshade attribute');
 accepts('<hr>x</hr>', 'plain hr without visual styling');
 accepts('<hr class="divider">x</hr>', 'benign hr class attribute');
 accepts('A horizontal rule without noshade or color is described here only as prose.', 'benign hr visual prose');
+
+// color=/size=/face= on allowed elements (not just <hr>) set obsolete presentational
+// styling without the blocked style= attribute — same content-styling spoof class
+// as bgcolor= (#434) and <font> (element-blocked #433).
+rejects('Intro.\n\n<p color="red">WALLET COMPROMISED</p>', 'plain p color attribute');
+rejects('Intro.\n\n<td   size = "7">x</td>', 'spaced td size attribute');
+rejects('Intro.\n\n<span face="Arial">spoof</span>', 'plain span face attribute');
+rejects('<p class="x"color="red">', 'quote-abutted p color attribute');
+rejects('<span class=x/face="Arial">', 'slash-delimited span face attribute');
+accepts('The font size of a heading is set in the stylesheet, not inline.', 'benign color/size prose');
+
+// width=/height= on allowed <div>/<p>/<span> reserve oversized layout boxes —
+// same layout-defacement class as merged #451 / #465 dimension blocks.
+rejects('Intro.\n\n<div width="5000" height="2000">x</div>', 'plain div width/height attributes');
+rejects('Intro.\n\n<p   height = "9999">x</p>', 'spaced p height attribute');
+rejects('<span class="x"width="5000">', 'quote-abutted span width attribute');
+rejects('<div class=x/height="2000">', 'slash-delimited div height attribute');
+accepts('The width of a table column is set in the stylesheet, not inline.', 'benign width prose');
 
 console.log('Content sanitizer check passed');
