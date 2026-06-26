@@ -72,6 +72,22 @@ assert.equal(
 );
 
 assert.equal(
+  normalizeLinkTarget('/wiki//dynamic_tao/'),
+  'dynamic_tao',
+  'double slashes after the wiki prefix must collapse to a single segment',
+);
+assert.equal(
+  normalizeLinkTarget('/wiki/foo//bar/'),
+  'foo/bar',
+  'internal double slashes must collapse without leaking empty segments',
+);
+assert.equal(
+  normalizeLinkTarget('//taopedia.org/wiki//dynamic_tao/'),
+  'dynamic_tao',
+  'canonical URLs with a double wiki slash must normalize to the article slug',
+);
+
+assert.equal(
   resolveTargetSlug('/wiki/dynamic_tao', aliases),
   'dynamic_tao',
   'rendered wiki links should resolve route-prefixed targets to canonical slugs',
@@ -142,6 +158,25 @@ assert.equal(
   options.hrefTemplate('dynamic_tao'),
   '/wiki/dynamic_tao/',
   'hrefTemplate must emit the canonical trailing-slash article URL',
+);
+assert.equal(
+  options.hrefTemplate('/dynamic_tao'),
+  '/wiki/dynamic_tao/',
+  'hrefTemplate must strip a leading slash from permalinks',
+);
+assert.equal(
+  options.hrefTemplate('//dynamic_tao'),
+  '/wiki/dynamic_tao/',
+  'hrefTemplate must collapse a double-leading-slash permalink',
+);
+assert.notEqual(
+  options.hrefTemplate('/dynamic_tao'),
+  '/wiki//dynamic_tao/',
+  'hrefTemplate must never emit a double slash after /wiki/',
+);
+assert.ok(
+  !options.pageResolver('/wiki//dynamic_tao/').some((candidate) => candidate.startsWith('/')),
+  'pageResolver must not return permalink candidates with a leading slash',
 );
 
 // The article page unlink script strips the trailing slash (and any fragment/
