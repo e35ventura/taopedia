@@ -650,6 +650,14 @@ const unsafeContentPatterns = [
   // class (OneNote's handler has a documented history of malware abuse). A glossary's
   // prose never links to a local OneNote app, and the scheme name never occurs in prose.
   { pattern: /\bonenote\s*:/i, reason: 'onenote: application protocol-handler URLs are not allowed in article content' },
+  // otpauth:// and otpauth-migration:// are the TOTP/HOTP key-provisioning URI schemes
+  // authenticator apps (Google Authenticator / Authy / 1Password) register: a clicked
+  // otpauth://totp/Issuer:account?secret=BASE32&issuer=... silently adds an
+  // ATTACKER-CONTROLLED 2FA seed to the reader's authenticator (account-confusion /
+  // credential-injection / phishing-setup), and otpauth-migration:// bulk-imports a set.
+  // Never a valid http(s) article link; block as a non-http scheme. The // form keeps
+  // prose unaffected and the scheme names never occur in glossary prose.
+  { pattern: /\botpauth(?:-migration)?\s*:\/\//i, reason: 'OTP key-provisioning URL schemes are not allowed in article content' },
   // sip: sips: xmpp: h323: are real-time-communication URL schemes the OS hands to a
   // native softphone / chat client: a clicked sip:victim@host or xmpp:victim@host dials
   // or messages an attacker-controlled address in a desktop VoIP/Jabber client outside
@@ -886,6 +894,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /ms-(?:word|excel|powerpoint|visio|access|project|publisher|infopath|spd)\s*:/i, reason: 'Microsoft Office document protocol-handler URLs are not allowed in article content' },
   { pattern: /ms-settings\s*:/i, reason: 'Windows Settings protocol-handler URLs are not allowed in article content' },
   { pattern: /onenote\s*:/i, reason: 'onenote: application protocol-handler URLs are not allowed in article content' },
+  { pattern: /otpauth(?:-migration)?\s*:\/\//i, reason: 'OTP key-provisioning URL schemes are not allowed in article content' },
   { pattern: /\b(?:sips|sip|xmpp|h323)\s*:(?=[^\s"'<>)])/i, reason: 'real-time-communication URL schemes are not allowed in article content' },
   { pattern: /ms-(?:settings|windows-store|gamingoverlay)\s*:/i, reason: 'Windows app protocol-handler URLs are not allowed in article content' },
   { pattern: /smb\s*:\/\//i, reason: 'smb: file-share URLs are not allowed in article content' },
@@ -928,6 +937,7 @@ const infoboxRowValueSchemePatterns = [
   /ms-(?:word|excel|powerpoint|visio|access|project|publisher|infopath|spd)\s*:/i,
   /ms-settings\s*:/i,
   /onenote\s*:/i,
+  /otpauth(?:-migration)?\s*:\/\//i,
   /\b(?:sips|sip|xmpp|h323)\s*:(?=[^\s"'<>)])/i,
   /ms-(?:settings|windows-store|gamingoverlay)\s*:/i,
   /smb\s*:\/\//i,
