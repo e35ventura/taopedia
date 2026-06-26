@@ -663,6 +663,12 @@ rejects('See [x](tg://resolve?domain=evilchannel).', 'plain tg:// (Telegram) dee
 rejects('See [x](whatsapp://send?phone=10000000000&text=evil).', 'plain whatsapp:// deep-link');
 rejects('See [x](discord://-/channels/123/456).', 'plain discord:// deep-link');
 rejects('See [x](slack://open?team=T0&id=C0).', 'plain slack:// deep-link');
+// line:// and viber:// are additional consumer messaging-app deep-link handlers in the
+// same native client-launch class as tg://whatsapp://discord://slack://.
+rejects('See [x](line://ti/p/@attacker).', 'plain line:// (LINE) deep-link');
+rejects('See [x](viber://chat?number=%2B15551234567).', 'plain viber:// deep-link');
+rejects('See [x](v&#105;ber://chat?number=evil).', 'entity-obfuscated viber:// (obfuscated scan path)');
+infoboxRowRejects('line://ti/p/@attacker', 'line:// rejected in an infobox row value');
 // Entity-obfuscated: the literal scan misses "disc&#111;rd://" but the decoded re-scan
 // (obfuscatedSchemePatterns) catches discord:// after &#111; -> o.
 rejects('See [x](disc&#111;rd://-/channels/123).', 'entity-obfuscated discord:// (obfuscated scan path)');
@@ -670,6 +676,7 @@ rejects('See [x](disc&#111;rd://-/channels/123).', 'entity-obfuscated discord://
 infoboxRowRejects('tg://resolve?domain=evilchannel', 'tg:// rejected in an infobox row value');
 infoboxRowRejects('slack://open?team=T0', 'slack:// rejected in an infobox row value');
 accepts('Slack: a team chat app, Discord servers, and Telegram channels are described here only as prose.', 'benign Slack:/Discord/Telegram prose (no // authority)');
+accepts('LINE: a messaging app and Viber calls are described here only as prose.', 'benign LINE:/Viber prose (no // authority)');
 // ts3server:// mumble:// ventrilo:// are voice-chat client-launch protocol handlers the OS
 // resolves to launch the native client at an attacker server (ts3server: had a documented
 // client RCE/launch vector) — same out-of-sandbox handler class as steam://launcher/tg://.
