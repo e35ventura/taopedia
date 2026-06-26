@@ -522,6 +522,13 @@ const unsafeContentPatterns = [
   // "alert" box around injected text) with no script, handler, or flagged scheme.
   // Article tables never set colours, so block the attribute like style=.
   { pattern: /\sbgcolor\s*=/i, reason: 'bgcolor attributes are not allowed in article content' },
+  // color=/size=/face= are the obsolete presentational siblings of bgcolor= on allowed
+  // elements (<font> itself is element-blocked in #433, but <p color="red"> or
+  // <span face="Arial"> still paint arbitrary text colour/size/font without the
+  // blocked style= attribute — the same content-styling spoof class as bgcolor=.
+  { pattern: /\scolor\s*=/i, reason: 'color attributes are not allowed in article content' },
+  { pattern: /\ssize\s*=/i, reason: 'size attributes are not allowed in article content' },
+  { pattern: /\sface\s*=/i, reason: 'face attributes are not allowed in article content' },
   // bordercolor=/bordercolordark=/bordercolorlight= are the obsolete IE presentational
   // siblings of bgcolor=: on an allowed <table>/<td>/<tr> they recolour the cell/table
   // borders with no style= rule covering them — the same content-spoofing surface (e.g.
@@ -1221,7 +1228,7 @@ const nonSpaceDelimitedInteractionSurfaceAttrPattern =
 // overlays, content spoofing) — same presentational-injection family as the
 // rest of this alternation, so it lives in the same scan and error message.
 const nonSpaceDelimitedPresentationalLayoutAttrPattern =
-  /<[^>]*[/"'`](?:style|align|valign|bgcolor|bordercolor(?:dark|light)?|background|lowsrc|dynsrc|longdesc|border|cellpadding|cellspacing|hspace|vspace)\s*=/i;
+  /<[^>]*[/"'`](?:style|align|valign|bgcolor|color|size|face|bordercolor(?:dark|light)?|background|lowsrc|dynsrc|longdesc|border|cellpadding|cellspacing|hspace|vspace)\s*=/i;
 
 // width=/height= on an allowed <img> reserve an oversized layout box without the
 // blocked inline style= attribute — a layout-defacement surface (the same class
@@ -1265,6 +1272,14 @@ const nonSpaceDelimitedRowHrPreDimensionAttrPattern = /<\s*(?:tr|hr|pre)\b[^>]*[
 // "width"/"span" pass.
 const colDimensionAttrPattern = /<\s*(?:col|colgroup)\b[^>]*\s(?:width|span)\s*=/i;
 const nonSpaceDelimitedColDimensionAttrPattern = /<\s*(?:col|colgroup)\b[^>]*[/"'`](?:width|span)\s*=/i;
+
+// width=/height= on allowed <div>/<p>/<span> reserve oversized layout boxes without
+// the blocked inline style= attribute — the remaining block-container half of the
+// dimension-attribute surface merged #451 / #465 close for <img> / table-family /
+// <tr>/<hr>/<pre> / <col>/<colgroup>. A <div width="5000" height="2000"> pushes the
+// real article off-screen — same layout-defacement class as the merged rules.
+const blockDimensionAttrPattern = /<\s*(?:div|p|span)\b[^>]*\s(?:width|height)\s*=/i;
+const nonSpaceDelimitedBlockDimensionAttrPattern = /<\s*(?:div|p|span)\b[^>]*[/"'`](?:width|height)\s*=/i;
 
 // autofocus steals keyboard focus on page load — a focus-theft primitive on allowed
 // elements with no script. Tag-boundary lookahead catches autofocus before another
@@ -2302,7 +2317,7 @@ export function validateArticleContent(slug, content) {
 
   if (nonSpaceDelimitedPresentationalLayoutAttrPattern.test(emptiedAttributeContent)) {
     throw new Error(
-      `Unsafe article content in "${slug}": style, align, valign, bgcolor, background, border, cellpadding, cellspacing, hspace, and vspace attributes are not allowed in article content`,
+      `Unsafe article content in "${slug}": style, align, valign, bgcolor, color, size, face, background, border, cellpadding, cellspacing, hspace, and vspace attributes are not allowed in article content`,
     );
   }
 
@@ -2360,6 +2375,15 @@ export function validateArticleContent(slug, content) {
   ) {
     throw new Error(
       `Unsafe article content in "${slug}": width and span attributes are not allowed on col or colgroup elements`,
+    );
+  }
+
+  if (
+    blockDimensionAttrPattern.test(emptiedAttributeContent)
+    || nonSpaceDelimitedBlockDimensionAttrPattern.test(emptiedAttributeContent)
+  ) {
+    throw new Error(
+      `Unsafe article content in "${slug}": width and height attributes are not allowed on div, p, or span elements`,
     );
   }
 
