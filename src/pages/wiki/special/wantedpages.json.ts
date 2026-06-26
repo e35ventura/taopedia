@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { publishedTitleBySlug } from '../../../lib/article-metadata';
+import { wikiArticleHref } from '../../../lib/wiki-article-path.js';
 import { buildWantedPages } from '../../../../scripts/wanted-pages.js';
 
 // Machine-readable Special:WantedPages report at /wiki/special/wantedpages.json:
@@ -35,7 +36,7 @@ export const GET: APIRoute = async ({ site }) => {
         requestedBy: entry.requestedBy.map((from) => ({
           slug: from,
           title: titleBySlug[from],
-          url: `${origin}/wiki/${from}/`,
+          url: wikiArticleHref(origin, from),
         })),
       })),
     },
