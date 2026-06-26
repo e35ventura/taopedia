@@ -480,6 +480,18 @@ rejects('See [x](rtsps://attacker.example/stream).', 'plain rtsps:// streaming U
 rejects('See [x](rtspu://attacker.example/stream).', 'plain rtspu:// (RTSP-over-UDP) streaming URL');
 rejects('See [x](mms://attacker.example/stream).', 'plain mms:// streaming URL');
 accepts('The RTSP protocol and MMS streaming are described here only as prose.', 'benign "RTSP"/"MMS" prose is not the scheme');
+// rtmp://rtmps://rtmpe://rtmpt:// (Real-Time Messaging Protocol) are the sibling media-
+// streaming family; //-guarded so prose is unaffected. Coverage spans the plain content
+// scan, the entity-decoded obfuscated scan, and the infobox scan.
+rejects('See [x](rtmp://attacker.example/live/stream).', 'plain rtmp:// streaming URL');
+rejects('See [x](rtmps://attacker.example/live/stream).', 'plain rtmps:// streaming URL');
+rejects('See [x](rtmpe://attacker.example/live/stream).', 'plain rtmpe:// (encrypted) streaming URL');
+rejects('See [x](rtmpt://attacker.example/live/stream).', 'plain rtmpt:// (tunneled) streaming URL');
+rejects('See [x](rt&#109;p://attacker.example/live/stream).', 'entity-obfuscated rtmp:// (obfuscated scan path)');
+infoboxRowRejects('rtmp://attacker.example/live/stream', 'rtmp:// rejected in an infobox row value');
+infoboxRowRejects('rtmps://attacker.example/live/stream', 'rtmps:// rejected in an infobox row value');
+infoboxRowAccepts('RTMP live streaming is described as prose', 'benign RTMP prose allowed in an infobox row value');
+accepts('The RTMP protocol for live streaming is described here only as prose.', 'benign "RTMP" prose (no // authority)');
 // ms-its: and mk:@MSITStore: resolve a page out of a compiled-HTML-help (.chm) archive
 // through the native ITSS handler (a documented RCE vector), blocked like mhtml:/jar:.
 rejects('See [x](ms-its:evil.chm::/exploit.htm).', 'plain ms-its: CHM scheme');
