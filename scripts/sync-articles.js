@@ -798,7 +798,7 @@ const unsafeContentPatterns = [
   // also the canonical server-side-request (SSRF) targets used to reach internal databases.
   // Block them as non-http schemes like the smb:/ldap:/gopher: schemes. The // authority
   // form is required so prose about "Redis", "MySQL", or "Postgres" is never affected.
-  { pattern: /\b(?:redis|rediss|mongodb(?:\+srv)?|mysql|mariadb|sqlite|influxdb|postgresql|postgres|memcached|etcd|consul|snowflake|sqlserver|mssql|timescaledb)\s*:\/\//i, reason: 'database-connection URL schemes are not allowed in article content' },
+  { pattern: /\b(?:redis|rediss|mongodb(?:\+srv)?|mysql|mariadb|sqlite|influxdb|postgresql|postgres|memcached|etcd|consul|snowflake|sqlserver|mssql|timescaledb|presto|trino|hive|oracle)\s*:\/\//i, reason: 'database-connection URL schemes are not allowed in article content' },
   // git:// svn:// cvs:// are version-control protocol-handler schemes: a clicked link is
   // handed to a registered native VC client (Git / TortoiseSVN / TortoiseCVS) which opens
   // a non-http(s) connection to the attacker's host:port to clone or check out a repo —
@@ -937,7 +937,7 @@ const unsafeContentPatterns = [
   // deep-links the Teams client. A clicked link drives a native app outside the page
   // sandbox with no script — the same native protocol-handler class as the blocked
   // ms-*/onenote: handlers; the scheme names never occur in glossary prose.
-  { pattern: /\b(?:zoommtg|zoomus|msteams)\s*:/i, reason: 'video-conferencing client protocol-handler URLs are not allowed in article content' },
+  { pattern: /\b(?:zoommtg|zoomus|msteams|webex|gotomeeting)\s*:/i, reason: 'video-conferencing client protocol-handler URLs are not allowed in article content' },
   // skype: callto: facetime: facetime-audio: sgnl: launch a native communication app
   // pointed at an attacker-controlled contact: a clicked skype:victim?call,
   // facetime:attacker@evil, callto:victim, or sgnl://… (Signal) opens/dials in a desktop
@@ -1022,7 +1022,7 @@ const unsafeContentPatterns = [
   // the same native-handler / payment-spoofing class with no script. The //-authority
   // form is required, so prose like "UPI: a payments system" (colon then space) is never
   // affected; the scheme names never occur as live URLs in glossary prose.
-  { pattern: /\b(?:payto|upi)\s*:\/\//i, reason: 'bank and instant-payment app-launch URL schemes are not allowed in article content' },
+  { pattern: /\b(?:payto|upi|venmo|cashapp)\s*:\/\//i, reason: 'bank and instant-payment app-launch URL schemes are not allowed in article content' },
   // geo:, maps:, and comgooglemaps: are native maps / geolocation app-launch schemes.
   // A clicked geo:<lat>,<lng> (RFC 5870) opens the OS map app at attacker-chosen
   // coordinates, maps:?q=… opens Apple Maps, and comgooglemaps://?q=… opens Google
@@ -1137,7 +1137,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:jetbrains|intellij|pycharm|webstorm|phpstorm|sublime|atom)\s*:(?=[^\s"'<>)])/i, reason: 'code-editor protocol-handler URLs are not allowed in article content' },
   { pattern: /(?:github-mac|github-windows|github-desktop|sourcetree|gitkraken|tower|fork)\s*:\/\//i, reason: 'source-control GUI protocol-handler URLs are not allowed in article content' },
   { pattern: /(?:chrome-untrusted|chrome|edge|opera|vivaldi|brave|devtools)\s*:\/\//i, reason: 'browser-internal page URL schemes are not allowed in article content' },
-  { pattern: /(?:redis|rediss|mongodb(?:\+srv)?|mysql|mariadb|sqlite|influxdb|postgresql|postgres|memcached|etcd|consul|snowflake|sqlserver|mssql|timescaledb)\s*:\/\//i, reason: 'database-connection URL schemes are not allowed in article content' },
+  { pattern: /(?:redis|rediss|mongodb(?:\+srv)?|mysql|mariadb|sqlite|influxdb|postgresql|postgres|memcached|etcd|consul|snowflake|sqlserver|mssql|timescaledb|presto|trino|hive|oracle)\s*:\/\//i, reason: 'database-connection URL schemes are not allowed in article content' },
   { pattern: /(?:git|svn|cvs)\s*:\/\//i, reason: 'version-control protocol URL schemes are not allowed in article content' },
   { pattern: /(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats|rabbitmq|pulsar)\s*:\/\//i, reason: 'message-broker connection URL schemes are not allowed in article content' },
   { pattern: /(?:clickhouse|cassandra|couchbase|couchdb|neo4j|bolt|dynamodb|elasticsearch|arangodb|zookeeper|hdfs|hazelcast|riak|minio|solr)\s*:\/\//i, reason: 'data-store connection URL schemes are not allowed in article content' },
@@ -1159,7 +1159,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i, reason: 'mobile app-store URL schemes are not allowed in article content' },
   { pattern: /(?:steam|com\.epicgames\.launcher)\s*:\/\//i, reason: 'game-launcher protocol-handler URLs are not allowed in article content' },
   { pattern: /intent\s*:[^\s"'<>)]*#\s*Intent\b/i, reason: 'intent: app-launch URLs are not allowed in article content' },
-  { pattern: /(?:zoommtg|zoomus|msteams)\s*:/i, reason: 'video-conferencing client protocol-handler URLs are not allowed in article content' },
+  { pattern: /(?:zoommtg|zoomus|msteams|webex|gotomeeting)\s*:/i, reason: 'video-conferencing client protocol-handler URLs are not allowed in article content' },
   { pattern: /\b(?:skype|callto|facetime-audio|facetime|sgnl)\s*:(?=[^\s"'<>)])/i, reason: 'communication-app launch URL schemes are not allowed in article content' },
   { pattern: /\b(?:mailto|tel|sms)\s*:(?=[^\s"'<>)])/i, reason: 'contact-launch URL schemes are not allowed in article content' },
   { pattern: /(?:tg|whatsapp|discord|slack|line|viber|mattermost|rocketchat)\s*:\/\//i, reason: 'messaging-app deep-link URL schemes are not allowed in article content' },
@@ -1167,7 +1167,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:webcal|webcals|feed|itpc|pcast)\s*:\/\//i, reason: 'subscription-handler URL schemes are not allowed in article content' },
   { pattern: /(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash|solana|cardano|ripple|xrp|tron|bnb)\s*:(?=[^\s"'<>)])/i, reason: 'cryptocurrency payment URI schemes are not allowed in article content' },
   { pattern: /\bwc\s*:[^\s"'<>)]*@/i, reason: 'WalletConnect pairing URI schemes are not allowed in article content' },
-  { pattern: /\b(?:payto|upi)\s*:\/\//i, reason: 'bank and instant-payment app-launch URL schemes are not allowed in article content' },
+  { pattern: /\b(?:payto|upi|venmo|cashapp)\s*:\/\//i, reason: 'bank and instant-payment app-launch URL schemes are not allowed in article content' },
   { pattern: /\b(?:geo|maps|comgooglemaps)\s*:(?=[^\s"'<>)])/i, reason: 'native maps and geolocation app-launch URL schemes are not allowed in article content' },
   { pattern: /\bmatrix\s*:(?=[^\s"'<>)])/i, reason: 'Matrix chat client-launch URL scheme is not allowed in article content' },
   { pattern: /\bweb\+[a-z]+\s*:(?=[^\s"'<>)])/i, reason: 'web+ custom protocol-handler URL schemes are not allowed in article content' },
@@ -1208,7 +1208,7 @@ const infoboxRowValueSchemePatterns = [
   /\b(?:jetbrains|intellij|pycharm|webstorm|phpstorm|sublime|atom)\s*:(?=[^\s"'<>)])/i,
   /\b(?:github-mac|github-windows|github-desktop|sourcetree|gitkraken|tower|fork)\s*:\/\//i,
   /(?:chrome-untrusted|chrome|edge|opera|vivaldi|brave|devtools)\s*:\/\//i,
-  /(?:redis|rediss|mongodb(?:\+srv)?|mysql|mariadb|sqlite|influxdb|postgresql|postgres|memcached|etcd|consul|snowflake|sqlserver|mssql|timescaledb)\s*:\/\//i,
+  /(?:redis|rediss|mongodb(?:\+srv)?|mysql|mariadb|sqlite|influxdb|postgresql|postgres|memcached|etcd|consul|snowflake|sqlserver|mssql|timescaledb|presto|trino|hive|oracle)\s*:\/\//i,
   /(?:git|svn|cvs)\s*:\/\//i,
   /(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats|rabbitmq|pulsar)\s*:\/\//i,
   /(?:clickhouse|cassandra|couchbase|couchdb|neo4j|bolt|dynamodb|elasticsearch|arangodb|zookeeper|hdfs|hazelcast|riak|minio|solr)\s*:\/\//i,
@@ -1223,7 +1223,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i,
   /(?:steam|com\.epicgames\.launcher)\s*:\/\//i,
   /intent\s*:[^\s"'<>)]*#\s*Intent\b/i,
-  /(?:zoommtg|zoomus|msteams)\s*:/i,
+  /(?:zoommtg|zoomus|msteams|webex|gotomeeting)\s*:/i,
   /\b(?:skype|callto|facetime-audio|facetime|sgnl)\s*:(?=[^\s"'<>)])/i,
   /\b(?:mailto|tel|sms)\s*:(?=[^\s"'<>)])/i,
   /(?:tg|whatsapp|discord|slack|line|viber|mattermost|rocketchat)\s*:\/\//i,
@@ -1231,7 +1231,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:webcal|webcals|feed|itpc|pcast)\s*:\/\//i,
   /(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash|solana|cardano|ripple|xrp|tron|bnb)\s*:(?=[^\s"'<>)])/i,
   /\bwc\s*:[^\s"'<>)]*@/i,
-  /\b(?:payto|upi)\s*:\/\//i,
+  /\b(?:payto|upi|venmo|cashapp)\s*:\/\//i,
   /\b(?:geo|maps|comgooglemaps)\s*:(?=[^\s"'<>)])/i,
   /\bmatrix\s*:(?=[^\s"'<>)])/i,
   /\bweb\+[a-z]+\s*:(?=[^\s"'<>)])/i,

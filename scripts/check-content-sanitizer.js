@@ -544,6 +544,15 @@ rejects('See [x](consul://internal-host:8500/).', 'plain consul:// connection UR
 rejects('See [x](mariadb://root@internal-host:3306/db).', 'plain mariadb:// connection URL');
 rejects('See [x](sqlite:///var/lib/data.db).', 'plain sqlite:// connection URL');
 rejects('See [x](influxdb://internal-host:8086/).', 'plain influxdb:// connection URL');
+rejects('See [x](presto://internal-host:8080/catalog).', 'plain presto:// connection URL');
+rejects('See [x](trino://internal-host:8080/catalog).', 'plain trino:// connection URL');
+rejects('See [x](hive://internal-host:10000/default).', 'plain hive:// connection URL');
+rejects('See [x](oracle://internal-host:1521/orcl).', 'plain oracle:// connection URL');
+rejects('See [x](pres&#116;o://internal-host:8080/catalog).', 'entity-obfuscated presto:// (obfuscated scan path)');
+infoboxRowRejects('trino://internal-host:8080/catalog', 'trino:// rejected in an infobox row value');
+infoboxRowRejects('oracle://internal-host:1521/orcl', 'oracle:// rejected in an infobox row value');
+infoboxRowAccepts('Presto, Trino, Hive, and Oracle are described as prose', 'benign database-name prose allowed in an infobox row value');
+accepts('Presto queries, Trino connectors, Hive tables, and Oracle databases are described here only as prose.', 'benign database-name prose (no // authority)');
 // git://svn://cvs:// version-control protocol-handler schemes launch a native VC client to
 // connect to the attacker's host. Covered across plain, entity-decoded, and infobox scans.
 rejects('See [x](git://attacker.example/evil.git).', 'plain git:// clone URL');
@@ -895,10 +904,13 @@ accepts('WC: a water closet, also written wc in floor plans, is described here o
 // "UPI: a payments system" (colon then space, no //) passes.
 rejects('See [x](payto://iban/DE75512108001245126199?amount=EUR:200.0).', 'plain payto: bank payment URI');
 rejects('See [x](upi://pay?pa=attacker@bank&pn=Attacker&am=500).', 'plain upi: instant-payment URI');
+rejects('See [x](venmo://pay?recipients=attacker&amount=500).', 'plain venmo: P2P payment URI');
+rejects('See [x](cashapp://attacker/500).', 'plain cashapp: P2P payment URI');
 // Entity-obfuscated: the literal scan misses "pa&#121;to://" but the decoded re-scan catches it.
 rejects('See [x](pa&#121;to://iban/DE75512108001245126199?amount=EUR:200.0).', 'entity-obfuscated payto: (obfuscated scan path)');
 // Infobox-row-value scan path.
 infoboxRowRejects('upi://pay?pa=attacker@bank&am=500', 'upi: rejected in an infobox row value');
+infoboxRowRejects('venmo://pay?recipients=attacker&amount=500', 'venmo: rejected in an infobox row value');
 // Prose: a name followed by a colon and a space (no //) must pass.
 accepts('UPI: a payments system, and payto interbank transfers are described here only as prose.', 'benign "UPI:" prose (colon then space, no //)');
 // geo:/maps:/comgooglemaps: are native maps / geolocation app-launch schemes — a clicked
@@ -1074,7 +1086,10 @@ rejects('See [x](zoommtg://zoom.us/join?confno=123&pwd=evil).', 'plain zoommtg: 
 rejects('See [x](zoomus://zoom.us/join?confno=123).', 'plain zoomus: conferencing scheme');
 rejects('See [x](msteams:/l/meetup-join/evil).', 'plain msteams: conferencing scheme');
 rejects('See [x](zoom&#109;tg://zoom.us/join).', 'entity-obfuscated zoommtg:');
-accepts('Zoom and Microsoft Teams meetings are described here only as prose.', 'benign conferencing app names are not the schemes');
+rejects('See [x](webex://cisco.webex.com/join?meeting=evil).', 'plain webex: conferencing scheme');
+rejects('See [x](gotomeeting://attend?meetingId=evil).', 'plain gotomeeting: conferencing scheme');
+infoboxRowRejects('webex://join?meeting=evil', 'webex: rejected in an infobox row value');
+accepts('Zoom, Microsoft Teams, Webex, and GoTo Meeting are described here only as prose.', 'benign conferencing app names are not the schemes');
 // ms-cxh:/ms-cxh-full: are the Windows CloudExperienceHost protocol handlers (a
 // documented LPE/UAC-bypass surface) — the OS resolves them, blocked like ms-msdt:.
 rejects('See [x](ms-cxh://localonly/?comingFromMSA=1).', 'plain ms-cxh: handler URL');
