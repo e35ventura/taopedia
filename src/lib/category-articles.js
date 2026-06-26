@@ -1,4 +1,5 @@
 import { compareTitles } from './title-sort.js';
+import { articleJsonCompanionUrls } from './wiki-article-path.js';
 
 export const getCategoryArticles = ({ categoryName, categoriesIndex = {}, slugMap = {} }) => {
   const slugs = Array.isArray(categoriesIndex[categoryName]) ? categoriesIndex[categoryName] : [];
@@ -76,25 +77,7 @@ export const buildCategoryArticlesDocument = ({ origin, categoryName, categoryPa
     // exposes as `count` and info.json / history.json expose, and subnets.json /
     // mostlinkedpages.json expose per directory entry.
     sectionCount: Number.isFinite(article.sectionCount) ? article.sectionCount : 0,
-    url: `${origin}/wiki/${article.slug}/`,
-    infoUrl: `${origin}/wiki/${article.slug}/info/`,
-    infoJsonUrl: `${origin}/wiki/${article.slug}/info.json`,
-    historyUrl: `${origin}/wiki/${article.slug}/history/`,
-    historyJsonUrl: `${origin}/wiki/${article.slug}/history.json`,
-    backlinksUrl: `${origin}/wiki/${article.slug}/backlinks/`,
-    backlinksJsonUrl: `${origin}/wiki/${article.slug}/backlinks.json`,
-    citeUrl: `${origin}/wiki/${article.slug}/cite/`,
-    citeJsonUrl: `${origin}/wiki/${article.slug}/cite.json`,
-    bibtexUrl: `${origin}/wiki/${article.slug}/cite.bib`,
-    referencesUrl: `${origin}/wiki/${article.slug}/references.json`,
-    relatedUrl: `${origin}/wiki/${article.slug}/related.json`,
-    // referencesJsonUrl / relatedJsonUrl are the consistently-named *JsonUrl
-    // aliases for referencesUrl / relatedUrl, matching the infoJsonUrl /
-    // backlinksJsonUrl / citeJsonUrl / tocJsonUrl companions this entry already
-    // exposes. referencesUrl / relatedUrl are kept for back-compat.
-    referencesJsonUrl: `${origin}/wiki/${article.slug}/references.json`,
-    relatedJsonUrl: `${origin}/wiki/${article.slug}/related.json`,
-    tocJsonUrl: `${origin}/wiki/${article.slug}/toc.json`,
+    ...articleJsonCompanionUrls(origin, article.slug),
     imageUrl: `${origin}/og/${article.slug}.png`,
   })),
 });

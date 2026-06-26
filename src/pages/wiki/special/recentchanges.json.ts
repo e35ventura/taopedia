@@ -11,6 +11,7 @@ import { RECENT_LIMIT } from '../../../lib/recent-changes.js';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
 import { getArticleReferences } from '../../../lib/article-references.js';
 import { getArticleToc } from '../../../lib/article-toc.js';
+import { articleJsonCompanionUrls } from '../../../lib/wiki-article-path.js';
 
 // The inbound-link graph is the same public/data/backlinks.json the HTML
 // "What links here" page, allpages.json, mostlinkedpages.json, subnets.json and
@@ -123,27 +124,7 @@ export const GET: APIRoute = async ({ site }) => {
         slug: change.slug,
         title: change.title,
         summary: summaryBySlug[change.slug] || null,
-        url: `${origin}/wiki/${change.slug}/`,
-        infoUrl: `${origin}/wiki/${change.slug}/info/`,
-        infoJsonUrl: `${origin}/wiki/${change.slug}/info.json`,
-        backlinksUrl: `${origin}/wiki/${change.slug}/backlinks/`,
-        backlinksJsonUrl: `${origin}/wiki/${change.slug}/backlinks.json`,
-        historyUrl: `${origin}/wiki/${change.slug}/history/`,
-        historyJsonUrl: `${origin}/wiki/${change.slug}/history.json`,
-        citeUrl: `${origin}/wiki/${change.slug}/cite/`,
-        citeJsonUrl: `${origin}/wiki/${change.slug}/cite.json`,
-        bibtexUrl: `${origin}/wiki/${change.slug}/cite.bib`,
-        referencesUrl: `${origin}/wiki/${change.slug}/references.json`,
-        relatedUrl: `${origin}/wiki/${change.slug}/related.json`,
-        // referencesJsonUrl / relatedJsonUrl are the consistently-named `*JsonUrl`
-        // aliases for referencesUrl / relatedUrl, matching the infoJsonUrl /
-        // backlinksJsonUrl / citeJsonUrl / tocJsonUrl companions this same change
-        // entry already exposes. references.json / related.json have no HTML page,
-        // so referencesUrl / relatedUrl already point at the .json — these add the
-        // sibling-consistent name. referencesUrl / relatedUrl are kept for back-compat.
-        referencesJsonUrl: `${origin}/wiki/${change.slug}/references.json`,
-        relatedJsonUrl: `${origin}/wiki/${change.slug}/related.json`,
-        tocJsonUrl: `${origin}/wiki/${change.slug}/toc.json`,
+        ...articleJsonCompanionUrls(origin, change.slug),
         imageUrl: `${origin}/og/${change.slug}.png`,
         categories: categoriesBySlug[change.slug] ?? [],
         backlinks: inboundBySlug[change.slug] ?? 0,

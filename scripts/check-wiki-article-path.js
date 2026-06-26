@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {
+  articleJsonCompanionUrls,
   isBuiltWikiArticleHref,
   isWikiArticleHref,
   slugFromWikiHref,
@@ -51,6 +52,20 @@ assert.equal(
   wikiCompanionFileHref('https://taopedia.org', 'subnet_10', 'cite.bib'),
   'https://taopedia.org/wiki/subnet_10/cite.bib',
   'wikiCompanionFileHref builds static companion file URLs',
+);
+
+const nested = 'alpha_tokens/notes';
+const companions = articleJsonCompanionUrls('https://taopedia.org', nested);
+assert.equal(companions.url, 'https://taopedia.org/wiki/alpha_tokens/notes/', 'articleJsonCompanionUrls: canonical article URL');
+assert.equal(
+  companions.historyJsonUrl,
+  'https://taopedia.org/wiki/alpha_tokens/notes/history.json',
+  'articleJsonCompanionUrls: nested history.json companion',
+);
+assert.equal(
+  companions.bibtexUrl,
+  'https://taopedia.org/wiki/alpha_tokens/notes/cite.bib',
+  'articleJsonCompanionUrls: nested cite.bib companion',
 );
 
 console.log('Wiki article path helper check passed');

@@ -1,29 +1,13 @@
 // Pure builder: no file I/O, no side effects. Converts the pre-loaded revision
 // list into the canonical JSON shape for /wiki/<slug>/history.json, mirroring
 // what history.astro renders.
+import { articleJsonCompanionUrls } from '../src/lib/wiki-article-path.js';
+
 export const buildArticleHistory = ({ slug, title, origin, summary = '', categories = [], incomingLinks = 0, referencesCount = 0, sectionCount = 0, wordCount = 0, revisions = [] }) => ({
   slug,
   title,
   summary: summary || null,
-  url: `${origin}/wiki/${slug}/`,
-  infoUrl: `${origin}/wiki/${slug}/info/`,
-  infoJsonUrl: `${origin}/wiki/${slug}/info.json`,
-  historyUrl: `${origin}/wiki/${slug}/history/`,
-  historyJsonUrl: `${origin}/wiki/${slug}/history.json`,
-  backlinksUrl: `${origin}/wiki/${slug}/backlinks/`,
-  backlinksJsonUrl: `${origin}/wiki/${slug}/backlinks.json`,
-  citeUrl: `${origin}/wiki/${slug}/cite/`,
-  citeJsonUrl: `${origin}/wiki/${slug}/cite.json`,
-  bibtexUrl: `${origin}/wiki/${slug}/cite.bib`,
-  referencesUrl: `${origin}/wiki/${slug}/references.json`,
-  relatedUrl: `${origin}/wiki/${slug}/related.json`,
-  // referencesJsonUrl / relatedJsonUrl are the consistently-named *JsonUrl aliases
-  // for referencesUrl / relatedUrl, matching the infoJsonUrl / backlinksJsonUrl /
-  // citeJsonUrl / tocJsonUrl companions this envelope already exposes.
-  // referencesUrl / relatedUrl kept for back-compat.
-  referencesJsonUrl: `${origin}/wiki/${slug}/references.json`,
-  relatedJsonUrl: `${origin}/wiki/${slug}/related.json`,
-  tocJsonUrl: `${origin}/wiki/${slug}/toc.json`,
+  ...articleJsonCompanionUrls(origin, slug),
   imageUrl: `${origin}/og/${slug}.png`,
   // Dedupe repeated frontmatter topics so history.json cannot list the same
   // category twice when an article's YAML repeats a topic tag.
