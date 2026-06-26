@@ -465,6 +465,12 @@ const unsafeContentPatterns = [
   // same no-attribute content-styling spoof as <font>/<center> above, with no
   // script, handler, or flagged scheme. Block them with the rest.
   { pattern: /<\s*(big|strike|tt|nobr)\b/i, reason: 'big, strike, tt, and nobr elements are not allowed in article content' },
+  // <kbd>/<samp>/<mark>/<var> are HTML text-semantics elements that restyle or
+  // highlight prose (monospace keyboard font, sample output, highlighted mark,
+  // variable formatting) without the blocked inline style= attribute — the same
+  // no-attribute content-styling spoof as <big>/<tt> above. Markdown never emits
+  // them; glossary prose never needs keyboard/sample/mark/variable markup.
+  { pattern: /<\s*(kbd|samp|mark|var)\b/i, reason: 'kbd, samp, mark, and var elements are not allowed in article content' },
   // <plaintext>/<xmp>/<listing> are obsolete raw-text elements that browsers still
   // honor in the parser. A single injected <plaintext> makes the browser render
   // EVERYTHING after it — the rest of the article and page — as literal text: a

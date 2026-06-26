@@ -267,6 +267,11 @@ rejects('Intro.\n\n<big>HUGE FAKE WARNING</big>', 'plain <big>');
 rejects('Intro.\n\n<  strike  >struck</strike>', 'spaced <strike>');
 rejects('Intro.\n\n<tt>monospace</tt>', 'plain <tt>');
 rejects('Intro.\n\n<nobr>unwrapped</nobr>', 'plain <nobr>');
+rejects('Intro.\n\n<kbd>Ctrl+C</kbd>', 'plain <kbd>');
+rejects('Intro.\n\n<  samp  >output</samp>', 'spaced <samp>');
+rejects('Intro.\n\n<mark>highlighted</mark>', 'plain <mark>');
+rejects('Intro.\n\n<var>x</var>', 'plain <var>');
+accepts('<keyboard>not a kbd element</keyboard>', 'benign keyboard substring is not <kbd>');
 accepts('Big monospace headings and strike-through prices are described here as prose.', 'benign obsolete-text prose');
 
 // <plaintext>/<xmp>/<listing> are obsolete raw-text elements the parser still
