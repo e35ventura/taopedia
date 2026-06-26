@@ -742,7 +742,9 @@ const unsafeContentPatterns = [
   // terminal scheme — the remaining members of this family: a clicked link launches a
   // native remote-shell/terminal client to the attacker's host (rlogin/rsh grant an
   // interactive shell), the same out-of-sandbox client-launch surface as telnet://ssh://.
-  { pattern: /\b(?:ftp|rdp|vnc|telnet|ssh|sftp|rlogin|rsh|tn3270)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
+  // telnets:// is telnet-over-TLS — the same telnet terminal client launch as the blocked
+  // telnet://, just on the secure port — so it belongs in this family too.
+  { pattern: /\b(?:ftp|rdp|vnc|telnets|telnet|ssh|sftp|rlogin|rsh|tn3270)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
   // rtsp:// (Real Time Streaming Protocol, also rtsps://rtspu://) and mms:// (Microsoft
   // Media Server) are media-streaming schemes: a clicked link launches a registered
   // native media player (VLC / Windows Media Player) pointed at the attacker's stream
@@ -896,7 +898,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:magnet|ed2k)\s*:/i, reason: 'peer-to-peer file-sharing URL schemes are not allowed in article content' },
   { pattern: /(?:vscode-insiders|vscodium|vscode)\s*:/i, reason: 'code-editor protocol-handler URLs are not allowed in article content' },
   { pattern: /(?:redis|rediss|mongodb(?:\+srv)?|mysql|postgresql|postgres)\s*:\/\//i, reason: 'database-connection URL schemes are not allowed in article content' },
-  { pattern: /(?:ftp|rdp|vnc|telnet|ssh|sftp|rlogin|rsh|tn3270)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
+  { pattern: /(?:ftp|rdp|vnc|telnets|telnet|ssh|sftp|rlogin|rsh|tn3270)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:rtsps?|rtspu|mms)\s*:\/\//i, reason: 'media-streaming client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:ms-its\s*:|mk\s*:\s*@)/i, reason: 'compiled-HTML-help (CHM) URL schemes are not allowed in article content' },
   { pattern: /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i, reason: 'mobile app-store URL schemes are not allowed in article content' },
@@ -938,7 +940,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:magnet|ed2k)\s*:/i,
   /(?:vscode-insiders|vscodium|vscode)\s*:/i,
   /(?:redis|rediss|mongodb(?:\+srv)?|mysql|postgresql|postgres)\s*:\/\//i,
-  /(?:ftp|rdp|vnc|telnet|ssh|sftp|rlogin|rsh|tn3270)\s*:\/\//i,
+  /(?:ftp|rdp|vnc|telnets|telnet|ssh|sftp|rlogin|rsh|tn3270)\s*:\/\//i,
   /(?:rtsps?|rtspu|mms)\s*:\/\//i,
   /(?:ms-its\s*:|mk\s*:\s*@)/i,
   /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i,

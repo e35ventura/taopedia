@@ -469,6 +469,12 @@ rejects('See [x](rlogin://attacker.example/).', 'plain rlogin:// remote-login UR
 rejects('See [x](rsh://attacker.example/).', 'plain rsh:// remote-shell URL');
 rejects('See [x](tn3270://attacker.example/).', 'plain tn3270:// terminal URL');
 accepts('The rlogin and rsh commands and the tn3270 terminal are described here only as prose.', 'benign rlogin/rsh/tn3270 prose words (no // authority)');
+// telnets:// is telnet-over-TLS — the same terminal client launch as telnet://. Covered
+// across the plain content scan, the entity-decoded scan, and the infobox-row scan.
+rejects('See [x](telnets://attacker.example/).', 'plain telnets:// (telnet-over-TLS) URL');
+rejects('See [x](teln&#101;ts://attacker.example/).', 'entity-obfuscated telnets:// (obfuscated scan path)');
+infoboxRowRejects('telnets://attacker.example/', 'telnets:// rejected in an infobox row value');
+accepts('The telnets variant of telnet is described here only as prose.', 'benign telnets prose word (no // authority)');
 // ftp:// is the unencrypted file-transfer sibling of sftp://; browsers removed FTP, so a
 // clicked ftp:// launches a desktop FTP client over cleartext. // keeps prose.
 rejects('See [x](ftp://anonymous@attacker.example/payload.exe).', 'plain ftp:// URL (cleartext file-transfer)');
