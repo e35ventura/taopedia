@@ -604,9 +604,11 @@ const unsafeContentPatterns = [
   // same non-http class as the blocked schemes above. dict:// (Dictionary protocol) is
   // another classic SSRF gadget like gopher://, and finger:// queries a remote finger
   // daemon (user-info disclosure / SSRF) — the remaining legacy internet protocols.
+  // nntps:// is NNTP-over-TLS — the same Usenet news client launch as the blocked nntp://,
+  // just on the secure port — so it belongs in this family too.
   // Article links are limited to http(s). The // authority form is required so prose is
   // never affected.
-  { pattern: /\b(?:gopher|nntp|ircs|irc|dict|finger)\s*:\/\//i, reason: 'legacy internet-protocol URL schemes are not allowed in article content' },
+  { pattern: /\b(?:gopher|nntps|nntp|ircs|irc|dict|finger)\s*:\/\//i, reason: 'legacy internet-protocol URL schemes are not allowed in article content' },
   // ftp:// ftps:// tftp:// are file-transfer URL schemes that open a non-http connection to
   // a remote host to upload or download a file — not an http(s) resource. Article links are
   // limited to http(s), so these are never a valid article link; ftp:// is also a classic
@@ -894,7 +896,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /javascript\s*:/i, reason: 'javascript: URLs are not allowed in article content' },
   { pattern: /vbscript\s*:/i, reason: 'vbscript: URLs are not allowed in article content' },
   { pattern: /(?:blob|filesystem)\s*:/i, reason: 'object-URL schemes are not allowed in article content' },
-  { pattern: /(?:gopher|nntp|ircs|irc|dict|finger)\s*:\/\//i, reason: 'legacy internet-protocol URL schemes are not allowed in article content' },
+  { pattern: /(?:gopher|nntps|nntp|ircs|irc|dict|finger)\s*:\/\//i, reason: 'legacy internet-protocol URL schemes are not allowed in article content' },
   { pattern: /(?:ftps|ftp|tftp)\s*:\/\//i, reason: 'file-transfer URL schemes are not allowed in article content' },
   { pattern: /(?:search-ms|ms-officecmd)\s*:/i, reason: 'Windows protocol-handler URLs are not allowed in article content' },
   { pattern: /ms-(?:msdt|appinstaller)\s*:/i, reason: 'Windows protocol-handler URLs are not allowed in article content' },
@@ -937,7 +939,7 @@ const infoboxRowValueSchemePatterns = [
   /javascript\s*:/i,
   /vbscript\s*:/i,
   /(?:blob|filesystem)\s*:/i,
-  /(?:gopher|nntp|ircs|irc|dict|finger)\s*:\/\//i,
+  /(?:gopher|nntps|nntp|ircs|irc|dict|finger)\s*:\/\//i,
   /(?:ftps|ftp|tftp)\s*:\/\//i,
   /(?:search-ms|ms-officecmd)\s*:/i,
   /ms-(?:msdt|appinstaller)\s*:/i,
