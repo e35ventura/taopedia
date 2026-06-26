@@ -183,7 +183,7 @@ export function getRelatedPages({
     (a, b) =>
       b.score - a.score ||
       compareTitles(a.title, b.title) ||
-      compareTitles(a.slug, b.slug),
+      (a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0),
   );
 
   return scored.slice(0, max).map(({ slug, title, summary, tags }) => ({ slug, title, summary, tags }));

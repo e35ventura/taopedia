@@ -205,12 +205,16 @@ assert.ok(
 
 const relatedPagesSource = fs.readFileSync(path.join(projectRoot, 'src/lib/related-pages.ts'), 'utf8');
 assert.ok(
-  relatedPagesSource.includes('compareTitles(a.slug, b.slug)'),
-  'related-pages.ts must sort slug ties with compareTitles, not raw string order',
+  relatedPagesSource.includes('compareTitles(a.title, b.title)'),
+  'related-pages.ts must sort title ties with compareTitles',
 );
 assert.ok(
-  !relatedPagesSource.includes('a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0'),
-  'related-pages.ts must not use raw string comparison for slug tiebreak',
+  relatedPagesSource.includes('a.slug < b.slug'),
+  'related-pages.ts must tiebreak same-title slug ties on raw slug order, not compareTitles numeric slug collation',
+);
+assert.ok(
+  !relatedPagesSource.includes('compareTitles(a.slug, b.slug)'),
+  'related-pages.ts must not use compareTitles for slug tiebreak',
 );
 
 // The homepage A–Z index groups sort letter keys with compareTitles so numeric
