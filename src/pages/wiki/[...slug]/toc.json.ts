@@ -8,9 +8,8 @@ import {
   publishedSummaryBySlug,
   publishedTitleBySlug,
 } from '../../../lib/article-metadata';
-import { getArticleReferences } from '../../../lib/article-references.js';
+import { gatherLinkStatsBySlug } from '../../../lib/article-link-stats';
 import { buildArticleToc, getArticleToc } from '../../../lib/article-toc.js';
-import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
 import slugMap from '../../../../public/data/slugmap.json';
 
 const backlinksModules = import.meta.glob('../../../../public/data/backlinks.json', { eager: true }) as Record<
@@ -46,15 +45,14 @@ export async function getStaticPaths() {
       sectionsBySlug[slug] = getArticleToc(headings);
     }),
   );
-  // Published inbound-link count and outbound reference count — gathered in a
-  // single pass after titleBySlug is built (both resolve targets through it).
-  const inboundBySlug: Record<string, number> = {};
-  const referencesCountBySlug: Record<string, number> = {};
-  for (const slug of Object.keys(slugMap)) {
-    if (!pageFromSlug(slug, slugMap)) continue;
-    inboundBySlug[slug] = publishedInboundLinkCount(backlinksData, slug, titleBySlug);
-    referencesCountBySlug[slug] = getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length;
-  }
+  // Published inbound-link count and outbound reference count for every published
+  // slug, gathered via the shared gatherLinkStatsBySlug helper.
+  const linkStatSlugs = Object.keys(slugMap).filter((slug) => pageFromSlug(slug, slugMap));
+  const { inboundBySlug, referencesCountBySlug } = gatherLinkStatsBySlug(linkStatSlugs, {
+    titleBySlug,
+    backlinksData,
+    linkgraphData,
+  });
 
   return Object.keys(slugMap).flatMap((slug) => {
     const page = pageFromSlug(slug, slugMap);
