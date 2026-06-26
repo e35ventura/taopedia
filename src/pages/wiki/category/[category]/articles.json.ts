@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { getCollection, render } from 'astro:content';
 import { buildCategoryArticlesDocument, getCategoryArticles } from '../../../../lib/category-articles.js';
 import { publishedTitleBySlug } from '../../../../lib/site-feed-context';
+import { compareTitles } from '../../../../lib/title-sort.js';
 import { publishedInboundLinkCount } from '../../../../../scripts/most-linked.js';
 import { getPageSlug, historyForSlug } from '../../../../lib/article-history';
 import { getArticleReferences } from '../../../../lib/article-references.js';
@@ -70,7 +71,7 @@ export async function getStaticPaths() {
     referencesCountBySlug[slug] = getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length;
   }
   return Object.keys(categoriesIndex)
-    .sort()
+    .sort(compareTitles)
     .map((categoryName) => ({
       params: { category: categorySlug(categoryName) },
       props: {

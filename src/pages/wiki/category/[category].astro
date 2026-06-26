@@ -1,6 +1,7 @@
 ---
 import WikiLayout from '../../../layouts/WikiLayout.astro';
 import { getCategoryArticles } from '../../../lib/category-articles.js';
+import { compareTitles } from '../../../lib/title-sort.js';
 import categoriesIndex from '../../../../public/data/categories.json';
 import slugMap from '../../../../public/data/slugmap.json';
 
@@ -10,7 +11,7 @@ export async function getStaticPaths() {
   // categories.json (#1403) use — instead of calling getCollection('pages') and
   // re-scanning every article's frontmatter in getStaticPaths.
   return Object.keys(categoriesIndex)
-    .sort()
+    .sort(compareTitles)
     .map((categoryName) => ({
       params: { category: categoryName.replace(/ /g, '_') },
       props: {

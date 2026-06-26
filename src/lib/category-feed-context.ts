@@ -2,6 +2,7 @@ import categoriesIndex from '../../public/data/categories.json';
 import slugMap from '../../public/data/slugmap.json';
 import { historyForSlug, lastmodForSlug } from './article-history';
 import { getCategoryArticles } from './category-articles.js';
+import { compareTitles } from './title-sort.js';
 
 export const categoryPathFromName = (categoryName: string) => categoryName.replace(/ /g, '_');
 
@@ -31,7 +32,7 @@ export function buildCategoryFeedStaticPaths() {
   };
 
   return Object.keys(categoriesIndex)
-    .sort()
+    .sort(compareTitles)
     .map((categoryName) => {
       const articles = getCategoryArticles({ categoryName, categoriesIndex, slugMap });
       for (const article of articles) cacheSlugHistory(article.slug);

@@ -153,6 +153,45 @@ assert.ok(
   'categories.astro must not use localeCompare for the topic sort',
 );
 
+const categoryPageSource = fs.readFileSync(
+  path.join(projectRoot, 'src/pages/wiki/category/[category].astro'),
+  'utf8',
+);
+assert.ok(
+  categoryPageSource.includes('.sort(compareTitles)'),
+  'category/[category].astro must sort category static paths with compareTitles, not raw string order',
+);
+assert.ok(
+  !categoryPageSource.includes('Object.keys(categoriesIndex)\n    .sort()'),
+  'category/[category].astro must not raw-sort category static paths',
+);
+
+const categoryArticlesJsonSource = fs.readFileSync(
+  path.join(projectRoot, 'src/pages/wiki/category/[category]/articles.json.ts'),
+  'utf8',
+);
+assert.ok(
+  categoryArticlesJsonSource.includes('.sort(compareTitles)'),
+  'category/[category]/articles.json.ts must sort category static paths with compareTitles, not raw string order',
+);
+assert.ok(
+  !categoryArticlesJsonSource.includes('Object.keys(categoriesIndex)\n    .sort()'),
+  'category/[category]/articles.json.ts must not raw-sort category static paths',
+);
+
+const categoryFeedContextSource = fs.readFileSync(
+  path.join(projectRoot, 'src/lib/category-feed-context.ts'),
+  'utf8',
+);
+assert.ok(
+  categoryFeedContextSource.includes('.sort(compareTitles)'),
+  'category-feed-context.ts must sort category static paths with compareTitles, not raw string order',
+);
+assert.ok(
+  !categoryFeedContextSource.includes('Object.keys(categoriesIndex)\n    .sort()'),
+  'category-feed-context.ts must not raw-sort category static paths',
+);
+
 // Special:Statistics sorts topics by article count, then uses a topic-name
 // tiebreak to pick the "Largest topic". The tiebreak must use compareTitles
 // (numeric collation) so numeric-prefixed topics like "Subnet 9" and
