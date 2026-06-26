@@ -81,21 +81,24 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(empty.summary, null, 'builder: default summary is null');
   assert.deepEqual(empty.categories, [], 'builder: default categories is []');
 
-  // Non-finite counts coerce to 0 across ALL four count fields (incomingLinks,
-  // referencesCount, sectionCount, wordCount) — matching the cite.json sibling —
-  // so info.json's numeric fields are never emitted as JSON null. Defaults only
-  // catch `undefined`, so an explicit NaN/Infinity would otherwise leak through.
+  // Non-finite counts coerce to 0 across ALL five count fields (incomingLinks,
+  // referencesCount, revisionCount, sectionCount, wordCount) — matching the
+  // cite.json sibling — so info.json's numeric fields are never emitted as JSON
+  // null. Defaults only catch `undefined`, so an explicit NaN/Infinity would
+  // otherwise leak through.
   const nonFinite = buildArticleInfo({
     title: 'NF',
     slug: 'nf',
     origin: ORIGIN,
     incomingLinks: NaN,
     referencesCount: Infinity,
+    revisionCount: NaN,
     sectionCount: NaN,
     wordCount: -Infinity,
   });
   assert.equal(nonFinite.incomingLinks, 0, 'builder: non-finite incomingLinks coerces to 0');
   assert.equal(nonFinite.referencesCount, 0, 'builder: non-finite referencesCount coerces to 0');
+  assert.equal(nonFinite.revisionCount, 0, 'builder: non-finite revisionCount coerces to 0');
   assert.equal(nonFinite.sectionCount, 0, 'builder: non-finite sectionCount coerces to 0');
   assert.equal(nonFinite.wordCount, 0, 'builder: non-finite wordCount coerces to 0');
   assert.equal(nonFinite.readingMinutes, 1, 'builder: non-finite wordCount yields readingMinutes 1 (ceil(0/200))');
