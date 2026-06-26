@@ -130,6 +130,15 @@ const CITE_KEYS = CITATION_FORMATS.map((format) => format.key);
   assert.equal(undated.lastEdited, null, 'builder: default lastEdited is null');
   assert.ok(!('date' in undated), 'builder: undated article must omit date key');
 
+  // Non-finite counts coerce to 0 across all count fields — matching the
+  // info.json sibling — so cite.json's numeric fields are never emitted as JSON null.
+  const nonFinite = buildCiteJson({ title: 'NF', slug: 'nf', origin: ORIGIN, incomingLinks: NaN, referencesCount: Infinity, revisionCount: NaN, sectionCount: NaN, wordCount: -Infinity });
+  assert.equal(nonFinite.incomingLinks, 0, 'builder: non-finite incomingLinks coerces to 0');
+  assert.equal(nonFinite.referencesCount, 0, 'builder: non-finite referencesCount coerces to 0');
+  assert.equal(nonFinite.revisionCount, 0, 'builder: non-finite revisionCount coerces to 0');
+  assert.equal(nonFinite.sectionCount, 0, 'builder: non-finite sectionCount coerces to 0');
+  assert.equal(nonFinite.wordCount, 0, 'builder: non-finite wordCount coerces to 0');
+
   const deduped = buildCiteJson({
     title: 'Dup',
     slug: 'dup',
