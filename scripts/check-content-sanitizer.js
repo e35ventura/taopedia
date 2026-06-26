@@ -1083,7 +1083,10 @@ rejects('See [x](zoommtg://zoom.us/join?confno=123&pwd=evil).', 'plain zoommtg: 
 rejects('See [x](zoomus://zoom.us/join?confno=123).', 'plain zoomus: conferencing scheme');
 rejects('See [x](msteams:/l/meetup-join/evil).', 'plain msteams: conferencing scheme');
 rejects('See [x](zoom&#109;tg://zoom.us/join).', 'entity-obfuscated zoommtg:');
-accepts('Zoom and Microsoft Teams meetings are described here only as prose.', 'benign conferencing app names are not the schemes');
+rejects('See [x](webex://cisco.webex.com/join?meeting=evil).', 'plain webex: conferencing scheme');
+rejects('See [x](gotomeeting://attend?meetingId=evil).', 'plain gotomeeting: conferencing scheme');
+infoboxRowRejects('webex://join?meeting=evil', 'webex: rejected in an infobox row value');
+accepts('Zoom, Microsoft Teams, Webex, and GoTo Meeting are described here only as prose.', 'benign conferencing app names are not the schemes');
 // ms-cxh:/ms-cxh-full: are the Windows CloudExperienceHost protocol handlers (a
 // documented LPE/UAC-bypass surface) — the OS resolves them, blocked like ms-msdt:.
 rejects('See [x](ms-cxh://localonly/?comingFromMSA=1).', 'plain ms-cxh: handler URL');

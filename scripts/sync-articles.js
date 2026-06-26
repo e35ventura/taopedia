@@ -937,7 +937,7 @@ const unsafeContentPatterns = [
   // deep-links the Teams client. A clicked link drives a native app outside the page
   // sandbox with no script — the same native protocol-handler class as the blocked
   // ms-*/onenote: handlers; the scheme names never occur in glossary prose.
-  { pattern: /\b(?:zoommtg|zoomus|msteams)\s*:/i, reason: 'video-conferencing client protocol-handler URLs are not allowed in article content' },
+  { pattern: /\b(?:zoommtg|zoomus|msteams|webex|gotomeeting)\s*:/i, reason: 'video-conferencing client protocol-handler URLs are not allowed in article content' },
   // skype: callto: facetime: facetime-audio: sgnl: launch a native communication app
   // pointed at an attacker-controlled contact: a clicked skype:victim?call,
   // facetime:attacker@evil, callto:victim, or sgnl://… (Signal) opens/dials in a desktop
@@ -1159,7 +1159,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i, reason: 'mobile app-store URL schemes are not allowed in article content' },
   { pattern: /(?:steam|com\.epicgames\.launcher)\s*:\/\//i, reason: 'game-launcher protocol-handler URLs are not allowed in article content' },
   { pattern: /intent\s*:[^\s"'<>)]*#\s*Intent\b/i, reason: 'intent: app-launch URLs are not allowed in article content' },
-  { pattern: /(?:zoommtg|zoomus|msteams)\s*:/i, reason: 'video-conferencing client protocol-handler URLs are not allowed in article content' },
+  { pattern: /(?:zoommtg|zoomus|msteams|webex|gotomeeting)\s*:/i, reason: 'video-conferencing client protocol-handler URLs are not allowed in article content' },
   { pattern: /\b(?:skype|callto|facetime-audio|facetime|sgnl)\s*:(?=[^\s"'<>)])/i, reason: 'communication-app launch URL schemes are not allowed in article content' },
   { pattern: /\b(?:mailto|tel|sms)\s*:(?=[^\s"'<>)])/i, reason: 'contact-launch URL schemes are not allowed in article content' },
   { pattern: /(?:tg|whatsapp|discord|slack|line|viber|mattermost|rocketchat)\s*:\/\//i, reason: 'messaging-app deep-link URL schemes are not allowed in article content' },
@@ -1223,7 +1223,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i,
   /(?:steam|com\.epicgames\.launcher)\s*:\/\//i,
   /intent\s*:[^\s"'<>)]*#\s*Intent\b/i,
-  /(?:zoommtg|zoomus|msteams)\s*:/i,
+  /(?:zoommtg|zoomus|msteams|webex|gotomeeting)\s*:/i,
   /\b(?:skype|callto|facetime-audio|facetime|sgnl)\s*:(?=[^\s"'<>)])/i,
   /\b(?:mailto|tel|sms)\s*:(?=[^\s"'<>)])/i,
   /(?:tg|whatsapp|discord|slack|line|viber|mattermost|rocketchat)\s*:\/\//i,
