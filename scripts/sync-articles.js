@@ -1037,6 +1037,15 @@ const unsafeContentPatterns = [
   // class as the blocked ms-msdt:/ms-appinstaller:/search-ms: handlers; the hyphenated
   // "ms-cxh" token never occurs in glossary prose.
   { pattern: /\bms-cxh(?:-full)?\s*:/i, reason: 'Windows CloudExperienceHost protocol-handler URLs are not allowed in article content' },
+  // microsoft-edge: is a Windows protocol handler — distinct from the edge:// browser-internal
+  // pages blocked above. A clicked microsoft-edge:https://attacker.example is resolved by the
+  // OS to force the target URL open in Edge, bypassing the reader's default browser and its
+  // SmartScreen / safe-browsing prompts; it is a documented malware-delivery / control-bypass
+  // vector (e.g. the NOBELIUM lures) and has been chained with other handlers for RCE. Same
+  // native Windows protocol-handler class as the blocked ms-cxh:/ms-msdt:/search-ms: handlers.
+  // The (?=non-space) lookahead requires a real target after the colon, and the hyphenated
+  // "microsoft-edge" token never occurs in glossary prose.
+  { pattern: /\bmicrosoft-edge\s*:(?=[^\s"'<>)])/i, reason: 'microsoft-edge: protocol-handler URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*image\/svg\+xml/i, reason: 'SVG data URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*application\/xhtml\+xml/i, reason: 'XHTML data URLs are not allowed in article content' },
@@ -1120,6 +1129,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /\bx-apple\.systempreferences\s*:(?=[^\s"'<>)])/i, reason: 'macOS System Settings protocol-handler URLs are not allowed in article content' },
   { pattern: /\bshell\s*:(?=[^\s"'<>)])/i, reason: 'shell: protocol-handler URLs are not allowed in article content' },
   { pattern: /\bms-cxh(?:-full)?\s*:/i, reason: 'Windows CloudExperienceHost protocol-handler URLs are not allowed in article content' },
+  { pattern: /\bmicrosoft-edge\s*:(?=[^\s"'<>)])/i, reason: 'microsoft-edge: protocol-handler URLs are not allowed in article content' },
   { pattern: /data\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
   { pattern: /data\s*:\s*image\/svg\+xml/i, reason: 'SVG data URLs are not allowed in article content' },
   { pattern: /data\s*:\s*application\/xhtml\+xml/i, reason: 'XHTML data URLs are not allowed in article content' },
@@ -1180,6 +1190,7 @@ const infoboxRowValueSchemePatterns = [
   /\bx-apple\.systempreferences\s*:(?=[^\s"'<>)])/i,
   /\bshell\s*:(?=[^\s"'<>)])/i,
   /\bms-cxh(?:-full)?\s*:/i,
+  /\bmicrosoft-edge\s*:(?=[^\s"'<>)])/i,
   /data\s*:\s*text\/html/i,
   /data\s*:\s*image\/svg\+xml/i,
   /data\s*:\s*application\/xhtml\+xml/i,
