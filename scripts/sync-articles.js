@@ -798,8 +798,11 @@ const unsafeContentPatterns = [
   // the same out-of-browser graphical-session launch surface as rdp://vnc://spice://.
   // logmein:// parsec:// nomachine:// ultraviewer:// are the remaining consumer
   // remote-access app handlers in the same class (hosted desktop, game streaming,
-  // NX client, and UltraViewer sessions).
-  { pattern: /\b(?:ftp|rdp|vnc|spice|teamviewer|anydesk|rustdesk|logmein|parsec|nomachine|ultraviewer|telnet|ssh|sftp|fish|rlogin|rsh|tn3270)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
+  // NX client, and UltraViewer sessions). splashtop:// chrome-remote-desktop://
+  // googlechromeremotedesktop:// are additional consumer remote-desktop handlers
+  // (Splashtop sessions and Google Chrome Remote Desktop) with the same out-of-browser
+  // graphical-session launch surface.
+  { pattern: /\b(?:ftp|rdp|vnc|spice|teamviewer|anydesk|rustdesk|logmein|parsec|nomachine|ultraviewer|splashtop|chrome-remote-desktop|googlechromeremotedesktop|telnet|ssh|sftp|fish|rlogin|rsh|tn3270)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
   // rtsp:// (Real Time Streaming Protocol, also rtsps://rtspu://) and mms:// (Microsoft
   // Media Server) are media-streaming schemes: a clicked link launches a registered
   // native media player (VLC / Windows Media Player) pointed at the attacker's stream
@@ -1029,7 +1032,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats)\s*:\/\//i, reason: 'message-broker connection URL schemes are not allowed in article content' },
   { pattern: /(?:clickhouse|cassandra|couchbase|couchdb|neo4j|bolt)\s*:\/\//i, reason: 'data-store connection URL schemes are not allowed in article content' },
   { pattern: /(?:coaps|coap)\s*:\/\//i, reason: 'CoAP IoT connection URL schemes are not allowed in article content' },
-  { pattern: /(?:ftp|rdp|vnc|spice|teamviewer|anydesk|rustdesk|logmein|parsec|nomachine|ultraviewer|telnet|ssh|sftp|fish|rlogin|rsh|tn3270)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
+  { pattern: /(?:ftp|rdp|vnc|spice|teamviewer|anydesk|rustdesk|logmein|parsec|nomachine|ultraviewer|splashtop|chrome-remote-desktop|googlechromeremotedesktop|telnet|ssh|sftp|fish|rlogin|rsh|tn3270)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:rtsps?|rtspu|mms)\s*:\/\//i, reason: 'media-streaming client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:rtmpte|rtmpts|rtmpt|rtmpe|rtmps|rtmp)\s*:\/\//i, reason: 'media-streaming client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:ms-its\s*:|mk\s*:\s*@)/i, reason: 'compiled-HTML-help (CHM) URL schemes are not allowed in article content' },
@@ -1084,7 +1087,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats)\s*:\/\//i,
   /(?:clickhouse|cassandra|couchbase|couchdb|neo4j|bolt)\s*:\/\//i,
   /(?:coaps|coap)\s*:\/\//i,
-  /(?:ftp|rdp|vnc|spice|teamviewer|anydesk|rustdesk|logmein|parsec|nomachine|ultraviewer|telnet|ssh|sftp|fish|rlogin|rsh|tn3270)\s*:\/\//i,
+  /(?:ftp|rdp|vnc|spice|teamviewer|anydesk|rustdesk|logmein|parsec|nomachine|ultraviewer|splashtop|chrome-remote-desktop|googlechromeremotedesktop|telnet|ssh|sftp|fish|rlogin|rsh|tn3270)\s*:\/\//i,
   /(?:rtsps?|rtspu|mms)\s*:\/\//i,
   /(?:rtmpte|rtmpts|rtmpt|rtmpe|rtmps|rtmp)\s*:\/\//i,
   /(?:ms-its\s*:|mk\s*:\s*@)/i,

@@ -561,6 +561,14 @@ rejects('See [x](ultraviewer://attacker.example/).', 'plain ultraviewer:// remot
 rejects('See [x](logm&#101;in://attacker.example/).', 'entity-obfuscated logmein:// (obfuscated scan path)');
 infoboxRowRejects('parsec://attacker.example/', 'parsec:// rejected in an infobox row value');
 accepts('LogMeIn and Parsec game streaming are described here only as prose.', 'benign LogMeIn/Parsec product names (no // authority)');
+// splashtop:// chrome-remote-desktop:// googlechromeremotedesktop:// are additional
+// consumer remote-desktop handlers in the same class as teamviewer://logmein://.
+rejects('See [x](splashtop://attacker.example/).', 'plain splashtop:// remote-access URL');
+rejects('See [x](chrome-remote-desktop://attacker.example/).', 'plain chrome-remote-desktop:// remote-access URL');
+rejects('See [x](googlechromeremotedesktop://attacker.example/).', 'plain googlechromeremotedesktop:// remote-access URL');
+rejects('See [x](spl&#097;shtop://attacker.example/).', 'entity-obfuscated splashtop:// (obfuscated scan path)');
+infoboxRowRejects('chrome-remote-desktop://attacker.example/', 'chrome-remote-desktop:// rejected in an infobox row value');
+accepts('Splashtop remote access and Chrome Remote Desktop are described here only as prose.', 'benign Splashtop/Chrome Remote Desktop product names (no // authority)');
 rejects('See [x](telnet://internal-host:23).', 'plain telnet:// URL');
 rejects('See [x](vnc://evil.example:5900).', 'plain vnc:// URL');
 rejects('See [x](sftp://user@evil.example/).', 'plain sftp:// URL (SSH file-transfer client launch)');
