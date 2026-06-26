@@ -406,6 +406,15 @@ rejects('See [x](ir&#99;://irc.evil.example/channel).', 'entity-obfuscated irc:/
 infoboxRowRejects('gopher://internal-host:6379/_payload', 'gopher:// rejected in an infobox row value');
 infoboxRowRejects('irc://irc.evil.example/channel', 'irc:// rejected in an infobox row value');
 infoboxRowAccepts('Breaking news about an IRC channel, described as prose', 'benign legacy-net prose allowed in an infobox row value');
+// dict:// is another gopher-class SSRF gadget and finger:// queries a remote finger
+// daemon — the remaining legacy internet protocols. Coverage spans all three scan paths.
+rejects('See [x](dict://internal-host:11211/stats).', 'plain dict:// SSRF URL');
+rejects('See [x](finger://attacker.example/root).', 'plain finger:// URL');
+rejects('See [x](di&#99;t://internal-host:11211/stats).', 'entity-obfuscated dict:// (obfuscated scan path)');
+infoboxRowRejects('dict://internal-host:11211/stats', 'dict:// rejected in an infobox row value');
+infoboxRowRejects('finger://attacker.example/root', 'finger:// rejected in an infobox row value');
+accepts('The dict command and the finger protocol are described here only as prose.', 'benign dict/finger prose (no // authority)');
+infoboxRowAccepts('The dict command and the finger protocol, described as prose', 'benign dict/finger prose allowed in an infobox row value');
 accepts('Breaking news: the IRC channel and a gopher burrow are described here as prose.', 'benign news:/irc/gopher prose (no // authority)');
 // ftp:// ftps:// tftp:// file-transfer schemes open a non-http connection to a remote host
 // (ftp:// is also an SSRF target); //-guarded so prose is unaffected. Coverage spans the
