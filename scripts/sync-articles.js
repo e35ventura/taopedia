@@ -760,6 +760,13 @@ const unsafeContentPatterns = [
   // limited to http(s), so these are never a valid article link. The // authority form is
   // required so prose about "AMQP", "MQTT", or "Kafka" is unaffected.
   { pattern: /\b(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats)\s*:\/\//i, reason: 'message-broker connection URL schemes are not allowed in article content' },
+  // clickhouse:// cassandra:// couchbase:// couchdb:// neo4j:// bolt:// are additional
+  // data-store connection URL schemes (analytics / graph / NoSQL), the sibling of the
+  // database-connection and message-broker schemes above: each addresses an internal data
+  // store at a host:port (an SSRF target), not an http(s) resource. Article links are limited
+  // to http(s), so these are never a valid article link. The // authority form is required so
+  // prose ("a bolt of lightning", "the Cassandra prophecy") is unaffected.
+  { pattern: /\b(?:clickhouse|cassandra|couchbase|couchdb|neo4j|bolt)\s*:\/\//i, reason: 'data-store connection URL schemes are not allowed in article content' },
   // rdp:// vnc:// telnet:// ssh:// sftp:// hand the URL's host to a native remote-session
   // client: a clicked rdp://attacker-host or telnet://internal-host opens an OS
   // client outside the page sandbox with no script — the same native protocol-handler
@@ -967,6 +974,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:redis|rediss|mongodb(?:\+srv)?|mysql|postgresql|postgres)\s*:\/\//i, reason: 'database-connection URL schemes are not allowed in article content' },
   { pattern: /(?:git|svn|cvs)\s*:\/\//i, reason: 'version-control protocol URL schemes are not allowed in article content' },
   { pattern: /(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats)\s*:\/\//i, reason: 'message-broker connection URL schemes are not allowed in article content' },
+  { pattern: /(?:clickhouse|cassandra|couchbase|couchdb|neo4j|bolt)\s*:\/\//i, reason: 'data-store connection URL schemes are not allowed in article content' },
   { pattern: /(?:ftp|rdp|vnc|telnet|ssh|sftp|fish|rlogin|rsh|tn3270)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:rtsps?|rtspu|mms)\s*:\/\//i, reason: 'media-streaming client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:rtmpte|rtmpts|rtmpt|rtmpe|rtmps|rtmp)\s*:\/\//i, reason: 'media-streaming client-launch URL schemes are not allowed in article content' },
@@ -1016,6 +1024,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:redis|rediss|mongodb(?:\+srv)?|mysql|postgresql|postgres)\s*:\/\//i,
   /(?:git|svn|cvs)\s*:\/\//i,
   /(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats)\s*:\/\//i,
+  /(?:clickhouse|cassandra|couchbase|couchdb|neo4j|bolt)\s*:\/\//i,
   /(?:ftp|rdp|vnc|telnet|ssh|sftp|fish|rlogin|rsh|tn3270)\s*:\/\//i,
   /(?:rtsps?|rtspu|mms)\s*:\/\//i,
   /(?:rtmpte|rtmpts|rtmpt|rtmpe|rtmps|rtmp)\s*:\/\//i,
