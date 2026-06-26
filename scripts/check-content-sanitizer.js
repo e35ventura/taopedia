@@ -618,6 +618,15 @@ accepts('The application settings and user preferences are described here only a
 rejects('See [x](onenote:https://evil.example/x.one).', 'plain onenote: scheme');
 rejects('See [x](on&#101;note:https://evil.example/x.one).', 'entity-obfuscated onenote: scheme');
 accepts('OneNote and the notebook app are described here only as prose.', 'benign OneNote app name is not the onenote: scheme');
+// otpauth:// / otpauth-migration:// TOTP key-provisioning URIs inject an attacker 2FA
+// seed into the reader's authenticator; //-guarded. Coverage spans the plain content
+// scan, the entity-decoded obfuscated scan, and the infobox scan.
+rejects('See [x](otpauth://totp/Evil:victim?secret=JBSWY3DPEHPK3PXP&issuer=Evil).', 'plain otpauth:// provisioning URL');
+rejects('See [x](otpauth-migration://offline?data=evil).', 'plain otpauth-migration:// URL');
+rejects('See [x](otpaut&#104;://totp/x?secret=y).', 'entity-obfuscated otpauth:// (obfuscated scan path)');
+infoboxRowRejects('otpauth://totp/Evil:victim?secret=JBSWY3DPEHPK3PXP', 'otpauth:// rejected in an infobox row value');
+infoboxRowAccepts('TOTP and one-time passwords are described as prose', 'benign OTP prose allowed in an infobox row value');
+accepts('TOTP one-time passwords and authenticator apps are described here only as prose.', 'benign OTP prose is not the otpauth: scheme');
 // sip: sips: xmpp: h323: real-time-communication schemes launch a native softphone/chat
 // client at an attacker address (same class as callto:/skype:). The non-space lookahead
 // (shell: precedent) blocks scheme:target URLs but not "SIP: Session Initiation Protocol"
