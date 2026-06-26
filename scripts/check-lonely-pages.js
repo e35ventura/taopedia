@@ -167,6 +167,52 @@ data.pages.forEach((row, i) => {
   }
 });
 
+// ---- 3) HTML page: orphan list must match the JSON report -------------------
+//
+// lonelypages.json is the machine-readable source of truth; the HTML page is its
+// human-readable sibling (same pattern as mostlinkedpages / allpages). Re-derive
+// the expected orphan set from the link graph and assert the rendered list matches
+// it exactly — order, membership, and backlinks links.
+const htmlFile = path.join(wikiDir, 'special', 'lonelypages', 'index.html');
+assert.ok(fs.existsSync(htmlFile), 'dist/wiki/special/lonelypages/index.html not found; run the build first');
+
+const html = fs.readFileSync(htmlFile, 'utf8');
+const decode = (s) =>
+  s
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, '&');
+
+const htmlRows = [...html.matchAll(/<li[^>]*class="mw-lp-row"[^>]*>([\s\S]*?)<\/li>/g)].map(([, block]) => ({
+  titleHref: (block.match(/mw-lp-title[^>]*href="([^"]+)"/) || [])[1],
+  titleText: decode((block.match(/mw-lp-title[^>]*>([^<]*)<\/a>/) || [])[1] || ''),
+  countHref: (block.match(/mw-lp-count[^>]*href="([^"]+)"/) || [])[1],
+}));
+
+assert.equal(
+  htmlRows.length,
+  expected.length,
+  `lonelypages HTML must render ${expected.length} orphan rows (got ${htmlRows.length})`,
+);
+
+const renderedSlugs = htmlRows.map((row, i) => {
+  const m = (row.titleHref || '').match(/^\/wiki\/(.+)\/$/);
+  assert.ok(m, `HTML row ${i} has a malformed article link: ${row.titleHref}`);
+  const slug = m[1];
+  assert.ok(fs.existsSync(path.join(wikiDir, slug, 'index.html')), `HTML row ${i} links to unbuilt /wiki/${slug}/`);
+  assert.equal(row.countHref, `/wiki/${slug}/backlinks/`, `HTML row ${i} count must link to /wiki/${slug}/backlinks/`);
+  assert.equal(row.titleText, realTitleBySlug[slug], `HTML row ${i} title must match the published title for ${slug}`);
+  return slug;
+});
+
+assert.deepEqual(
+  renderedSlugs,
+  expected.map((entry) => entry.slug),
+  'lonelypages HTML order + membership must match the link-graph orphan set exactly',
+);
+
 console.log(
-  `Lonely pages check passed (${data.pages.length} orphaned pages from the built endpoint match the link graph; lonely + most-linked partition all ${Object.keys(realTitleBySlug).length} published articles)`,
+  `Lonely pages check passed (${data.pages.length} orphaned pages from the built endpoint match the link graph; lonely + most-linked partition all ${Object.keys(realTitleBySlug).length} published articles; HTML page parity verified)`,
 );

@@ -1,0 +1,78 @@
+---
+import WikiLayout from '../../../layouts/WikiLayout.astro';
+import { publishedTitleBySlug } from '../../../lib/article-metadata';
+import { buildLonelyPages } from '../../../../scripts/lonely-pages.js';
+
+// Lonely pages: published articles that no other published article links to (zero
+// inbound links) — the exact complement of Special:MostLinkedPages and the same
+// orphan set lonelypages.json exposes. Loaded via glob so a dev run before the
+// link graph is built degrades to an empty list.
+const titleBySlug = publishedTitleBySlug();
+
+const backlinksModules = import.meta.glob('../../../../public/data/backlinks.json', { eager: true }) as Record<
+  string,
+  { default?: Record<string, Array<{ from: string }>> }
+>;
+const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
+
+// Rank orphans via the SAME shared builder the machine-readable sibling
+// (lonelypages.json) and its regression check (check-lonely-pages.js) use, so
+// all surfaces derive one orphan set from one source. buildLonelyPages keeps
+// count === 0 (published-only, self-excluded inbound join) and sorts by title
+// then plain slug tiebreak — matching MostLinkedPages / WantedPages ordering.
+const lonely = buildLonelyPages({ titleBySlug, backlinks: backlinksData });
+---
+
+<WikiLayout
+  title="Lonely pages"
+  description="Published Taopedia articles with no inbound links from other articles — orphaned pages editors should wire into the link graph."
+>
+  <div class="mw-body-content">
+    <h1 class="firstHeading">Lonely pages</h1>
+
+    <div class="mw-parser-output">
+      <p>
+        Published articles that no other published article links to. These orphaned pages
+        may need inbound links from related articles. The machine-readable report lives at
+        <a href="/wiki/special/lonelypages.json">lonelypages.json</a>.
+      </p>
+
+      {lonely.length === 0 ? (
+        <p>No lonely pages — every published article has at least one inbound link.</p>
+      ) : (
+        <ol class="mw-lonely">
+          {lonely.map((entry) => (
+            <li class="mw-lp-row">
+              <a class="mw-lp-title" href={`/wiki/${entry.slug}/`}>{entry.title}</a>
+              <a class="mw-lp-count" href={`/wiki/${entry.slug}/backlinks/`}>0 links</a>
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
+  </div>
+</WikiLayout>
+
+<style>
+  .mw-lonely {
+    margin: 16px 0;
+    padding-left: 32px;
+  }
+  .mw-lp-row {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border-color-subtle);
+    font-size: 14px;
+  }
+  .mw-lp-title {
+    font-weight: 600;
+  }
+  .mw-lp-count {
+    margin-left: auto;
+    font-size: 13px;
+    color: var(--color-subtle);
+    white-space: nowrap;
+  }
+</style>

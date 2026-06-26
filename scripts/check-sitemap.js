@@ -52,7 +52,7 @@ assert.ok(articleUrls > 0, 'no article URLs found in the sitemap');
 
 // The special content overview pages are canonical, indexable routes and must
 // stay in the sitemap so discovery does not regress when a new one is added.
-for (const special of ['allpages', 'categories', 'mostlinkedpages', 'recentchanges', 'statistics', 'subnets']) {
+for (const special of ['allpages', 'categories', 'lonelypages', 'mostlinkedpages', 'recentchanges', 'statistics', 'subnets']) {
   assert.ok(
     xml.includes(`/wiki/special/${special}/</loc>`),
     `sitemap must include the /wiki/special/${special}/ page`,
