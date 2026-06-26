@@ -7,7 +7,7 @@
 // the generated revision history) so this function never re-derives origins or
 // trailing slashes; it only formats and escapes the channel/item XML.
 
-import { compareTitles } from '../src/lib/title-sort.js';
+import { compareFeedItemsByDateAndKey } from '../src/lib/feed-item-sort.js';
 
 const SITE_NAME = 'Taopedia';
 const FEED_DESCRIPTION =
@@ -88,21 +88,11 @@ export function buildRssFeed({
   const channelHref = channelLink ? String(channelLink) : root;
 
   // Newest-updated first, then a deterministic tiebreak for items that share an
-  // identical revision timestamp. The caller may supply an explicit sortKey; the
-  // recent-changes feeds set it to the article slug so equal-timestamp items
-  // order identically to Special:RecentChanges (collectRecentChanges tiebreaks
-  // on slug). Comparing the full canonical URL instead would diverge when one
-  // slug is a prefix of another (e.g. "alpha" vs "alpha_beta"), because the
-  // "/" boundary char after the shared prefix flips the collation versus the
-  // "_" in the longer slug. Fall back to the URL when no sortKey is given.
-  const sortedItems = [...items].sort((a, b) => {
-    const aDate = itemDate(a);
-    const bDate = itemDate(b);
-    if (aDate !== bDate) return aDate < bDate ? 1 : -1;
-    const aKey = String(a.sortKey ?? a.url ?? '');
-    const bKey = String(b.sortKey ?? b.url ?? '');
-    return compareTitles(aKey, bKey);
-  });
+  // identical revision timestamp. Recent-changes feeds pass sortKey = article slug;
+  // site-wide feeds omit it, so compareFeedItemsByDateAndKey extracts the wiki
+  // slug from the canonical /wiki/<slug>/ URL instead of comparing the full URL
+  // (prefix slugs like alpha vs alpha_beta invert under URL collation).
+  const sortedItems = [...items].sort((a, b) => compareFeedItemsByDateAndKey(a, b, itemDate));
 
   const itemXml = sortedItems
     .map((item) => {

@@ -199,6 +199,18 @@ assert.equal('tags' in undated, false, 'omits blank tags');
   );
 }
 
+{
+  const sameDate = '2026-06-01T06:01:22Z';
+  const alpha = { title: 'Shared', url: 'https://taopedia.org/wiki/alpha/', dateModified: sameDate };
+  const alphaBeta = { title: 'Shared', url: 'https://taopedia.org/wiki/alpha_beta/', dateModified: sameDate };
+  const urls = JSON.parse(buildJsonFeed({ siteUrl, items: [alphaBeta, alpha] })).items.map((item) => item.url);
+  assert.deepEqual(
+    urls,
+    ['https://taopedia.org/wiki/alpha/', 'https://taopedia.org/wiki/alpha_beta/'],
+    'prefix slugs must tiebreak on wiki slug (alpha before alpha_beta), not full URL order',
+  );
+}
+
 // Per-category endpoints pass dateModified as '' (empty string) when an article
 // has no recorded history. The shared itemDate helper treats empty/whitespace
 // values as missing so the published-date fallback still fires — otherwise the

@@ -200,6 +200,19 @@ assert.ok(!/<category term="\s*" \/>/.test(feed), 'never emits an empty category
   );
 }
 
+{
+  const sameDate = '2026-06-01T06:01:22Z';
+  const alpha = { title: 'Shared', url: 'https://taopedia.org/wiki/alpha/', dateModified: sameDate };
+  const alphaBeta = { title: 'Shared', url: 'https://taopedia.org/wiki/alpha_beta/', dateModified: sameDate };
+  const feed = buildAtomFeed({ siteUrl, items: [alphaBeta, alpha] });
+  const posAlpha = feed.indexOf('/wiki/alpha/');
+  const posAlphaBeta = feed.indexOf('/wiki/alpha_beta/');
+  assert.ok(
+    posAlpha >= 0 && posAlphaBeta >= 0 && posAlpha < posAlphaBeta,
+    'prefix slugs must tiebreak on wiki slug (alpha before alpha_beta), not full URL order',
+  );
+}
+
 // Per-category endpoints pass dateModified as '' (empty string) when an article
 // has no recorded history. The shared itemDate helper treats empty/whitespace
 // values as missing so the published-date fallback still fires — the same way

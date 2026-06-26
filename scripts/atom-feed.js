@@ -2,7 +2,7 @@
 // function beside rss-feed.js and json-feed.js so the Astro endpoint and the
 // regression check share one source of truth without rendering the site.
 
-import { compareTitles } from '../src/lib/title-sort.js';
+import { compareFeedItemsByDateAndKey } from '../src/lib/feed-item-sort.js';
 
 const SITE_NAME = 'Taopedia';
 const FEED_DESCRIPTION =
@@ -83,20 +83,9 @@ export function buildAtomFeed({
   const feedUrl = `${root.replace(/\/$/, '')}${feedPath}`;
   const pageUrl = homePageUrl ? String(homePageUrl) : root;
 
-  // Same ordering contract as the RSS and JSON feeds: newest modified first,
-  // then a tiebreak on the caller-supplied sortKey (the recent-changes feeds set
-  // it to the article slug so equal-timestamp items match Special:RecentChanges,
-  // which tiebreaks on slug), falling back to the canonical URL. Comparing the
-  // full URL diverges when one slug is a prefix of another (e.g. "alpha" vs
-  // "alpha_beta"): the "/" after the shared prefix flips the collation.
-  const sortedItems = [...items].sort((a, b) => {
-    const aDate = itemDate(a);
-    const bDate = itemDate(b);
-    if (aDate !== bDate) return aDate < bDate ? 1 : -1;
-    const aKey = String(a.sortKey ?? a.url ?? '');
-    const bKey = String(b.sortKey ?? b.url ?? '');
-    return compareTitles(aKey, bKey);
-  });
+  // Same ordering contract as RSS and JSON Feed: newest modified first, then
+  // compareFeedItemsByDateAndKey (explicit sortKey, else wiki slug from URL).
+  const sortedItems = [...items].sort((a, b) => compareFeedItemsByDateAndKey(a, b, itemDate));
 
   const newestItemDate = itemDate(sortedItems.find((item) => itemDate(item)));
   const feedUpdated = toRfc3339(updated ?? newestItemDate) || '1970-01-01T00:00:00.000Z';
