@@ -126,6 +126,8 @@ const sectionCountOf = (slug) => {
   assert.equal(doc.citeJsonUrl, `${ORIGIN}/wiki/source/cite.json`, 'builder: citeJsonUrl cross-link');
   assert.equal(doc.bibtexUrl, `${ORIGIN}/wiki/source/cite.bib`, 'builder: bibtexUrl cross-link');
   assert.equal(doc.referencesUrl, `${ORIGIN}/wiki/source/references.json`, 'builder: referencesUrl cross-link');
+  assert.equal(doc.referencesJsonUrl, `${ORIGIN}/wiki/source/references.json`, 'builder: referencesJsonUrl cross-link (matches <name>JsonUrl convention)');
+  assert.equal(doc.referencesJsonUrl, doc.referencesUrl, 'builder: referencesJsonUrl must equal the back-compat referencesUrl');
   assert.equal(doc.imageUrl, `${ORIGIN}/og/source.png`, 'builder: imageUrl cross-link');
   assert.equal(doc.count, 3, 'builder: count field');
   assert.deepEqual(
@@ -499,6 +501,11 @@ for (const slug of articleSlugs) {
   assert.equal(doc.citeJsonUrl, `${ORIGIN}/wiki/${slug}/cite.json`, `${slug}: related.json citeJsonUrl must be the canonical article cite.json URL`);
   assert.equal(doc.bibtexUrl, `${ORIGIN}/wiki/${slug}/cite.bib`, `${slug}: related.json bibtexUrl must be the canonical article cite.bib URL`);
   assert.equal(doc.referencesUrl, `${ORIGIN}/wiki/${slug}/references.json`, `${slug}: related.json referencesUrl must be the canonical article references.json URL`);
+  // referencesJsonUrl is the same references.json cross-link under the consistent
+  // <name>JsonUrl key every sibling envelope exposes at top level; it must equal
+  // referencesUrl. related.json's top level was the lone envelope missing it.
+  assert.equal(doc.referencesJsonUrl, `${ORIGIN}/wiki/${slug}/references.json`, `${slug}: related.json must expose its canonical referencesJsonUrl cross-link`);
+  assert.equal(doc.referencesJsonUrl, doc.referencesUrl, `${slug}: referencesJsonUrl must equal the back-compat referencesUrl`);
   // imageUrl is the article's own OG share-card (/og/<slug>.png), the same
   // companion the info/history/toc/references/backlinks envelopes expose.
   assert.equal(doc.imageUrl, `${ORIGIN}/og/${slug}.png`, `${slug}: related.json imageUrl must be the article's OG share-card URL`);
