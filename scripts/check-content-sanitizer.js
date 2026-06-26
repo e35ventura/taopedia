@@ -483,6 +483,9 @@ rejects('See [x](mongodb+srv://cluster.internal/db).', 'plain mongodb+srv:// con
 rejects('See [x](mysql://root@internal-host:3306/db).', 'plain mysql:// connection URL');
 rejects('See [x](postgres://user@internal-host:5432/db).', 'plain postgres:// connection URL');
 rejects('See [x](postgresql://user@internal-host:5432/db).', 'plain postgresql:// connection URL');
+rejects('See [x](memcached://internal-host:11211/).', 'plain memcached:// connection URL');
+rejects('See [x](etcd://internal-host:2379/).', 'plain etcd:// connection URL');
+rejects('See [x](consul://internal-host:8500/).', 'plain consul:// connection URL');
 // git://svn://cvs:// version-control protocol-handler schemes launch a native VC client to
 // connect to the attacker's host. Covered across plain, entity-decoded, and infobox scans.
 rejects('See [x](git://attacker.example/evil.git).', 'plain git:// clone URL');
@@ -495,10 +498,12 @@ infoboxRowRejects('cvs://attacker.example/repo', 'cvs:// rejected in an infobox 
 accepts('The git command, an svn repo, and cvs history are described here only as prose.', 'benign git/svn/cvs prose words (no // authority)');
 infoboxRowAccepts('The git command and an svn repo are described as prose', 'benign git/svn prose allowed in an infobox row value');
 rejects('See [x](red&#105;s://internal-host:6379/0).', 'entity-obfuscated redis:// (obfuscated scan path)');
+rejects('See [x](memc&#097;ched://internal-host:11211/).', 'entity-obfuscated memcached:// (obfuscated scan path)');
 infoboxRowRejects('redis://internal-host:6379/0', 'redis:// rejected in an infobox row value');
+infoboxRowRejects('etcd://internal-host:2379/', 'etcd:// rejected in an infobox row value');
 infoboxRowRejects('postgres://user@internal-host:5432/db', 'postgres:// rejected in an infobox row value');
 infoboxRowAccepts('Redis and PostgreSQL are described as prose', 'benign DB-name prose allowed in an infobox row value');
-accepts('Redis, MongoDB, MySQL, and PostgreSQL are described here only as prose.', 'benign database-name prose (no // authority)');
+accepts('Redis, MongoDB, MySQL, PostgreSQL, Memcached, etcd, and Consul are described here only as prose.', 'benign database/service-name prose (no // authority)');
 // amqp:// mqtt:// stomp:// kafka:// nats:// message-broker connection schemes address an
 // internal broker (SSRF targets), never an http(s) article link; //-guarded. Coverage spans
 // the plain content scan, the entity-decoded scan, and the infobox scan.
