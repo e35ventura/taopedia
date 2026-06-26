@@ -609,6 +609,14 @@ const unsafeContentPatterns = [
   // Article links are limited to http(s). The // authority form is required so prose is
   // never affected.
   { pattern: /\b(?:gopher|nntps|nntp|ircs|irc|dict|finger)\s*:\/\//i, reason: 'legacy internet-protocol URL schemes are not allowed in article content' },
+  // gemini:// is the modern "small web" alt-internet protocol — the spiritual successor to
+  // the blocked gopher://. A clicked gemini://attacker.example/ is handed to a registered
+  // native Gemini client (not the browser), pointing it at an attacker-chosen host:port over
+  // a non-http connection — the same out-of-sandbox, non-http client-launch / SSRF-adjacent
+  // surface as gopher://. Article links are limited to http(s); Gemini URLs always carry the
+  // // authority, so prose about "Project Gemini" or "the Gemini protocol" (the scheme name
+  // without //) is never affected.
+  { pattern: /\bgemini\s*:\/\//i, reason: 'gemini: alt-internet protocol URLs are not allowed in article content' },
   // ftp:// ftps:// tftp:// are file-transfer URL schemes that open a non-http connection to
   // a remote host to upload or download a file — not an http(s) resource. Article links are
   // limited to http(s), so these are never a valid article link; ftp:// is also a classic
@@ -928,6 +936,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /vbscript\s*:/i, reason: 'vbscript: URLs are not allowed in article content' },
   { pattern: /(?:blob|filesystem)\s*:/i, reason: 'object-URL schemes are not allowed in article content' },
   { pattern: /(?:gopher|nntps|nntp|ircs|irc|dict|finger)\s*:\/\//i, reason: 'legacy internet-protocol URL schemes are not allowed in article content' },
+  { pattern: /gemini\s*:\/\//i, reason: 'gemini: alt-internet protocol URLs are not allowed in article content' },
   { pattern: /(?:ftps|ftp|tftp)\s*:\/\//i, reason: 'file-transfer URL schemes are not allowed in article content' },
   { pattern: /(?:search-ms|ms-officecmd)\s*:/i, reason: 'Windows protocol-handler URLs are not allowed in article content' },
   { pattern: /ms-(?:msdt|appinstaller)\s*:/i, reason: 'Windows protocol-handler URLs are not allowed in article content' },
@@ -975,6 +984,7 @@ const infoboxRowValueSchemePatterns = [
   /vbscript\s*:/i,
   /(?:blob|filesystem)\s*:/i,
   /(?:gopher|nntps|nntp|ircs|irc|dict|finger)\s*:\/\//i,
+  /gemini\s*:\/\//i,
   /(?:ftps|ftp|tftp)\s*:\/\//i,
   /(?:search-ms|ms-officecmd)\s*:/i,
   /ms-(?:msdt|appinstaller)\s*:/i,

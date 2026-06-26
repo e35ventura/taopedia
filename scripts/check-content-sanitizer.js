@@ -422,6 +422,14 @@ rejects('See [x](nn&#116;ps://news.evil.example/group).', 'entity-obfuscated nnt
 infoboxRowRejects('nntps://news.evil.example/group', 'nntps:// rejected in an infobox row value');
 accepts('The nntps variant of NNTP is described here only as prose.', 'benign nntps prose word (no // authority)');
 accepts('Breaking news: the IRC channel and a gopher burrow are described here as prose.', 'benign news:/irc/gopher prose (no // authority)');
+// gemini:// is the modern "small web" alt-internet protocol, the successor to gopher:// —
+// a non-http client-launch / SSRF-adjacent surface; //-guarded so prose is safe. Coverage
+// spans the plain, entity-decoded, and infobox-row scan paths.
+rejects('See [x](gemini://attacker.example/page).', 'plain gemini:// URL');
+rejects('See [x](gem&#105;ni://attacker.example/page).', 'entity-obfuscated gemini:// (obfuscated scan path)');
+infoboxRowRejects('gemini://attacker.example/page', 'gemini:// rejected in an infobox row value');
+accepts('Project Gemini and the Gemini protocol are described here only as prose.', 'benign gemini prose word (no // authority)');
+infoboxRowAccepts('Project Gemini and the Gemini protocol, described as prose', 'benign gemini prose allowed in an infobox row value');
 // ftp:// ftps:// tftp:// file-transfer schemes open a non-http connection to a remote host
 // (ftp:// is also an SSRF target); //-guarded so prose is unaffected. Coverage spans the
 // plain content scan, the entity-decoded obfuscated scan, and the infobox scan.
