@@ -1,6 +1,19 @@
 // Pure builder: no file I/O, no side effects. Converts the pre-joined and
 // pre-sorted backlinks list into the canonical JSON shape for
 // /wiki/<slug>/backlinks.json, mirroring what backlinks.astro renders.
+
+import { compareTitles } from '../src/lib/title-sort.js';
+
+// Title sort, then raw slug code-unit order when titles tie — the same rule
+// references.json (#1487) and most-linked (#1546) use, NOT compareTitles on slug.
+export function sortInboundBacklinkEntries(entries) {
+  return [...entries].sort(
+    (a, b) =>
+      compareTitles(a.title, b.title) ||
+      (a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0),
+  );
+}
+
 export const buildArticleBacklinks = ({ slug, title, origin, summary = '', categories = [], incomingLinks = 0, referencesCount = 0, sectionCount = 0, wordCount = 0, revisionCount = 0, firstEdited = null, lastEdited = null, backlinks = [] }) => ({
   slug,
   title,

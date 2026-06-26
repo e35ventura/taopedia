@@ -7,8 +7,7 @@ import {
   publishedSummaryBySlug,
   publishedTitleBySlug,
 } from '../../../lib/article-metadata';
-import { compareTitles } from '../../../lib/title-sort.js';
-import { buildArticleBacklinks } from '../../../../scripts/article-backlinks.js';
+import { buildArticleBacklinks, sortInboundBacklinkEntries } from '../../../../scripts/article-backlinks.js';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
 import { getArticleReferences } from '../../../lib/article-references.js';
 import { getArticleToc } from '../../../lib/article-toc.js';
@@ -68,7 +67,8 @@ export async function getStaticPaths() {
     if (!page) return [];
 
     const history = historyBySlug[slug] ?? [];
-    const backlinks = (backlinksData[slug] ?? [])
+    const backlinks = sortInboundBacklinkEntries(
+      (backlinksData[slug] ?? [])
       .filter((entry) => titleBySlug[entry.from])
       .map((entry) => {
         const entryHistory = historyBySlug[entry.from] ?? [];
@@ -85,8 +85,8 @@ export async function getStaticPaths() {
           firstEdited: entryHistory[entryHistory.length - 1]?.date ?? null,
           lastEdited: entryHistory[0]?.date ?? null,
         };
-      })
-      .sort((a, b) => compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug));
+      }),
+    );
 
     return {
       params: { slug },
@@ -109,7 +109,7 @@ export async function getStaticPaths() {
 }
 
 // Machine-readable companion to /wiki/<slug>/backlinks/. Uses the same
-// published-only join and compareTitles sort as backlinks.astro so the two
+// published-only join and sortInboundBacklinkEntries sort as backlinks.astro so the two
 // surfaces never drift.
 export const GET: APIRoute = async ({ props, site }) => {
   const {
