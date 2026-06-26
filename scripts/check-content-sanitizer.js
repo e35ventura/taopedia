@@ -533,6 +533,12 @@ accepts('A bolt of lightning, the Cassandra prophecy, and a Neo4j graph are desc
 // are unaffected.
 rejects('See [x](rdp://attacker-host/).', 'plain rdp:// remote-desktop URL');
 rejects('See [x](ssh://user@evil.example).', 'plain ssh:// URL');
+// spice:// is the SPICE remote-desktop protocol — the same client launch as rdp://vnc://.
+// Covered across the plain, entity-decoded, and infobox scan paths.
+rejects('See [x](spice://attacker-host:5900/).', 'plain spice:// remote-desktop URL');
+rejects('See [x](sp&#105;ce://attacker-host/).', 'entity-obfuscated spice:// (obfuscated scan path)');
+infoboxRowRejects('spice://attacker-host:5900/', 'spice:// rejected in an infobox row value');
+accepts('The spice trade and spiced food are described here only as prose.', 'benign "spice" prose word (no // authority)');
 rejects('See [x](telnet://internal-host:23).', 'plain telnet:// URL');
 rejects('See [x](vnc://evil.example:5900).', 'plain vnc:// URL');
 rejects('See [x](sftp://user@evil.example/).', 'plain sftp:// URL (SSH file-transfer client launch)');
