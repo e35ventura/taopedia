@@ -483,6 +483,15 @@ rejects('See [x](mongodb+srv://cluster.internal/db).', 'plain mongodb+srv:// con
 rejects('See [x](mysql://root@internal-host:3306/db).', 'plain mysql:// connection URL');
 rejects('See [x](postgres://user@internal-host:5432/db).', 'plain postgres:// connection URL');
 rejects('See [x](postgresql://user@internal-host:5432/db).', 'plain postgresql:// connection URL');
+rejects('See [x](snowflake://account.internal.snowflakecomputing.com).', 'plain snowflake:// connection URL');
+rejects('See [x](sqlserver://internal-host:1433/db).', 'plain sqlserver:// connection URL');
+rejects('See [x](mssql://internal-host:1433/db).', 'plain mssql:// connection URL');
+rejects('See [x](timescaledb://internal-host:5432/db).', 'plain timescaledb:// connection URL');
+rejects('See [x](snowfla&#107;e://account.internal.snowflakecomputing.com).', 'entity-obfuscated snowflake:// (obfuscated scan path)');
+infoboxRowRejects('snowflake://account.internal.snowflakecomputing.com', 'snowflake:// rejected in an infobox row value');
+infoboxRowRejects('mssql://internal-host:1433/db', 'mssql:// rejected in an infobox row value');
+infoboxRowAccepts('Snowflake and SQL Server are described as prose', 'benign database-name prose allowed in an infobox row value');
+accepts('Snowflake warehousing and SQL Server databases are described here only as prose.', 'benign database-name prose (no // authority)');
 // git://svn://cvs:// version-control protocol-handler schemes launch a native VC client to
 // connect to the attacker's host. Covered across plain, entity-decoded, and infobox scans.
 rejects('See [x](git://attacker.example/evil.git).', 'plain git:// clone URL');
@@ -523,6 +532,13 @@ rejects('See [x](couchbase://internal-host/bucket).', 'plain couchbase:// connec
 rejects('See [x](couchdb://internal-host:5984/db).', 'plain couchdb:// connection URL');
 rejects('See [x](neo4j://internal-host:7687).', 'plain neo4j:// connection URL');
 rejects('See [x](bolt://internal-host:7687).', 'plain bolt:// (Neo4j) connection URL');
+rejects('See [x](scylla://internal-host:9042/ks).', 'plain scylla:// connection URL');
+rejects('See [x](arangodb://internal-host:8529/db).', 'plain arangodb:// connection URL');
+rejects('See [x](arangod&#98;://internal-host:8529/db).', 'entity-obfuscated arangodb:// (obfuscated scan path)');
+infoboxRowRejects('scylla://internal-host:9042/ks', 'scylla:// rejected in an infobox row value');
+infoboxRowRejects('arangodb://internal-host:8529/db', 'arangodb:// rejected in an infobox row value');
+infoboxRowAccepts('Scylla and ArangoDB are described as prose', 'benign data-store prose allowed in an infobox row value');
+accepts('ScyllaDB clusters and ArangoDB graphs are described here only as prose.', 'benign scylla/arangodb prose (no // authority)');
 rejects('See [x](cl&#105;ckhouse://internal-host:9000/db).', 'entity-obfuscated clickhouse:// (obfuscated scan path)');
 infoboxRowRejects('neo4j://internal-host:7687', 'neo4j:// rejected in an infobox row value');
 infoboxRowRejects('cassandra://internal-host:9042/ks', 'cassandra:// rejected in an infobox row value');
