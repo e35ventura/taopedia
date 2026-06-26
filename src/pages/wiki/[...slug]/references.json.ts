@@ -1,10 +1,16 @@
 import type { APIRoute } from 'astro';
 import { getCollection, render } from 'astro:content';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
-import { publishedTitleBySlug, publishedSummaryBySlug, publishedCategoriesBySlug } from '../../../lib/site-feed-context';
+import {
+  pageFromSlug,
+  publishedCategoriesBySlug,
+  publishedSummaryBySlug,
+  publishedTitleBySlug,
+} from '../../../lib/article-metadata';
 import { buildArticleReferences, getArticleReferences } from '../../../lib/article-references.js';
 import { getArticleToc } from '../../../lib/article-toc.js';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
+import slugMap from '../../../../public/data/slugmap.json';
 
 const linkgraphModules = import.meta.glob('../../../../public/data/linkgraph.json', { eager: true }) as Record<
   string,
@@ -55,15 +61,17 @@ export async function getStaticPaths() {
   const inboundBySlug: Record<string, number> = {};
   const referencesBySlug: Record<string, ReturnType<typeof getArticleReferences>> = {};
   const referencesCountBySlug: Record<string, number> = {};
-  for (const page of pages) {
-    const slug = getPageSlug(page);
+  for (const slug of Object.keys(slugMap)) {
+    if (!pageFromSlug(slug, slugMap)) continue;
     inboundBySlug[slug] = publishedInboundLinkCount(backlinksData, slug, titleBySlug);
     referencesBySlug[slug] = getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug });
     referencesCountBySlug[slug] = referencesBySlug[slug].length;
   }
 
-  return Promise.all(pages.map(async (page) => {
-    const slug = getPageSlug(page);
+  return Object.keys(slugMap).flatMap((slug) => {
+    const page = pageFromSlug(slug, slugMap);
+    if (!page) return [];
+
     const references = (referencesBySlug[slug] ?? []).map((ref) => {
       const history = historyBySlug[ref.slug] ?? [];
       return {
@@ -79,32 +87,24 @@ export async function getStaticPaths() {
         lastEdited: history[0]?.date ?? null,
       };
     });
-    // History is newest-first, so [0] is the latest revision and the last entry
-    // is the original publication — the same firstEdited/lastEdited pair the
-    // info.json and history.json envelopes expose.
     const history = historyBySlug[slug] ?? [];
     return {
       params: { slug },
       props: {
         slug,
-        title: page.data.title,
-        summary: page.data.summary ?? '',
-        categories: page.data.categories ?? [],
+        title: titleBySlug[slug] ?? page.data.title,
+        summary: summaryBySlug[slug] ?? '',
+        categories: categoriesBySlug[slug] ?? [],
         incomingLinks: inboundBySlug[slug] ?? 0,
         revisionCount: history.length,
         firstEdited: history[history.length - 1]?.date ?? null,
         lastEdited: history[0]?.date ?? null,
         sectionCount: sectionCountBySlug[slug] ?? 0,
-        // The article body's word count — the same figure info.json / history.json
-        // expose and the article-page footer (mw-article-meta data-word-count)
-        // renders. Read from the wordCountBySlug map already built above (it
-        // covers every page, including this one) instead of recomputing the
-        // split/filter pass a second time for the same page.
         wordCount: wordCountBySlug[slug] ?? 0,
         references,
       },
     };
-  }));
+  });
 }
 
 // Machine-readable per-article outbound-reference index. Exposes the published
