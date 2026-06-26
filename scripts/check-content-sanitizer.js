@@ -514,6 +514,20 @@ infoboxRowRejects('amqp://internal-host:5672/vhost', 'amqp:// rejected in an inf
 infoboxRowRejects('mqtt://internal-host:1883/topic', 'mqtt:// rejected in an infobox row value');
 infoboxRowAccepts('AMQP and MQTT messaging are described as prose', 'benign broker-name prose allowed in an infobox row value');
 accepts('AMQP, MQTT, Kafka, and NATS messaging are described here only as prose.', 'benign broker-name prose (no // authority)');
+// clickhouse:// cassandra:// couchbase:// couchdb:// neo4j:// bolt:// data-store connection
+// schemes address an internal data store (SSRF targets), never an http(s) article link;
+// //-guarded. Plain reject for EVERY variant, plus entity-decoded and infobox coverage.
+rejects('See [x](clickhouse://internal-host:9000/db).', 'plain clickhouse:// connection URL');
+rejects('See [x](cassandra://internal-host:9042/ks).', 'plain cassandra:// connection URL');
+rejects('See [x](couchbase://internal-host/bucket).', 'plain couchbase:// connection URL');
+rejects('See [x](couchdb://internal-host:5984/db).', 'plain couchdb:// connection URL');
+rejects('See [x](neo4j://internal-host:7687).', 'plain neo4j:// connection URL');
+rejects('See [x](bolt://internal-host:7687).', 'plain bolt:// (Neo4j) connection URL');
+rejects('See [x](cl&#105;ckhouse://internal-host:9000/db).', 'entity-obfuscated clickhouse:// (obfuscated scan path)');
+infoboxRowRejects('neo4j://internal-host:7687', 'neo4j:// rejected in an infobox row value');
+infoboxRowRejects('cassandra://internal-host:9042/ks', 'cassandra:// rejected in an infobox row value');
+infoboxRowAccepts('Cassandra and Neo4j are described as prose', 'benign data-store prose allowed in an infobox row value');
+accepts('A bolt of lightning, the Cassandra prophecy, and a Neo4j graph are described here only as prose.', 'benign bolt/cassandra/neo4j prose (no // authority)');
 // rdp:// vnc:// telnet:// ssh:// launch a native remote-session client at the host;
 // the // authority form is required so glossary definitions ("SSH: Secure Shell")
 // are unaffected.
