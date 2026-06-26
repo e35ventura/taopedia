@@ -447,6 +447,12 @@ rejects('See [x](mongodb+srv://cluster.internal/db).', 'plain mongodb+srv:// con
 rejects('See [x](mysql://root@internal-host:3306/db).', 'plain mysql:// connection URL');
 rejects('See [x](postgres://user@internal-host:5432/db).', 'plain postgres:// connection URL');
 rejects('See [x](postgresql://user@internal-host:5432/db).', 'plain postgresql:// connection URL');
+// git://svn://cvs:// version-control schemes launch a VC client to clone/check out from
+// the attacker's server (malicious repo hooks execute on checkout). // keeps prose.
+rejects('See [x](git://attacker.example/evil.git).', 'plain git:// clone URL');
+rejects('See [x](svn://attacker.example/repo).', 'plain svn:// checkout URL');
+rejects('See [x](cvs://attacker.example/repo).', 'plain cvs:// checkout URL');
+accepts('The git command, an svn repo, and cvs history are described here only as prose.', 'benign git/svn/cvs prose words (no // authority)');
 rejects('See [x](red&#105;s://internal-host:6379/0).', 'entity-obfuscated redis:// (obfuscated scan path)');
 infoboxRowRejects('redis://internal-host:6379/0', 'redis:// rejected in an infobox row value');
 infoboxRowRejects('postgres://user@internal-host:5432/db', 'postgres:// rejected in an infobox row value');
