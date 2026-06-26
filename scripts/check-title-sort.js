@@ -77,14 +77,13 @@ assert.deepEqual(
 // lexicographic ordering.
 const projectRoot = path.resolve(new URL('..', import.meta.url).pathname);
 const listPages = [
-  'src/pages/index.astro',
-  'src/pages/wiki/special/allpages.astro',
-  'src/pages/wiki/category/[category].astro',
+  ['src/pages/index.astro', 'sortPagesByTitle('],
+  ['src/pages/wiki/special/allpages.astro', 'sortPagesByTitle('],
 ];
-for (const listPage of listPages) {
+for (const [listPage, marker] of listPages) {
   const source = fs.readFileSync(path.join(projectRoot, listPage), 'utf8');
   assert.ok(
-    source.includes('sortPagesByTitle('),
+    source.includes(marker),
     `${listPage} must sort article lists with sortPagesByTitle`,
   );
   assert.ok(
@@ -93,19 +92,38 @@ for (const listPage of listPages) {
   );
 }
 
-// The metadata search fallback renders results in search-data order, so the
-// endpoint must order entries through the same comparator.
-const searchData = fs.readFileSync(
-  path.join(projectRoot, 'src/pages/search-data.json.ts'),
+const categoryHubSource = fs.readFileSync(
+  path.join(projectRoot, 'src/pages/wiki/category/[category].astro'),
   'utf8',
 );
 assert.ok(
-  searchData.includes('compareTitles('),
-  'search-data.json.ts must order entries with compareTitles',
+  categoryHubSource.includes('getCategoryArticles('),
+  'category hub must sort members through getCategoryArticles',
 );
 assert.ok(
-  !searchData.includes('.sort((a, b) => a.title.localeCompare(b.title))'),
-  'search-data.json.ts must not fall back to lexicographic title sorting',
+  categoryHubSource.includes('.sort(compareTitles)'),
+  'category hub getStaticPaths must sort topic names with compareTitles, not plain sort()',
+);
+
+assert.deepEqual(
+  ['Subnet 10', 'Subnet 9', 'Consensus'].sort(compareTitles),
+  ['Consensus', 'Subnet 9', 'Subnet 10'],
+  'category topic names must sort with numeric collation',
+);
+
+// The metadata search fallback renders results in search-data order, so the
+// endpoint must order entries through sortSearchEntries in search-data.js.
+const searchDataLib = fs.readFileSync(
+  path.join(projectRoot, 'src/lib/search-data.js'),
+  'utf8',
+);
+assert.ok(
+  searchDataLib.includes('sortSearchEntries'),
+  'search-data.js must export sortSearchEntries for search-data.json.ts',
+);
+assert.ok(
+  searchDataLib.includes('compareTitles('),
+  'search-data.js must order search entries with compareTitles',
 );
 
 // Special:MostLinkedPages sorts by count then by title tiebreak. The title
@@ -140,17 +158,21 @@ assert.ok(
 // can be numeric-prefixed (e.g. "Subnet 9" vs "Subnet 10"), so the sort must
 // use compareTitles (numeric collation) rather than localeCompare, which would
 // sort "Subnet 10" before "Subnet 9" lexicographically.
-const catSource = fs.readFileSync(
+const catPageSource = fs.readFileSync(
   path.join(projectRoot, 'src/pages/wiki/special/categories.astro'),
   'utf8',
 );
-assert.ok(
-  catSource.includes('compareTitles('),
-  'categories.astro must sort topic names with compareTitles, not localeCompare',
+const categoriesJsSource = fs.readFileSync(
+  path.join(projectRoot, 'scripts/categories.js'),
+  'utf8',
 );
 assert.ok(
-  !catSource.includes('.localeCompare('),
-  'categories.astro must not use localeCompare for the topic sort',
+  catPageSource.includes('buildCategories('),
+  'categories.astro must list topics through buildCategories',
+);
+assert.ok(
+  categoriesJsSource.includes('compareTitles(a.name, b.name)'),
+  'categories.js must sort topic names with compareTitles, not localeCompare',
 );
 
 // Special:Statistics sorts topics by article count, then uses a topic-name
