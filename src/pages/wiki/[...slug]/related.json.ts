@@ -1,7 +1,12 @@
 import type { APIRoute } from 'astro';
 import { getCollection, render } from 'astro:content';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
-import { publishedTitleBySlug } from '../../../lib/site-feed-context';
+import {
+  pageFromSlug,
+  publishedCategoriesBySlug,
+  publishedSummaryBySlug,
+  publishedTitleBySlug,
+} from '../../../lib/article-metadata';
 import { buildArticleRelatedPages, getRelatedPages } from '../../../lib/related-pages';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
 import { getArticleReferences } from '../../../lib/article-references.js';
@@ -32,6 +37,8 @@ const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
   const titleBySlug = publishedTitleBySlug();
+  const summaryBySlug = publishedSummaryBySlug();
+  const categoriesBySlug = publishedCategoriesBySlug();
   const publishedSlugs = new Set(Object.keys(titleBySlug));
   // Gather each article's body word count, table-of-contents section count, and
   // revision history in a single pass over the content collection — these were
@@ -59,23 +66,24 @@ export async function getStaticPaths() {
   // entry map below.
   const inboundBySlug: Record<string, number> = {};
   const referencesCountBySlug: Record<string, number> = {};
-  for (const page of pages) {
-    const slug = getPageSlug(page);
+  for (const slug of Object.keys(slugMap)) {
+    if (!pageFromSlug(slug, slugMap)) continue;
     inboundBySlug[slug] = publishedInboundLinkCount(backlinksData, slug, titleBySlug);
     referencesCountBySlug[slug] = getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length;
   }
 
-  return Promise.all(
-    pages.map(async (page) => {
-      const slug = getPageSlug(page);
-      const history = historyBySlug[slug] ?? [];
-      return {
-        params: { slug },
-        props: {
-          slug,
-          title: page.data.title,
-          summary: page.data.summary ?? '',
-          categories: page.data.categories ?? [],
+  return Object.keys(slugMap).flatMap((slug) => {
+    const page = pageFromSlug(slug, slugMap);
+    if (!page) return [];
+
+    const history = historyBySlug[slug] ?? [];
+    return {
+      params: { slug },
+      props: {
+        slug,
+        title: titleBySlug[slug] ?? page.data.title,
+        summary: summaryBySlug[slug] ?? '',
+        categories: categoriesBySlug[slug] ?? [],
           incomingLinks: inboundBySlug[slug] ?? 0,
           referencesCount: referencesCountBySlug[slug] ?? 0,
           sectionCount: sectionCountBySlug[slug] ?? 0,
@@ -112,8 +120,7 @@ export async function getStaticPaths() {
           }),
         },
       };
-    }),
-  );
+  });
 }
 
 // Machine-readable companion to the article-level "Related pages" block. It
