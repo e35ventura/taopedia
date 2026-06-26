@@ -483,6 +483,13 @@ rejects('See [x](mongodb+srv://cluster.internal/db).', 'plain mongodb+srv:// con
 rejects('See [x](mysql://root@internal-host:3306/db).', 'plain mysql:// connection URL');
 rejects('See [x](postgres://user@internal-host:5432/db).', 'plain postgres:// connection URL');
 rejects('See [x](postgresql://user@internal-host:5432/db).', 'plain postgresql:// connection URL');
+rejects('See [x](cockroachdb://internal-host:26257/db).', 'plain cockroachdb:// connection URL');
+rejects('See [x](dynamodb://internal-host:8000).', 'plain dynamodb:// connection URL');
+rejects('See [x](cockroachd&#98;://internal-host:26257/db).', 'entity-obfuscated cockroachdb:// (obfuscated scan path)');
+infoboxRowRejects('cockroachdb://internal-host:26257/db', 'cockroachdb:// rejected in an infobox row value');
+infoboxRowRejects('dynamodb://internal-host:8000', 'dynamodb:// rejected in an infobox row value');
+infoboxRowAccepts('CockroachDB and DynamoDB are described as prose', 'benign database-name prose allowed in an infobox row value');
+accepts('CockroachDB and DynamoDB are described here only as prose.', 'benign database-name prose (no // authority)');
 // git://svn://cvs:// version-control protocol-handler schemes launch a native VC client to
 // connect to the attacker's host. Covered across plain, entity-decoded, and infobox scans.
 rejects('See [x](git://attacker.example/evil.git).', 'plain git:// clone URL');
@@ -523,6 +530,13 @@ rejects('See [x](couchbase://internal-host/bucket).', 'plain couchbase:// connec
 rejects('See [x](couchdb://internal-host:5984/db).', 'plain couchdb:// connection URL');
 rejects('See [x](neo4j://internal-host:7687).', 'plain neo4j:// connection URL');
 rejects('See [x](bolt://internal-host:7687).', 'plain bolt:// (Neo4j) connection URL');
+rejects('See [x](elasticsearch://internal-host:9200).', 'plain elasticsearch:// connection URL');
+rejects('See [x](hbase://internal-host:2181).', 'plain hbase:// connection URL');
+rejects('See [x](elastics&#101;arch://internal-host:9200).', 'entity-obfuscated elasticsearch:// (obfuscated scan path)');
+infoboxRowRejects('elasticsearch://internal-host:9200', 'elasticsearch:// rejected in an infobox row value');
+infoboxRowRejects('hbase://internal-host:2181', 'hbase:// rejected in an infobox row value');
+infoboxRowAccepts('Elasticsearch and HBase are described as prose', 'benign data-store prose allowed in an infobox row value');
+accepts('Elasticsearch indexing and an HBase cluster are described here only as prose.', 'benign elasticsearch/hbase prose (no // authority)');
 rejects('See [x](cl&#105;ckhouse://internal-host:9000/db).', 'entity-obfuscated clickhouse:// (obfuscated scan path)');
 infoboxRowRejects('neo4j://internal-host:7687', 'neo4j:// rejected in an infobox row value');
 infoboxRowRejects('cassandra://internal-host:9042/ks', 'cassandra:// rejected in an infobox row value');
