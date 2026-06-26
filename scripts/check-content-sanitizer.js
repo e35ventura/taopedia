@@ -553,6 +553,14 @@ rejects('See [x](rustdesk://attacker.example/).', 'plain rustdesk:// remote-desk
 rejects('See [x](teamv&#105;ewer://attacker.example/).', 'entity-obfuscated teamviewer:// (obfuscated scan path)');
 infoboxRowRejects('anydesk://attacker.example@123456789', 'anydesk:// rejected in an infobox row value');
 accepts('TeamViewer support and an AnyDesk session are described here only as prose.', 'benign remote-desktop product names (no // authority)');
+// logmein:// parsec:// nomachine:// ultraviewer:// are additional consumer remote-access handlers.
+rejects('See [x](logmein://attacker.example/).', 'plain logmein:// remote-access URL');
+rejects('See [x](parsec://attacker.example/).', 'plain parsec:// remote-access URL');
+rejects('See [x](nomachine://attacker.example/).', 'plain nomachine:// remote-access URL');
+rejects('See [x](ultraviewer://attacker.example/).', 'plain ultraviewer:// remote-access URL');
+rejects('See [x](logm&#101;in://attacker.example/).', 'entity-obfuscated logmein:// (obfuscated scan path)');
+infoboxRowRejects('parsec://attacker.example/', 'parsec:// rejected in an infobox row value');
+accepts('LogMeIn and Parsec game streaming are described here only as prose.', 'benign LogMeIn/Parsec product names (no // authority)');
 rejects('See [x](telnet://internal-host:23).', 'plain telnet:// URL');
 rejects('See [x](vnc://evil.example:5900).', 'plain vnc:// URL');
 rejects('See [x](sftp://user@evil.example/).', 'plain sftp:// URL (SSH file-transfer client launch)');
