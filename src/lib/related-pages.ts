@@ -90,6 +90,7 @@ export interface ArticleRelatedPagesDocument {
   citeJsonUrl: string;
   bibtexUrl: string;
   referencesUrl: string;
+  referencesJsonUrl: string;
   imageUrl: string;
   count: number;
   related: Array<{
@@ -275,6 +276,14 @@ export function buildArticleRelatedPages({
     citeJsonUrl: `${origin}/wiki/${slug}/cite.json`,
     bibtexUrl: `${origin}/wiki/${slug}/cite.bib`,
     referencesUrl: `${origin}/wiki/${slug}/references.json`,
+    // referencesJsonUrl is the consistently-named *JsonUrl alias for referencesUrl,
+    // matching the infoJsonUrl / historyJsonUrl / backlinksJsonUrl / citeJsonUrl /
+    // tocJsonUrl / relatedJsonUrl companions this envelope already exposes (and the
+    // referencesJsonUrl every sibling envelope — info/history/backlinks/cite/toc/
+    // references — exposes at top level). related.json's top level was the lone
+    // outlier exposing referencesUrl without its .json companion, even though its own
+    // per-entry rows already carry referencesJsonUrl. referencesUrl kept for back-compat.
+    referencesJsonUrl: `${origin}/wiki/${slug}/references.json`,
     imageUrl: `${origin}/og/${slug}.png`,
     count: relatedPages.length,
     related: relatedPages.map((entry) => ({
