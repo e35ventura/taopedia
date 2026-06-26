@@ -777,6 +777,13 @@ const unsafeContentPatterns = [
   // surface). Article media uses <video>/<audio> (already blocked); the // form means
   // prose about the "RTSP protocol" is unaffected.
   { pattern: /\b(?:rtsps?|rtspu|mms)\s*:\/\//i, reason: 'media-streaming client-launch URL schemes are not allowed in article content' },
+  // rtmp:// (Real-Time Messaging Protocol, also rtmps://rtmpe://rtmpt://rtmpte://) is the
+  // sibling media-streaming family of the rtsp://mms:// schemes above: a clicked link hands
+  // an attacker-controlled live stream to a registered native media player / Flash-era
+  // handler outside the browser sandbox, which parses the stream (a memory-safety / SSRF
+  // surface). Article media uses <video>/<audio> (already blocked); the // form means prose
+  // about the "RTMP protocol" is unaffected.
+  { pattern: /\b(?:rtmpte|rtmpts|rtmpt|rtmpe|rtmps|rtmp)\s*:\/\//i, reason: 'media-streaming client-launch URL schemes are not allowed in article content' },
   // ms-its: and mk:@MSITStore: are the InfoTech Storage System (compiled-HTML-help, .chm)
   // URL schemes: ms-its:<chm>::/page.htm and mk:@MSITStore:<chm>::/page.htm resolve a page
   // out of a local or remote .chm help archive through the native ITSS handler — a
@@ -949,6 +956,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats)\s*:\/\//i, reason: 'message-broker connection URL schemes are not allowed in article content' },
   { pattern: /(?:ftp|rdp|vnc|telnet|ssh|sftp|rlogin|rsh|tn3270)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:rtsps?|rtspu|mms)\s*:\/\//i, reason: 'media-streaming client-launch URL schemes are not allowed in article content' },
+  { pattern: /(?:rtmpte|rtmpts|rtmpt|rtmpe|rtmps|rtmp)\s*:\/\//i, reason: 'media-streaming client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:ms-its\s*:|mk\s*:\s*@)/i, reason: 'compiled-HTML-help (CHM) URL schemes are not allowed in article content' },
   { pattern: /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i, reason: 'mobile app-store URL schemes are not allowed in article content' },
   { pattern: /(?:steam|com\.epicgames\.launcher)\s*:\/\//i, reason: 'game-launcher protocol-handler URLs are not allowed in article content' },
@@ -996,6 +1004,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats)\s*:\/\//i,
   /(?:ftp|rdp|vnc|telnet|ssh|sftp|rlogin|rsh|tn3270)\s*:\/\//i,
   /(?:rtsps?|rtspu|mms)\s*:\/\//i,
+  /(?:rtmpte|rtmpts|rtmpt|rtmpe|rtmps|rtmp)\s*:\/\//i,
   /(?:ms-its\s*:|mk\s*:\s*@)/i,
   /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i,
   /(?:steam|com\.epicgames\.launcher)\s*:\/\//i,
