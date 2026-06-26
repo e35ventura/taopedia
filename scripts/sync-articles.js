@@ -701,6 +701,14 @@ const unsafeContentPatterns = [
   // mount surface outside the page sandbox with no script. A glossary never links to a
   // file share; the // form means prose about the "NFS protocol" is unaffected.
   { pattern: /\bnfs\s*:\/\//i, reason: 'nfs: file-share URLs are not allowed in article content' },
+  // file:// is the local / UNC file URL scheme: file:///etc/passwd (or file:///C:/…) makes the
+  // browser read a local file off the reader's disk (local-file disclosure), and on Windows
+  // file://attacker.example/share triggers a UNC/SMB fetch that silently performs NTLM
+  // authentication and leaks the reader's hashed credentials — the same out-of-http local/remote
+  // file-access and NTLM-leak class as the blocked smb://afp://nfs:// share schemes. Article links
+  // are limited to http(s); the // form means prose about a "file: path" or "the file protocol"
+  // (no //) is never affected.
+  { pattern: /\bfile\s*:\/\//i, reason: 'file: local and UNC file URLs are not allowed in article content' },
   // ldap:// ldaps:// dav:// davs:// are the remaining directory / WebDAV schemes the OS
   // resolves to reach a remote host — not the browser. ldap://host is a classic
   // server-side-request / JNDI-injection vector (the Log4Shell class: a lookup hands the
@@ -1032,6 +1040,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /smb\s*:\/\//i, reason: 'smb: file-share URLs are not allowed in article content' },
   { pattern: /afp\s*:\/\//i, reason: 'afp: file-share URLs are not allowed in article content' },
   { pattern: /nfs\s*:\/\//i, reason: 'nfs: file-share URLs are not allowed in article content' },
+  { pattern: /\bfile\s*:\/\//i, reason: 'file: local and UNC file URLs are not allowed in article content' },
   { pattern: /(?:ldaps|ldap|davs|dav)\s*:\/\//i, reason: 'directory and WebDAV URL schemes are not allowed in article content' },
   { pattern: /(?:mhtml|jar)\s*:/i, reason: 'archive-extraction URL schemes are not allowed in article content' },
   { pattern: /(?:magnet|ed2k)\s*:/i, reason: 'peer-to-peer file-sharing URL schemes are not allowed in article content' },
@@ -1088,6 +1097,7 @@ const infoboxRowValueSchemePatterns = [
   /smb\s*:\/\//i,
   /afp\s*:\/\//i,
   /nfs\s*:\/\//i,
+  /\bfile\s*:\/\//i,
   /(?:ldaps|ldap|davs|dav)\s*:\/\//i,
   /(?:mhtml|jar)\s*:/i,
   /(?:magnet|ed2k)\s*:/i,
