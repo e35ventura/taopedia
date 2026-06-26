@@ -560,14 +560,19 @@ rejects('See [x](arangod&#98;://internal-host:8529/db).', 'entity-obfuscated ara
 infoboxRowRejects('arangodb://internal-host:8529/db', 'arangodb:// rejected in an infobox row value');
 infoboxRowAccepts('ArangoDB is described as prose', 'benign data-store prose allowed in an infobox row value');
 accepts('ArangoDB graphs are described here only as prose.', 'benign arangodb prose (no // authority)');
+rejects('See [x](hbase://internal-host:2181/table).', 'plain hbase:// connection URL');
+rejects('See [x](memgraph://internal-host:7687).', 'plain memgraph:// connection URL');
+rejects('See [x](aerospike://internal-host:3000/namespace).', 'plain aerospike:// connection URL');
 rejects('See [x](cl&#105;ckhouse://internal-host:9000/db).', 'entity-obfuscated clickhouse:// (obfuscated scan path)');
 rejects('See [x](dynam&#111;db://internal-host:8000/table).', 'entity-obfuscated dynamodb:// (obfuscated scan path)');
+rejects('See [x](h&#98;ase://internal-host:2181/table).', 'entity-obfuscated hbase:// (obfuscated scan path)');
 infoboxRowRejects('neo4j://internal-host:7687', 'neo4j:// rejected in an infobox row value');
 infoboxRowRejects('cassandra://internal-host:9042/ks', 'cassandra:// rejected in an infobox row value');
 infoboxRowRejects('dynamodb://internal-host:8000/table', 'dynamodb:// rejected in an infobox row value');
 infoboxRowRejects('elasticsearch://internal-host:9200/index', 'elasticsearch:// rejected in an infobox row value');
+infoboxRowRejects('aerospike://internal-host:3000/namespace', 'aerospike:// rejected in an infobox row value');
 infoboxRowAccepts('Cassandra and Neo4j are described as prose', 'benign data-store prose allowed in an infobox row value');
-accepts('A bolt of lightning, the Cassandra prophecy, and a Neo4j graph are described here only as prose.', 'benign bolt/cassandra/neo4j prose (no // authority)');
+accepts('A bolt of lightning, the Cassandra prophecy, a Neo4j graph, HBase, Memgraph, and Aerospike are described here only as prose.', 'benign bolt/cassandra/neo4j/storage prose (no // authority)');
 // coap://coaps:// (Constrained Application Protocol, IoT) address a non-http device at a
 // host:port — an SSRF target. Covered across plain, entity-decoded, and infobox scans.
 rejects('See [x](coap://internal-device:5683/sensor).', 'plain coap:// IoT URL');
