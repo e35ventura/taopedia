@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { compareTitles } from '../src/lib/title-sort.js';
+import { slugFromWikiHref } from '../src/lib/wiki-article-path.js';
 
 // Load-bearing regression check for the per-article "What links here"
 // (Special:WhatLinksHere) pages at /wiki/<slug>/backlinks/. It pins the
@@ -87,10 +88,10 @@ for (const [target, entries] of Object.entries(backlinksData)) {
   const rows = parseRows(fs.readFileSync(path.join(wikiDir, target, 'backlinks', 'index.html'), 'utf8'));
 
   const rendered = rows.map((row) => {
-    const m = (row.href || '').match(/^\/wiki\/(.+)\/$/);
-    assert.ok(m, `backlink on /wiki/${target}/backlinks/ has a malformed href: ${row.href}`);
-    assert.ok(articleBuilt(m[1]), `backlink on /wiki/${target}/backlinks/ points to unbuilt /wiki/${m[1]}/`);
-    return m[1];
+    const slug = slugFromWikiHref(row.href || '');
+    assert.ok(slug, `backlink on /wiki/${target}/backlinks/ has a malformed href: ${row.href}`);
+    assert.ok(articleBuilt(slug), `backlink on /wiki/${target}/backlinks/ points to unbuilt /wiki/${slug}/`);
+    return slug;
   });
 
   assert.deepEqual(
