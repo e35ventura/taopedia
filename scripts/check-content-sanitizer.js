@@ -698,6 +698,20 @@ infoboxRowRejects('bitcoin:1A1zP1eP5QGefi2DMPTfTL5SLmv7Divf Na', 'bitcoin: rejec
 // Prose: "Bitcoin: A Peer-to-Peer…" has a space after the colon, so it must pass.
 accepts('Bitcoin: A Peer-to-Peer Electronic Cash System is described here only as prose.', 'benign "Bitcoin:" prose (colon then space)');
 accepts('Ethereum: a decentralized platform, and Litecoin are described here only as prose.', 'benign "Ethereum:" prose (colon then space)');
+// geo:/maps:/comgooglemaps: are native maps / geolocation app-launch schemes — a clicked
+// link opens the OS map app at attacker-chosen coordinates/search outside the page, the
+// same native app-launch class as mailto:/skype:/itms:. The non-space lookahead keeps
+// prose like "Maps: a mapping service" (colon then space) passing.
+rejects('See [x](geo:37.7749,-122.4194).', 'plain geo: maps URI');
+rejects('See [x](maps:?q=evil+place).', 'plain maps: Apple Maps URI');
+rejects('See [x](comgooglemaps://?q=evil+place).', 'plain comgooglemaps: Google Maps URI');
+// Entity-obfuscated: the literal scan misses "ge&#111;:" but the decoded re-scan catches it.
+rejects('See [x](ge&#111;:37.7749,-122.4194).', 'entity-obfuscated geo: (obfuscated scan path)');
+// Infobox-row-value scan path.
+infoboxRowRejects('geo:37.7749,-122.4194', 'geo: rejected in an infobox row value');
+// Prose: a name followed by a colon and a space must pass.
+accepts('Maps: a mapping service, and geospatial data are described here only as prose.', 'benign "Maps:" prose (colon then space)');
+accepts('Geo: a prefix meaning earth is described here only as prose.', 'benign "Geo:" prose (colon then space)');
 // search-ms: opens Explorer search on a remote WebDAV/SMB share (malware-delivery
 // chain), and ms-officecmd: invokes Office deep-link commands (argument-injection
 // RCE) — two more native Windows handlers blocked like ms-msdt:/javascript:.

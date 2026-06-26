@@ -916,6 +916,15 @@ const unsafeContentPatterns = [
   // "Bitcoin: A Peer-to-Peer…" (colon then space) is never affected.
   // These names never appear as live URLs in Bittensor glossary articles.
   { pattern: /\b(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash)\s*:(?=[^\s"'<>)])/i, reason: 'cryptocurrency payment URI schemes are not allowed in article content' },
+  // geo:, maps:, and comgooglemaps: are native maps / geolocation app-launch schemes.
+  // A clicked geo:<lat>,<lng> (RFC 5870) opens the OS map app at attacker-chosen
+  // coordinates, maps:?q=… opens Apple Maps, and comgooglemaps://?q=… opens Google
+  // Maps — the OS, not the browser, resolves them to launch a native app outside the
+  // page sandbox with no script, the same native app-launch class as the blocked
+  // mailto:/skype:/itms: schemes. The (?=non-space) lookahead requires a real target
+  // after the colon, so prose like "Maps: a mapping service" (colon then space) is
+  // never affected; these scheme names never occur as live URLs in glossary prose.
+  { pattern: /\b(?:geo|maps|comgooglemaps)\s*:(?=[^\s"'<>)])/i, reason: 'native maps and geolocation app-launch URL schemes are not allowed in article content' },
   // shell: is the Windows Explorer protocol handler: shell:startup opens the user's
   // Startup folder (a drop-a-payload persistence path), shell:::{CLSID} opens special
   // folders / Control-Panel applets, and the OS — not the browser — resolves it, with
@@ -997,6 +1006,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:ts3server|mumble|ventrilo)\s*:\/\//i, reason: 'voice-chat client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:webcal|webcals|feed|itpc|pcast)\s*:\/\//i, reason: 'subscription-handler URL schemes are not allowed in article content' },
   { pattern: /(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash)\s*:(?=[^\s"'<>)])/i, reason: 'cryptocurrency payment URI schemes are not allowed in article content' },
+  { pattern: /\b(?:geo|maps|comgooglemaps)\s*:(?=[^\s"'<>)])/i, reason: 'native maps and geolocation app-launch URL schemes are not allowed in article content' },
   { pattern: /\bshell\s*:(?=[^\s"'<>)])/i, reason: 'shell: protocol-handler URLs are not allowed in article content' },
   { pattern: /\bms-cxh(?:-full)?\s*:/i, reason: 'Windows CloudExperienceHost protocol-handler URLs are not allowed in article content' },
   { pattern: /data\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
@@ -1048,6 +1058,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:ts3server|mumble|ventrilo)\s*:\/\//i,
   /(?:webcal|webcals|feed|itpc|pcast)\s*:\/\//i,
   /(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash)\s*:(?=[^\s"'<>)])/i,
+  /\b(?:geo|maps|comgooglemaps)\s*:(?=[^\s"'<>)])/i,
   /\bshell\s*:(?=[^\s"'<>)])/i,
   /\bms-cxh(?:-full)?\s*:/i,
   /data\s*:\s*text\/html/i,
