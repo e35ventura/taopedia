@@ -60,4 +60,32 @@ for (const label of ['Topics', 'Total revisions', 'Total words']) {
 const time = html.match(/Most recently updated<\/dt>\s*<dd[^>]*><time datetime="([^"]+)"/);
 assert.ok(time && !Number.isNaN(Date.parse(time[1])), 'statistics page must show a valid "Most recently updated" date');
 
-console.log(`Statistics check passed (Articles=${reportedArticles} matches ${actualArticles} built pages)`);
+// HTML figures must match the built statistics.json sibling — the same parity
+// contract check-statistics-json.js enforces on the JSON endpoint.
+const jsonFile = path.join(wikiDir, 'special', 'statistics.json');
+assert.ok(fs.existsSync(jsonFile), 'dist/wiki/special/statistics.json not found; run the build first');
+const json = JSON.parse(fs.readFileSync(jsonFile, 'utf8'));
+
+const htmlNumber = (label) => Number((statValue(label) ?? '').replace(/,/g, ''));
+assert.equal(htmlNumber('Articles'), json.totalArticles, 'HTML Articles must equal statistics.json totalArticles');
+assert.equal(htmlNumber('Topics'), json.totalTopics, 'HTML Topics must equal statistics.json totalTopics');
+assert.equal(htmlNumber('Total revisions'), json.totalRevisions, 'HTML Total revisions must equal statistics.json totalRevisions');
+assert.equal(htmlNumber('Total words'), json.totalWords, 'HTML Total words must equal statistics.json totalWords');
+assert.equal(
+  htmlNumber('Average words per article'),
+  json.averageWords,
+  'HTML Average words per article must equal statistics.json averageWords',
+);
+if (json.largestTopic) {
+  const largest = statValue('Largest topic');
+  assert.ok(largest, 'HTML must show Largest topic when statistics.json has largestTopic');
+  assert.ok(largest.startsWith(`${json.largestTopic.name} (`), 'HTML Largest topic must match statistics.json largestTopic.name');
+  assert.ok(largest.includes(json.largestTopic.count.toLocaleString('en-US')), 'HTML Largest topic must match statistics.json largestTopic.count');
+} else {
+  assert.equal(statValue('Largest topic'), null, 'HTML must omit Largest topic when statistics.json has no largestTopic');
+}
+if (json.newestDate) {
+  assert.equal(time[1], json.newestDate, 'HTML Most recently updated must equal statistics.json newestDate');
+}
+
+console.log(`Statistics check passed (Articles=${reportedArticles} matches ${actualArticles} built pages; HTML matches statistics.json)`);
