@@ -740,13 +740,14 @@ const unsafeContentPatterns = [
   // other blocked schemes. The // authority form is required so prose ("the Chrome browser",
   // "the cutting edge of", "an opera house") is never affected.
   { pattern: /\b(?:chrome-untrusted|chrome|edge|opera|vivaldi|brave|devtools)\s*:\/\//i, reason: 'browser-internal page URL schemes are not allowed in article content' },
-  // redis:// rediss:// mongodb:// mysql:// postgres:// postgresql:// are database-connection
-  // URL schemes that address an internal service at a host:port, not an http(s) resource.
+  // redis:// rediss:// mongodb:// mysql:// postgres:// postgresql:// memcached:// etcd://
+  // consul:// are database- and service-discovery connection URL schemes that address an
+  // internal service at a host:port, not an http(s) resource.
   // Article links are limited to http(s), so these are never a valid article link; they are
   // also the canonical server-side-request (SSRF) targets used to reach internal databases.
   // Block them as non-http schemes like the smb:/ldap:/gopher: schemes. The // authority
   // form is required so prose about "Redis", "MySQL", or "Postgres" is never affected.
-  { pattern: /\b(?:redis|rediss|mongodb(?:\+srv)?|mysql|postgresql|postgres)\s*:\/\//i, reason: 'database-connection URL schemes are not allowed in article content' },
+  { pattern: /\b(?:redis|rediss|mongodb(?:\+srv)?|mysql|postgresql|postgres|memcached|etcd|consul)\s*:\/\//i, reason: 'database-connection URL schemes are not allowed in article content' },
   // git:// svn:// cvs:// are version-control protocol-handler schemes: a clicked link is
   // handed to a registered native VC client (Git / TortoiseSVN / TortoiseCVS) which opens
   // a non-http(s) connection to the attacker's host:port to clone or check out a repo —
@@ -1024,7 +1025,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:magnet|ed2k)\s*:/i, reason: 'peer-to-peer file-sharing URL schemes are not allowed in article content' },
   { pattern: /(?:vscode-insiders|vscodium|vscode)\s*:/i, reason: 'code-editor protocol-handler URLs are not allowed in article content' },
   { pattern: /(?:chrome-untrusted|chrome|edge|opera|vivaldi|brave|devtools)\s*:\/\//i, reason: 'browser-internal page URL schemes are not allowed in article content' },
-  { pattern: /(?:redis|rediss|mongodb(?:\+srv)?|mysql|postgresql|postgres)\s*:\/\//i, reason: 'database-connection URL schemes are not allowed in article content' },
+  { pattern: /(?:redis|rediss|mongodb(?:\+srv)?|mysql|postgresql|postgres|memcached|etcd|consul)\s*:\/\//i, reason: 'database-connection URL schemes are not allowed in article content' },
   { pattern: /(?:git|svn|cvs)\s*:\/\//i, reason: 'version-control protocol URL schemes are not allowed in article content' },
   { pattern: /(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats)\s*:\/\//i, reason: 'message-broker connection URL schemes are not allowed in article content' },
   { pattern: /(?:clickhouse|cassandra|couchbase|couchdb|neo4j|bolt)\s*:\/\//i, reason: 'data-store connection URL schemes are not allowed in article content' },
@@ -1079,7 +1080,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:magnet|ed2k)\s*:/i,
   /(?:vscode-insiders|vscodium|vscode)\s*:/i,
   /(?:chrome-untrusted|chrome|edge|opera|vivaldi|brave|devtools)\s*:\/\//i,
-  /(?:redis|rediss|mongodb(?:\+srv)?|mysql|postgresql|postgres)\s*:\/\//i,
+  /(?:redis|rediss|mongodb(?:\+srv)?|mysql|postgresql|postgres|memcached|etcd|consul)\s*:\/\//i,
   /(?:git|svn|cvs)\s*:\/\//i,
   /(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats)\s*:\/\//i,
   /(?:clickhouse|cassandra|couchbase|couchdb|neo4j|bolt)\s*:\/\//i,
