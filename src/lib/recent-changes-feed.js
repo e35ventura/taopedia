@@ -1,3 +1,6 @@
+import { uniqueFeedCategories } from './feed-categories.js';
+import { wikiArticleHref } from './wiki-article-path.js';
+
 const changeSummary = (change) => {
   const authorName = typeof change?.authorName === 'string' ? change.authorName.trim() : '';
   const message = typeof change?.message === 'string' ? change.message.trim() : '';
@@ -12,7 +15,7 @@ export const buildRecentChangesAtomItems = ({ changes = [], origin, categoriesBy
   changes.map((change) => ({
     id: recentChangeEventId(change),
     title: change.title,
-    url: `${origin}/wiki/${change.slug}/`,
+    url: wikiArticleHref(origin, change.slug),
     // sortKey pins the same-timestamp tiebreak to the article slug so the feeds
     // order identically to Special:RecentChanges (collectRecentChanges tiebreaks
     // on slug). Without it the feed builders fall back to comparing the full
@@ -21,7 +24,7 @@ export const buildRecentChangesAtomItems = ({ changes = [], origin, categoriesBy
     sortKey: change.slug,
     image: `${origin}/og/${change.slug}.png`,
     description: changeSummary(change),
-    categories: Array.isArray(categoriesBySlug[change.slug]) ? categoriesBySlug[change.slug] : [],
+    categories: uniqueFeedCategories(categoriesBySlug[change.slug]),
     datePublished: change.date,
     dateModified: change.date,
   }));
@@ -30,7 +33,7 @@ export const buildRecentChangesRssItems = ({ changes = [], origin, categoriesByS
   changes.map((change) => ({
     guid: recentChangeEventId(change),
     title: change.title,
-    url: `${origin}/wiki/${change.slug}/`,
+    url: wikiArticleHref(origin, change.slug),
     // sortKey pins the same-timestamp tiebreak to the article slug so the feeds
     // order identically to Special:RecentChanges (collectRecentChanges tiebreaks
     // on slug). Without it the feed builders fall back to comparing the full
@@ -39,7 +42,7 @@ export const buildRecentChangesRssItems = ({ changes = [], origin, categoriesByS
     sortKey: change.slug,
     image: `${origin}/og/${change.slug}.png`,
     description: changeSummary(change),
-    categories: Array.isArray(categoriesBySlug[change.slug]) ? categoriesBySlug[change.slug] : [],
+    categories: uniqueFeedCategories(categoriesBySlug[change.slug]),
     date: change.date,
   }));
 
@@ -47,7 +50,7 @@ export const buildRecentChangesJsonFeedItems = ({ changes = [], origin, categori
   changes.map((change) => ({
     id: recentChangeEventId(change),
     title: change.title,
-    url: `${origin}/wiki/${change.slug}/`,
+    url: wikiArticleHref(origin, change.slug),
     // sortKey pins the same-timestamp tiebreak to the article slug so the feeds
     // order identically to Special:RecentChanges (collectRecentChanges tiebreaks
     // on slug). Without it the feed builders fall back to comparing the full
@@ -56,7 +59,7 @@ export const buildRecentChangesJsonFeedItems = ({ changes = [], origin, categori
     sortKey: change.slug,
     image: `${origin}/og/${change.slug}.png`,
     description: changeSummary(change),
-    categories: Array.isArray(categoriesBySlug[change.slug]) ? categoriesBySlug[change.slug] : [],
+    categories: uniqueFeedCategories(categoriesBySlug[change.slug]),
     datePublished: change.date,
     dateModified: change.date,
   }));
