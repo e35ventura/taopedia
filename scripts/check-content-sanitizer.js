@@ -483,6 +483,12 @@ rejects('See [x](mongodb+srv://cluster.internal/db).', 'plain mongodb+srv:// con
 rejects('See [x](mysql://root@internal-host:3306/db).', 'plain mysql:// connection URL');
 rejects('See [x](postgres://user@internal-host:5432/db).', 'plain postgres:// connection URL');
 rejects('See [x](postgresql://user@internal-host:5432/db).', 'plain postgresql:// connection URL');
+rejects('See [x](mariadb://root@internal-host:3306/db).', 'plain mariadb:// connection URL');
+rejects('See [x](sqlite:///etc/passwd).', 'plain sqlite:// connection URL');
+rejects('See [x](influxdb://internal-host:8086).', 'plain influxdb:// connection URL');
+rejects('See [x](mari&#097;db://internal-host:3306/db).', 'entity-obfuscated mariadb:// (obfuscated scan path)');
+infoboxRowRejects('mariadb://root@internal-host:3306/db', 'mariadb:// rejected in an infobox row value');
+infoboxRowRejects('influxdb://internal-host:8086', 'influxdb:// rejected in an infobox row value');
 // git://svn://cvs:// version-control protocol-handler schemes launch a native VC client to
 // connect to the attacker's host. Covered across plain, entity-decoded, and infobox scans.
 rejects('See [x](git://attacker.example/evil.git).', 'plain git:// clone URL');
@@ -498,7 +504,7 @@ rejects('See [x](red&#105;s://internal-host:6379/0).', 'entity-obfuscated redis:
 infoboxRowRejects('redis://internal-host:6379/0', 'redis:// rejected in an infobox row value');
 infoboxRowRejects('postgres://user@internal-host:5432/db', 'postgres:// rejected in an infobox row value');
 infoboxRowAccepts('Redis and PostgreSQL are described as prose', 'benign DB-name prose allowed in an infobox row value');
-accepts('Redis, MongoDB, MySQL, and PostgreSQL are described here only as prose.', 'benign database-name prose (no // authority)');
+accepts('Redis, MongoDB, MySQL, MariaDB, SQLite, InfluxDB, and PostgreSQL are described here only as prose.', 'benign database-name prose (no // authority)');
 // amqp:// mqtt:// stomp:// kafka:// nats:// message-broker connection schemes address an
 // internal broker (SSRF targets), never an http(s) article link; //-guarded. Coverage spans
 // the plain content scan, the entity-decoded scan, and the infobox scan.
