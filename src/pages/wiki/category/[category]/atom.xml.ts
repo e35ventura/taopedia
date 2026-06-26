@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { buildCategoryFeedStaticPaths } from '../../../../lib/category-feed-context';
+import { mapCategoryFeedJsonAtomItems } from '../../../../lib/category-feed-items.js';
 import { buildAtomFeed } from '../../../../../scripts/atom-feed.js';
 
 export async function getStaticPaths() {
@@ -27,15 +28,7 @@ export const GET: APIRoute = ({ site, props }) => {
     homePageUrl: `${origin}/wiki/category/${categoryPath}/`,
     title: `Taopedia - ${categoryName} articles`,
     description: `Recently updated Taopedia articles in the ${categoryName} topic.`,
-    items: items.map((item) => ({
-      title: item.title,
-      url: `${origin}/wiki/${item.slug}/`,
-      image: `${origin}/og/${item.slug}.png`,
-      description: item.summary,
-      categories: item.categories,
-      datePublished: item.datePublished,
-      dateModified: item.dateModified,
-    })),
+    items: mapCategoryFeedJsonAtomItems(origin, items),
   });
 
   return new Response(body, {
