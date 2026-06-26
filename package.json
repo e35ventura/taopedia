@@ -85,6 +85,7 @@
     "test:recentchanges-atom": "node scripts/check-recentchanges-atom.js",
     "test:recentchanges-rss": "node scripts/check-recentchanges-rss.js",
     "test:recentchanges-json-feed": "node scripts/check-recentchanges-json-feed.js",
+    "test:recent-changes-feed": "node scripts/check-recent-changes-feed.js",
     "test:backlinks-json": "node scripts/check-backlinks-json.js",
     "test:history-json": "node scripts/check-history-json.js",
     "test:references-json": "node scripts/check-references-json.js",
