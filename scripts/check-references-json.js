@@ -79,6 +79,7 @@ const revisionStatsOf = (slug) => {
     summary: 'The source article.',
     categories: ['Consensus', 'Security'],
     incomingLinks: 5,
+    referencesCount: 9,
     revisionCount: 12,
     firstEdited: '2024-01-01T00:00:00.000Z',
     lastEdited: '2024-06-01T00:00:00.000Z',
@@ -113,6 +114,8 @@ const revisionStatsOf = (slug) => {
   assert.equal(doc.imageUrl, `${ORIGIN}/og/source.png`, 'builder: imageUrl');
   assert.deepEqual(doc.categories, ['Consensus', 'Security'], 'builder: categories field');
   assert.equal(doc.incomingLinks, 5, 'builder: incomingLinks field');
+  assert.equal(doc.referencesCount, 9, 'builder: referencesCount field threaded verbatim');
+  assert.notEqual(doc.referencesCount, doc.count, 'builder: referencesCount is independent of count');
   assert.equal(doc.revisionCount, 12, 'builder: revisionCount field threaded verbatim');
   assert.equal(doc.firstEdited, '2024-01-01T00:00:00.000Z', 'builder: firstEdited field threaded verbatim');
   assert.equal(doc.lastEdited, '2024-06-01T00:00:00.000Z', 'builder: lastEdited field threaded verbatim');
@@ -476,6 +479,20 @@ for (const slug of articleSlugs) {
   assert.equal(typeof doc.count, 'number', `${slug}: references.json count must be a number`);
   assert.ok(Array.isArray(doc.references), `${slug}: references.json references must be an array`);
   assert.equal(doc.count, doc.references.length, `${slug}: references.json count must equal references.length`);
+  assert.ok(
+    Number.isInteger(doc.referencesCount) && doc.referencesCount >= 0,
+    `${slug}: references.json referencesCount must be a non-negative integer (got ${JSON.stringify(doc.referencesCount)})`,
+  );
+  assert.equal(
+    doc.referencesCount,
+    getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length,
+    `${slug}: references.json referencesCount must equal the published outbound-reference count`,
+  );
+  assert.equal(
+    doc.referencesCount,
+    doc.count,
+    `${slug}: references.json referencesCount must equal count`,
+  );
 
   const actualReferences = doc.references.map((entry) => ({
     slug: entry.slug,
