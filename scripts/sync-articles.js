@@ -898,8 +898,9 @@ const unsafeContentPatterns = [
   // "feed:" (e.g. "a price feed:") keeps its boundary and is never affected; the names never
   // occur as URLs in glossary prose.
   { pattern: /\b(?:webcal|webcals|feed|itpc|pcast)\s*:\/\//i, reason: 'subscription-handler URL schemes are not allowed in article content' },
-  // bitcoin:/ethereum:/litecoin:/monero: are cryptocurrency payment URI schemes
-  // (BIP-21, EIP-681, and their equivalents): a clicked bitcoin:<address>?amount=…
+  // bitcoin:/ethereum:/litecoin:/monero:/solana:/cardano:/ripple:/xrp:/tron:/bnb: are
+  // cryptocurrency payment URI schemes (BIP-21, EIP-681, Solana Pay, and their
+  // equivalents): a clicked bitcoin:<address>?amount=… or solana:<address>… opens
   // or ethereum:<address>@1/transfer… opens the reader's locally-installed or
   // browser-extension wallet pre-filled with the attacker's address and a
   // requested amount — a fund-redirection attack with no script and no browser
@@ -909,7 +910,7 @@ const unsafeContentPatterns = [
   // (no space), so require a non-space character via lookahead; prose like
   // "Bitcoin: A Peer-to-Peer…" (colon then space) is never affected.
   // These names never appear as live URLs in Bittensor glossary articles.
-  { pattern: /\b(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash)\s*:(?=[^\s"'<>)])/i, reason: 'cryptocurrency payment URI schemes are not allowed in article content' },
+  { pattern: /\b(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash|solana|cardano|ripple|xrp|tron|bnb)\s*:(?=[^\s"'<>)])/i, reason: 'cryptocurrency payment URI schemes are not allowed in article content' },
   // shell: is the Windows Explorer protocol handler: shell:startup opens the user's
   // Startup folder (a drop-a-payload persistence path), shell:::{CLSID} opens special
   // folders / Control-Panel applets, and the OS — not the browser — resolves it, with
@@ -989,7 +990,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:tg|whatsapp|discord|slack)\s*:\/\//i, reason: 'messaging-app deep-link URL schemes are not allowed in article content' },
   { pattern: /(?:ts3server|mumble|ventrilo)\s*:\/\//i, reason: 'voice-chat client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:webcal|webcals|feed|itpc|pcast)\s*:\/\//i, reason: 'subscription-handler URL schemes are not allowed in article content' },
-  { pattern: /(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash)\s*:(?=[^\s"'<>)])/i, reason: 'cryptocurrency payment URI schemes are not allowed in article content' },
+  { pattern: /(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash|solana|cardano|ripple|xrp|tron|bnb)\s*:(?=[^\s"'<>)])/i, reason: 'cryptocurrency payment URI schemes are not allowed in article content' },
   { pattern: /\bshell\s*:(?=[^\s"'<>)])/i, reason: 'shell: protocol-handler URLs are not allowed in article content' },
   { pattern: /\bms-cxh(?:-full)?\s*:/i, reason: 'Windows CloudExperienceHost protocol-handler URLs are not allowed in article content' },
   { pattern: /data\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
@@ -1039,7 +1040,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:tg|whatsapp|discord|slack)\s*:\/\//i,
   /(?:ts3server|mumble|ventrilo)\s*:\/\//i,
   /(?:webcal|webcals|feed|itpc|pcast)\s*:\/\//i,
-  /(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash)\s*:(?=[^\s"'<>)])/i,
+  /(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash|solana|cardano|ripple|xrp|tron|bnb)\s*:(?=[^\s"'<>)])/i,
   /\bshell\s*:(?=[^\s"'<>)])/i,
   /\bms-cxh(?:-full)?\s*:/i,
   /data\s*:\s*text\/html/i,
