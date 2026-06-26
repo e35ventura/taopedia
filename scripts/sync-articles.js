@@ -938,6 +938,17 @@ const unsafeContentPatterns = [
   // pattern; prose like "Matrix: a federated chat protocol" (colon then space) is never
   // affected, and the scheme name never occurs as a live URL in glossary prose.
   { pattern: /\bmatrix\s*:(?=[^\s"'<>)])/i, reason: 'Matrix chat client-launch URL scheme is not allowed in article content' },
+  // web+<name>: is the custom-scheme namespace the HTML standard reserves for
+  // registerProtocolHandler() — any site may register a handler so that web+foo:payload
+  // links are dispatched to that site's handler URL (the payload substituted into its %s
+  // template). A clicked web+<name>: link in article content is therefore handed off to
+  // whatever handler the reader has registered — potentially an attacker-controlled
+  // endpoint or native app — outside the page's control with no script, the same
+  // protocol-handler hand-off class as the blocked mailto:/matrix:/intent: schemes. Per
+  // the spec a custom scheme is "web+" followed by ASCII letters, so match that exact
+  // shape; the (?=non-space) lookahead requires a real target and "web+" never begins a
+  // word in glossary prose, so ordinary text is never affected.
+  { pattern: /\bweb\+[a-z]+\s*:(?=[^\s"'<>)])/i, reason: 'web+ custom protocol-handler URL schemes are not allowed in article content' },
   // shell: is the Windows Explorer protocol handler: shell:startup opens the user's
   // Startup folder (a drop-a-payload persistence path), shell:::{CLSID} opens special
   // folders / Control-Panel applets, and the OS — not the browser — resolves it, with
@@ -1021,6 +1032,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash)\s*:(?=[^\s"'<>)])/i, reason: 'cryptocurrency payment URI schemes are not allowed in article content' },
   { pattern: /\b(?:geo|maps|comgooglemaps)\s*:(?=[^\s"'<>)])/i, reason: 'native maps and geolocation app-launch URL schemes are not allowed in article content' },
   { pattern: /\bmatrix\s*:(?=[^\s"'<>)])/i, reason: 'Matrix chat client-launch URL scheme is not allowed in article content' },
+  { pattern: /\bweb\+[a-z]+\s*:(?=[^\s"'<>)])/i, reason: 'web+ custom protocol-handler URL schemes are not allowed in article content' },
   { pattern: /\bshell\s*:(?=[^\s"'<>)])/i, reason: 'shell: protocol-handler URLs are not allowed in article content' },
   { pattern: /\bms-cxh(?:-full)?\s*:/i, reason: 'Windows CloudExperienceHost protocol-handler URLs are not allowed in article content' },
   { pattern: /data\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
@@ -1074,6 +1086,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash)\s*:(?=[^\s"'<>)])/i,
   /\b(?:geo|maps|comgooglemaps)\s*:(?=[^\s"'<>)])/i,
   /\bmatrix\s*:(?=[^\s"'<>)])/i,
+  /\bweb\+[a-z]+\s*:(?=[^\s"'<>)])/i,
   /\bshell\s*:(?=[^\s"'<>)])/i,
   /\bms-cxh(?:-full)?\s*:/i,
   /data\s*:\s*text\/html/i,

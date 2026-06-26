@@ -731,6 +731,19 @@ rejects('See [x](matri&#120;:r/room:evil.example).', 'entity-obfuscated matrix: 
 infoboxRowRejects('matrix:u/alice:evil.example', 'matrix: rejected in an infobox row value');
 // Prose: a name followed by a colon and a space must pass.
 accepts('Matrix: a federated, decentralized chat protocol is described here only as prose.', 'benign "Matrix:" prose (colon then space)');
+// web+<name>: is the registerProtocolHandler() custom-scheme namespace — a clicked
+// web+foo:payload link is dispatched to whatever handler the reader has registered
+// (potentially an attacker endpoint or native app), the same protocol-handler hand-off
+// class as mailto:/matrix:/intent:. The non-space lookahead and the "web+letters:" shape
+// keep ordinary prose passing.
+rejects('See [x](web+coin:pay?to=attacker).', 'plain web+coin: custom handler URI');
+rejects('See [x](web+example:payload).', 'plain web+example: custom handler URI');
+// Entity-obfuscated: the literal scan misses "web&#43;coin:" but the decoded re-scan catches it.
+rejects('See [x](web&#43;coin:pay?to=attacker).', 'entity-obfuscated web+coin: (obfuscated scan path)');
+// Infobox-row-value scan path.
+infoboxRowRejects('web+coin:pay?to=attacker', 'web+ custom handler rejected in an infobox row value');
+// Prose: a name followed by a colon and a space must pass; "web" without the + is unaffected.
+accepts('Web: the World Wide Web, and web applications are described here only as prose.', 'benign "Web:" prose (no + prefix)');
 // search-ms: opens Explorer search on a remote WebDAV/SMB share (malware-delivery
 // chain), and ms-officecmd: invokes Office deep-link commands (argument-injection
 // RCE) — two more native Windows handlers blocked like ms-msdt:/javascript:.
