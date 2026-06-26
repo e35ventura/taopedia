@@ -1,12 +1,18 @@
 import type { APIRoute } from 'astro';
 import { getCollection, render } from 'astro:content';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
-import { publishedTitleBySlug, publishedSummaryBySlug, publishedCategoriesBySlug } from '../../../lib/site-feed-context';
+import {
+  pageFromSlug,
+  publishedCategoriesBySlug,
+  publishedSummaryBySlug,
+  publishedTitleBySlug,
+} from '../../../lib/article-metadata';
 import { compareTitles } from '../../../lib/title-sort.js';
 import { buildArticleBacklinks } from '../../../../scripts/article-backlinks.js';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
 import { getArticleReferences } from '../../../lib/article-references.js';
 import { getArticleToc } from '../../../lib/article-toc.js';
+import slugMap from '../../../../public/data/slugmap.json';
 
 const backlinksModules = import.meta.glob('../../../../public/data/backlinks.json', { eager: true }) as Record<
   string,
@@ -51,62 +57,79 @@ export async function getStaticPaths() {
   // (the published-only join), so this runs after the map above is fully built.
   const inboundBySlug: Record<string, number> = {};
   const referencesCountBySlug: Record<string, number> = {};
-  for (const page of pages) {
-    const slug = getPageSlug(page);
+  for (const slug of Object.keys(slugMap)) {
+    if (!pageFromSlug(slug, slugMap)) continue;
     inboundBySlug[slug] = publishedInboundLinkCount(backlinksData, slug, titleBySlug);
     referencesCountBySlug[slug] = getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length;
   }
 
-  return Promise.all(
-    pages.map(async (page) => {
-      const slug = getPageSlug(page);
-      const history = historyBySlug[slug] ?? [];
-      const backlinks = (backlinksData[slug] ?? [])
-        .filter((entry) => titleBySlug[entry.from])
-        .map((entry) => {
-          const entryHistory = historyBySlug[entry.from] ?? [];
-          return {
-            slug: entry.from,
-            title: titleBySlug[entry.from],
-            summary: summaryBySlug[entry.from] ?? '',
-            categories: categoriesBySlug[entry.from] ?? [],
-            backlinks: inboundBySlug[entry.from] ?? 0,
-            referencesCount: referencesCountBySlug[entry.from] ?? 0,
-            sectionCount: sectionCountBySlug[entry.from] ?? 0,
-            wordCount: wordCountBySlug[entry.from] ?? 0,
-            revisionCount: entryHistory.length,
-            firstEdited: entryHistory[entryHistory.length - 1]?.date ?? null,
-            lastEdited: entryHistory[0]?.date ?? null,
-          };
-        })
-        .sort((a, b) => compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug));
+  return Object.keys(slugMap).flatMap((slug) => {
+    const page = pageFromSlug(slug, slugMap);
+    if (!page) return [];
 
-      return {
-        params: { slug },
-        props: {
-          page,
-          slug,
-          incomingLinks: inboundBySlug[slug] ?? 0,
-          referencesCount: referencesCountBySlug[slug] ?? 0,
-          sectionCount: sectionCountBySlug[slug] ?? 0,
-          wordCount: wordCountBySlug[slug] ?? 0,
-          revisionCount: history.length,
-          firstEdited: history[history.length - 1]?.date ?? null,
-          lastEdited: history[0]?.date ?? null,
-          backlinks,
-        },
-      };
-    }),
-  );
+    const history = historyBySlug[slug] ?? [];
+    const backlinks = (backlinksData[slug] ?? [])
+      .filter((entry) => titleBySlug[entry.from])
+      .map((entry) => {
+        const entryHistory = historyBySlug[entry.from] ?? [];
+        return {
+          slug: entry.from,
+          title: titleBySlug[entry.from],
+          summary: summaryBySlug[entry.from] ?? '',
+          categories: categoriesBySlug[entry.from] ?? [],
+          backlinks: inboundBySlug[entry.from] ?? 0,
+          referencesCount: referencesCountBySlug[entry.from] ?? 0,
+          sectionCount: sectionCountBySlug[entry.from] ?? 0,
+          wordCount: wordCountBySlug[entry.from] ?? 0,
+          revisionCount: entryHistory.length,
+          firstEdited: entryHistory[entryHistory.length - 1]?.date ?? null,
+          lastEdited: entryHistory[0]?.date ?? null,
+        };
+      })
+      .sort((a, b) => compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug));
+
+    return {
+      params: { slug },
+      props: {
+        slug,
+        title: titleBySlug[slug] ?? page.data.title,
+        summary: summaryBySlug[slug] ?? '',
+        categories: categoriesBySlug[slug] ?? [],
+        incomingLinks: inboundBySlug[slug] ?? 0,
+        referencesCount: referencesCountBySlug[slug] ?? 0,
+        sectionCount: sectionCountBySlug[slug] ?? 0,
+        wordCount: wordCountBySlug[slug] ?? 0,
+        revisionCount: history.length,
+        firstEdited: history[history.length - 1]?.date ?? null,
+        lastEdited: history[0]?.date ?? null,
+        backlinks,
+      },
+    };
+  });
 }
 
 // Machine-readable companion to /wiki/<slug>/backlinks/. Uses the same
 // published-only join and compareTitles sort as backlinks.astro so the two
 // surfaces never drift.
 export const GET: APIRoute = async ({ props, site }) => {
-  const { page, slug, incomingLinks, referencesCount, sectionCount, wordCount, revisionCount, firstEdited, lastEdited, backlinks } = props as {
-    page: { data: { title: string; summary?: string; categories?: string[] } };
+  const {
+    slug,
+    title,
+    summary,
+    categories,
+    incomingLinks,
+    referencesCount,
+    sectionCount,
+    wordCount,
+    revisionCount,
+    firstEdited,
+    lastEdited,
+    backlinks,
+  } = props as {
     slug: string;
+    title: string;
+    summary: string;
+    categories: string[];
     incomingLinks: number;
     referencesCount: number;
     sectionCount: number;
@@ -133,10 +156,10 @@ export const GET: APIRoute = async ({ props, site }) => {
   const body = JSON.stringify(
     buildArticleBacklinks({
       slug,
-      title: page.data.title,
+      title,
       origin,
-      summary: page.data.summary ?? '',
-      categories: page.data.categories ?? [],
+      summary,
+      categories,
       incomingLinks,
       referencesCount,
       sectionCount,
