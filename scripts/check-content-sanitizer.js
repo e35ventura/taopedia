@@ -2385,4 +2385,22 @@ accepts('<hr>x</hr>', 'plain hr without visual styling');
 accepts('<hr class="divider">x</hr>', 'benign hr class attribute');
 accepts('A horizontal rule without noshade or color is described here only as prose.', 'benign hr visual prose');
 
+// color=/size=/face= on allowed elements (not just <hr>) set obsolete presentational
+// styling without the blocked style= attribute — same content-styling spoof class
+// as bgcolor= (#434) and <font> (element-blocked #433).
+rejects('Intro.\n\n<p color="red">WALLET COMPROMISED</p>', 'plain p color attribute');
+rejects('Intro.\n\n<td   size = "7">x</td>', 'spaced td size attribute');
+rejects('Intro.\n\n<span face="Arial">spoof</span>', 'plain span face attribute');
+rejects('<p class="x"color="red">', 'quote-abutted p color attribute');
+rejects('<span class=x/face="Arial">', 'slash-delimited span face attribute');
+accepts('The font size of a heading is set in the stylesheet, not inline.', 'benign color/size prose');
+
+// width=/height= on allowed <div>/<p>/<span> reserve oversized layout boxes —
+// same layout-defacement class as merged #451 / #465 dimension blocks.
+rejects('Intro.\n\n<div width="5000" height="2000">x</div>', 'plain div width/height attributes');
+rejects('Intro.\n\n<p   height = "9999">x</p>', 'spaced p height attribute');
+rejects('<span class="x"width="5000">', 'quote-abutted span width attribute');
+rejects('<div class=x/height="2000">', 'slash-delimited div height attribute');
+accepts('The width of a table column is set in the stylesheet, not inline.', 'benign width prose');
+
 console.log('Content sanitizer check passed');
