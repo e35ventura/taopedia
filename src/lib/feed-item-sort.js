@@ -1,8 +1,9 @@
 import { compareTitles } from './title-sort.js';
+import { slugFromWikiHref } from './wiki-article-path.js';
 
 // Canonical article URLs are always /wiki/<slug>/ (trailing slash). Extract the
-// slug for feed tiebreaks when the caller did not supply an explicit sortKey.
-const WIKI_SLUG_FROM_URL = /\/wiki\/([^/?#]+)/;
+// full route slug (including nested multi-segment paths) for feed tiebreaks when
+// the caller did not supply an explicit sortKey.
 
 /**
  * Deterministic same-timestamp tiebreak key for syndication feed items.
@@ -21,14 +22,8 @@ export function feedItemSortKey(item) {
     return String(item.sortKey);
   }
   const url = String(item?.url ?? '');
-  const match = url.match(WIKI_SLUG_FROM_URL);
-  if (match) {
-    try {
-      return decodeURIComponent(match[1]);
-    } catch {
-      return match[1];
-    }
-  }
+  const slug = slugFromWikiHref(url);
+  if (slug) return slug;
   return url;
 }
 
