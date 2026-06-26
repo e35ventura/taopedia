@@ -12,8 +12,6 @@
 // the highest-demand missing articles are currently invisible to editors. This
 // surfaces them, ranked by how many DISTINCT published articles request each one.
 
-import { compareTitles } from '../src/lib/title-sort.js';
-
 // A target is "wanted" when it is non-empty, not satisfied by a published article
 // (absent from titleBySlug), and not the requesting article itself (a self-link is
 // never a wanted page). Shared so the endpoint and the check classify identically.
@@ -39,18 +37,21 @@ export function collectWantedRequesters({ linkGraph, titleBySlug }) {
   return requestersByTarget;
 }
 
-// Rank wanted pages by distinct-requester count (desc), then by slug (numeric
-// collation, matching buildMostLinkedPages / references ordering) so the report
-// is deterministic regardless of link-graph iteration order. Each entry lists the
-// requesting article slugs (sorted) so an editor can see who wants the page.
+// Rank wanted pages by distinct-requester count (desc), then by a PLAIN code-unit
+// slug comparison — the same slug tiebreak buildMostLinkedPages / getArticleReferences
+// / search-data use, NOT compareTitles, whose numeric collation would order subnet_9
+// before subnet_10 while every other listing on the site puts subnet_10 first (raw
+// '1' < '9'). This keeps the report deterministic regardless of link-graph iteration
+// order AND ordered identically to the rest of the site. Each entry lists its
+// requesting article slugs in the same plain code-unit order.
 export function buildWantedPages({ linkGraph, titleBySlug }) {
   const requestersByTarget = collectWantedRequesters({ linkGraph, titleBySlug });
   return [...requestersByTarget.entries()]
     .map(([slug, requesters]) => ({
       slug,
       count: requesters.size,
-      requestedBy: [...requesters].sort(compareTitles),
+      requestedBy: [...requesters].sort((x, y) => (x < y ? -1 : x > y ? 1 : 0)),
     }))
     .filter((entry) => entry.count > 0)
-    .sort((a, b) => b.count - a.count || compareTitles(a.slug, b.slug));
+    .sort((a, b) => b.count - a.count || (a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0));
 }
