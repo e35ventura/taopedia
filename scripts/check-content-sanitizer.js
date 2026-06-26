@@ -551,6 +551,13 @@ rejects('See [x](coaps://internal-device:5684/sensor).', 'plain coaps:// IoT URL
 rejects('See [x](co&#97;p://internal-device:5683/sensor).', 'entity-obfuscated coap:// (obfuscated scan path)');
 infoboxRowRejects('coap://internal-device:5683/sensor', 'coap:// rejected in an infobox row value');
 accepts('The CoAP protocol for IoT is described here only as prose.', 'benign "CoAP" prose (no // authority)');
+// cockroachdb:// scylladb:// distributed data-store connection schemes address an internal
+// cluster (SSRF targets), never an http(s) article link; //-guarded across all scan paths.
+rejects('See [x](cockroachdb://internal-host:26257/defaultdb).', 'plain cockroachdb:// connection URL');
+rejects('See [x](scylladb://internal-host:9042/ks).', 'plain scylladb:// connection URL');
+rejects('See [x](cockr&#111;achdb://internal-host:26257/defaultdb).', 'entity-obfuscated cockroachdb:// (obfuscated scan path)');
+infoboxRowRejects('scylladb://internal-host:9042/ks', 'scylladb:// rejected in an infobox row value');
+accepts('CockroachDB: a distributed SQL database, and ScyllaDB clusters are described here only as prose.', 'benign data-store prose (colon then space, no // authority)');
 // rdp:// vnc:// telnet:// ssh:// launch a native remote-session client at the host;
 // the // authority form is required so glossary definitions ("SSH: Secure Shell")
 // are unaffected.
