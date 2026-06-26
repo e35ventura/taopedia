@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { render } from 'astro:content';
-import { historyForSlug } from '../../../lib/article-history';
+import { historyForSlug, revisionStatsFromHistory } from '../../../lib/article-history';
 import { contentPagesBySlug } from '../../../lib/content-pages-by-slug';
 import { pagesFromSlugMap, publishedTitleBySlug } from '../../../lib/article-metadata';
 import slugMap from '../../../../public/data/slugmap.json';
@@ -79,6 +79,7 @@ export const GET: APIRoute = async ({ site }) => {
       articles: articles.map((article) => {
         const history = historyBySlug[article.slug] ?? [];
         const inboundLinks = inboundBySlug[article.slug] ?? 0;
+        const revisionStats = revisionStatsFromHistory(history);
         return {
           slug: article.slug,
           title: article.title,
@@ -95,9 +96,7 @@ export const GET: APIRoute = async ({ site }) => {
           // history.json expose per article, and mostlinkedpages.json / subnets.json
           // expose per directory entry — so a directory consumer can sort or filter
           // by age or recency without an N-fetch sweep of every article's history.
-          revisionCount: history.length,
-          firstEdited: history[history.length - 1]?.date ?? null,
-          lastEdited: history[0]?.date ?? null,
+          ...revisionStats,
           // The article's published outbound-reference count — the same figure
           // history.json and references.json expose (via getArticleReferences).
           referencesCount: referencesCountBySlug[article.slug] ?? 0,
