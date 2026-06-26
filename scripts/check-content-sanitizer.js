@@ -539,9 +539,14 @@ rejects('See [x](couchbase://internal-host/bucket).', 'plain couchbase:// connec
 rejects('See [x](couchdb://internal-host:5984/db).', 'plain couchdb:// connection URL');
 rejects('See [x](neo4j://internal-host:7687).', 'plain neo4j:// connection URL');
 rejects('See [x](bolt://internal-host:7687).', 'plain bolt:// (Neo4j) connection URL');
+rejects('See [x](dynamodb://internal-host:8000/table).', 'plain dynamodb:// connection URL');
+rejects('See [x](elasticsearch://internal-host:9200/index).', 'plain elasticsearch:// connection URL');
 rejects('See [x](cl&#105;ckhouse://internal-host:9000/db).', 'entity-obfuscated clickhouse:// (obfuscated scan path)');
+rejects('See [x](dynam&#111;db://internal-host:8000/table).', 'entity-obfuscated dynamodb:// (obfuscated scan path)');
 infoboxRowRejects('neo4j://internal-host:7687', 'neo4j:// rejected in an infobox row value');
 infoboxRowRejects('cassandra://internal-host:9042/ks', 'cassandra:// rejected in an infobox row value');
+infoboxRowRejects('dynamodb://internal-host:8000/table', 'dynamodb:// rejected in an infobox row value');
+infoboxRowRejects('elasticsearch://internal-host:9200/index', 'elasticsearch:// rejected in an infobox row value');
 infoboxRowAccepts('Cassandra and Neo4j are described as prose', 'benign data-store prose allowed in an infobox row value');
 accepts('A bolt of lightning, the Cassandra prophecy, and a Neo4j graph are described here only as prose.', 'benign bolt/cassandra/neo4j prose (no // authority)');
 // coap://coaps:// (Constrained Application Protocol, IoT) address a non-http device at a
