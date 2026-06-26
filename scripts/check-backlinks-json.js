@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { compareTitles } from '../src/lib/title-sort.js';
-import { buildArticleBacklinks } from './article-backlinks.js';
+import { buildArticleBacklinks, sortInboundBacklinkEntries } from './article-backlinks.js';
 import { publishedInboundLinkCount } from './most-linked.js';
 import { getArticleReferences } from '../src/lib/article-references.js';
 
@@ -155,6 +155,19 @@ const revisionStatsOf = (slug) => {
   assert.equal(empty.revisionCount, 0, 'builder: default revisionCount is 0');
   assert.equal(empty.firstEdited, null, 'builder: default firstEdited is null');
   assert.equal(empty.lastEdited, null, 'builder: default lastEdited is null');
+}
+
+// Same-title inbound links must tiebreak on raw slug order, matching references.json.
+{
+  const sorted = sortInboundBacklinkEntries([
+    { slug: 'subnet_9', title: 'Shared Title' },
+    { slug: 'subnet_10', title: 'Shared Title' },
+  ]);
+  assert.deepEqual(
+    sorted.map((entry) => entry.slug),
+    ['subnet_10', 'subnet_9'],
+    'inbound backlink sort must use raw slug order (subnet_10 before subnet_9), not compareTitles numeric slug collation',
+  );
 }
 
 // Repeated frontmatter categories must be deduped on the envelope and entries.

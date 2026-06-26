@@ -2,8 +2,7 @@ import type { APIRoute } from 'astro';
 import { getCollection, render } from 'astro:content';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
 import { publishedTitleBySlug, publishedSummaryBySlug, publishedCategoriesBySlug } from '../../../lib/site-feed-context';
-import { compareTitles } from '../../../lib/title-sort.js';
-import { buildArticleBacklinks } from '../../../../scripts/article-backlinks.js';
+import { buildArticleBacklinks, sortInboundBacklinkEntries } from '../../../../scripts/article-backlinks.js';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
 import { getArticleReferences } from '../../../lib/article-references.js';
 import { getArticleToc } from '../../../lib/article-toc.js';
@@ -61,7 +60,8 @@ export async function getStaticPaths() {
     pages.map(async (page) => {
       const slug = getPageSlug(page);
       const history = historyBySlug[slug] ?? [];
-      const backlinks = (backlinksData[slug] ?? [])
+      const backlinks = sortInboundBacklinkEntries(
+        (backlinksData[slug] ?? [])
         .filter((entry) => titleBySlug[entry.from])
         .map((entry) => {
           const entryHistory = historyBySlug[entry.from] ?? [];
@@ -78,8 +78,8 @@ export async function getStaticPaths() {
             firstEdited: entryHistory[entryHistory.length - 1]?.date ?? null,
             lastEdited: entryHistory[0]?.date ?? null,
           };
-        })
-        .sort((a, b) => compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug));
+        }),
+      );
 
       return {
         params: { slug },
