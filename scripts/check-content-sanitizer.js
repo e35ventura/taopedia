@@ -763,6 +763,19 @@ infoboxRowRejects('solana:7EqQdEUYHqE8d8u2b9j8j8j8j8j8j8j8j8j8j8j8j8j', 'solana:
 accepts('Bitcoin: A Peer-to-Peer Electronic Cash System is described here only as prose.', 'benign "Bitcoin:" prose (colon then space)');
 accepts('Ethereum: a decentralized platform, and Litecoin are described here only as prose.', 'benign "Ethereum:" prose (colon then space)');
 accepts('Solana: a high-throughput chain, Cardano: proof of stake, and Ripple: the company are described here only as prose.', 'benign altcoin-name prose (colon then space)');
+// payto: (RFC 8905) and upi: (UPI deep link) are bank / instant-payment app-launch URI
+// schemes — a clicked link opens the reader's banking / payment app pre-filled with the
+// attacker's payee and amount (fund redirection on a fiat/bank rail, distinct from the
+// crypto bitcoin:/ethereum: URIs). The //-authority form is required, so prose like
+// "UPI: a payments system" (colon then space, no //) passes.
+rejects('See [x](payto://iban/DE75512108001245126199?amount=EUR:200.0).', 'plain payto: bank payment URI');
+rejects('See [x](upi://pay?pa=attacker@bank&pn=Attacker&am=500).', 'plain upi: instant-payment URI');
+// Entity-obfuscated: the literal scan misses "pa&#121;to://" but the decoded re-scan catches it.
+rejects('See [x](pa&#121;to://iban/DE75512108001245126199?amount=EUR:200.0).', 'entity-obfuscated payto: (obfuscated scan path)');
+// Infobox-row-value scan path.
+infoboxRowRejects('upi://pay?pa=attacker@bank&am=500', 'upi: rejected in an infobox row value');
+// Prose: a name followed by a colon and a space (no //) must pass.
+accepts('UPI: a payments system, and payto interbank transfers are described here only as prose.', 'benign "UPI:" prose (colon then space, no //)');
 // geo:/maps:/comgooglemaps: are native maps / geolocation app-launch schemes — a clicked
 // link opens the OS map app at attacker-chosen coordinates/search outside the page, the
 // same native app-launch class as mailto:/skype:/itms:. The non-space lookahead keeps
