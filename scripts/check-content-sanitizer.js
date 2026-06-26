@@ -415,6 +415,12 @@ infoboxRowRejects('dict://internal-host:11211/stats', 'dict:// rejected in an in
 infoboxRowRejects('finger://attacker.example/root', 'finger:// rejected in an infobox row value');
 accepts('The dict command and the finger protocol are described here only as prose.', 'benign dict/finger prose (no // authority)');
 infoboxRowAccepts('The dict command and the finger protocol, described as prose', 'benign dict/finger prose allowed in an infobox row value');
+// nntps:// is NNTP-over-TLS — the same Usenet news client launch as nntp://. Covered
+// across the plain, entity-decoded, and infobox scan paths.
+rejects('See [x](nntps://news.evil.example/group).', 'plain nntps:// (NNTP-over-TLS) URL');
+rejects('See [x](nn&#116;ps://news.evil.example/group).', 'entity-obfuscated nntps:// (obfuscated scan path)');
+infoboxRowRejects('nntps://news.evil.example/group', 'nntps:// rejected in an infobox row value');
+accepts('The nntps variant of NNTP is described here only as prose.', 'benign nntps prose word (no // authority)');
 accepts('Breaking news: the IRC channel and a gopher burrow are described here as prose.', 'benign news:/irc/gopher prose (no // authority)');
 // ftp:// ftps:// tftp:// file-transfer schemes open a non-http connection to a remote host
 // (ftp:// is also an SSRF target); //-guarded so prose is unaffected. Coverage spans the
