@@ -565,18 +565,38 @@ rejects('See [x](bolt://internal-host:7687).', 'plain bolt:// (Neo4j) connection
 rejects('See [x](arangodb://internal-host:8529/db).', 'plain arangodb:// connection URL');
 rejects('See [x](dynamodb://internal-host:8000/table).', 'plain dynamodb:// connection URL');
 rejects('See [x](elasticsearch://internal-host:9200/index).', 'plain elasticsearch:// connection URL');
+rejects('See [x](zookeeper://internal-host:2181).', 'plain zookeeper:// connection URL');
+rejects('See [x](hdfs://internal-host:9000/data).', 'plain hdfs:// connection URL');
+rejects('See [x](hazelcast://internal-host:5701).', 'plain hazelcast:// connection URL');
+rejects('See [x](riak://internal-host:8087/bucket).', 'plain riak:// connection URL');
+rejects('See [x](minio://internal-host:9000/bucket).', 'plain minio:// connection URL');
+rejects('See [x](solr://internal-host:8983/solr/core).', 'plain solr:// connection URL');
 rejects('See [x](arangod&#98;://internal-host:8529/db).', 'entity-obfuscated arangodb:// (obfuscated scan path)');
 infoboxRowRejects('arangodb://internal-host:8529/db', 'arangodb:// rejected in an infobox row value');
 infoboxRowAccepts('ArangoDB is described as prose', 'benign data-store prose allowed in an infobox row value');
 accepts('ArangoDB graphs are described here only as prose.', 'benign arangodb prose (no // authority)');
 rejects('See [x](cl&#105;ckhouse://internal-host:9000/db).', 'entity-obfuscated clickhouse:// (obfuscated scan path)');
 rejects('See [x](dynam&#111;db://internal-host:8000/table).', 'entity-obfuscated dynamodb:// (obfuscated scan path)');
+rejects('See [x](zo&#111;keeper://internal-host:2181).', 'entity-obfuscated zookeeper:// (obfuscated scan path)');
+rejects('See [x](h&#100;fs://internal-host:9000/data).', 'entity-obfuscated hdfs:// (obfuscated scan path)');
+rejects('See [x](haz&#101;lcast://internal-host:5701).', 'entity-obfuscated hazelcast:// (obfuscated scan path)');
+rejects('See [x](r&#105;ak://internal-host:8087/bucket).', 'entity-obfuscated riak:// (obfuscated scan path)');
+rejects('See [x](m&#105;nio://internal-host:9000/bucket).', 'entity-obfuscated minio:// (obfuscated scan path)');
+rejects('See [x](s&#111;lr://internal-host:8983/solr/core).', 'entity-obfuscated solr:// (obfuscated scan path)');
 infoboxRowRejects('neo4j://internal-host:7687', 'neo4j:// rejected in an infobox row value');
 infoboxRowRejects('cassandra://internal-host:9042/ks', 'cassandra:// rejected in an infobox row value');
 infoboxRowRejects('dynamodb://internal-host:8000/table', 'dynamodb:// rejected in an infobox row value');
 infoboxRowRejects('elasticsearch://internal-host:9200/index', 'elasticsearch:// rejected in an infobox row value');
+infoboxRowRejects('zookeeper://internal-host:2181', 'zookeeper:// rejected in an infobox row value');
+infoboxRowRejects('hdfs://internal-host:9000/data', 'hdfs:// rejected in an infobox row value');
+infoboxRowRejects('hazelcast://internal-host:5701', 'hazelcast:// rejected in an infobox row value');
+infoboxRowRejects('riak://internal-host:8087/bucket', 'riak:// rejected in an infobox row value');
+infoboxRowRejects('minio://internal-host:9000/bucket', 'minio:// rejected in an infobox row value');
+infoboxRowRejects('solr://internal-host:8983/solr/core', 'solr:// rejected in an infobox row value');
 infoboxRowAccepts('Cassandra and Neo4j are described as prose', 'benign data-store prose allowed in an infobox row value');
+infoboxRowAccepts('ZooKeeper, HDFS, Hazelcast, Riak, MinIO, and Solr are described as prose', 'benign data-store prose allowed in an infobox row value');
 accepts('A bolt of lightning, the Cassandra prophecy, and a Neo4j graph are described here only as prose.', 'benign bolt/cassandra/neo4j prose (no // authority)');
+accepts('ZooKeeper coordination, HDFS storage, Hazelcast caching, Riak KV, MinIO object storage, and Solr search are described here only as prose.', 'benign zookeeper/hdfs/hazelcast/riak/minio/solr prose (no // authority)');
 // coap://coaps:// (Constrained Application Protocol, IoT) address a non-http device at a
 // host:port — an SSRF target. Covered across plain, entity-decoded, and infobox scans.
 rejects('See [x](coap://internal-device:5683/sensor).', 'plain coap:// IoT URL');
