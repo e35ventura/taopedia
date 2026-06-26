@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
-import { getCollection, render } from 'astro:content';
-import { getPageSlug, historyForSlug } from '../../../lib/article-history';
+import { render } from 'astro:content';
+import { historyForSlug } from '../../../lib/article-history';
+import { contentPagesBySlug } from '../../../lib/content-pages-by-slug';
 import {
   pageFromSlug,
   publishedCategoriesBySlug,
@@ -28,16 +29,18 @@ const linkgraphModules = import.meta.glob('../../../../public/data/linkgraph.jso
 const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
 
 export async function getStaticPaths() {
-  const pages = await getCollection('pages');
   const titleBySlug = publishedTitleBySlug();
   const summaryBySlug = publishedSummaryBySlug();
   const categoriesBySlug = publishedCategoriesBySlug();
 
+  const publishedSlugList = Object.keys(slugMap).filter((slug) => slugMap[slug]?.title);
+  const pageBySlug = await contentPagesBySlug(publishedSlugList);
   const wordCountBySlug: Record<string, number> = {};
   const sectionCountBySlug: Record<string, number> = {};
   await Promise.all(
-    pages.map(async (page) => {
-      const slug = getPageSlug(page);
+    publishedSlugList.map(async (slug) => {
+      const page = pageBySlug[slug];
+      if (!page) return;
       wordCountBySlug[slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
       const { headings } = await render(page);
       sectionCountBySlug[slug] = getArticleToc(headings).length;

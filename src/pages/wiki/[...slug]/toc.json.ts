@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
-import { getCollection, render } from 'astro:content';
-import { getPageSlug, historyForSlug } from '../../../lib/article-history';
+import { render } from 'astro:content';
+import { historyForSlug } from '../../../lib/article-history';
+import { contentPagesBySlug } from '../../../lib/content-pages-by-slug';
 import {
   pageFromSlug,
   publishedCategoriesBySlug,
@@ -25,23 +26,20 @@ const linkgraphModules = import.meta.glob('../../../../public/data/linkgraph.jso
 const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
 
 export async function getStaticPaths() {
-  const pages = await getCollection('pages');
   const titleBySlug = publishedTitleBySlug();
   const summaryBySlug = publishedSummaryBySlug();
   const categoriesBySlug = publishedCategoriesBySlug();
+  const publishedSlugList = Object.keys(slugMap).filter((slug) => slugMap[slug]?.title);
+  const pageBySlug = await contentPagesBySlug(publishedSlugList);
   // Per-slug body word count, revision history, and table-of-contents sections —
-  // the stats the envelope carries. These depend only on each page itself; the
-  // wordCount and history reads are folded into the render pass (rendering each
-  // page is async and is what requires a resolved page) so the collection is
-  // traversed once for all per-page stats, kept parallel via Promise.all — the
-  // same single combined pass backlinks.json (#1269), references.json (#1248),
-  // info.json (#1287), and cite.json (#1289) use.
+  // scoped to published slugmap members instead of rendering every collection entry.
   const wordCountBySlug: Record<string, number> = {};
   const historyBySlug: Record<string, ReturnType<typeof historyForSlug>> = {};
   const sectionsBySlug: Record<string, ReturnType<typeof getArticleToc>> = {};
   await Promise.all(
-    pages.map(async (page) => {
-      const slug = getPageSlug(page);
+    publishedSlugList.map(async (slug) => {
+      const page = pageBySlug[slug];
+      if (!page) return;
       wordCountBySlug[slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
       historyBySlug[slug] = historyForSlug(slug);
       const { headings } = await render(page);
