@@ -452,6 +452,14 @@ infoboxRowRejects('redis://internal-host:6379/0', 'redis:// rejected in an infob
 infoboxRowRejects('postgres://user@internal-host:5432/db', 'postgres:// rejected in an infobox row value');
 infoboxRowAccepts('Redis and PostgreSQL are described as prose', 'benign DB-name prose allowed in an infobox row value');
 accepts('Redis, MongoDB, MySQL, and PostgreSQL are described here only as prose.', 'benign database-name prose (no // authority)');
+// ws://wss:// are WebSocket connection schemes — non-http connections to a host:port,
+// never a valid article link. Covered across plain, entity-decoded, and infobox scans.
+rejects('See [x](ws://internal-host:8080/socket).', 'plain ws:// WebSocket URL');
+rejects('See [x](wss://internal-host/socket).', 'plain wss:// WebSocket URL');
+rejects('See [x](w&#115;://internal-host/socket).', 'entity-obfuscated ws:// (obfuscated scan path)');
+infoboxRowRejects('ws://internal-host:8080/socket', 'ws:// rejected in an infobox row value');
+infoboxRowRejects('wss://internal-host/socket', 'wss:// rejected in an infobox row value');
+accepts('The WS protocol, WebSockets, and views of rows are described here only as prose.', 'benign WS prose and words ending in "ws" are not the ws:// scheme');
 // rdp:// vnc:// telnet:// ssh:// launch a native remote-session client at the host;
 // the // authority form is required so glossary definitions ("SSH: Secure Shell")
 // are unaffected.
