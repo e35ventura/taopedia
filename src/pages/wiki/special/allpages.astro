@@ -7,10 +7,15 @@ const pages = await getCollection('pages');
 const sortedPages = sortPagesByTitle(pages);
 const getPageSlug = (page: { id: string }) =>
   page.id.replace(/\/index\.(md|mdx)$/, '').replace(/\/index$/, '').replace(/\.(md|mdx)$/, '');
+const pageCategories = (page: { data: { categories?: string[] } }) =>
+  [...new Set(page.data.categories ?? [])];
 
 const categoryIndex = new Map<string, typeof pages>();
 for (const page of sortedPages) {
-  for (const category of page.data.categories ?? []) {
+  // Dedupe a page's own categories so a frontmatter list that repeats a topic
+  // does not list the article twice in a topic group — same rule statistics
+  // (#1502) and buildCategories use.
+  for (const category of pageCategories(page)) {
     const existing = categoryIndex.get(category) ?? [];
     existing.push(page);
     categoryIndex.set(category, existing);
@@ -28,7 +33,7 @@ const topicFilters = priorityTopics
 // sortedPages is already title-ordered, so the filtered list stays ordered.
 const featuredTopicSet = new Set(priorityTopics);
 const otherPages = sortedPages.filter(
-  (page) => !(page.data.categories ?? []).some((category) => featuredTopicSet.has(category)),
+  (page) => !pageCategories(page).some((category) => featuredTopicSet.has(category)),
 );
 
 const groupedArticles = [
@@ -72,7 +77,7 @@ const groupedArticles = [
             data-article-card
             data-title={page.data.title.toLowerCase()}
             data-summary={(page.data.summary ?? '').toLowerCase()}
-            data-topics={(page.data.categories ?? []).join('|')}
+            data-topics={pageCategories(page).join('|')}
           >
             <strong>{page.data.title}</strong>
             {page.data.summary && <span>{page.data.summary}</span>}
@@ -93,7 +98,7 @@ const groupedArticles = [
                   data-article-card
                   data-title={page.data.title.toLowerCase()}
                   data-summary={(page.data.summary ?? '').toLowerCase()}
-                  data-topics={(page.data.categories ?? []).join('|')}
+                  data-topics={pageCategories(page).join('|')}
                 >
                   <a href={`/wiki/${getPageSlug(page)}/`}>{page.data.title}</a>
                   {page.data.summary && <span>{page.data.summary}</span>}
