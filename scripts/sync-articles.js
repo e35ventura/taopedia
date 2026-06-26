@@ -798,7 +798,7 @@ const unsafeContentPatterns = [
   // also the canonical server-side-request (SSRF) targets used to reach internal databases.
   // Block them as non-http schemes like the smb:/ldap:/gopher: schemes. The // authority
   // form is required so prose about "Redis", "MySQL", or "Postgres" is never affected.
-  { pattern: /\b(?:redis|rediss|mongodb(?:\+srv)?|mysql|mariadb|sqlite|influxdb|postgresql|postgres|memcached|etcd|consul|snowflake|sqlserver|mssql|timescaledb)\s*:\/\//i, reason: 'database-connection URL schemes are not allowed in article content' },
+  { pattern: /\b(?:redis|rediss|mongodb(?:\+srv)?|mysql|mariadb|sqlite|influxdb|postgresql|postgres|memcached|etcd|consul|snowflake|sqlserver|mssql|timescaledb|presto|trino|hive|oracle)\s*:\/\//i, reason: 'database-connection URL schemes are not allowed in article content' },
   // git:// svn:// cvs:// are version-control protocol-handler schemes: a clicked link is
   // handed to a registered native VC client (Git / TortoiseSVN / TortoiseCVS) which opens
   // a non-http(s) connection to the attacker's host:port to clone or check out a repo —
@@ -1137,7 +1137,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:jetbrains|intellij|pycharm|webstorm|phpstorm|sublime|atom)\s*:(?=[^\s"'<>)])/i, reason: 'code-editor protocol-handler URLs are not allowed in article content' },
   { pattern: /(?:github-mac|github-windows|github-desktop|sourcetree|gitkraken|tower|fork)\s*:\/\//i, reason: 'source-control GUI protocol-handler URLs are not allowed in article content' },
   { pattern: /(?:chrome-untrusted|chrome|edge|opera|vivaldi|brave|devtools)\s*:\/\//i, reason: 'browser-internal page URL schemes are not allowed in article content' },
-  { pattern: /(?:redis|rediss|mongodb(?:\+srv)?|mysql|mariadb|sqlite|influxdb|postgresql|postgres|memcached|etcd|consul|snowflake|sqlserver|mssql|timescaledb)\s*:\/\//i, reason: 'database-connection URL schemes are not allowed in article content' },
+  { pattern: /(?:redis|rediss|mongodb(?:\+srv)?|mysql|mariadb|sqlite|influxdb|postgresql|postgres|memcached|etcd|consul|snowflake|sqlserver|mssql|timescaledb|presto|trino|hive|oracle)\s*:\/\//i, reason: 'database-connection URL schemes are not allowed in article content' },
   { pattern: /(?:git|svn|cvs)\s*:\/\//i, reason: 'version-control protocol URL schemes are not allowed in article content' },
   { pattern: /(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats|rabbitmq|pulsar)\s*:\/\//i, reason: 'message-broker connection URL schemes are not allowed in article content' },
   { pattern: /(?:clickhouse|cassandra|couchbase|couchdb|neo4j|bolt|dynamodb|elasticsearch|arangodb|zookeeper|hdfs|hazelcast|riak|minio|solr)\s*:\/\//i, reason: 'data-store connection URL schemes are not allowed in article content' },
@@ -1208,7 +1208,7 @@ const infoboxRowValueSchemePatterns = [
   /\b(?:jetbrains|intellij|pycharm|webstorm|phpstorm|sublime|atom)\s*:(?=[^\s"'<>)])/i,
   /\b(?:github-mac|github-windows|github-desktop|sourcetree|gitkraken|tower|fork)\s*:\/\//i,
   /(?:chrome-untrusted|chrome|edge|opera|vivaldi|brave|devtools)\s*:\/\//i,
-  /(?:redis|rediss|mongodb(?:\+srv)?|mysql|mariadb|sqlite|influxdb|postgresql|postgres|memcached|etcd|consul|snowflake|sqlserver|mssql|timescaledb)\s*:\/\//i,
+  /(?:redis|rediss|mongodb(?:\+srv)?|mysql|mariadb|sqlite|influxdb|postgresql|postgres|memcached|etcd|consul|snowflake|sqlserver|mssql|timescaledb|presto|trino|hive|oracle)\s*:\/\//i,
   /(?:git|svn|cvs)\s*:\/\//i,
   /(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats|rabbitmq|pulsar)\s*:\/\//i,
   /(?:clickhouse|cassandra|couchbase|couchdb|neo4j|bolt|dynamodb|elasticsearch|arangodb|zookeeper|hdfs|hazelcast|riak|minio|solr)\s*:\/\//i,
