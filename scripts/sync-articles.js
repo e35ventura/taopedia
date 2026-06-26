@@ -949,6 +949,15 @@ const unsafeContentPatterns = [
   // shape; the (?=non-space) lookahead requires a real target and "web+" never begins a
   // word in glossary prose, so ordinary text is never affected.
   { pattern: /\bweb\+[a-z]+\s*:(?=[^\s"'<>)])/i, reason: 'web+ custom protocol-handler URL schemes are not allowed in article content' },
+  // x-apple.systempreferences: is the macOS System Settings protocol handler — the macOS
+  // counterpart of the already-blocked Windows ms-settings: handler. A clicked
+  // x-apple.systempreferences:com.apple.preference.security?Privacy is resolved by macOS,
+  // not the browser, and deep-links the reader straight into a specific Settings pane
+  // (Security & Privacy, etc.) outside the page sandbox with no script — a "click here to
+  // fix your settings" social-engineering surface, the same native settings-handler class
+  // as ms-settings:. The hyphenated/dotted "x-apple.systempreferences" token never occurs
+  // in glossary prose; the (?=non-space) lookahead requires a real target after the colon.
+  { pattern: /\bx-apple\.systempreferences\s*:(?=[^\s"'<>)])/i, reason: 'macOS System Settings protocol-handler URLs are not allowed in article content' },
   // shell: is the Windows Explorer protocol handler: shell:startup opens the user's
   // Startup folder (a drop-a-payload persistence path), shell:::{CLSID} opens special
   // folders / Control-Panel applets, and the OS — not the browser — resolves it, with
@@ -1033,6 +1042,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /\b(?:geo|maps|comgooglemaps)\s*:(?=[^\s"'<>)])/i, reason: 'native maps and geolocation app-launch URL schemes are not allowed in article content' },
   { pattern: /\bmatrix\s*:(?=[^\s"'<>)])/i, reason: 'Matrix chat client-launch URL scheme is not allowed in article content' },
   { pattern: /\bweb\+[a-z]+\s*:(?=[^\s"'<>)])/i, reason: 'web+ custom protocol-handler URL schemes are not allowed in article content' },
+  { pattern: /\bx-apple\.systempreferences\s*:(?=[^\s"'<>)])/i, reason: 'macOS System Settings protocol-handler URLs are not allowed in article content' },
   { pattern: /\bshell\s*:(?=[^\s"'<>)])/i, reason: 'shell: protocol-handler URLs are not allowed in article content' },
   { pattern: /\bms-cxh(?:-full)?\s*:/i, reason: 'Windows CloudExperienceHost protocol-handler URLs are not allowed in article content' },
   { pattern: /data\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
@@ -1087,6 +1097,7 @@ const infoboxRowValueSchemePatterns = [
   /\b(?:geo|maps|comgooglemaps)\s*:(?=[^\s"'<>)])/i,
   /\bmatrix\s*:(?=[^\s"'<>)])/i,
   /\bweb\+[a-z]+\s*:(?=[^\s"'<>)])/i,
+  /\bx-apple\.systempreferences\s*:(?=[^\s"'<>)])/i,
   /\bshell\s*:(?=[^\s"'<>)])/i,
   /\bms-cxh(?:-full)?\s*:/i,
   /data\s*:\s*text\/html/i,
