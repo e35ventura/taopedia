@@ -2,8 +2,8 @@ import type { APIRoute } from 'astro';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
 import { contentPagesBySlug } from '../../../lib/content-pages-by-slug';
 import { buildStatistics } from '../../../../scripts/statistics.js';
+import { publishedSlugList } from '../../../lib/article-metadata';
 import categoriesIndex from '../../../../public/data/categories.json';
-import slugMap from '../../../../public/data/slugmap.json';
 
 // Machine-readable site statistics at /wiki/special/statistics.json. Mirrors
 // the figures shown on the HTML Special:Statistics page as structured JSON for
@@ -19,7 +19,7 @@ export const GET: APIRoute = async ({ site }) => {
   // Word/revision totals only need published slugmap members — the same artifact
   // categories.json (#1403) and allpages.json read — instead of scanning every
   // content-collection entry when building site statistics.
-  const publishedSlugs = Object.keys(slugMap).filter((slug) => slugMap[slug]?.title);
+  const publishedSlugs = publishedSlugList();
   const pageBySlug = await contentPagesBySlug(publishedSlugs);
   const pages = publishedSlugs.map((slug) => pageBySlug[slug]).filter(Boolean);
 

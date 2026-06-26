@@ -7,6 +7,7 @@ import {
   publishedCategoriesBySlug,
   publishedSummaryBySlug,
   publishedTitleBySlug,
+  publishedSlugList,
 } from '../../../lib/article-metadata';
 import { buildArticleBacklinks, sortInboundBacklinkEntries } from '../../../../scripts/article-backlinks.js';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
@@ -29,7 +30,7 @@ export async function getStaticPaths() {
   const titleBySlug = publishedTitleBySlug();
   const summaryBySlug = publishedSummaryBySlug();
   const categoriesBySlug = publishedCategoriesBySlug();
-  const publishedSlugs = Object.keys(slugMap).filter((slug) => slugMap[slug]?.title);
+  const publishedSlugs = publishedSlugList();
   const pageBySlug = await contentPagesBySlug(publishedSlugs);
   // Per-slug body figures, revision history, and table-of-contents section count,
   // each carried on the envelope and every backlink entry. Scoped to published
