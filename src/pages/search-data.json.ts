@@ -19,7 +19,7 @@ export const GET: APIRoute = ({ site }) => {
       title: entry?.title ?? slug,
       summary: entry?.summary ?? '',
       url: `${origin}/wiki/${slug}/`,
-      categories: entry?.categories ?? [],
+      categories: [...new Set(entry?.categories ?? [])],
     })),
   );
 
