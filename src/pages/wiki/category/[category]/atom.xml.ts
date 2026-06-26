@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { buildCategoryFeedStaticPaths } from '../../../../lib/category-feed-context';
+import { wikiArticleHref } from '../../../../lib/wiki-article-path.js';
 import { buildAtomFeed } from '../../../../../scripts/atom-feed.js';
 
 export async function getStaticPaths() {
@@ -29,7 +30,7 @@ export const GET: APIRoute = ({ site, props }) => {
     description: `Recently updated Taopedia articles in the ${categoryName} topic.`,
     items: items.map((item) => ({
       title: item.title,
-      url: `${origin}/wiki/${item.slug}/`,
+      url: wikiArticleHref(origin, item.slug),
       image: `${origin}/og/${item.slug}.png`,
       description: item.summary,
       categories: item.categories,
