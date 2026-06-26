@@ -841,6 +841,16 @@ const unsafeContentPatterns = [
   // "Slack: a team chat app" or "a Discord server" (a name then a colon/word, no ://) is
   // never affected; the scheme names never occur as URLs in glossary prose.
   { pattern: /\b(?:tg|whatsapp|discord|slack)\s*:\/\//i, reason: 'messaging-app deep-link URL schemes are not allowed in article content' },
+  // ts3server:// mumble:// ventrilo:// are voice-chat client-launch protocol handlers the OS
+  // resolves to launch the locally-installed client — not the browser — pointed at an
+  // attacker-chosen server. A clicked ts3server://attacker.example?port=… joins a TeamSpeak
+  // server (its handler's argument parsing was a documented client RCE/launch vector),
+  // mumble://attacker.example/ connects a Mumble client, and ventrilo://… a Ventrilo client —
+  // all driving a native app outside the page sandbox with no script, the same native
+  // protocol-handler class as the blocked steam:// game launcher and the tg:/zoommtg: app
+  // handlers. The //-authority form is required so the prose words "mumble"/"ventrilo" before
+  // a colon are never affected; the scheme names never occur as URLs in glossary prose.
+  { pattern: /\b(?:ts3server|mumble|ventrilo)\s*:\/\//i, reason: 'voice-chat client-launch URL schemes are not allowed in article content' },
   // webcal:// webcals:// feed:// itpc:// pcast:// are subscription-handler URL schemes the
   // OS resolves to point a native app at an attacker-controlled remote resource it then
   // fetches on a schedule — outside the browser with no script. webcal://attacker.example/x.ics
@@ -937,6 +947,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /\b(?:skype|callto|facetime-audio|facetime|sgnl)\s*:(?=[^\s"'<>)])/i, reason: 'communication-app launch URL schemes are not allowed in article content' },
   { pattern: /\b(?:mailto|tel|sms)\s*:(?=[^\s"'<>)])/i, reason: 'contact-launch URL schemes are not allowed in article content' },
   { pattern: /(?:tg|whatsapp|discord|slack)\s*:\/\//i, reason: 'messaging-app deep-link URL schemes are not allowed in article content' },
+  { pattern: /(?:ts3server|mumble|ventrilo)\s*:\/\//i, reason: 'voice-chat client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:webcal|webcals|feed|itpc|pcast)\s*:\/\//i, reason: 'subscription-handler URL schemes are not allowed in article content' },
   { pattern: /(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash)\s*:(?=[^\s"'<>)])/i, reason: 'cryptocurrency payment URI schemes are not allowed in article content' },
   { pattern: /\bshell\s*:(?=[^\s"'<>)])/i, reason: 'shell: protocol-handler URLs are not allowed in article content' },
@@ -982,6 +993,7 @@ const infoboxRowValueSchemePatterns = [
   /\b(?:skype|callto|facetime-audio|facetime|sgnl)\s*:(?=[^\s"'<>)])/i,
   /\b(?:mailto|tel|sms)\s*:(?=[^\s"'<>)])/i,
   /(?:tg|whatsapp|discord|slack)\s*:\/\//i,
+  /(?:ts3server|mumble|ventrilo)\s*:\/\//i,
   /(?:webcal|webcals|feed|itpc|pcast)\s*:\/\//i,
   /(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash)\s*:(?=[^\s"'<>)])/i,
   /\bshell\s*:(?=[^\s"'<>)])/i,
