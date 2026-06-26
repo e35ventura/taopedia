@@ -3,6 +3,8 @@
 // regression check share one source of truth without rendering the site.
 
 import { compareFeedItemsByDateAndKey } from '../src/lib/feed-item-sort.js';
+import { itemDate, toRfc3339 } from '../src/lib/feed-item-date.js';
+import { uniqueFeedCategories } from '../src/lib/feed-categories.js';
 
 const SITE_NAME = 'Taopedia';
 const FEED_DESCRIPTION =
@@ -27,45 +29,6 @@ function escapeXml(value) {
 
 function cleanText(value) {
   return String(value ?? '').trim();
-}
-
-function toRfc3339(value) {
-  if (!value) return '';
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? '' : date.toISOString();
-}
-
-function itemDate(item) {
-  if (!item) return '';
-  // The ?? operator only falls through on null/undefined, not on empty strings.
-  // A caller that explicitly sets dateModified='' (e.g. a per-category endpoint
-  // that found no history for the article) would otherwise shadow the
-  // published-date fallback and lose the known-article date entirely. Treat
-  // empty/whitespace-only values the same as missing so the published-date
-  // fallback still fires for items the endpoint knows about but did not modify.
-  const candidates = [item.dateModified, item.date, item.datePublished];
-  for (const value of candidates) {
-    if (typeof value === 'string' && value.trim() !== '') return value;
-  }
-  return '';
-}
-
-// Trim, drop blanks, and dedupe an item's categories, preserving first-seen
-// order. An article whose frontmatter lists the same category twice
-// (`categories: ['TAO', 'TAO']`) is a real data condition — the same one
-// `buildCategories`/`buildStatistics` were fixed to count distinctly (#1472).
-// Without this the entry emits duplicate <category> elements for that article.
-function uniqueCategories(categories) {
-  const seen = new Set();
-  const out = [];
-  for (const raw of Array.isArray(categories) ? categories : []) {
-    const value = String(raw ?? '').trim();
-    if (value && !seen.has(value)) {
-      seen.add(value);
-      out.push(value);
-    }
-  }
-  return out;
 }
 
 export function buildAtomFeed({
@@ -97,7 +60,7 @@ export function buildAtomFeed({
       const summary = cleanText(item.description ?? item.summary);
       const datePublished = toRfc3339(item.datePublished);
       const dateModified = toRfc3339(itemDate(item)) || feedUpdated;
-      const categories = uniqueCategories(item.categories)
+      const categories = uniqueFeedCategories(item.categories)
         .map((category) => `    <category term="${escapeXml(category)}" />`);
 
       return [

@@ -8,6 +8,8 @@
 // trailing slashes; it only formats and escapes the channel/item XML.
 
 import { compareFeedItemsByDateAndKey } from '../src/lib/feed-item-sort.js';
+import { itemDate } from '../src/lib/feed-item-date.js';
+import { uniqueFeedCategories } from '../src/lib/feed-categories.js';
 
 const SITE_NAME = 'Taopedia';
 const FEED_DESCRIPTION =
@@ -39,40 +41,6 @@ function toRfc822(value) {
   return Number.isNaN(date.getTime()) ? '' : date.toUTCString();
 }
 
-function itemDate(item) {
-  if (!item) return '';
-  // The ?? operator only falls through on null/undefined, not on empty strings.
-  // A caller that explicitly sets dateModified='' (e.g. a per-category endpoint
-  // that found no history for the article) would otherwise shadow the
-  // published-date fallback and lose the known-article date entirely. Treat
-  // empty/whitespace-only values the same as missing so the published-date
-  // fallback still fires for items the endpoint knows about but did not modify.
-  const candidates = [item.dateModified, item.date, item.datePublished];
-  for (const value of candidates) {
-    if (typeof value === 'string' && value.trim() !== '') return value;
-  }
-  return '';
-}
-
-// Trim, drop blanks, and dedupe an item's categories, preserving first-seen
-// order. An article whose frontmatter lists the same category twice
-// (`categories: ['TAO', 'TAO']`) is a real data condition — the same one
-// `buildCategories`/`buildStatistics` were fixed to count distinctly (#1472).
-// Without this the feed emits duplicate <category> elements for that article,
-// so a reader filtering or grouping by category sees the topic twice.
-function uniqueCategories(categories) {
-  const seen = new Set();
-  const out = [];
-  for (const raw of Array.isArray(categories) ? categories : []) {
-    const value = String(raw ?? '').trim();
-    if (value && !seen.has(value)) {
-      seen.add(value);
-      out.push(value);
-    }
-  }
-  return out;
-}
-
 export function buildRssFeed({
   siteUrl,
   items = [],
@@ -97,7 +65,7 @@ export function buildRssFeed({
   const itemXml = sortedItems
     .map((item) => {
       const pubDate = toRfc822(itemDate(item));
-      const categoryXml = uniqueCategories(item.categories)
+      const categoryXml = uniqueFeedCategories(item.categories)
         .map((category) => `      <category>${escapeXml(category)}</category>`);
 
       return [
