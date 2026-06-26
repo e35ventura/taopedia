@@ -230,7 +230,7 @@ export function buildArticleRelatedPages({
     // envelopes expose, so a consumer of related.json can see what the article
     // is tagged with (and why a related page shares its tags) without a second
     // fetch. The per-related-entry `tags` already expose each candidate's topics.
-    categories,
+    categories: [...new Set(categories)],
     // The article's own published inbound-link count — the same figure
     // info.json / history.json / cite.json expose on their envelopes (via the
     // shared helper), so related.json can show link popularity without a refetch.
@@ -282,7 +282,7 @@ export function buildArticleRelatedPages({
       title: entry.title,
       summary: entry.summary || null,
       tags: entry.tags,
-      categories: Array.isArray(entry.categories) ? entry.categories : [],
+      categories: Array.isArray(entry.categories) ? [...new Set(entry.categories)] : [],
       backlinks: Number.isFinite(entry.backlinks) ? entry.backlinks : 0,
       // info.json names this figure incomingLinks; keep backlinks for the field
       // name the HTML listing endpoints (allpages/subnets/category) expose.

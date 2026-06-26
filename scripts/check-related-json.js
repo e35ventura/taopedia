@@ -246,6 +246,29 @@ const sectionCountOf = (slug) => {
   assert.equal(empty.lastEdited, null, 'builder: lastEdited defaults to null when omitted');
 }
 
+// Repeated frontmatter categories must be deduped on the envelope and entries.
+{
+  const result = buildArticleRelatedPages({
+    slug: 'hub',
+    title: 'Hub',
+    origin: ORIGIN,
+    categories: ['Mining', 'Consensus', 'Mining'],
+    relatedPages: [
+      { slug: 'leaf', title: 'Leaf', summary: '', tags: ['Subnets'], categories: ['Subnets', 'Mining', 'Subnets'], backlinks: 0 },
+    ],
+  });
+  assert.deepEqual(
+    result.categories,
+    ['Mining', 'Consensus'],
+    'builder: envelope categories must be deduped while preserving first-seen order',
+  );
+  assert.deepEqual(
+    result.related[0].categories,
+    ['Subnets', 'Mining'],
+    'builder: related entry categories must be deduped while preserving first-seen order',
+  );
+}
+
 // ---- 2) Built-output checks -----------------------------------------------
 assert.ok(fs.existsSync(wikiDir), 'dist/wiki not found; run the build first');
 assert.ok(fs.existsSync(slugmapFile), 'public/data/slugmap.json not found; run the build first');
