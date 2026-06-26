@@ -65,11 +65,11 @@ const projectRoot = path.resolve(__dirname, '..');
   );
 }
 
-// ---- 2) Tiebreak uses compareTitles (NOT raw string) ----------------------
+// ---- 2) Tiebreak uses compareTitles for titles, raw slug when titles tie ----
 //
-// Same-count numeric-suffixed slugs must order numerically (subnet_9 before
-// subnet_10), the SAME ordering the HTML page uses. Raw string comparison would
-// put subnet_10 before subnet_9.
+// Different-title numeric-suffixed slugs must order numerically (subnet_9 before
+// subnet_10) via compareTitles on the title. Same-title slug ties must use raw
+// code-unit order (subnet_10 before subnet_9), matching references/backlinks.
 {
   const tied = buildMostLinkedPages({
     backlinks: {
@@ -82,7 +82,24 @@ const projectRoot = path.resolve(__dirname, '..');
   assert.deepEqual(
     tied.map((e) => e.slug),
     ['subnet_9', 'subnet_10'],
-    'tied numeric-suffixed entries must use compareTitles (Subnet 9 before Subnet 10), NOT raw string order',
+    'tied numeric-suffixed entries with different titles must use compareTitles (Subnet 9 before Subnet 10)',
+  );
+}
+
+// ---- 2b) Same-title slug ties use raw slug order --------------------------
+{
+  const sameTitle = buildMostLinkedPages({
+    backlinks: {
+      subnet_9: [{ from: 'x' }],
+      subnet_10: [{ from: 'x' }],
+      x: [],
+    },
+    titleBySlug: { subnet_9: 'Subnet', subnet_10: 'Subnet', x: 'X' },
+  });
+  assert.deepEqual(
+    sameTitle.map((e) => e.slug),
+    ['subnet_10', 'subnet_9'],
+    'same-title slug ties must use raw slug order (subnet_10 before subnet_9), not compareTitles numeric slug collation',
   );
 }
 

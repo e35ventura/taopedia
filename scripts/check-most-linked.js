@@ -75,7 +75,7 @@ for (let i = 1; i < rows.length; i++) {
 // Re-derive the expected ranking from the link graph via the SAME shared builder
 // the page and mostlinkedpages.json use, so the check pins the exact rule the
 // surfaces produce: published-only inbound count, self-links excluded
-// (`from !== slug`), count-desc then compareTitles(title) then compareTitles(slug).
+// (`from !== slug`), count-desc then compareTitles(title) then raw slug order when titles tie.
 const titleBySlug = Object.fromEntries(
   Object.entries(slugmap).map(([slug, entry]) => [slug, entry?.title ?? slug]),
 );

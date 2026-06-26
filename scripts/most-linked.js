@@ -9,9 +9,9 @@
 // tools) rank through this builder, so the two surfaces can never disagree. It ranks
 // published articles by how many OTHER published articles link to them (the same
 // orphan-skipping, published-only inbound count "What links here" uses, with
-// self-links excluded), count-desc then compareTitles(title) then compareTitles(slug)
-// -- so neither surface mis-orders numeric-suffixed names like "Subnet 9" vs
-// "Subnet 10".
+// self-links excluded), count-desc then compareTitles(title) then raw slug code-unit
+// order when titles tie -- so numeric-suffixed titles like "Subnet 9" vs "Subnet 10"
+// still sort correctly, while same-title slug ties match references/backlinks ordering.
 
 import { compareTitles } from '../src/lib/title-sort.js';
 
@@ -33,5 +33,10 @@ export function buildMostLinkedPages({ backlinks, titleBySlug }) {
       count: publishedInboundLinkCount(backlinks, slug, titleBySlug),
     }))
     .filter((entry) => entry.count > 0)
-    .sort((a, b) => b.count - a.count || compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug));
+    .sort(
+      (a, b) =>
+        b.count - a.count ||
+        compareTitles(a.title, b.title) ||
+        (a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0),
+    );
 }
