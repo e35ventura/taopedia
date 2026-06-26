@@ -48,6 +48,27 @@ assert.deepEqual(
   'no wanted pages when every target resolves to a published article',
 );
 
+// Same-count ties (and the requester lists) order by a PLAIN code-unit slug
+// comparison — the site-wide listing convention (buildMostLinkedPages /
+// getArticleReferences / search-data) — NOT compareTitles numeric collation. So a
+// tied "subnet_10" sorts before "subnet_9" (raw '1' < '9'), the opposite of numeric
+// collation, matching every other listing; likewise requester "from_10" before "from_9".
+{
+  const numericTitles = { from_10: 'From 10', from_9: 'From 9' };
+  const numericGraph = {
+    from_9: [{ target: 'subnet_9' }, { target: 'subnet_10' }],
+    from_10: [{ target: 'subnet_9' }, { target: 'subnet_10' }],
+  };
+  assert.deepEqual(
+    buildWantedPages({ linkGraph: numericGraph, titleBySlug: numericTitles }),
+    [
+      { slug: 'subnet_10', count: 2, requestedBy: ['from_10', 'from_9'] },
+      { slug: 'subnet_9', count: 2, requestedBy: ['from_10', 'from_9'] },
+    ],
+    'tied wanted slugs and requester lists use plain code-unit order (subnet_10 before subnet_9, from_10 before from_9), matching site-wide listings',
+  );
+}
+
 // ---- Built-output contract: validate the served endpoint --------------------
 //
 // The route's whole point is the machine-readable JSON, so re-derive the expected
