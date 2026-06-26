@@ -47,7 +47,8 @@ export const buildCiteJson = ({
     referencesJsonUrl: `${origin}/wiki/${slug}/references.json`,
     relatedJsonUrl: `${origin}/wiki/${slug}/related.json`,
     imageUrl: `${origin}/og/${slug}.png`,
-    categories,
+    // Dedupe repeated frontmatter topics so cite.json cannot list the same category twice.
+    categories: [...new Set(categories)],
     incomingLinks: Number.isFinite(incomingLinks) ? incomingLinks : 0,
     revisionCount,
     firstEdited: firstEdited ?? null,
