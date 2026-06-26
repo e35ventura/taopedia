@@ -604,6 +604,19 @@ infoboxRowRejects('rtmp://attacker.example/live/stream', 'rtmp:// rejected in an
 infoboxRowRejects('rtmps://attacker.example/live/stream', 'rtmps:// rejected in an infobox row value');
 infoboxRowAccepts('RTMP live streaming is described as prose', 'benign RTMP prose allowed in an infobox row value');
 accepts('The RTMP protocol for live streaming is described here only as prose.', 'benign "RTMP" prose (no // authority)');
+// spotify:/deezer: are music-streaming app deep-link schemes — a clicked link opens the
+// native client on attacker-chosen content outside the page, the same native-app-launch
+// class as tg:/skype:/steam:. The non-space lookahead keeps prose like "Spotify: a music
+// service" (colon then space) passing.
+rejects('See [x](spotify:user:attacker:playlist:6rqhFgbbKwnb9MLmUQDhG6).', 'plain spotify: opaque deep-link');
+rejects('See [x](spotify://track/4cOdK2wGLETKBW3PvgPWqT).', 'plain spotify:// deep-link');
+rejects('See [x](deezer://album/12345).', 'plain deezer:// deep-link');
+// Entity-obfuscated: the literal scan misses "spotif&#121;:" but the decoded re-scan catches it.
+rejects('See [x](spotif&#121;:track:4cOdK2wGLETKBW3PvgPWqT).', 'entity-obfuscated spotify: (obfuscated scan path)');
+// Infobox-row-value scan path.
+infoboxRowRejects('spotify:track:4cOdK2wGLETKBW3PvgPWqT', 'spotify: rejected in an infobox row value');
+// Prose: a brand name followed by a colon and a space must pass.
+accepts('Spotify: a music-streaming service, and Deezer are described here only as prose.', 'benign "Spotify:" prose (colon then space)');
 // ms-its: and mk:@MSITStore: resolve a page out of a compiled-HTML-help (.chm) archive
 // through the native ITSS handler (a documented RCE vector), blocked like mhtml:/jar:.
 rejects('See [x](ms-its:evil.chm::/exploit.htm).', 'plain ms-its: CHM scheme');

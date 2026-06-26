@@ -815,6 +815,16 @@ const unsafeContentPatterns = [
   // surface). Article media uses <video>/<audio> (already blocked); the // form means prose
   // about the "RTMP protocol" is unaffected.
   { pattern: /\b(?:rtmpte|rtmpts|rtmpt|rtmpe|rtmps|rtmp)\s*:\/\//i, reason: 'media-streaming client-launch URL schemes are not allowed in article content' },
+  // spotify: and deezer: are music-streaming app deep-link schemes the OS resolves to launch
+  // the locally-installed client — not the browser. A clicked spotify:user:attacker:playlist:…
+  // or spotify://… opens the Spotify app on attacker-chosen content, and deezer://… deep-links
+  // the Deezer app — driving a native app outside the page sandbox with no script. Unlike the
+  // rtsp://rtmp:// streaming *protocols* above (handed to a media player), these are native app
+  // deep-links, the same app-launch class as the blocked tg:/skype:/steam: handlers. spotify:
+  // carries an opaque path (spotify:track:…) as well as the //-authority form, so the
+  // (?=non-space) lookahead is used; "Spotify"/"Deezer" are brand names, so prose like
+  // "Spotify: a music service" (colon then space) is never affected.
+  { pattern: /\b(?:spotify|deezer)\s*:(?=[^\s"'<>)])/i, reason: 'music-streaming app deep-link URL schemes are not allowed in article content' },
   // ms-its: and mk:@MSITStore: are the InfoTech Storage System (compiled-HTML-help, .chm)
   // URL schemes: ms-its:<chm>::/page.htm and mk:@MSITStore:<chm>::/page.htm resolve a page
   // out of a local or remote .chm help archive through the native ITSS handler — a
@@ -1032,6 +1042,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:ftp|rdp|vnc|spice|teamviewer|anydesk|rustdesk|logmein|parsec|nomachine|ultraviewer|telnet|ssh|sftp|fish|rlogin|rsh|tn3270)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:rtsps?|rtspu|mms)\s*:\/\//i, reason: 'media-streaming client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:rtmpte|rtmpts|rtmpt|rtmpe|rtmps|rtmp)\s*:\/\//i, reason: 'media-streaming client-launch URL schemes are not allowed in article content' },
+  { pattern: /\b(?:spotify|deezer)\s*:(?=[^\s"'<>)])/i, reason: 'music-streaming app deep-link URL schemes are not allowed in article content' },
   { pattern: /(?:ms-its\s*:|mk\s*:\s*@)/i, reason: 'compiled-HTML-help (CHM) URL schemes are not allowed in article content' },
   { pattern: /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i, reason: 'mobile app-store URL schemes are not allowed in article content' },
   { pattern: /(?:steam|com\.epicgames\.launcher)\s*:\/\//i, reason: 'game-launcher protocol-handler URLs are not allowed in article content' },
@@ -1087,6 +1098,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:ftp|rdp|vnc|spice|teamviewer|anydesk|rustdesk|logmein|parsec|nomachine|ultraviewer|telnet|ssh|sftp|fish|rlogin|rsh|tn3270)\s*:\/\//i,
   /(?:rtsps?|rtspu|mms)\s*:\/\//i,
   /(?:rtmpte|rtmpts|rtmpt|rtmpe|rtmps|rtmp)\s*:\/\//i,
+  /\b(?:spotify|deezer)\s*:(?=[^\s"'<>)])/i,
   /(?:ms-its\s*:|mk\s*:\s*@)/i,
   /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i,
   /(?:steam|com\.epicgames\.launcher)\s*:\/\//i,
