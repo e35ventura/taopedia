@@ -625,6 +625,14 @@ rejects('See [x](spotif&#121;:track:4cOdK2wGLETKBW3PvgPWqT).', 'entity-obfuscate
 infoboxRowRejects('spotify:track:4cOdK2wGLETKBW3PvgPWqT', 'spotify: rejected in an infobox row value');
 // Prose: a brand name followed by a colon and a space must pass.
 accepts('Spotify: a music-streaming service, and Deezer are described here only as prose.', 'benign "Spotify:" prose (colon then space)');
+// obsidian:/notion: are note-taking app deep-link schemes — a clicked link opens the
+// native client on attacker-chosen content outside the page, the same app-launch class
+// as onenote:/spotify:. The non-space lookahead keeps prose like "Obsidian: a note app" passing.
+rejects('See [x](obsidian://open?vault=evil&file=note).', 'plain obsidian:// deep-link');
+rejects('See [x](notion://www.notion.so/evil-page).', 'plain notion:// deep-link');
+rejects('See [x](obsid&#105;an://open?vault=evil).', 'entity-obfuscated obsidian:// (obfuscated scan path)');
+infoboxRowRejects('notion://www.notion.so/evil-page', 'notion:// rejected in an infobox row value');
+accepts('Obsidian: a note-taking app, and Notion workspaces are described here only as prose.', 'benign "Obsidian:" prose (colon then space)');
 // ms-its: and mk:@MSITStore: resolve a page out of a compiled-HTML-help (.chm) archive
 // through the native ITSS handler (a documented RCE vector), blocked like mhtml:/jar:.
 rejects('See [x](ms-its:evil.chm::/exploit.htm).', 'plain ms-its: CHM scheme');
