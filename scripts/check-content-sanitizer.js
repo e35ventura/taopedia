@@ -431,6 +431,12 @@ rejects('See [x](tftp://attacker.example/file).', 'plain tftp:// URL');
 rejects('See [x](f&#116;p://attacker.example/file).', 'entity-obfuscated ftp:// (obfuscated scan path)');
 infoboxRowRejects('ftp://attacker.example/file', 'ftp:// rejected in an infobox row value');
 infoboxRowRejects('tftp://attacker.example/file', 'tftp:// rejected in an infobox row value');
+// rsync:// is the rsync file-transfer scheme — launches a native rsync client against the
+// attacker's host. Covered across the plain, entity-decoded, and infobox scan paths.
+rejects('See [x](rsync://attacker.example/module).', 'plain rsync:// transfer URL');
+rejects('See [x](rs&#121;nc://attacker.example/module).', 'entity-obfuscated rsync:// (obfuscated scan path)');
+infoboxRowRejects('rsync://attacker.example/module', 'rsync:// rejected in an infobox row value');
+accepts('The rsync command and the FTP protocol are described here only as prose.', 'benign rsync/FTP prose (no // authority)');
 infoboxRowAccepts('An FTP server and the FTP protocol are described as prose', 'benign FTP prose allowed in an infobox row value');
 accepts('An FTP server and the TFTP protocol are described here only as prose.', 'benign ftp/tftp prose (no // authority)');
 // mhtml:/jar: archive-extraction schemes historically rendered attacker HTML from
