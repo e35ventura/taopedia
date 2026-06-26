@@ -452,6 +452,13 @@ rejects('See [x](postgresql://user@internal-host:5432/db).', 'plain postgresql:/
 rejects('See [x](git://attacker.example/evil.git).', 'plain git:// clone URL');
 rejects('See [x](svn://attacker.example/repo).', 'plain svn:// checkout URL');
 rejects('See [x](cvs://attacker.example/repo).', 'plain cvs:// checkout URL');
+// Coverage spans the plain content scan, the entity-decoded obfuscated scan, and the
+// infobox-row scan (all three deny-lists carry these schemes).
+rejects('See [x](g&#105;t://attacker.example/evil.git).', 'entity-obfuscated git:// (obfuscated scan path)');
+infoboxRowRejects('git://attacker.example/evil.git', 'git:// rejected in an infobox row value');
+infoboxRowRejects('svn://attacker.example/repo', 'svn:// rejected in an infobox row value');
+infoboxRowRejects('cvs://attacker.example/repo', 'cvs:// rejected in an infobox row value');
+infoboxRowAccepts('The git command and an svn repo are described as prose', 'benign git/svn prose allowed in an infobox row value');
 accepts('The git command, an svn repo, and cvs history are described here only as prose.', 'benign git/svn/cvs prose words (no // authority)');
 rejects('See [x](red&#105;s://internal-host:6379/0).', 'entity-obfuscated redis:// (obfuscated scan path)');
 infoboxRowRejects('redis://internal-host:6379/0', 'redis:// rejected in an infobox row value');
