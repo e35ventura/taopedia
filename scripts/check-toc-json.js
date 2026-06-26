@@ -124,6 +124,18 @@ const ORIGIN = 'https://taopedia.org';
   const empty = buildArticleToc({ slug: 'x', title: 'X', origin: ORIGIN });
   assert.equal(empty.wordCount, 0, 'builder: default wordCount is 0');
   assert.equal(empty.readingMinutes, 1, 'builder: default readingMinutes is 1 (ceil(0/200))');
+
+  const deduped = buildArticleToc({
+    slug: 'dup',
+    title: 'Dup',
+    origin: ORIGIN,
+    categories: ['Mining', 'Consensus', 'Mining'],
+  });
+  assert.deepEqual(
+    deduped.categories,
+    ['Mining', 'Consensus'],
+    'builder: repeated frontmatter categories must be deduped while preserving first-seen order',
+  );
 }
 
 // ---- 2) Built-output checks -----------------------------------------------
