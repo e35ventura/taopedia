@@ -725,6 +725,13 @@ const unsafeContentPatterns = [
   // Block them as non-http schemes like the smb:/ldap:/gopher: schemes. The // authority
   // form is required so prose about "Redis", "MySQL", or "Postgres" is never affected.
   { pattern: /\b(?:redis|rediss|mongodb(?:\+srv)?|mysql|postgresql|postgres)\s*:\/\//i, reason: 'database-connection URL schemes are not allowed in article content' },
+  // amqp:// amqps:// mqtt:// mqtts:// stomp:// kafka:// nats:// are message-broker / queue
+  // connection URL schemes that address an internal messaging service at a host:port, not an
+  // http(s) resource — the sibling of the database-connection schemes above and the canonical
+  // server-side-request (SSRF) targets used to reach internal brokers. Article links are
+  // limited to http(s), so these are never a valid article link. The // authority form is
+  // required so prose about "AMQP", "MQTT", or "Kafka" is unaffected.
+  { pattern: /\b(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats)\s*:\/\//i, reason: 'message-broker connection URL schemes are not allowed in article content' },
   // rdp:// vnc:// telnet:// ssh:// sftp:// hand the URL's host to a native remote-session
   // client: a clicked rdp://attacker-host or telnet://internal-host opens an OS
   // client outside the page sandbox with no script — the same native protocol-handler
@@ -908,6 +915,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:magnet|ed2k)\s*:/i, reason: 'peer-to-peer file-sharing URL schemes are not allowed in article content' },
   { pattern: /(?:vscode-insiders|vscodium|vscode)\s*:/i, reason: 'code-editor protocol-handler URLs are not allowed in article content' },
   { pattern: /(?:redis|rediss|mongodb(?:\+srv)?|mysql|postgresql|postgres)\s*:\/\//i, reason: 'database-connection URL schemes are not allowed in article content' },
+  { pattern: /(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats)\s*:\/\//i, reason: 'message-broker connection URL schemes are not allowed in article content' },
   { pattern: /(?:ftp|rdp|vnc|telnet|ssh|sftp|rlogin|rsh|tn3270)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:rtsps?|rtspu|mms)\s*:\/\//i, reason: 'media-streaming client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:ms-its\s*:|mk\s*:\s*@)/i, reason: 'compiled-HTML-help (CHM) URL schemes are not allowed in article content' },
@@ -951,6 +959,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:magnet|ed2k)\s*:/i,
   /(?:vscode-insiders|vscodium|vscode)\s*:/i,
   /(?:redis|rediss|mongodb(?:\+srv)?|mysql|postgresql|postgres)\s*:\/\//i,
+  /(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats)\s*:\/\//i,
   /(?:ftp|rdp|vnc|telnet|ssh|sftp|rlogin|rsh|tn3270)\s*:\/\//i,
   /(?:rtsps?|rtspu|mms)\s*:\/\//i,
   /(?:ms-its\s*:|mk\s*:\s*@)/i,
