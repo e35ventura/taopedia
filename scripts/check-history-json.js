@@ -5,6 +5,12 @@ import { fileURLToPath } from 'node:url';
 import { buildArticleHistory } from './article-history-json.js';
 import { getArticleReferences } from '../src/lib/article-references.js';
 import { publishedInboundLinkCount } from './most-linked.js';
+import {
+  wikiArticleHref,
+  wikiCompanionFileHref,
+  wikiCompanionHref,
+  wikiCompanionJsonHref,
+} from '../src/lib/wiki-article-path.js';
 
 // Load-bearing check for /wiki/<slug>/history.json: the machine-readable
 // companion to the revision-history HTML page. It (1) unit-tests the builder,
@@ -171,39 +177,23 @@ for (const slug of articleSlugs) {
   // 3) SHAPE
   assert.equal(doc.slug, slug, `${slug}: history.json slug must equal the article slug`);
   assert.equal(typeof doc.title, 'string', `${slug}: history.json title must be a string`);
-  assert.equal(doc.url, `${ORIGIN}/wiki/${slug}/`, `${slug}: history.json url must be the canonical article URL`);
-  // infoUrl / infoJsonUrl link the envelope back to the article's Page-information
-  // hub (the same cross-link references.json exposes), so a consumer of
-  // history.json can reach the article's metadata overview and its JSON form.
-  assert.equal(doc.infoUrl, `${ORIGIN}/wiki/${slug}/info/`, `${slug}: history.json infoUrl must point to the Page-information hub`);
-  assert.equal(doc.infoJsonUrl, `${ORIGIN}/wiki/${slug}/info.json`, `${slug}: history.json infoJsonUrl must point to the info.json hub`);
-  assert.equal(doc.historyUrl, `${ORIGIN}/wiki/${slug}/history/`, `${slug}: history.json historyUrl must point to the HTML page`);
-  assert.equal(doc.historyJsonUrl, `${ORIGIN}/wiki/${slug}/history.json`, `${slug}: history.json must expose its own canonical historyJsonUrl`);
-  // backlinksUrl / backlinksJsonUrl cross-link to the sibling What-links-here
-  // endpoint, symmetric with how backlinks.json already cross-links to history
-  // (historyUrl + historyJsonUrl). So a consumer on either page reaches the other.
-  assert.equal(doc.backlinksUrl, `${ORIGIN}/wiki/${slug}/backlinks/`, `${slug}: history.json backlinksUrl must point to the sibling HTML backlinks page`);
-  assert.equal(doc.backlinksJsonUrl, `${ORIGIN}/wiki/${slug}/backlinks.json`, `${slug}: history.json backlinksJsonUrl must point to the sibling machine-readable backlinks endpoint`);
-  // citeUrl / citeJsonUrl / bibtexUrl cross-link to the article's Cite-this-page
-  // hub, symmetric with how references.json and cite.json already expose the
-  // history siblings so consumers can reach citation metadata from revision history.
-  assert.equal(doc.citeUrl, `${ORIGIN}/wiki/${slug}/cite/`, `${slug}: history.json citeUrl must point to the Cite-this-page hub`);
-  assert.equal(doc.citeJsonUrl, `${ORIGIN}/wiki/${slug}/cite.json`, `${slug}: history.json citeJsonUrl must point to the cite.json hub`);
-  assert.equal(doc.bibtexUrl, `${ORIGIN}/wiki/${slug}/cite.bib`, `${slug}: history.json bibtexUrl must point to the BibTeX export`);
-  // referencesUrl / relatedUrl cross-link to the article's outbound-link and
-  // related-pages JSON endpoints, symmetric with how references.json and
-  // related.json already expose history siblings.
-  assert.equal(doc.referencesUrl, `${ORIGIN}/wiki/${slug}/references.json`, `${slug}: history.json referencesUrl must point to the references.json hub`);
-  assert.equal(doc.relatedUrl, `${ORIGIN}/wiki/${slug}/related.json`, `${slug}: history.json relatedUrl must point to the related.json hub`);
-  // referencesJsonUrl / relatedJsonUrl are the consistently-named *JsonUrl aliases
-  // for referencesUrl / relatedUrl; each must equal the canonical .json URL and its counterpart.
-  assert.equal(doc.referencesJsonUrl, `${ORIGIN}/wiki/${slug}/references.json`, `${slug}: history.json referencesJsonUrl must point to the references.json hub`);
+  assert.equal(doc.url, wikiArticleHref(ORIGIN, slug), `${slug}: history.json url must be the canonical article URL`);
+  assert.equal(doc.infoUrl, wikiCompanionHref(ORIGIN, slug, 'info'), `${slug}: history.json infoUrl must point to the Page-information hub`);
+  assert.equal(doc.infoJsonUrl, wikiCompanionJsonHref(ORIGIN, slug, 'info'), `${slug}: history.json infoJsonUrl must point to the info.json hub`);
+  assert.equal(doc.historyUrl, wikiCompanionHref(ORIGIN, slug, 'history'), `${slug}: history.json historyUrl must point to the HTML page`);
+  assert.equal(doc.historyJsonUrl, wikiCompanionJsonHref(ORIGIN, slug, 'history'), `${slug}: history.json must expose its own canonical historyJsonUrl`);
+  assert.equal(doc.backlinksUrl, wikiCompanionHref(ORIGIN, slug, 'backlinks'), `${slug}: history.json backlinksUrl must point to the sibling HTML backlinks page`);
+  assert.equal(doc.backlinksJsonUrl, wikiCompanionJsonHref(ORIGIN, slug, 'backlinks'), `${slug}: history.json backlinksJsonUrl must point to the sibling machine-readable backlinks endpoint`);
+  assert.equal(doc.citeUrl, wikiCompanionHref(ORIGIN, slug, 'cite'), `${slug}: history.json citeUrl must point to the Cite-this-page hub`);
+  assert.equal(doc.citeJsonUrl, wikiCompanionJsonHref(ORIGIN, slug, 'cite'), `${slug}: history.json citeJsonUrl must point to the cite.json hub`);
+  assert.equal(doc.bibtexUrl, wikiCompanionFileHref(ORIGIN, slug, 'cite.bib'), `${slug}: history.json bibtexUrl must point to the BibTeX export`);
+  assert.equal(doc.referencesUrl, wikiCompanionJsonHref(ORIGIN, slug, 'references'), `${slug}: history.json referencesUrl must point to the references.json hub`);
+  assert.equal(doc.relatedUrl, wikiCompanionJsonHref(ORIGIN, slug, 'related'), `${slug}: history.json relatedUrl must point to the related.json hub`);
+  assert.equal(doc.referencesJsonUrl, wikiCompanionJsonHref(ORIGIN, slug, 'references'), `${slug}: history.json referencesJsonUrl must point to the references.json hub`);
   assert.equal(doc.referencesJsonUrl, doc.referencesUrl, `${slug}: history.json referencesJsonUrl must equal referencesUrl`);
-  assert.equal(doc.relatedJsonUrl, `${ORIGIN}/wiki/${slug}/related.json`, `${slug}: history.json relatedJsonUrl must point to the related.json hub`);
+  assert.equal(doc.relatedJsonUrl, wikiCompanionJsonHref(ORIGIN, slug, 'related'), `${slug}: history.json relatedJsonUrl must point to the related.json hub`);
   assert.equal(doc.relatedJsonUrl, doc.relatedUrl, `${slug}: history.json relatedJsonUrl must equal relatedUrl`);
-  // tocJsonUrl links the article's machine-readable table-of-contents endpoint,
-  // letting consumers navigate from revision history to heading structure.
-  assert.equal(doc.tocJsonUrl, `${ORIGIN}/wiki/${slug}/toc.json`, `${slug}: history.json tocJsonUrl must point to the article's table-of-contents endpoint`);
+  assert.equal(doc.tocJsonUrl, wikiCompanionJsonHref(ORIGIN, slug, 'toc'), `${slug}: history.json tocJsonUrl must point to the article's table-of-contents endpoint`);
   // imageUrl is the article's own OG share-card (/og/<slug>.png) — the same
   // per-article image the directory entries and feeds expose.
   assert.equal(doc.imageUrl, `${ORIGIN}/og/${slug}.png`, `${slug}: history.json imageUrl must be the article's OG share-card URL`);
