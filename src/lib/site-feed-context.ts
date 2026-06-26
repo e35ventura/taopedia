@@ -1,5 +1,7 @@
 import { historyForSlug, lastmodForSlug } from './article-history';
 import slugMap from '../../public/data/slugmap.json';
+import { uniqueFeedCategories } from './feed-categories.js';
+import { wikiArticleHref } from './wiki-article-path.js';
 
 export {
   pageFromSlug,
@@ -23,10 +25,10 @@ export function buildSiteJsonAtomFeedItems(origin: string) {
     const history = (historyBySlug[slug] ??= historyForSlug(slug));
     return {
       title: entry?.title ?? slug,
-      url: `${origin}/wiki/${slug}/`,
+      url: wikiArticleHref(origin, slug),
       image: `${origin}/og/${slug}.png`,
       description: entry?.summary ?? '',
-      categories: entry?.categories ?? [],
+      categories: uniqueFeedCategories(entry?.categories ?? []),
       datePublished: history[history.length - 1]?.date ?? '',
       dateModified: history[0]?.date ?? '',
     };
@@ -36,10 +38,10 @@ export function buildSiteJsonAtomFeedItems(origin: string) {
 export function buildSiteRssFeedItems(origin: string) {
   return Object.entries(slugMap).map(([slug, entry]) => ({
     title: entry?.title ?? slug,
-    url: `${origin}/wiki/${slug}/`,
+    url: wikiArticleHref(origin, slug),
     image: `${origin}/og/${slug}.png`,
     description: entry?.summary ?? '',
-    categories: entry?.categories ?? [],
+    categories: uniqueFeedCategories(entry?.categories ?? []),
     date: lastmodForSlug(slug),
   }));
 }
