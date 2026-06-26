@@ -4,10 +4,9 @@ import { historyForSlug } from '../../../lib/article-history';
 import { contentPagesBySlug } from '../../../lib/content-pages-by-slug';
 import { pagesFromSlugMap, publishedTitleBySlug } from '../../../lib/article-metadata';
 import slugMap from '../../../../public/data/slugmap.json';
-import { getArticleReferences } from '../../../lib/article-references.js';
 import { getArticleToc } from '../../../lib/article-toc.js';
+import { gatherLinkStatsBySlug } from '../../../lib/article-link-stats';
 import { buildAllPages } from '../../../../scripts/allpages.js';
-import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
 
 // Machine-readable article directory at /wiki/special/allpages.json. Mirrors
 // the HTML Special:AllPages page as structured JSON for programmatic
@@ -61,16 +60,13 @@ export const GET: APIRoute = async ({ site }) => {
       sectionCountBySlug[slug] = getArticleToc(headings).length;
     }),
   );
-  // Published inbound-link count and outbound reference count, gathered in a
-  // single pass keyed by slugmap slugs (both resolve targets through titleBySlug).
-  // These were computed inline inside articles.map below; precomputing them per
-  // slug here keeps each directory entry's stats out of the final map.
-  const inboundBySlug: Record<string, number> = {};
-  const referencesCountBySlug: Record<string, number> = {};
-  for (const slug of publishedSlugs) {
-    inboundBySlug[slug] = publishedInboundLinkCount(backlinksData, slug, titleBySlug);
-    referencesCountBySlug[slug] = getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length;
-  }
+  // Published inbound-link count and outbound reference count, gathered in a single
+  // pass keyed by slugmap slugs via the shared gatherLinkStatsBySlug helper.
+  const { inboundBySlug, referencesCountBySlug } = gatherLinkStatsBySlug(publishedSlugs, {
+    titleBySlug,
+    backlinksData,
+    linkgraphData,
+  });
 
   const articles = buildAllPages({ pages: slugPages, getPageSlug: getSlugFromPage, origin });
 

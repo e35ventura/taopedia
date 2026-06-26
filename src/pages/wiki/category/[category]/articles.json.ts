@@ -3,9 +3,8 @@ import { render } from 'astro:content';
 import { buildCategoryArticlesDocument, getCategoryArticles } from '../../../../lib/category-articles.js';
 import { publishedTitleBySlug } from '../../../../lib/article-metadata';
 import { contentPagesBySlug } from '../../../../lib/content-pages-by-slug';
-import { publishedInboundLinkCount } from '../../../../../scripts/most-linked.js';
+import { gatherLinkStatsBySlug } from '../../../../lib/article-link-stats';
 import { historyForSlug } from '../../../../lib/article-history';
-import { getArticleReferences } from '../../../../lib/article-references.js';
 import { getArticleToc } from '../../../../lib/article-toc.js';
 
 const categoriesModules = import.meta.glob('../../../../../public/data/categories.json', { eager: true }) as Record<
@@ -64,18 +63,15 @@ export async function getStaticPaths() {
     }),
   );
   // Published inbound-link count and outbound reference count, gathered in a single
-  // pass over member slugs (both resolve titles through titleBySlug). These were
-  // two separate loops over the full collection; getArticleReferences is a full
-  // link-graph join. Precomputing them per slug here keeps each article's stats
-  // out of the per-category article loop below, which would otherwise recompute
-  // them once per category membership (an article in N categories is visited N
-  // times).
-  const inboundBySlug: Record<string, number> = {};
-  const referencesCountBySlug: Record<string, number> = {};
-  for (const slug of memberSlugs) {
-    inboundBySlug[slug] = publishedInboundLinkCount(backlinksData, slug, titleBySlug);
-    referencesCountBySlug[slug] = getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length;
-  }
+  // pass over member slugs via the shared gatherLinkStatsBySlug helper. Precomputing
+  // them per slug here keeps each article's stats out of the per-category article loop
+  // below, which would otherwise recompute them once per category membership (an
+  // article in N categories is visited N times).
+  const { inboundBySlug, referencesCountBySlug } = gatherLinkStatsBySlug(memberSlugs, {
+    titleBySlug,
+    backlinksData,
+    linkgraphData,
+  });
   return Object.keys(categoriesIndex)
     .sort()
     .map((categoryName) => ({
