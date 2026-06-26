@@ -487,6 +487,13 @@ const unsafeContentPatterns = [
   // <bdo> override already blocked above (Trojan Source, CVE-2021-42574). A
   // glossary's single-script prose never needs bidi isolation markup.
   { pattern: /<\s*bdi\b/i, reason: 'bidirectional isolate (bdi) elements are not allowed in article content' },
+  // <ins>/<del> render visible insertion/deletion markup in every browser. An injected
+  // <del>real wallet</del><ins>attacker wallet</ins> fakes an official editorial correction
+  // — a content-spoof / fake-trust primitive with no script, handler, or flagged scheme —
+  // the element-level sibling of the cite= attribute already blocked on these tags (the
+  // hidden-URL class). Markdown never emits <ins>/<del>; glossary prose never needs edit
+  // tracking markup, so block the elements like the other non-prose rendered primitives.
+  { pattern: /<\s*(ins|del)\b/i, reason: 'insertion and deletion (ins, del) elements are not allowed in article content' },
   // <meter>/<progress> render native gauge and progress-bar widgets in every
   // current browser. An injected one in article prose is a content-spoofing
   // surface — e.g. a fake "wallet scan 80%" progress bar or a coloured risk

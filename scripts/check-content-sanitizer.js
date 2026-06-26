@@ -292,6 +292,15 @@ rejects('Intro.\n\n<  bdi   dir="ltr">x</bdi>', 'spaced <bdi>');
 accepts('Bidirectional isolate and the bdi element are described here only as prose.', 'benign bdi prose');
 accepts('<bditem>not a bdi element</bditem>', 'benign bditem is not <bdi>');
 
+// <ins>/<del> render visible edit-tracking markup — an injected pair can fake an
+// official correction (<del>real</del><ins>scam</ins>) with no script; the element-level
+// gap left after the cite= attribute block on these tags.
+rejects('Intro.\n\n<del>5Real…address</del><ins>5Fake…address</ins>', 'plain del/ins edit spoof');
+rejects('Intro.\n\n<  ins   >added text</ins>', 'spaced ins element');
+rejects('Intro.\n\n<del datetime="2020-01-01">removed</del>', 'plain del element');
+accepts('Insertion, deletion, and ins/del markup are described here only as prose.', 'benign ins/del prose');
+accepts('<insert>not an ins element</insert>', 'benign insert substring is not <ins>');
+
 // <meter>/<progress> render native gauge/progress-bar widgets — an injected one
 // is a content-spoofing surface (a fake "scan 80%" bar or risk gauge) a glossary
 // never needs, blocked like the other non-prose rendered elements.
