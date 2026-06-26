@@ -706,13 +706,22 @@ rejects('See [x](litecoin:LaMT348PWRnrqeeWArpwQPbuanpXDZGEgh).', 'plain litecoin
 rejects('See [x](monero:888tNkZrPN6JsEgekjMnABU4TBzc2Dt29EPAvkRxbANsAnjyPbb3iQ1YBRk1UXcdRsiKc9dhwMVgN5S9cQUiyoogDavup3H).', 'plain monero: payment URI');
 rejects('See [x](dogecoin:DH5yaieqoZN36fDVciNyRueRGvGLR3mr7L).', 'plain dogecoin: payment URI');
 rejects('See [x](bitcoincash:qp3wjpa3tjlj042z2wv7hahsldgwhwy0rq9sywjpyy).', 'plain bitcoincash: payment URI');
+rejects('See [x](solana:7EqQdEUYHqE8d8u2b9j8j8j8j8j8j8j8j8j8j8j8j8j).', 'plain solana: payment URI');
+rejects('See [x](cardano:addr1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh).', 'plain cardano: payment URI');
+rejects('See [x](ripple:rN7n7otQDd6FczFgLdSqtcsAUxDkw6fzRH).', 'plain ripple: payment URI');
+rejects('See [x](xrp:rN7n7otQDd6FczFgLdSqtcsAUxDkw6fzRH).', 'plain xrp: payment URI');
+rejects('See [x](tron:TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU).', 'plain tron: payment URI');
+rejects('See [x](bnb:bnb1grpf0955h0ykzq3ar5nmum7y6gdfl6lxfn46y2).', 'plain bnb: payment URI');
 // Entity-obfuscated: the literal scan misses "bitc&#111;in:" but the decoded re-scan catches it.
 rejects('See [x](bitc&#111;in:1A1zP1eP5QGefi2DMPTfTL5SLmv7Divf Na).', 'entity-obfuscated bitcoin: (obfuscated scan path)');
+rejects('See [x](sol&#097;na:7EqQdEUYHqE8d8u2b9j8j8j8j8j8j8j8j8j8j8j8j8j).', 'entity-obfuscated solana: (obfuscated scan path)');
 // Infobox-row-value scan path.
 infoboxRowRejects('bitcoin:1A1zP1eP5QGefi2DMPTfTL5SLmv7Divf Na', 'bitcoin: rejected in an infobox row value');
+infoboxRowRejects('solana:7EqQdEUYHqE8d8u2b9j8j8j8j8j8j8j8j8j8j8j8j8j', 'solana: rejected in an infobox row value');
 // Prose: "Bitcoin: A Peer-to-Peer…" has a space after the colon, so it must pass.
 accepts('Bitcoin: A Peer-to-Peer Electronic Cash System is described here only as prose.', 'benign "Bitcoin:" prose (colon then space)');
 accepts('Ethereum: a decentralized platform, and Litecoin are described here only as prose.', 'benign "Ethereum:" prose (colon then space)');
+accepts('Solana: a high-throughput chain, Cardano: proof of stake, and Ripple: the company are described here only as prose.', 'benign altcoin-name prose (colon then space)');
 // geo:/maps:/comgooglemaps: are native maps / geolocation app-launch schemes — a clicked
 // link opens the OS map app at attacker-chosen coordinates/search outside the page, the
 // same native app-launch class as mailto:/skype:/itms:. The non-space lookahead keeps

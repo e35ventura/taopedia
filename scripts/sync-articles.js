@@ -909,9 +909,9 @@ const unsafeContentPatterns = [
   // "feed:" (e.g. "a price feed:") keeps its boundary and is never affected; the names never
   // occur as URLs in glossary prose.
   { pattern: /\b(?:webcal|webcals|feed|itpc|pcast)\s*:\/\//i, reason: 'subscription-handler URL schemes are not allowed in article content' },
-  // bitcoin:/ethereum:/litecoin:/monero: are cryptocurrency payment URI schemes
-  // (BIP-21, EIP-681, and their equivalents): a clicked bitcoin:<address>?amount=…
-  // or ethereum:<address>@1/transfer… opens the reader's locally-installed or
+  // bitcoin:/ethereum:/litecoin:/monero:/solana:/cardano:/ripple:/xrp:/tron:/bnb: are
+  // cryptocurrency payment URI schemes (BIP-21, EIP-681, Solana Pay, and their
+  // equivalents): a clicked bitcoin:<address>?amount=… or solana:<address>… opens the reader's locally-installed or
   // browser-extension wallet pre-filled with the attacker's address and a
   // requested amount — a fund-redirection attack with no script and no browser
   // sandbox involvement. Same native-handler / payment-spoofing class as the
@@ -920,7 +920,7 @@ const unsafeContentPatterns = [
   // (no space), so require a non-space character via lookahead; prose like
   // "Bitcoin: A Peer-to-Peer…" (colon then space) is never affected.
   // These names never appear as live URLs in Bittensor glossary articles.
-  { pattern: /\b(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash)\s*:(?=[^\s"'<>)])/i, reason: 'cryptocurrency payment URI schemes are not allowed in article content' },
+  { pattern: /\b(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash|solana|cardano|ripple|xrp|tron|bnb)\s*:(?=[^\s"'<>)])/i, reason: 'cryptocurrency payment URI schemes are not allowed in article content' },
   // geo:, maps:, and comgooglemaps: are native maps / geolocation app-launch schemes.
   // A clicked geo:<lat>,<lng> (RFC 5870) opens the OS map app at attacker-chosen
   // coordinates, maps:?q=… opens Apple Maps, and comgooglemaps://?q=… opens Google
@@ -1032,7 +1032,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:tg|whatsapp|discord|slack)\s*:\/\//i, reason: 'messaging-app deep-link URL schemes are not allowed in article content' },
   { pattern: /(?:ts3server|mumble|ventrilo)\s*:\/\//i, reason: 'voice-chat client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:webcal|webcals|feed|itpc|pcast)\s*:\/\//i, reason: 'subscription-handler URL schemes are not allowed in article content' },
-  { pattern: /(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash)\s*:(?=[^\s"'<>)])/i, reason: 'cryptocurrency payment URI schemes are not allowed in article content' },
+  { pattern: /(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash|solana|cardano|ripple|xrp|tron|bnb)\s*:(?=[^\s"'<>)])/i, reason: 'cryptocurrency payment URI schemes are not allowed in article content' },
   { pattern: /\b(?:geo|maps|comgooglemaps)\s*:(?=[^\s"'<>)])/i, reason: 'native maps and geolocation app-launch URL schemes are not allowed in article content' },
   { pattern: /\bmatrix\s*:(?=[^\s"'<>)])/i, reason: 'Matrix chat client-launch URL scheme is not allowed in article content' },
   { pattern: /\bweb\+[a-z]+\s*:(?=[^\s"'<>)])/i, reason: 'web+ custom protocol-handler URL schemes are not allowed in article content' },
@@ -1086,7 +1086,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:tg|whatsapp|discord|slack)\s*:\/\//i,
   /(?:ts3server|mumble|ventrilo)\s*:\/\//i,
   /(?:webcal|webcals|feed|itpc|pcast)\s*:\/\//i,
-  /(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash)\s*:(?=[^\s"'<>)])/i,
+  /(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash|solana|cardano|ripple|xrp|tron|bnb)\s*:(?=[^\s"'<>)])/i,
   /\b(?:geo|maps|comgooglemaps)\s*:(?=[^\s"'<>)])/i,
   /\bmatrix\s*:(?=[^\s"'<>)])/i,
   /\bweb\+[a-z]+\s*:(?=[^\s"'<>)])/i,
