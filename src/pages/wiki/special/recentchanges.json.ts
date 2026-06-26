@@ -1,12 +1,16 @@
 import type { APIRoute } from 'astro';
-import { getCollection, render } from 'astro:content';
-import { getPageSlug, allRecentChanges, historyForSlug } from '../../../lib/article-history';
-import { publishedTitleBySlug } from '../../../lib/recent-changes-feed-context';
+import { render } from 'astro:content';
+import { allRecentChanges, historyForSlug } from '../../../lib/article-history';
+import {
+  publishedCategoriesBySlug,
+  publishedSummaryBySlug,
+  publishedTitleBySlug,
+} from '../../../lib/article-metadata';
+import { contentPagesBySlug } from '../../../lib/content-pages-by-slug';
 import { RECENT_LIMIT } from '../../../lib/recent-changes.js';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
 import { getArticleReferences } from '../../../lib/article-references.js';
 import { getArticleToc } from '../../../lib/article-toc.js';
-import slugMap from '../../../../public/data/slugmap.json';
 
 // The inbound-link graph is the same public/data/backlinks.json the HTML
 // "What links here" page, allpages.json, mostlinkedpages.json, subnets.json and
@@ -39,22 +43,13 @@ export const GET: APIRoute = async ({ site }) => {
   // only — the same artifact the recent-changes syndication feeds (#1436) read —
   // instead of copying page.data for every published article up front.
   const feedMemberSlugs = new Set<string>();
-  const categoriesBySlug: Record<string, string[]> = {};
-  const summaryBySlug: Record<string, string> = {};
-  for (const change of changes) {
-    if (change.slug in categoriesBySlug) continue;
-    feedMemberSlugs.add(change.slug);
-    categoriesBySlug[change.slug] = slugMap[change.slug]?.categories ?? [];
-    summaryBySlug[change.slug] = slugMap[change.slug]?.summary ?? '';
-  }
+  for (const change of changes) feedMemberSlugs.add(change.slug);
+  const categoriesBySlug = publishedCategoriesBySlug();
+  const summaryBySlug = publishedSummaryBySlug();
 
   // sectionCount and wordCount still need the article body; resolve only the
   // feed-member pages instead of indexing the whole collection up front.
-  const pageBySlug: Record<string, Awaited<ReturnType<typeof getCollection<'pages'>>>[number]> = {};
-  for (const page of await getCollection('pages')) {
-    const slug = getPageSlug(page);
-    if (feedMemberSlugs.has(slug)) pageBySlug[slug] = page;
-  }
+  const pageBySlug = await contentPagesBySlug(feedMemberSlugs);
 
   // sectionCount is the changed article's table-of-contents section count — the
   // same figure toc.json exposes as `count` and info.json / history.json expose

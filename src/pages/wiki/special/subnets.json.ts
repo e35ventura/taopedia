@@ -1,7 +1,8 @@
 import type { APIRoute } from 'astro';
-import { getCollection, render } from 'astro:content';
-import { getPageSlug, historyForSlug } from '../../../lib/article-history';
-import { publishedTitleBySlug } from '../../../lib/site-feed-context';
+import { render } from 'astro:content';
+import { historyForSlug } from '../../../lib/article-history';
+import { publishedTitleBySlug } from '../../../lib/article-metadata';
+import { contentPagesBySlug } from '../../../lib/content-pages-by-slug';
 import { getArticleReferences } from '../../../lib/article-references.js';
 import { getArticleToc } from '../../../lib/article-toc.js';
 import { buildSubnetsFromSlugMap } from '../../../../scripts/subnets.js';
@@ -34,11 +35,7 @@ export const GET: APIRoute = async ({ site }) => {
   const subnets = buildSubnetsFromSlugMap(slugMap);
 
   const subnetSlugs = new Set(subnets.map((subnet) => subnet.slug));
-  const pageBySlug: Record<string, Awaited<ReturnType<typeof getCollection<'pages'>>>[number]> = {};
-  for (const page of await getCollection('pages')) {
-    const slug = getPageSlug(page);
-    if (subnetSlugs.has(slug)) pageBySlug[slug] = page;
-  }
+  const pageBySlug = await contentPagesBySlug(subnetSlugs);
 
   // sectionCount is the subnet article's table-of-contents section count — the
   // same figure toc.json exposes as `count` and info.json / history.json expose
