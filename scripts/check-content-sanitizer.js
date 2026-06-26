@@ -456,6 +456,17 @@ rejects('See [x](mongodb+srv://cluster.internal/db).', 'plain mongodb+srv:// con
 rejects('See [x](mysql://root@internal-host:3306/db).', 'plain mysql:// connection URL');
 rejects('See [x](postgres://user@internal-host:5432/db).', 'plain postgres:// connection URL');
 rejects('See [x](postgresql://user@internal-host:5432/db).', 'plain postgresql:// connection URL');
+// git://svn://cvs:// version-control protocol-handler schemes launch a native VC client to
+// connect to the attacker's host. Covered across plain, entity-decoded, and infobox scans.
+rejects('See [x](git://attacker.example/evil.git).', 'plain git:// clone URL');
+rejects('See [x](svn://attacker.example/repo).', 'plain svn:// checkout URL');
+rejects('See [x](cvs://attacker.example/repo).', 'plain cvs:// checkout URL');
+rejects('See [x](g&#105;t://attacker.example/evil.git).', 'entity-obfuscated git:// (obfuscated scan path)');
+infoboxRowRejects('git://attacker.example/evil.git', 'git:// rejected in an infobox row value');
+infoboxRowRejects('svn://attacker.example/repo', 'svn:// rejected in an infobox row value');
+infoboxRowRejects('cvs://attacker.example/repo', 'cvs:// rejected in an infobox row value');
+accepts('The git command, an svn repo, and cvs history are described here only as prose.', 'benign git/svn/cvs prose words (no // authority)');
+infoboxRowAccepts('The git command and an svn repo are described as prose', 'benign git/svn prose allowed in an infobox row value');
 rejects('See [x](red&#105;s://internal-host:6379/0).', 'entity-obfuscated redis:// (obfuscated scan path)');
 infoboxRowRejects('redis://internal-host:6379/0', 'redis:// rejected in an infobox row value');
 infoboxRowRejects('postgres://user@internal-host:5432/db', 'postgres:// rejected in an infobox row value');
