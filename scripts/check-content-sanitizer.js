@@ -305,6 +305,18 @@ rejects('Intro.\n\n<canvas width="1200" height="2000"></canvas>', 'plain <canvas
 rejects('Intro.\n\n<  canvas   id="x">fallback</canvas>', 'spaced <canvas>');
 accepts('The HTML canvas element is described here only as prose.', 'benign canvas prose');
 
+// <samp>/<var> lend false terminal/code authority; <small> hides fine-print terms;
+// <sub>/<sup> fake official micro-glyphs; <dl>/<dt>/<dd> fake structured glossary metadata.
+rejects('Intro.\n\n<samp>official output: verified</samp>', 'plain samp element');
+rejects('Intro.\n\n<var>verified_address</var>', 'plain var element');
+rejects('Intro.\n\n<  small  >By continuing you agree to transfer all TAO</small>', 'spaced small element');
+rejects('Intro.\n\n5Fake…address<sup>®</sup>', 'plain sup micro-glyph spoof');
+rejects('Intro.\n\n<sub>verified</sub>', 'plain sub element');
+rejects('Intro.\n\n<dl><dt>Official address</dt><dd>attacker wallet</dd></dl>', 'plain dl/dt/dd spoof');
+rejects('Intro.\n\n<  dt  >term</dt>', 'spaced dt element');
+accepts('A sample variable, small type, subscript, and definition list are described here only as prose.', 'benign typography prose');
+accepts('<variable>not a var element</variable>', 'benign variable substring is not <var>');
+
 // <ruby>/<rt>/<rp>/<rtc>/<rb> render interlinear annotation text (small type above
 // the base text); an injected <ruby>scam<rt>✓ official</rt></ruby> overlays a fake
 // trust mark — a content-spoof in the same class as the blocked marquee/bdo/font.
@@ -800,6 +812,18 @@ rejects('See [x](wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec
 infoboxRowRejects('wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=irn', 'wc: rejected in an infobox row value');
 // Prose: "WC:" with a space and no @<version> marker must pass.
 accepts('WC: a water closet, also written wc in floor plans, is described here only as prose.', 'benign "WC:" prose (colon then space, no @ marker)');
+// metamask:/phantom:/ledger:/trezor:/keplr:/solflare:/trust:/exodus: wallet app deep links.
+rejects('See [x](metamask://dapp/evil.example).', 'plain metamask:// wallet deep-link');
+rejects('See [x](phantom://browse/https%3A%2F%2Fevil.example).', 'plain phantom:// wallet deep-link');
+rejects('See [x](ledger://connect/evil).', 'plain ledger:// wallet deep-link');
+rejects('See [x](trezor://connect/evil).', 'plain trezor:// wallet deep-link');
+rejects('See [x](keplr://wc?uri=evil).', 'plain keplr:// wallet deep-link');
+rejects('See [x](solflare://v1/approve?tx=evil).', 'plain solflare:// wallet deep-link');
+rejects('See [x](trust://open_url?url=evil).', 'plain trust:// wallet deep-link');
+rejects('See [x](exodus://exchange/evil).', 'plain exodus:// wallet deep-link');
+rejects('See [x](metam&#097;sk://dapp/evil.example).', 'entity-obfuscated metamask:// (obfuscated scan path)');
+infoboxRowRejects('phantom://browse/https%3A%2F%2Fevil.example', 'phantom:// rejected in an infobox row value');
+accepts('MetaMask: a browser wallet, Phantom on Solana, and Ledger hardware are described here only as prose.', 'benign wallet-name prose (colon then space)');
 // payto: (RFC 8905) and upi: (UPI deep link) are bank / instant-payment app-launch URI
 // schemes — a clicked link opens the reader's banking / payment app pre-filled with the
 // attacker's payee and amount (fund redirection on a fiat/bank rail, distinct from the
@@ -827,6 +851,13 @@ infoboxRowRejects('geo:37.7749,-122.4194', 'geo: rejected in an infobox row valu
 // Prose: a name followed by a colon and a space must pass.
 accepts('Maps: a mapping service, and geospatial data are described here only as prose.', 'benign "Maps:" prose (colon then space)');
 accepts('Geo: a prefix meaning earth is described here only as prose.', 'benign "Geo:" prose (colon then space)');
+// s3:// gs:// azblob:// cloud object-storage connection schemes (SSRF targets).
+rejects('See [x](s3://internal-bucket/secret).', 'plain s3:// cloud storage URL');
+rejects('See [x](gs://internal-bucket/secret).', 'plain gs:// cloud storage URL');
+rejects('See [x](azblob://account.blob.core.windows.net/container).', 'plain azblob:// cloud storage URL');
+rejects('See [x](&#115;3://internal-bucket/secret).', 'entity-obfuscated s3:// (obfuscated scan path)');
+infoboxRowRejects('gs://internal-bucket/secret', 'gs:// rejected in an infobox row value');
+accepts('S3 object storage and GS buckets are described here only as prose.', 'benign cloud-storage prose (no // authority)');
 // matrix: (MSC2312) opens a native Matrix client to DM an attacker account (matrix:u/…)
 // or join an attacker room (matrix:r/…) outside the page — the same social-engineering /
 // native-app-launch class as tg:/discord:/skype:. The non-space lookahead keeps prose like
@@ -839,6 +870,13 @@ rejects('See [x](matri&#120;:r/room:evil.example).', 'entity-obfuscated matrix: 
 infoboxRowRejects('matrix:u/alice:evil.example', 'matrix: rejected in an infobox row value');
 // Prose: a name followed by a colon and a space must pass.
 accepts('Matrix: a federated, decentralized chat protocol is described here only as prose.', 'benign "Matrix:" prose (colon then space)');
+// prometheus:// grafana:// jaeger:// observability connection schemes (SSRF targets).
+rejects('See [x](prometheus://internal-host:9090/).', 'plain prometheus:// observability URL');
+rejects('See [x](grafana://internal-host:3000/d/evil).', 'plain grafana:// observability URL');
+rejects('See [x](jaeger://internal-host:14268/api/traces).', 'plain jaeger:// observability URL');
+rejects('See [x](graf&#097;na://internal-host:3000/d/evil).', 'entity-obfuscated grafana:// (obfuscated scan path)');
+infoboxRowRejects('prometheus://internal-host:9090/', 'prometheus:// rejected in an infobox row value');
+accepts('Prometheus metrics and Grafana dashboards are described here only as prose.', 'benign observability prose (no // authority)');
 // web+<name>: is the registerProtocolHandler() custom-scheme namespace — a clicked
 // web+foo:payload link is dispatched to whatever handler the reader has registered
 // (potentially an attacker endpoint or native app), the same protocol-handler hand-off

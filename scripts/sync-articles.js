@@ -500,6 +500,24 @@ const unsafeContentPatterns = [
   // it is the scripting-companion drawing element a static glossary never needs.
   // Block it like the other non-prose rendered elements.
   { pattern: /<\s*canvas\b/i, reason: 'canvas elements are not allowed in article content' },
+  // <samp>/<var> render sample-output and variable typography in monospace/italic
+  // styles. An injected <samp>official output</samp> or <var>verified_address</var>
+  // lends false terminal/code authority to attacker text — a content-spoof primitive
+  // with no script or flagged scheme. Glossary prose never uses these HTML typography
+  // elements (inline code uses Markdown backticks), so block them like canvas/ruby.
+  { pattern: /<\s*(samp|var)\b/i, reason: 'sample and variable (samp, var) elements are not allowed in article content' },
+  // <small> renders de-emphasized fine-print text. An injected <small>By continuing you
+  // agree to transfer all TAO</small> hides attacker terms in visually subordinate type —
+  // a content-spoof / consent-trick primitive with no script.
+  { pattern: /<\s*small\b/i, reason: 'small elements are not allowed in article content' },
+  // <sub>/<sup> render subscript/superscript positioning. An injected <sup>®</sup> or
+  // <sub>verified</sub> micro-glyph beside a scam address mimics an official mark with
+  // no script or inline style — the positioning primitive sibling of ruby annotations.
+  { pattern: /<\s*(sub|sup)\b/i, reason: 'subscript and superscript (sub, sup) elements are not allowed in article content' },
+  // <dl>/<dt>/<dd> render a definition list with term/definition pairing. An injected
+  // <dl><dt>Official address</dt><dd>attacker wallet</dd></dl> fakes structured glossary
+  // metadata — a content-spoof / fake-trust primitive with no script.
+  { pattern: /<\s*(dl|dt|dd)\b/i, reason: 'definition list (dl, dt, dd) elements are not allowed in article content' },
   // <ruby>/<rt>/<rp> (and <rtc>/<rb>) render interlinear annotation text — small
   // type positioned directly above (or beside) the base text. An injected
   // `<ruby>5Fake…address<rt>✓ official</rt></ruby>` overlays an attacker-chosen
@@ -972,6 +990,15 @@ const unsafeContentPatterns = [
   // as the intent: …#Intent rule); prose like "the WC: a water closet" (colon then space, no
   // @) is never affected, and "wc" never occurs as a live URL in glossary prose.
   { pattern: /\bwc\s*:[^\s"'<>)]*@/i, reason: 'WalletConnect pairing URI schemes are not allowed in article content' },
+  // metamask:, phantom:, ledger:, trezor:, keplr:, solflare:, trust:, and exodus: are
+  // cryptocurrency wallet app deep-link schemes the OS resolves to launch the locally-
+  // installed wallet — not the browser. A clicked metamask://…, phantom://…, or
+  // ledger://… opens the reader's wallet on attacker-chosen signing requests outside the
+  // page sandbox with no script — the wallet-app-launch sibling of the merged wc:
+  // WalletConnect pairing URI (#1737) and the blocked bitcoin:/ethereum: payment URIs.
+  // The (?=non-space) lookahead blocks real scheme URIs while prose like "MetaMask: a
+  // browser wallet" (colon then space) is never affected.
+  { pattern: /\b(?:metamask|phantom|ledger|trezor|keplr|solflare|trust|exodus)\s*:(?=[^\s"'<>)])/i, reason: 'cryptocurrency wallet app deep-link URL schemes are not allowed in article content' },
   // payto: and upi: are bank / instant-payment app-launch URI schemes: a clicked
   // payto://iban/<IBAN>?amount=… (RFC 8905) or upi://pay?pa=<vpa>&am=… (UPI deep link)
   // is resolved by the OS to open the reader's locally-installed banking / payment app
@@ -990,6 +1017,12 @@ const unsafeContentPatterns = [
   // after the colon, so prose like "Maps: a mapping service" (colon then space) is
   // never affected; these scheme names never occur as live URLs in glossary prose.
   { pattern: /\b(?:geo|maps|comgooglemaps)\s*:(?=[^\s"'<>)])/i, reason: 'native maps and geolocation app-launch URL schemes are not allowed in article content' },
+  // s3:// gs:// azblob:// are cloud object-storage connection URL schemes that address an
+  // internal bucket/container at a host — canonical SSRF targets for reaching private cloud
+  // storage, not an http(s) resource. Article links are limited to http(s), so these are
+  // never a valid article link. The // authority form keeps prose about "S3" or "GS"
+  // (without //) unaffected.
+  { pattern: /\b(?:s3|gs|azblob)\s*:\/\//i, reason: 'cloud object-storage connection URL schemes are not allowed in article content' },
   // matrix: is the Matrix decentralized-chat URI scheme (MSC2312): a clicked
   // matrix:u/user:server hands the reader to a locally-installed Matrix client (Element,
   // etc.) to start a DM with an attacker-controlled account, and matrix:r/room:server /
@@ -1001,6 +1034,11 @@ const unsafeContentPatterns = [
   // pattern; prose like "Matrix: a federated chat protocol" (colon then space) is never
   // affected, and the scheme name never occurs as a live URL in glossary prose.
   { pattern: /\bmatrix\s*:(?=[^\s"'<>)])/i, reason: 'Matrix chat client-launch URL scheme is not allowed in article content' },
+  // prometheus:// grafana:// jaeger:// are observability / monitoring connection URL
+  // schemes addressing internal metrics, dashboard, and tracing services at a host:port —
+  // canonical SSRF targets, not an http(s) resource. The // authority form keeps prose
+  // about "Prometheus" or "Grafana" (without //) unaffected.
+  { pattern: /\b(?:prometheus|grafana|jaeger)\s*:\/\//i, reason: 'observability connection URL schemes are not allowed in article content' },
   // web+<name>: is the custom-scheme namespace the HTML standard reserves for
   // registerProtocolHandler() — any site may register a handler so that web+foo:payload
   // links are dispatched to that site's handler URL (the payload substituted into its %s
@@ -1113,9 +1151,12 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:webcal|webcals|feed|itpc|pcast)\s*:\/\//i, reason: 'subscription-handler URL schemes are not allowed in article content' },
   { pattern: /(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash|solana|cardano|ripple|xrp|tron|bnb)\s*:(?=[^\s"'<>)])/i, reason: 'cryptocurrency payment URI schemes are not allowed in article content' },
   { pattern: /\bwc\s*:[^\s"'<>)]*@/i, reason: 'WalletConnect pairing URI schemes are not allowed in article content' },
+  { pattern: /\b(?:metamask|phantom|ledger|trezor|keplr|solflare|trust|exodus)\s*:(?=[^\s"'<>)])/i, reason: 'cryptocurrency wallet app deep-link URL schemes are not allowed in article content' },
   { pattern: /\b(?:payto|upi)\s*:\/\//i, reason: 'bank and instant-payment app-launch URL schemes are not allowed in article content' },
   { pattern: /\b(?:geo|maps|comgooglemaps)\s*:(?=[^\s"'<>)])/i, reason: 'native maps and geolocation app-launch URL schemes are not allowed in article content' },
+  { pattern: /\b(?:s3|gs|azblob)\s*:\/\//i, reason: 'cloud object-storage connection URL schemes are not allowed in article content' },
   { pattern: /\bmatrix\s*:(?=[^\s"'<>)])/i, reason: 'Matrix chat client-launch URL scheme is not allowed in article content' },
+  { pattern: /\b(?:prometheus|grafana|jaeger)\s*:\/\//i, reason: 'observability connection URL schemes are not allowed in article content' },
   { pattern: /\bweb\+[a-z]+\s*:(?=[^\s"'<>)])/i, reason: 'web+ custom protocol-handler URL schemes are not allowed in article content' },
   { pattern: /\bx-apple\.systempreferences\s*:(?=[^\s"'<>)])/i, reason: 'macOS System Settings protocol-handler URLs are not allowed in article content' },
   { pattern: /\bshell\s*:(?=[^\s"'<>)])/i, reason: 'shell: protocol-handler URLs are not allowed in article content' },
@@ -1173,9 +1214,12 @@ const infoboxRowValueSchemePatterns = [
   /(?:webcal|webcals|feed|itpc|pcast)\s*:\/\//i,
   /(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash|solana|cardano|ripple|xrp|tron|bnb)\s*:(?=[^\s"'<>)])/i,
   /\bwc\s*:[^\s"'<>)]*@/i,
+  /\b(?:metamask|phantom|ledger|trezor|keplr|solflare|trust|exodus)\s*:(?=[^\s"'<>)])/i,
   /\b(?:payto|upi)\s*:\/\//i,
   /\b(?:geo|maps|comgooglemaps)\s*:(?=[^\s"'<>)])/i,
+  /\b(?:s3|gs|azblob)\s*:\/\//i,
   /\bmatrix\s*:(?=[^\s"'<>)])/i,
+  /\b(?:prometheus|grafana|jaeger)\s*:\/\//i,
   /\bweb\+[a-z]+\s*:(?=[^\s"'<>)])/i,
   /\bx-apple\.systempreferences\s*:(?=[^\s"'<>)])/i,
   /\bshell\s*:(?=[^\s"'<>)])/i,
