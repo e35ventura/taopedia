@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { buildDeadEndPages } from './dead-end-pages.js';
 import { publishedInboundLinkCount } from './most-linked.js';
 import { getArticleReferences } from '../src/lib/article-references.js';
+import { uniqueFeedCategories } from '../src/lib/feed-categories.js';
 
 // ---- 1) Unit: buildDeadEndPages selects + orders dead-ends correctly --------
 //
@@ -150,6 +151,9 @@ data.pages.forEach((row, i) => {
   assert.ok(Number.isInteger(row.readingMinutes) && row.readingMinutes >= 1, `row ${i} readingMinutes must be a positive integer`);
   assert.equal(row.readingMinutes, Math.max(1, Math.ceil(row.wordCount / 200)), `row ${i} readingMinutes must equal ceil(wordCount / 200)`);
   assert.equal(row.imageUrl, `${data.site}/og/${row.slug}.png`, `row ${i} imageUrl must be the article's OG share-card URL`);
+  assert.equal(row.tocJsonUrl, `${data.site}/wiki/${row.slug}/toc.json`, `row ${i} tocJsonUrl must be the article's toc.json URL`);
+  assert.equal(row.tocUrl, `${data.site}/wiki/${row.slug}/toc.json`, `row ${i} tocUrl must be the article's toc.json URL`);
+  assert.equal(row.tocUrl, row.tocJsonUrl, `row ${i} tocUrl must equal tocJsonUrl for ${row.slug}`);
 
   // Cross-check the enrichment against the dead-end's own built info.json (an
   // independent source) so the two surfaces can never disagree.
@@ -164,7 +168,11 @@ data.pages.forEach((row, i) => {
     assert.equal(row.revisionCount, info.revisionCount, `row ${i} (${row.slug}) revisionCount must agree with its info.json`);
     assert.equal(row.firstEdited, info.firstEdited, `row ${i} (${row.slug}) firstEdited must agree with its info.json`);
     assert.equal(row.lastEdited, info.lastEdited, `row ${i} (${row.slug}) lastEdited must agree with its info.json`);
-    assert.deepEqual(row.categories, info.categories, `row ${i} (${row.slug}) categories must agree with its info.json`);
+    assert.deepEqual(
+      row.categories,
+      uniqueFeedCategories(info.categories),
+      `row ${i} (${row.slug}) categories must agree with its deduped info.json topics`,
+    );
     assert.equal(row.summary, info.summary, `row ${i} (${row.slug}) summary must agree with its info.json`);
     assert.equal(row.infoJsonUrl, info.infoJsonUrl, `row ${i} (${row.slug}) infoJsonUrl must agree with its info.json`);
     assert.equal(row.referencesJsonUrl, info.referencesJsonUrl, `row ${i} (${row.slug}) referencesJsonUrl must agree with its info.json`);
