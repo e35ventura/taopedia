@@ -729,6 +729,13 @@ const unsafeContentPatterns = [
   // sandbox with no script. Same native protocol-handler class as the blocked
   // ms-*/onenote: handlers; the editor scheme names never occur in glossary prose.
   { pattern: /\b(?:vscode-insiders|vscodium|vscode)\s*:/i, reason: 'code-editor protocol-handler URLs are not allowed in article content' },
+  // chrome:// edge:// opera:// vivaldi:// brave:// devtools:// chrome-untrusted:// are
+  // browser-INTERNAL page URL schemes that address privileged browser UI (chrome://settings,
+  // edge://flags, devtools://) rather than an http(s) resource. Article links are limited to
+  // http(s), so these are never a valid article link; block them as non-http schemes like the
+  // other blocked schemes. The // authority form is required so prose ("the Chrome browser",
+  // "the cutting edge of", "an opera house") is never affected.
+  { pattern: /\b(?:chrome-untrusted|chrome|edge|opera|vivaldi|brave|devtools)\s*:\/\//i, reason: 'browser-internal page URL schemes are not allowed in article content' },
   // redis:// rediss:// mongodb:// mysql:// postgres:// postgresql:// are database-connection
   // URL schemes that address an internal service at a host:port, not an http(s) resource.
   // Article links are limited to http(s), so these are never a valid article link; they are
@@ -942,6 +949,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:mhtml|jar)\s*:/i, reason: 'archive-extraction URL schemes are not allowed in article content' },
   { pattern: /(?:magnet|ed2k)\s*:/i, reason: 'peer-to-peer file-sharing URL schemes are not allowed in article content' },
   { pattern: /(?:vscode-insiders|vscodium|vscode)\s*:/i, reason: 'code-editor protocol-handler URLs are not allowed in article content' },
+  { pattern: /(?:chrome-untrusted|chrome|edge|opera|vivaldi|brave|devtools)\s*:\/\//i, reason: 'browser-internal page URL schemes are not allowed in article content' },
   { pattern: /(?:redis|rediss|mongodb(?:\+srv)?|mysql|postgresql|postgres)\s*:\/\//i, reason: 'database-connection URL schemes are not allowed in article content' },
   { pattern: /(?:git|svn|cvs)\s*:\/\//i, reason: 'version-control protocol URL schemes are not allowed in article content' },
   { pattern: /(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats)\s*:\/\//i, reason: 'message-broker connection URL schemes are not allowed in article content' },
@@ -989,6 +997,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:mhtml|jar)\s*:/i,
   /(?:magnet|ed2k)\s*:/i,
   /(?:vscode-insiders|vscodium|vscode)\s*:/i,
+  /(?:chrome-untrusted|chrome|edge|opera|vivaldi|brave|devtools)\s*:\/\//i,
   /(?:redis|rediss|mongodb(?:\+srv)?|mysql|postgresql|postgres)\s*:\/\//i,
   /(?:git|svn|cvs)\s*:\/\//i,
   /(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats)\s*:\/\//i,

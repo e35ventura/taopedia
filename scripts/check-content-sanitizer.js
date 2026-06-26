@@ -447,6 +447,19 @@ rejects('See [x](vscode-insiders://vscode.git/clone?url=https://evil.example/x).
 rejects('See [x](vscodium://extension/evil.publisher.evil).', 'plain vscodium: editor scheme');
 rejects('See [x](vscod&#101;://file/x).', 'entity-obfuscated vscode:');
 accepts('The VS Code editor and the VSCodium build are described here only as prose.', 'benign editor names are not the vscode: schemes');
+// chrome:// edge:// opera:// devtools:// browser-internal page schemes address privileged
+// browser UI, never an http(s) article link; //-guarded so prose is unaffected. Coverage
+// spans the plain content scan, the entity-decoded scan, and the infobox scan.
+rejects('See [x](chrome://settings/passwords).', 'plain chrome:// internal page URL');
+rejects('See [x](chrome-untrusted://x).', 'plain chrome-untrusted:// URL');
+rejects('See [x](edge://flags).', 'plain edge:// internal page URL');
+rejects('See [x](opera://settings).', 'plain opera:// internal page URL');
+rejects('See [x](devtools://devtools/bundled/x).', 'plain devtools:// URL');
+rejects('See [x](chr&#111;me://settings).', 'entity-obfuscated chrome:// (obfuscated scan path)');
+infoboxRowRejects('chrome://settings/passwords', 'chrome:// rejected in an infobox row value');
+infoboxRowRejects('edge://flags', 'edge:// rejected in an infobox row value');
+infoboxRowAccepts('The Chrome browser and the cutting edge are described as prose', 'benign browser-name prose allowed in an infobox row value');
+accepts('The Chrome browser, the cutting edge of research, and an opera house are described here as prose.', 'benign chrome/edge/opera prose (no // authority)');
 // redis:// mongodb:// mysql:// postgres:// database-connection schemes address an internal
 // service (SSRF targets), never an http(s) article link; //-guarded so prose is unaffected.
 // Coverage spans the plain content scan, the entity-decoded scan, and the infobox scan.
