@@ -33,7 +33,7 @@ export const buildCiteJson = ({
     // Dedupe repeated frontmatter topics so cite.json cannot list the same category twice.
     categories: [...new Set(categories)],
     incomingLinks: Number.isFinite(incomingLinks) ? incomingLinks : 0,
-    revisionCount,
+    revisionCount: Number.isFinite(revisionCount) ? revisionCount : 0,
     firstEdited: firstEdited ?? null,
     lastEdited: lastEdited ?? null,
     referencesCount: Number.isFinite(referencesCount) ? referencesCount : 0,
