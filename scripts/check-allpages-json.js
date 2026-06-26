@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { buildAllPages } from './allpages.js';
 import { getArticleReferences } from '../src/lib/article-references.js';
 import { publishedInboundLinkCount } from './most-linked.js';
+import { slugFromWikiHref } from '../src/lib/wiki-article-path.js';
 
 // /wiki/special/allpages.json exposes the article directory as structured
 // JSON for programmatic consumers. The contract is load-bearing: a
@@ -213,13 +214,13 @@ assert.ok(Array.isArray(data.articles), 'articles must be an array');
 // `/wiki/<slug>/` — and exclude the `category/`, `special/`, and other
 // non-article links. The HTML page's data-article-card hooks also use
 // this same path shape.
-const linkRegex = /href="(\/wiki\/[^/]+\/)"/g;
+const linkRegex = /href="(\/wiki\/[^"]+\/)"/g;
 const slugsFromHtml = new Set();
 let match;
 while ((match = linkRegex.exec(html)) !== null) {
   const href = match[1];
   if (href.includes('/wiki/category/') || href.includes('/wiki/special/')) continue;
-  const slug = href.split('/')[2];
+  const slug = slugFromWikiHref(href);
   if (slug) slugsFromHtml.add(slug);
 }
 assert.ok(slugsFromHtml.size > 0, 'the rendered HTML page must list at least one article link');

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { slugFromWikiHref } from '../src/lib/wiki-article-path.js';
 
 // Load-bearing check for the article "Related pages" section. It guards the
 // contract the feature depends on: (1) the block renders on real article pages
@@ -51,7 +52,7 @@ assert.ok(articleSlugs.length > 0, 'no built article pages found to verify');
 const sectionRe = /<section class="related-pages"[\s\S]*?<\/section>/;
 const itemRe = /class="related-pages-item"/g;
 const cardRe = /<a class="related-pages-card"/g;
-const linkRe = /href="\/wiki\/([^"/]+)\/"/g;
+const linkRe = /href="(\/wiki\/[^"]+\/)"/g;
 
 let pagesWithBlock = 0;
 let totalRelatedLinks = 0;
@@ -76,7 +77,7 @@ for (const slug of articleSlugs) {
   // (4) Every related link resolves to a built article AND is not already linked
   //     from this article's body/infobox.
   const ownTargets = new Set((linkgraph[slug] ?? []).map((l) => l.target));
-  const relatedSlugs = [...block.matchAll(linkRe)].map((m) => m[1]);
+  const relatedSlugs = [...block.matchAll(linkRe)].map((m) => slugFromWikiHref(m[1]));
   assert.equal(relatedSlugs.length, itemCount, `${slug}: each related card must have exactly one article link`);
   for (const rel of relatedSlugs) {
     totalRelatedLinks++;

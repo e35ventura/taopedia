@@ -6,6 +6,7 @@ import { compareTitles } from '../src/lib/title-sort.js';
 import { buildRecentChangesAtomItems } from '../src/lib/recent-changes-feed.js';
 import { buildAtomFeed } from './atom-feed.js';
 import { RECENT_LIMIT } from '../src/lib/recent-changes.js';
+import { slugFromWikiHref } from '../src/lib/wiki-article-path.js';
 
 const ORIGIN = 'https://taopedia.org';
 
@@ -272,7 +273,7 @@ for (let i = 0; i < limitedChanges.length; i++) {
 
 const htmlRows = [...html.matchAll(/<li[^>]*class="mw-rc-row"[^>]*>([\s\S]*?)<\/li>/g)].map(([, block]) => ({
   date: (block.match(/datetime="([^"]+)"/) || [])[1],
-  slug: ((block.match(/mw-rc-title[^>]*href="([^"]+)"/) || [])[1] || '').split('/')[2],
+  slug: slugFromWikiHref((block.match(/mw-rc-title[^>]*href="([^"]+)"/) || [])[1] || ''),
 }));
 
 assert.equal(

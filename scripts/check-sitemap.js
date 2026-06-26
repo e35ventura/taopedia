@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { slugFromWikiHref } from '../src/lib/wiki-article-path.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
@@ -24,7 +25,7 @@ assert.ok(urlBlocks.length > 0, 'sitemap has no <url> entries');
 let articleUrls = 0;
 for (const block of urlBlocks) {
   const loc = block.match(/<loc>([^<]+)<\/loc>/)?.[1] ?? '';
-  const isArticle = /\/wiki\/[^/]+\/$/.test(loc)
+  const isArticle = /^\/wiki\/[^/].+\/$/.test(new URL(loc).pathname)
     && !loc.includes('/wiki/category/')
     && !loc.includes('/wiki/special/');
   const imageCount = (block.match(/<image:image>/g) ?? []).length;
@@ -33,7 +34,7 @@ for (const block of urlBlocks) {
     articleUrls += 1;
     // Exactly one image per article URL, pointing at that article's OG card.
     assert.equal(imageCount, 1, `article URL ${loc} must carry exactly one <image:image>`);
-    const slug = loc.match(/\/wiki\/([^/]+)\//)[1];
+    const slug = slugFromWikiHref(new URL(loc).pathname);
     const imageLoc = block.match(/<image:loc>([^<]+)<\/image:loc>/)?.[1] ?? '';
     assert.ok(
       imageLoc.endsWith(`/og/${slug}.png`),
