@@ -846,14 +846,14 @@ const unsafeContentPatterns = [
   // (?=non-space) lookahead is used; "Spotify"/"Deezer" are brand names, so prose like
   // "Spotify: a music service" (colon then space) is never affected.
   { pattern: /\b(?:spotify|deezer)\s*:(?=[^\s"'<>)])/i, reason: 'music-streaming app deep-link URL schemes are not allowed in article content' },
-  // obsidian: and notion: are note-taking / knowledge-base app deep-link schemes the OS
-  // resolves to launch the locally-installed client — not the browser. A clicked
-  // obsidian://open?vault=… or notion://www.notion.so/… opens Obsidian or Notion on
-  // attacker-chosen content outside the page sandbox with no script — the same native
-  // app-launch class as the blocked onenote:/spotify: handlers. The (?=non-space)
-  // lookahead blocks real scheme URIs while prose like "Obsidian: a note app" (colon
-  // then space) is never affected.
-  { pattern: /\b(?:obsidian|notion)\s*:(?=[^\s"'<>)])/i, reason: 'note-taking app deep-link URL schemes are not allowed in article content' },
+  // obsidian:, notion:, evernote:, and logseq: are note-taking / knowledge-base app
+  // deep-link schemes the OS resolves to launch the locally-installed client — not the
+  // browser. A clicked obsidian://open?vault=…, notion://www.notion.so/…,
+  // evernote://…, or logseq://graph/… opens the app on attacker-chosen content outside
+  // the page sandbox with no script — the same native app-launch class as the blocked
+  // onenote:/spotify: handlers. The (?=non-space) lookahead blocks real scheme URIs while
+  // prose like "Obsidian: a note app" (colon then space) is never affected.
+  { pattern: /\b(?:obsidian|notion|evernote|logseq)\s*:(?=[^\s"'<>)])/i, reason: 'note-taking app deep-link URL schemes are not allowed in article content' },
   // ms-its: and mk:@MSITStore: are the InfoTech Storage System (compiled-HTML-help, .chm)
   // URL schemes: ms-its:<chm>::/page.htm and mk:@MSITStore:<chm>::/page.htm resolve a page
   // out of a local or remote .chm help archive through the native ITSS handler — a
@@ -1082,14 +1082,14 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:rtsps?|rtspu|mms)\s*:\/\//i, reason: 'media-streaming client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:rtmpte|rtmpts|rtmpt|rtmpe|rtmps|rtmp)\s*:\/\//i, reason: 'media-streaming client-launch URL schemes are not allowed in article content' },
   { pattern: /\b(?:spotify|deezer)\s*:(?=[^\s"'<>)])/i, reason: 'music-streaming app deep-link URL schemes are not allowed in article content' },
-  // obsidian: and notion: are note-taking / knowledge-base app deep-link schemes the OS
-  // resolves to launch the locally-installed client — not the browser. A clicked
-  // obsidian://open?vault=… or notion://www.notion.so/… opens Obsidian or Notion on
-  // attacker-chosen content outside the page sandbox with no script — the same native
-  // app-launch class as the blocked onenote:/spotify: handlers. The (?=non-space)
-  // lookahead blocks real scheme URIs while prose like "Obsidian: a note app" (colon
-  // then space) is never affected.
-  { pattern: /\b(?:obsidian|notion)\s*:(?=[^\s"'<>)])/i, reason: 'note-taking app deep-link URL schemes are not allowed in article content' },
+  // obsidian:, notion:, evernote:, and logseq: are note-taking / knowledge-base app
+  // deep-link schemes the OS resolves to launch the locally-installed client — not the
+  // browser. A clicked obsidian://open?vault=…, notion://www.notion.so/…,
+  // evernote://…, or logseq://graph/… opens the app on attacker-chosen content outside
+  // the page sandbox with no script — the same native app-launch class as the blocked
+  // onenote:/spotify: handlers. The (?=non-space) lookahead blocks real scheme URIs while
+  // prose like "Obsidian: a note app" (colon then space) is never affected.
+  { pattern: /\b(?:obsidian|notion|evernote|logseq)\s*:(?=[^\s"'<>)])/i, reason: 'note-taking app deep-link URL schemes are not allowed in article content' },
   { pattern: /(?:ms-its\s*:|mk\s*:\s*@)/i, reason: 'compiled-HTML-help (CHM) URL schemes are not allowed in article content' },
   { pattern: /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i, reason: 'mobile app-store URL schemes are not allowed in article content' },
   { pattern: /(?:steam|com\.epicgames\.launcher)\s*:\/\//i, reason: 'game-launcher protocol-handler URLs are not allowed in article content' },
@@ -1148,7 +1148,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:rtsps?|rtspu|mms)\s*:\/\//i,
   /(?:rtmpte|rtmpts|rtmpt|rtmpe|rtmps|rtmp)\s*:\/\//i,
   /\b(?:spotify|deezer)\s*:(?=[^\s"'<>)])/i,
-  /\b(?:obsidian|notion)\s*:(?=[^\s"'<>)])/i,
+  /\b(?:obsidian|notion|evernote|logseq)\s*:(?=[^\s"'<>)])/i,
   /(?:ms-its\s*:|mk\s*:\s*@)/i,
   /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i,
   /(?:steam|com\.epicgames\.launcher)\s*:\/\//i,
