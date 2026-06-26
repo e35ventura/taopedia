@@ -1,11 +1,17 @@
 import type { APIRoute } from 'astro';
 import { getCollection, render } from 'astro:content';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
-import { publishedTitleBySlug } from '../../../lib/site-feed-context';
+import {
+  pageFromSlug,
+  publishedCategoriesBySlug,
+  publishedSummaryBySlug,
+  publishedTitleBySlug,
+} from '../../../lib/article-metadata';
 import { getArticleReferences } from '../../../lib/article-references.js';
 import { getArticleToc } from '../../../lib/article-toc.js';
 import { buildArticleHistory } from '../../../../scripts/article-history-json.js';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
+import slugMap from '../../../../public/data/slugmap.json';
 
 type RawRevision = { sha: string; date: string; authorName: string; message?: string };
 
@@ -24,30 +30,40 @@ const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
   const titleBySlug = publishedTitleBySlug();
+  const summaryBySlug = publishedSummaryBySlug();
+  const categoriesBySlug = publishedCategoriesBySlug();
 
-  return Promise.all(
+  const wordCountBySlug: Record<string, number> = {};
+  const sectionCountBySlug: Record<string, number> = {};
+  await Promise.all(
     pages.map(async (page) => {
       const slug = getPageSlug(page);
+      wordCountBySlug[slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
       const { headings } = await render(page);
-      // Precomputed once per route in getStaticPaths — GET used to load
-      // public/history/<slug>.json again via the eager glob. Matches
-      // info.json (#1037) / backlinks.json (#1042) thin-GET pattern.
-      const revisions = historyForSlug(slug) as RawRevision[];
-
-      return {
-        params: { slug },
-        props: {
-          page,
-          slug,
-          incomingLinks: publishedInboundLinkCount(backlinksData, slug, titleBySlug),
-          referencesCount: getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length,
-          sectionCount: getArticleToc(headings).length,
-          wordCount: (page.body ?? '').trim().split(/\s+/).filter(Boolean).length,
-          revisions,
-        },
-      };
+      sectionCountBySlug[slug] = getArticleToc(headings).length;
     }),
   );
+
+  return Object.keys(slugMap).flatMap((slug) => {
+    const page = pageFromSlug(slug, slugMap);
+    if (!page) return [];
+
+    const revisions = historyForSlug(slug) as RawRevision[];
+    return {
+      params: { slug },
+      props: {
+        slug,
+        title: titleBySlug[slug] ?? page.data.title,
+        summary: summaryBySlug[slug] ?? '',
+        categories: categoriesBySlug[slug] ?? [],
+        incomingLinks: publishedInboundLinkCount(backlinksData, slug, titleBySlug),
+        referencesCount: getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length,
+        sectionCount: sectionCountBySlug[slug] ?? 0,
+        wordCount: wordCountBySlug[slug] ?? 0,
+        revisions,
+      },
+    };
+  });
 }
 
 // Machine-readable companion to /wiki/<slug>/history/. Exposes the full
@@ -57,9 +73,21 @@ export async function getStaticPaths() {
 // `count`, plus sectionCount (the toc.json `count` figure) and wordCount (the
 // article footer's data-word-count), but does not break out per-revision.
 export const GET: APIRoute = async ({ props, site }) => {
-  const { page, slug, incomingLinks, referencesCount, sectionCount, wordCount, revisions } = props as {
-    page: { data: { title: string; summary?: string; categories?: string[] } };
+  const {
+    slug,
+    title,
+    summary,
+    categories,
+    incomingLinks,
+    referencesCount,
+    sectionCount,
+    wordCount,
+    revisions,
+  } = props as {
     slug: string;
+    title: string;
+    summary: string;
+    categories: string[];
     incomingLinks: number;
     referencesCount: number;
     sectionCount: number;
@@ -71,10 +99,10 @@ export const GET: APIRoute = async ({ props, site }) => {
   const body = JSON.stringify(
     buildArticleHistory({
       slug,
-      title: page.data.title,
+      title,
       origin,
-      summary: page.data.summary ?? '',
-      categories: page.data.categories ?? [],
+      summary,
+      categories,
       incomingLinks,
       referencesCount,
       sectionCount,
