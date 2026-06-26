@@ -1,8 +1,9 @@
 import type { APIRoute } from 'astro';
-import { getCollection } from 'astro:content';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
+import { contentPagesBySlug } from '../../../lib/content-pages-by-slug';
 import { buildStatistics } from '../../../../scripts/statistics.js';
 import categoriesIndex from '../../../../public/data/categories.json';
+import slugMap from '../../../../public/data/slugmap.json';
 
 // Machine-readable site statistics at /wiki/special/statistics.json. Mirrors
 // the figures shown on the HTML Special:Statistics page as structured JSON for
@@ -15,7 +16,12 @@ import categoriesIndex from '../../../../public/data/categories.json';
 
 export const GET: APIRoute = async ({ site }) => {
   const origin = (site ?? new URL('https://taopedia.org')).origin;
-  const pages = await getCollection('pages');
+  // Word/revision totals only need published slugmap members — the same artifact
+  // categories.json (#1403) and allpages.json read — instead of scanning every
+  // content-collection entry when building site statistics.
+  const publishedSlugs = Object.keys(slugMap).filter((slug) => slugMap[slug]?.title);
+  const pageBySlug = await contentPagesBySlug(publishedSlugs);
+  const pages = publishedSlugs.map((slug) => pageBySlug[slug]).filter(Boolean);
 
   const stats = buildStatistics({
     pages,
