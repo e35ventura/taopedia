@@ -38,7 +38,8 @@ export const buildArticleToc = ({ slug, title, origin, summary = '', categories 
   relatedUrl: `${origin}/wiki/${slug}/related.json`,
   relatedJsonUrl: `${origin}/wiki/${slug}/related.json`,
   imageUrl: `${origin}/og/${slug}.png`,
-  categories,
+  // Dedupe repeated frontmatter topics so toc.json cannot list the same category twice.
+  categories: [...new Set(categories)],
   incomingLinks: Number.isFinite(incomingLinks) ? incomingLinks : 0,
   revisionCount: Number.isFinite(revisionCount) ? revisionCount : 0,
   firstEdited: firstEdited ?? null,
