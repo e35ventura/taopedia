@@ -493,6 +493,15 @@ rejects('See [x](postgresql://user@internal-host:5432/db).', 'plain postgresql:/
 rejects('See [x](memcached://internal-host:11211/).', 'plain memcached:// connection URL');
 rejects('See [x](etcd://internal-host:2379/).', 'plain etcd:// connection URL');
 rejects('See [x](consul://internal-host:8500/).', 'plain consul:// connection URL');
+rejects('See [x](presto://internal-host:8080/catalog).', 'plain presto:// connection URL');
+rejects('See [x](trino://internal-host:8080/catalog).', 'plain trino:// connection URL');
+rejects('See [x](hive://internal-host:10000/default).', 'plain hive:// connection URL');
+rejects('See [x](oracle://internal-host:1521/orcl).', 'plain oracle:// connection URL');
+rejects('See [x](pres&#116;o://internal-host:8080/catalog).', 'entity-obfuscated presto:// (obfuscated scan path)');
+infoboxRowRejects('trino://internal-host:8080/catalog', 'trino:// rejected in an infobox row value');
+infoboxRowRejects('oracle://internal-host:1521/orcl', 'oracle:// rejected in an infobox row value');
+infoboxRowAccepts('Presto, Trino, Hive, and Oracle are described as prose', 'benign database-name prose allowed in an infobox row value');
+accepts('Presto queries, Trino connectors, Hive tables, and Oracle databases are described here only as prose.', 'benign database-name prose (no // authority)');
 // git://svn://cvs:// version-control protocol-handler schemes launch a native VC client to
 // connect to the attacker's host. Covered across plain, entity-decoded, and infobox scans.
 rejects('See [x](git://attacker.example/evil.git).', 'plain git:// clone URL');
