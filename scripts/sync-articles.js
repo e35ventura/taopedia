@@ -770,7 +770,10 @@ const unsafeContentPatterns = [
   // terminal scheme — the remaining members of this family: a clicked link launches a
   // native remote-shell/terminal client to the attacker's host (rlogin/rsh grant an
   // interactive shell), the same out-of-sandbox client-launch surface as telnet://ssh://.
-  { pattern: /\b(?:ftp|rdp|vnc|telnet|ssh|sftp|rlogin|rsh|tn3270)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
+  // fish:// (FIles transferred over SHell) is a remote-filesystem scheme that opens an SSH
+  // connection to the host to browse/transfer files — the same SSH-based external-client
+  // launch as sftp://, so it belongs in this family too.
+  { pattern: /\b(?:ftp|rdp|vnc|telnet|ssh|sftp|fish|rlogin|rsh|tn3270)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
   // rtsp:// (Real Time Streaming Protocol, also rtsps://rtspu://) and mms:// (Microsoft
   // Media Server) are media-streaming schemes: a clicked link launches a registered
   // native media player (VLC / Windows Media Player) pointed at the attacker's stream
@@ -956,7 +959,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:redis|rediss|mongodb(?:\+srv)?|mysql|postgresql|postgres)\s*:\/\//i, reason: 'database-connection URL schemes are not allowed in article content' },
   { pattern: /(?:git|svn|cvs)\s*:\/\//i, reason: 'version-control protocol URL schemes are not allowed in article content' },
   { pattern: /(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats)\s*:\/\//i, reason: 'message-broker connection URL schemes are not allowed in article content' },
-  { pattern: /(?:ftp|rdp|vnc|telnet|ssh|sftp|rlogin|rsh|tn3270)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
+  { pattern: /(?:ftp|rdp|vnc|telnet|ssh|sftp|fish|rlogin|rsh|tn3270)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:rtsps?|rtspu|mms)\s*:\/\//i, reason: 'media-streaming client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:rtmpte|rtmpts|rtmpt|rtmpe|rtmps|rtmp)\s*:\/\//i, reason: 'media-streaming client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:ms-its\s*:|mk\s*:\s*@)/i, reason: 'compiled-HTML-help (CHM) URL schemes are not allowed in article content' },
@@ -1004,7 +1007,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:redis|rediss|mongodb(?:\+srv)?|mysql|postgresql|postgres)\s*:\/\//i,
   /(?:git|svn|cvs)\s*:\/\//i,
   /(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats)\s*:\/\//i,
-  /(?:ftp|rdp|vnc|telnet|ssh|sftp|rlogin|rsh|tn3270)\s*:\/\//i,
+  /(?:ftp|rdp|vnc|telnet|ssh|sftp|fish|rlogin|rsh|tn3270)\s*:\/\//i,
   /(?:rtsps?|rtspu|mms)\s*:\/\//i,
   /(?:rtmpte|rtmpts|rtmpt|rtmpe|rtmps|rtmp)\s*:\/\//i,
   /(?:ms-its\s*:|mk\s*:\s*@)/i,

@@ -516,6 +516,12 @@ rejects('See [x](rlogin://attacker.example/).', 'plain rlogin:// remote-login UR
 rejects('See [x](rsh://attacker.example/).', 'plain rsh:// remote-shell URL');
 rejects('See [x](tn3270://attacker.example/).', 'plain tn3270:// terminal URL');
 accepts('The rlogin and rsh commands and the tn3270 terminal are described here only as prose.', 'benign rlogin/rsh/tn3270 prose words (no // authority)');
+// fish:// (FIles transferred over SHell) opens an SSH connection to browse/transfer files —
+// the same SSH-based client launch as sftp://. Covered across plain, entity, and infobox.
+rejects('See [x](fish://attacker.example/home).', 'plain fish:// (SSH filesystem) URL');
+rejects('See [x](fi&#115;h://attacker.example/home).', 'entity-obfuscated fish:// (obfuscated scan path)');
+infoboxRowRejects('fish://attacker.example/home', 'fish:// rejected in an infobox row value');
+accepts('The fish shell and a selfish remark are described here only as prose.', 'benign "fish" prose / word containing fish is not the scheme');
 // ftp:// is the unencrypted file-transfer sibling of sftp://; browsers removed FTP, so a
 // clicked ftp:// launches a desktop FTP client over cleartext. // keeps prose.
 rejects('See [x](ftp://anonymous@attacker.example/payload.exe).', 'plain ftp:// URL (cleartext file-transfer)');
