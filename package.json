@@ -30,6 +30,7 @@
     "test:linkgraph-slug-collision": "node scripts/check-linkgraph-slug-collision.js",
     "test:wiki-link-resolver": "node scripts/check-wiki-link-resolver.js",
     "test:wiki-links": "node scripts/check-wiki-links.js",
+    "test:wiki-article-path": "node scripts/check-wiki-article-path.js",
     "test:article-script-placement": "node scripts/check-article-script-placement.js",
     "test:skip-link": "node scripts/check-skip-link.js",
     "test:robots": "node scripts/check-robots.js",

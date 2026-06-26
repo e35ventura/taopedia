@@ -6,6 +6,7 @@ import { compareTitles } from '../src/lib/title-sort.js';
 import { RECENT_LIMIT } from '../src/lib/recent-changes.js';
 import { publishedInboundLinkCount } from './most-linked.js';
 import { getArticleReferences } from '../src/lib/article-references.js';
+import { slugFromWikiHref } from '../src/lib/wiki-article-path.js';
 
 const collectRecentChanges = (historyBySlug, titleBySlug, limit) => {
   const changes = [];
@@ -471,7 +472,7 @@ assert.ok(fs.existsSync(htmlFile), 'dist/wiki/special/recentchanges/index.html n
 const html = fs.readFileSync(htmlFile, 'utf8');
 const htmlRows = [...html.matchAll(/<li[^>]*class="mw-rc-row"[^>]*>([\s\S]*?)<\/li>/g)].map(([, block]) => ({
   date: (block.match(/datetime="([^"]+)"/) || [])[1],
-  slug: ((block.match(/mw-rc-title[^>]*href="([^"]+)"/) || [])[1] || '').split('/')[2],
+  slug: slugFromWikiHref((block.match(/mw-rc-title[^>]*href="([^"]+)"/) || [])[1] || ''),
   historyPath: (block.match(/mw-rc-hist[^>]*href="([^"]+)"/) || [])[1],
   authorName: (block.match(/mw-rc-author[^>]*>([^<]*)</) || [])[1]?.trim() || '',
 }));

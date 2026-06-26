@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { compareTitles } from '../src/lib/title-sort.js';
 import { RECENT_LIMIT } from '../src/lib/recent-changes.js';
+import { isBuiltWikiArticleHref, slugFromWikiHref } from '../src/lib/wiki-article-path.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
@@ -29,8 +30,8 @@ assert.ok(rows.length <= RECENT_LIMIT, `recent changes must show at most ${RECEN
 // Every row must have a valid date, a resolvable article link, and a history link.
 for (const row of rows) {
   assert.ok(row.datetime && !Number.isNaN(Date.parse(row.datetime)), `row has an invalid date: ${row.datetime}`);
-  assert.ok(/^\/wiki\/[^/]+\/$/.test(row.titleHref || ''), `row has a malformed article link: ${row.titleHref}`);
-  const slug = row.titleHref.split('/')[2];
+  assert.ok(isBuiltWikiArticleHref(row.titleHref || ''), `row has a malformed article link: ${row.titleHref}`);
+  const slug = slugFromWikiHref(row.titleHref);
   assert.ok(
     fs.existsSync(path.join(wikiDir, slug, 'index.html')),
     `recent change links to /wiki/${slug}/ but no such article page was built (orphaned history must be skipped)`,
@@ -51,8 +52,8 @@ for (let i = 1; i < rows.length; i++) {
 // enforced elsewhere for article lists and backlinks.
 for (let i = 1; i < rows.length; i++) {
   if (rows[i - 1].datetime !== rows[i].datetime) continue;
-  const prevSlug = (rows[i - 1].titleHref || '').split('/')[2] || '';
-  const curSlug = (rows[i].titleHref || '').split('/')[2] || '';
+  const prevSlug = slugFromWikiHref(rows[i - 1].titleHref || '');
+  const curSlug = slugFromWikiHref(rows[i].titleHref || '');
   assert.ok(
     compareTitles(prevSlug, curSlug) <= 0,
     `rows with the same timestamp must be ordered by slug with compareTitles (${prevSlug} > ${curSlug} at rows ${i - 1}–${i}, date ${rows[i].datetime})`,
@@ -82,7 +83,7 @@ assert.equal(rows[0].datetime, dated[0], `newest row (${rows[0].datetime}) must 
 // the page is reachable without inspecting the sitemap: the shared footer
 // (rendered on every WikiLayout page, e.g. articles) and the homepage's own
 // primary nav — both of which already link the other special pages.
-const sampleArticle = path.join(wikiDir, rows[0].titleHref.split('/')[2], 'index.html');
+const sampleArticle = path.join(wikiDir, slugFromWikiHref(rows[0].titleHref), 'index.html');
 assert.ok(
   fs.readFileSync(sampleArticle, 'utf8').includes('href="/wiki/special/recentchanges"'),
   'the shared page footer must link to /wiki/special/recentchanges (article-page discovery path)',
