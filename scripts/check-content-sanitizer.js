@@ -904,10 +904,13 @@ accepts('WC: a water closet, also written wc in floor plans, is described here o
 // "UPI: a payments system" (colon then space, no //) passes.
 rejects('See [x](payto://iban/DE75512108001245126199?amount=EUR:200.0).', 'plain payto: bank payment URI');
 rejects('See [x](upi://pay?pa=attacker@bank&pn=Attacker&am=500).', 'plain upi: instant-payment URI');
+rejects('See [x](venmo://pay?recipients=attacker&amount=500).', 'plain venmo: P2P payment URI');
+rejects('See [x](cashapp://attacker/500).', 'plain cashapp: P2P payment URI');
 // Entity-obfuscated: the literal scan misses "pa&#121;to://" but the decoded re-scan catches it.
 rejects('See [x](pa&#121;to://iban/DE75512108001245126199?amount=EUR:200.0).', 'entity-obfuscated payto: (obfuscated scan path)');
 // Infobox-row-value scan path.
 infoboxRowRejects('upi://pay?pa=attacker@bank&am=500', 'upi: rejected in an infobox row value');
+infoboxRowRejects('venmo://pay?recipients=attacker&amount=500', 'venmo: rejected in an infobox row value');
 // Prose: a name followed by a colon and a space (no //) must pass.
 accepts('UPI: a payments system, and payto interbank transfers are described here only as prose.', 'benign "UPI:" prose (colon then space, no //)');
 // geo:/maps:/comgooglemaps: are native maps / geolocation app-launch schemes — a clicked
