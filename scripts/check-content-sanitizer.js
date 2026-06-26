@@ -481,6 +481,7 @@ rejects('See [x](mqtt://internal-host:1883/topic).', 'plain mqtt:// connection U
 rejects('See [x](mqtts://internal-host:8883/topic).', 'plain mqtts:// connection URL');
 rejects('See [x](kafka://internal-host:9092).', 'plain kafka:// connection URL');
 rejects('See [x](stomp://internal-host:61613).', 'plain stomp:// connection URL');
+rejects('See [x](nats://internal-host:4222).', 'plain nats:// connection URL');
 rejects('See [x](am&#113;p://internal-host:5672/v).', 'entity-obfuscated amqp:// (obfuscated scan path)');
 infoboxRowRejects('amqp://internal-host:5672/vhost', 'amqp:// rejected in an infobox row value');
 infoboxRowRejects('mqtt://internal-host:1883/topic', 'mqtt:// rejected in an infobox row value');
