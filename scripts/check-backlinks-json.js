@@ -157,6 +157,29 @@ const revisionStatsOf = (slug) => {
   assert.equal(empty.lastEdited, null, 'builder: default lastEdited is null');
 }
 
+// Repeated frontmatter categories must be deduped on the envelope and entries.
+{
+  const result = buildArticleBacklinks({
+    slug: 'hub',
+    title: 'Hub',
+    origin: ORIGIN,
+    categories: ['Mining', 'Consensus', 'Mining'],
+    backlinks: [
+      { slug: 'leaf', title: 'Leaf', categories: ['Subnets', 'Mining', 'Subnets'] },
+    ],
+  });
+  assert.deepEqual(
+    result.categories,
+    ['Mining', 'Consensus'],
+    'builder: envelope categories must be deduped while preserving first-seen order',
+  );
+  assert.deepEqual(
+    result.backlinks[0].categories,
+    ['Subnets', 'Mining'],
+    'builder: backlink entry categories must be deduped while preserving first-seen order',
+  );
+}
+
 // ---- 2–6) Built-output checks ----------------------------------------------
 assert.ok(fs.existsSync(wikiDir), 'dist/wiki not found; run the build first');
 assert.ok(fs.existsSync(backlinksFile), 'public/data/backlinks.json not found; run the build first');

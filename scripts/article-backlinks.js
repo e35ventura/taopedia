@@ -25,7 +25,8 @@ export const buildArticleBacklinks = ({ slug, title, origin, summary = '', categ
   relatedJsonUrl: `${origin}/wiki/${slug}/related.json`,
   tocJsonUrl: `${origin}/wiki/${slug}/toc.json`,
   imageUrl: `${origin}/og/${slug}.png`,
-  categories,
+  // Dedupe repeated frontmatter topics on the envelope and each linking entry.
+  categories: [...new Set(categories)],
   // The article's own published inbound-link count — the same figure info.json
   // exposes (count here equals backlinks.length, the listed linking pages).
   incomingLinks: Number.isFinite(incomingLinks) ? incomingLinks : 0,
@@ -55,7 +56,7 @@ export const buildArticleBacklinks = ({ slug, title, origin, summary = '', categ
     slug: link.slug,
     title: link.title,
     summary: link.summary || null,
-    categories: Array.isArray(link.categories) ? link.categories : [],
+    categories: Array.isArray(link.categories) ? [...new Set(link.categories)] : [],
     backlinks: Number.isFinite(link.backlinks) ? link.backlinks : 0,
     // info.json names this same published inbound-link figure incomingLinks; keep
     // backlinks for field-name compatibility and expose incomingLinks too, the
