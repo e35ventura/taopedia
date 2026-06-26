@@ -1,11 +1,9 @@
 import type { APIRoute } from 'astro';
-import { render } from 'astro:content';
+import { gatherPageStatsBySlug } from '../../../../lib/article-page-stats';
 import { buildCategoryArticlesDocument, getCategoryArticles } from '../../../../lib/category-articles.js';
 import { publishedTitleBySlug } from '../../../../lib/article-metadata';
 import { contentPagesBySlug } from '../../../../lib/content-pages-by-slug';
 import { gatherLinkStatsBySlug } from '../../../../lib/article-link-stats';
-import { historyForSlug } from '../../../../lib/article-history';
-import { getArticleToc } from '../../../../lib/article-toc.js';
 
 const categoriesModules = import.meta.glob('../../../../../public/data/categories.json', { eager: true }) as Record<
   string,
@@ -49,18 +47,9 @@ export async function getStaticPaths() {
   // resolved page), kept parallel via Promise.all so the render step is not
   // serialized. sectionCount is the same figure toc.json exposes as `count`;
   // each is a per-entry stat the list carries.
-  const wordCountBySlug: Record<string, number> = {};
-  const sectionCountBySlug: Record<string, number> = {};
-  const historyBySlug: Record<string, ReturnType<typeof historyForSlug>> = {};
-  await Promise.all(
-    [...memberSlugs].map(async (slug) => {
-      const page = pageBySlug[slug];
-      if (!page) return;
-      wordCountBySlug[slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
-      historyBySlug[slug] = historyForSlug(slug);
-      const { headings } = await render(page);
-      sectionCountBySlug[slug] = getArticleToc(headings).length;
-    }),
+  const { wordCountBySlug, sectionCountBySlug, historyBySlug } = await gatherPageStatsBySlug(
+    memberSlugs,
+    pageBySlug,
   );
   // Published inbound-link count and outbound reference count, gathered in a single
   // pass over member slugs via the shared gatherLinkStatsBySlug helper. Precomputing

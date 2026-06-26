@@ -1,6 +1,5 @@
 import type { APIRoute } from 'astro';
-import { render } from 'astro:content';
-import { historyForSlug } from '../../../lib/article-history';
+import { gatherPageStatsBySlug } from '../../../lib/article-page-stats';
 import { contentPagesBySlug } from '../../../lib/content-pages-by-slug';
 import {
   pageFromSlug,
@@ -10,7 +9,6 @@ import {
 } from '../../../lib/article-metadata';
 import { buildArticleRelatedPages, getRelatedPages } from '../../../lib/related-pages';
 import { gatherLinkStatsBySlug } from '../../../lib/article-link-stats';
-import { getArticleToc } from '../../../lib/article-toc.js';
 
 const slugmapModules = import.meta.glob('../../../../public/data/slugmap.json', { eager: true }) as Record<
   string,
@@ -41,21 +39,11 @@ export async function getStaticPaths() {
   const publishedSlugs = new Set(Object.keys(titleBySlug));
   const publishedSlugList = Object.keys(slugMap).filter((slug) => slugMap[slug]?.title);
   const pageBySlug = await contentPagesBySlug(publishedSlugList);
-  // Body word count, revision history, and table-of-contents section count —
-  // scoped to published slugmap members (routes already enumerate via slugmap
-  // in #1607) instead of rendering every content-collection entry up front.
-  const wordCountBySlug: Record<string, number> = {};
-  const sectionCountBySlug: Record<string, number> = {};
-  const historyBySlug: Record<string, ReturnType<typeof historyForSlug>> = {};
-  await Promise.all(
-    publishedSlugList.map(async (slug) => {
-      const page = pageBySlug[slug];
-      if (!page) return;
-      wordCountBySlug[slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
-      historyBySlug[slug] = historyForSlug(slug);
-      const { headings } = await render(page);
-      sectionCountBySlug[slug] = getArticleToc(headings).length;
-    }),
+  // Body word count, revision history, and table-of-contents section count for each
+  // published slug, gathered via the shared gatherPageStatsBySlug render-pass helper.
+  const { wordCountBySlug, sectionCountBySlug, historyBySlug } = await gatherPageStatsBySlug(
+    publishedSlugList,
+    pageBySlug,
   );
   // Published inbound-link count and outbound reference count for every published
   // slug, gathered via the shared gatherLinkStatsBySlug helper, keeping each target's

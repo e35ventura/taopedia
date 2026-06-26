@@ -1,10 +1,9 @@
 import type { APIRoute } from 'astro';
-import { render } from 'astro:content';
-import { historyForSlug, revisionStatsFromHistory } from '../../../lib/article-history';
+import { gatherPageStatsBySlug } from '../../../lib/article-page-stats';
+import { revisionStatsFromHistory } from '../../../lib/article-history';
 import { contentPagesBySlug } from '../../../lib/content-pages-by-slug';
 import { pagesFromSlugMap, publishedTitleBySlug } from '../../../lib/article-metadata';
 import slugMap from '../../../../public/data/slugmap.json';
-import { getArticleToc } from '../../../lib/article-toc.js';
 import { gatherLinkStatsBySlug } from '../../../lib/article-link-stats';
 import { articleJsonCompanionUrls } from '../../../lib/wiki-article-path.js';
 import { buildAllPages } from '../../../../scripts/allpages.js';
@@ -41,25 +40,12 @@ export const GET: APIRoute = async ({ site }) => {
   const publishedSlugs = Object.keys(slugMap).filter((slug) => slugMap[slug]?.title);
   const pageBySlug = await contentPagesBySlug(publishedSlugs);
 
-  // Gather each article's body word count, table-of-contents section count, and
-  // revision history in a single parallel pass over the published slug set —
-  // these were split across a sequential for-loop (title + wordCount + await
-  // render) and inline historyForSlug calls inside articles.map below. The
-  // wordCount and history reads are folded into the render pass (rendering is
-  // what requires a resolved page), kept parallel via Promise.all so the render
-  // step is not serialized across ~350 articles. Output is byte-identical.
-  const wordCountBySlug: Record<string, number> = {};
-  const sectionCountBySlug: Record<string, number> = {};
-  const historyBySlug: Record<string, ReturnType<typeof historyForSlug>> = {};
-  await Promise.all(
-    publishedSlugs.map(async (slug) => {
-      const page = pageBySlug[slug];
-      if (!page) return;
-      wordCountBySlug[slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
-      historyBySlug[slug] = historyForSlug(slug);
-      const { headings } = await render(page);
-      sectionCountBySlug[slug] = getArticleToc(headings).length;
-    }),
+  // Each article's body word count, table-of-contents section count, and revision
+  // history, gathered in a single parallel render pass over the published slug set
+  // via the shared gatherPageStatsBySlug helper.
+  const { wordCountBySlug, sectionCountBySlug, historyBySlug } = await gatherPageStatsBySlug(
+    publishedSlugs,
+    pageBySlug,
   );
   // Published inbound-link count and outbound reference count, gathered in a single
   // pass keyed by slugmap slugs via the shared gatherLinkStatsBySlug helper.
