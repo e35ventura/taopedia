@@ -264,6 +264,29 @@ const revisionStatsOf = (slug) => {
   assert.deepEqual(empty.references, [], 'builder: empty references is []');
 }
 
+// Repeated frontmatter categories must be deduped on the envelope and entries.
+{
+  const result = buildArticleReferences({
+    slug: 'hub',
+    title: 'Hub',
+    origin: ORIGIN,
+    categories: ['Mining', 'Consensus', 'Mining'],
+    references: [
+      { slug: 'leaf', title: 'Leaf', categories: ['Subnets', 'Mining', 'Subnets'] },
+    ],
+  });
+  assert.deepEqual(
+    result.categories,
+    ['Mining', 'Consensus'],
+    'builder: envelope categories must be deduped while preserving first-seen order',
+  );
+  assert.deepEqual(
+    result.references[0].categories,
+    ['Subnets', 'Mining'],
+    'builder: reference entry categories must be deduped while preserving first-seen order',
+  );
+}
+
 // ---- 2) Built-output checks -----------------------------------------------
 assert.ok(fs.existsSync(wikiDir), 'dist/wiki not found; run the build first');
 assert.ok(fs.existsSync(linkgraphFile), 'public/data/linkgraph.json not found; run the build first');
