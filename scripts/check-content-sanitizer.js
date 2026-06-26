@@ -455,6 +455,8 @@ rejects('See [x](chrome-untrusted://x).', 'plain chrome-untrusted:// URL');
 rejects('See [x](edge://flags).', 'plain edge:// internal page URL');
 rejects('See [x](opera://settings).', 'plain opera:// internal page URL');
 rejects('See [x](devtools://devtools/bundled/x).', 'plain devtools:// URL');
+rejects('See [x](vivaldi://settings).', 'plain vivaldi:// internal page URL');
+rejects('See [x](brave://settings).', 'plain brave:// internal page URL');
 rejects('See [x](chr&#111;me://settings).', 'entity-obfuscated chrome:// (obfuscated scan path)');
 infoboxRowRejects('chrome://settings/passwords', 'chrome:// rejected in an infobox row value');
 infoboxRowRejects('edge://flags', 'edge:// rejected in an infobox row value');
