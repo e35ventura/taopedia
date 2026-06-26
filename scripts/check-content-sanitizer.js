@@ -496,6 +496,8 @@ rejects('See [x](rtmp://attacker.example/live/stream).', 'plain rtmp:// streamin
 rejects('See [x](rtmps://attacker.example/live/stream).', 'plain rtmps:// streaming URL');
 rejects('See [x](rtmpe://attacker.example/live/stream).', 'plain rtmpe:// (encrypted) streaming URL');
 rejects('See [x](rtmpt://attacker.example/live/stream).', 'plain rtmpt:// (tunneled) streaming URL');
+rejects('See [x](rtmpte://attacker.example/live/stream).', 'plain rtmpte:// (encrypted-tunneled) streaming URL');
+rejects('See [x](rtmpts://attacker.example/live/stream).', 'plain rtmpts:// (tunneled-TLS) streaming URL');
 rejects('See [x](rt&#109;p://attacker.example/live/stream).', 'entity-obfuscated rtmp:// (obfuscated scan path)');
 infoboxRowRejects('rtmp://attacker.example/live/stream', 'rtmp:// rejected in an infobox row value');
 infoboxRowRejects('rtmps://attacker.example/live/stream', 'rtmps:// rejected in an infobox row value');
