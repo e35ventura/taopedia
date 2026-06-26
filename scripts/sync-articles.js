@@ -798,7 +798,7 @@ const unsafeContentPatterns = [
   // also the canonical server-side-request (SSRF) targets used to reach internal databases.
   // Block them as non-http schemes like the smb:/ldap:/gopher: schemes. The // authority
   // form is required so prose about "Redis", "MySQL", or "Postgres" is never affected.
-  { pattern: /\b(?:redis|rediss|mongodb(?:\+srv)?|mysql|mariadb|sqlite|influxdb|postgresql|postgres|memcached|etcd|consul|snowflake|sqlserver|mssql|timescaledb|cockroachdb)\s*:\/\//i, reason: 'database-connection URL schemes are not allowed in article content' },
+  { pattern: /\b(?:redis|rediss|mongodb(?:\+srv)?|mysql|mariadb|sqlite|influxdb|postgresql|postgres|memcached|etcd|consul|snowflake|sqlserver|mssql|timescaledb|presto|trino|hive|oracle|cockroachdb)\s*:\/\//i, reason: 'database-connection URL schemes are not allowed in article content' },
   // git:// svn:// cvs:// are version-control protocol-handler schemes: a clicked link is
   // handed to a registered native VC client (Git / TortoiseSVN / TortoiseCVS) which opens
   // a non-http(s) connection to the attacker's host:port to clone or check out a repo —
@@ -827,6 +827,12 @@ const unsafeContentPatterns = [
   // canonical SSRF target for reaching internal devices. The // authority form keeps prose
   // about "CoAP" unaffected.
   { pattern: /\b(?:coaps|coap)\s*:\/\//i, reason: 'CoAP IoT connection URL schemes are not allowed in article content' },
+  // ws:// wss:// gemini:// snmp:// are non-http network-protocol schemes: a clicked
+  // ws(s):// URL opens a raw WebSocket to the host (SSRF / internal-service reach),
+  // gemini:// hands off to a Gemini client, and snmp:// to an SNMP manager — all
+  // outside the page sandbox with no script. Article links are limited to http(s);
+  // the // authority form keeps prose like "SNMP: Simple Network Management Protocol" unaffected.
+  { pattern: /\b(?:wss|ws|gemini|snmp)\s*:\/\//i, reason: 'non-http network-protocol URL schemes are not allowed in article content' },
   // rdp:// vnc:// telnet:// ssh:// sftp:// hand the URL's host to a native remote-session
   // client: a clicked rdp://attacker-host or telnet://internal-host opens an OS
   // client outside the page sandbox with no script — the same native protocol-handler
@@ -931,7 +937,7 @@ const unsafeContentPatterns = [
   // deep-links the Teams client. A clicked link drives a native app outside the page
   // sandbox with no script — the same native protocol-handler class as the blocked
   // ms-*/onenote: handlers; the scheme names never occur in glossary prose.
-  { pattern: /\b(?:zoommtg|zoomus|msteams)\s*:/i, reason: 'video-conferencing client protocol-handler URLs are not allowed in article content' },
+  { pattern: /\b(?:zoommtg|zoomus|msteams|webex|gotomeeting)\s*:/i, reason: 'video-conferencing client protocol-handler URLs are not allowed in article content' },
   // skype: callto: facetime: facetime-audio: sgnl: launch a native communication app
   // pointed at an attacker-controlled contact: a clicked skype:victim?call,
   // facetime:attacker@evil, callto:victim, or sgnl://… (Signal) opens/dials in a desktop
@@ -1131,11 +1137,12 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:jetbrains|intellij|pycharm|webstorm|phpstorm|sublime|atom)\s*:(?=[^\s"'<>)])/i, reason: 'code-editor protocol-handler URLs are not allowed in article content' },
   { pattern: /(?:github-mac|github-windows|github-desktop|sourcetree|gitkraken|tower|fork)\s*:\/\//i, reason: 'source-control GUI protocol-handler URLs are not allowed in article content' },
   { pattern: /(?:chrome-untrusted|chrome|edge|opera|vivaldi|brave|devtools)\s*:\/\//i, reason: 'browser-internal page URL schemes are not allowed in article content' },
-  { pattern: /(?:redis|rediss|mongodb(?:\+srv)?|mysql|mariadb|sqlite|influxdb|postgresql|postgres|memcached|etcd|consul|snowflake|sqlserver|mssql|timescaledb|cockroachdb)\s*:\/\//i, reason: 'database-connection URL schemes are not allowed in article content' },
+  { pattern: /(?:redis|rediss|mongodb(?:\+srv)?|mysql|mariadb|sqlite|influxdb|postgresql|postgres|memcached|etcd|consul|snowflake|sqlserver|mssql|timescaledb|presto|trino|hive|oracle|cockroachdb)\s*:\/\//i, reason: 'database-connection URL schemes are not allowed in article content' },
   { pattern: /(?:git|svn|cvs)\s*:\/\//i, reason: 'version-control protocol URL schemes are not allowed in article content' },
   { pattern: /(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats|rabbitmq|pulsar)\s*:\/\//i, reason: 'message-broker connection URL schemes are not allowed in article content' },
   { pattern: /(?:clickhouse|cassandra|couchbase|couchdb|neo4j|bolt|dynamodb|elasticsearch|arangodb|zookeeper|hdfs|hazelcast|riak|minio|solr|scylla)\s*:\/\//i, reason: 'data-store connection URL schemes are not allowed in article content' },
   { pattern: /(?:coaps|coap)\s*:\/\//i, reason: 'CoAP IoT connection URL schemes are not allowed in article content' },
+  { pattern: /(?:wss|ws|gemini|snmp)\s*:\/\//i, reason: 'non-http network-protocol URL schemes are not allowed in article content' },
   { pattern: /(?:ftp|rdp|vnc|spice|teamviewer|anydesk|rustdesk|logmein|parsec|nomachine|ultraviewer|splashtop|chrome-remote-desktop|googlechromeremotedesktop|telnet|ssh|sftp|fish|rlogin|rsh|tn3270)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:rtsps?|rtspu|mms)\s*:\/\//i, reason: 'media-streaming client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:rtmpte|rtmpts|rtmpt|rtmpe|rtmps|rtmp)\s*:\/\//i, reason: 'media-streaming client-launch URL schemes are not allowed in article content' },
@@ -1152,7 +1159,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i, reason: 'mobile app-store URL schemes are not allowed in article content' },
   { pattern: /(?:steam|com\.epicgames\.launcher)\s*:\/\//i, reason: 'game-launcher protocol-handler URLs are not allowed in article content' },
   { pattern: /intent\s*:[^\s"'<>)]*#\s*Intent\b/i, reason: 'intent: app-launch URLs are not allowed in article content' },
-  { pattern: /(?:zoommtg|zoomus|msteams)\s*:/i, reason: 'video-conferencing client protocol-handler URLs are not allowed in article content' },
+  { pattern: /(?:zoommtg|zoomus|msteams|webex|gotomeeting)\s*:/i, reason: 'video-conferencing client protocol-handler URLs are not allowed in article content' },
   { pattern: /\b(?:skype|callto|facetime-audio|facetime|sgnl)\s*:(?=[^\s"'<>)])/i, reason: 'communication-app launch URL schemes are not allowed in article content' },
   { pattern: /\b(?:mailto|tel|sms)\s*:(?=[^\s"'<>)])/i, reason: 'contact-launch URL schemes are not allowed in article content' },
   { pattern: /(?:tg|whatsapp|discord|slack|line|viber|mattermost|rocketchat)\s*:\/\//i, reason: 'messaging-app deep-link URL schemes are not allowed in article content' },
@@ -1201,11 +1208,12 @@ const infoboxRowValueSchemePatterns = [
   /\b(?:jetbrains|intellij|pycharm|webstorm|phpstorm|sublime|atom)\s*:(?=[^\s"'<>)])/i,
   /\b(?:github-mac|github-windows|github-desktop|sourcetree|gitkraken|tower|fork)\s*:\/\//i,
   /(?:chrome-untrusted|chrome|edge|opera|vivaldi|brave|devtools)\s*:\/\//i,
-  /(?:redis|rediss|mongodb(?:\+srv)?|mysql|mariadb|sqlite|influxdb|postgresql|postgres|memcached|etcd|consul|snowflake|sqlserver|mssql|timescaledb|cockroachdb)\s*:\/\//i,
+  /(?:redis|rediss|mongodb(?:\+srv)?|mysql|mariadb|sqlite|influxdb|postgresql|postgres|memcached|etcd|consul|snowflake|sqlserver|mssql|timescaledb|presto|trino|hive|oracle|cockroachdb)\s*:\/\//i,
   /(?:git|svn|cvs)\s*:\/\//i,
   /(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats|rabbitmq|pulsar)\s*:\/\//i,
   /(?:clickhouse|cassandra|couchbase|couchdb|neo4j|bolt|dynamodb|elasticsearch|arangodb|zookeeper|hdfs|hazelcast|riak|minio|solr|scylla)\s*:\/\//i,
   /(?:coaps|coap)\s*:\/\//i,
+  /(?:wss|ws|gemini|snmp)\s*:\/\//i,
   /(?:ftp|rdp|vnc|spice|teamviewer|anydesk|rustdesk|logmein|parsec|nomachine|ultraviewer|splashtop|chrome-remote-desktop|googlechromeremotedesktop|telnet|ssh|sftp|fish|rlogin|rsh|tn3270)\s*:\/\//i,
   /(?:rtsps?|rtspu|mms)\s*:\/\//i,
   /(?:rtmpte|rtmpts|rtmpt|rtmpe|rtmps|rtmp)\s*:\/\//i,
@@ -1215,7 +1223,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:itms-services|itms-apps|itms|market|android-app)\s*:\/\//i,
   /(?:steam|com\.epicgames\.launcher)\s*:\/\//i,
   /intent\s*:[^\s"'<>)]*#\s*Intent\b/i,
-  /(?:zoommtg|zoomus|msteams)\s*:/i,
+  /(?:zoommtg|zoomus|msteams|webex|gotomeeting)\s*:/i,
   /\b(?:skype|callto|facetime-audio|facetime|sgnl)\s*:(?=[^\s"'<>)])/i,
   /\b(?:mailto|tel|sms)\s*:(?=[^\s"'<>)])/i,
   /(?:tg|whatsapp|discord|slack|line|viber|mattermost|rocketchat)\s*:\/\//i,

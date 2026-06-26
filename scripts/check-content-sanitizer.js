@@ -548,6 +548,15 @@ rejects('See [x](consul://internal-host:8500/).', 'plain consul:// connection UR
 rejects('See [x](mariadb://root@internal-host:3306/db).', 'plain mariadb:// connection URL');
 rejects('See [x](sqlite:///var/lib/data.db).', 'plain sqlite:// connection URL');
 rejects('See [x](influxdb://internal-host:8086/).', 'plain influxdb:// connection URL');
+rejects('See [x](presto://internal-host:8080/catalog).', 'plain presto:// connection URL');
+rejects('See [x](trino://internal-host:8080/catalog).', 'plain trino:// connection URL');
+rejects('See [x](hive://internal-host:10000/default).', 'plain hive:// connection URL');
+rejects('See [x](oracle://internal-host:1521/orcl).', 'plain oracle:// connection URL');
+rejects('See [x](pres&#116;o://internal-host:8080/catalog).', 'entity-obfuscated presto:// (obfuscated scan path)');
+infoboxRowRejects('trino://internal-host:8080/catalog', 'trino:// rejected in an infobox row value');
+infoboxRowRejects('oracle://internal-host:1521/orcl', 'oracle:// rejected in an infobox row value');
+infoboxRowAccepts('Presto, Trino, Hive, and Oracle are described as prose', 'benign database-name prose allowed in an infobox row value');
+accepts('Presto queries, Trino connectors, Hive tables, and Oracle databases are described here only as prose.', 'benign database-name prose (no // authority)');
 // git://svn://cvs:// version-control protocol-handler schemes launch a native VC client to
 // connect to the attacker's host. Covered across plain, entity-decoded, and infobox scans.
 rejects('See [x](git://attacker.example/evil.git).', 'plain git:// clone URL');
@@ -641,6 +650,15 @@ rejects('See [x](coap://internal-device:5683/sensor).', 'plain coap:// IoT URL')
 rejects('See [x](coaps://internal-device:5684/sensor).', 'plain coaps:// IoT URL');
 rejects('See [x](co&#97;p://internal-device:5683/sensor).', 'entity-obfuscated coap:// (obfuscated scan path)');
 infoboxRowRejects('coap://internal-device:5683/sensor', 'coap:// rejected in an infobox row value');
+// ws:// wss:// gemini:// snmp:// are non-http network-protocol schemes (WebSocket SSRF,
+// Gemini client launch, SNMP manager launch). The // authority form keeps prose safe.
+rejects('See [x](ws://internal-host:8080/socket).', 'plain ws:// WebSocket URL');
+rejects('See [x](wss://evil.example/socket).', 'plain wss:// WebSocket URL');
+rejects('See [x](gemini://evil.example/page).', 'plain gemini:// URL');
+rejects('See [x](snmp://internal-host/public).', 'plain snmp:// URL');
+rejects('See [x](w&#115;://internal-host:8080/socket).', 'entity-obfuscated ws:// (obfuscated scan path)');
+infoboxRowRejects('snmp://internal-host/public', 'snmp:// rejected in an infobox row value');
+accepts('SNMP: Simple Network Management Protocol is described here only as prose.', 'benign snmp prose (no // authority)');
 accepts('The CoAP protocol for IoT is described here only as prose.', 'benign "CoAP" prose (no // authority)');
 // rdp:// vnc:// telnet:// ssh:// launch a native remote-session client at the host;
 // the // authority form is required so glossary definitions ("SSH: Secure Shell")
@@ -1073,7 +1091,10 @@ rejects('See [x](zoommtg://zoom.us/join?confno=123&pwd=evil).', 'plain zoommtg: 
 rejects('See [x](zoomus://zoom.us/join?confno=123).', 'plain zoomus: conferencing scheme');
 rejects('See [x](msteams:/l/meetup-join/evil).', 'plain msteams: conferencing scheme');
 rejects('See [x](zoom&#109;tg://zoom.us/join).', 'entity-obfuscated zoommtg:');
-accepts('Zoom and Microsoft Teams meetings are described here only as prose.', 'benign conferencing app names are not the schemes');
+rejects('See [x](webex://cisco.webex.com/join?meeting=evil).', 'plain webex: conferencing scheme');
+rejects('See [x](gotomeeting://attend?meetingId=evil).', 'plain gotomeeting: conferencing scheme');
+infoboxRowRejects('webex://join?meeting=evil', 'webex: rejected in an infobox row value');
+accepts('Zoom, Microsoft Teams, Webex, and GoTo Meeting are described here only as prose.', 'benign conferencing app names are not the schemes');
 // ms-cxh:/ms-cxh-full: are the Windows CloudExperienceHost protocol handlers (a
 // documented LPE/UAC-bypass surface) — the OS resolves them, blocked like ms-msdt:.
 rejects('See [x](ms-cxh://localonly/?comingFromMSA=1).', 'plain ms-cxh: handler URL');
