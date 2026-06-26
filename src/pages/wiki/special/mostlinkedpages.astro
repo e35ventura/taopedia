@@ -1,7 +1,6 @@
 ---
 import WikiLayout from '../../../layouts/WikiLayout.astro';
-import { getCollection } from 'astro:content';
-import { getPageSlug } from '../../../lib/article-history';
+import { publishedTitleBySlug } from '../../../lib/article-metadata';
 import { buildMostLinkedPages } from '../../../../scripts/most-linked.js';
 
 // Most linked pages: articles ranked by how many other articles link to them,
@@ -9,11 +8,15 @@ import { buildMostLinkedPages } from '../../../../scripts/most-linked.js';
 // link data the per-article "What links here" page uses). Surfaces the most-
 // referenced concepts across the wiki. Loaded via glob so a missing file (e.g. a
 // dev run before the link graph is built) degrades to an empty list.
-const pages = await getCollection('pages');
-const titleBySlug: Record<string, string> = {};
-for (const page of pages) {
-  titleBySlug[getPageSlug(page)] = page.data.title;
-}
+//
+// titleBySlug comes from public/data/slugmap.json — the same published-article
+// artifact the machine-readable sibling (mostlinkedpages.json) reads — instead
+// of re-scanning getCollection('pages'). This makes the HTML ranking and the
+// JSON ranking derive their published-article set from one source of truth, so
+// the two cannot disagree: the JSON/HTML row parity that check-most-linked-json
+// asserts is now guaranteed by construction rather than by the content
+// collection and the slug map happening to enumerate the same articles.
+const titleBySlug = publishedTitleBySlug();
 
 const backlinksModules = import.meta.glob('../../../../public/data/backlinks.json', { eager: true }) as Record<
   string,
@@ -28,8 +31,8 @@ const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
 // published articles AND excludes self-links (publishedInboundLinkCount:
 // `from !== slug`), matching getArticleReferences on the outbound side and the
 // count each article's backlinks page shows; it sorts count-desc then
-// compareTitles(title) then compareTitles(slug) for a deterministic order, with
-// zero-inbound targets dropped.
+// compareTitles(title) then raw slug code-unit order when titles tie, for a
+// deterministic order, with zero-inbound targets dropped.
 const mostLinked = buildMostLinkedPages({ backlinks: backlinksData, titleBySlug });
 ---
 
