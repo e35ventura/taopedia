@@ -1,4 +1,4 @@
-import { compareTitles } from './title-sort.js';
+import { compareTitles, compareSlugTiebreak } from './title-sort.js';
 
 export const getCategoryArticles = ({ categoryName, categoriesIndex = {}, slugMap = {} }) => {
   const slugs = Array.isArray(categoriesIndex[categoryName]) ? categoriesIndex[categoryName] : [];
@@ -28,7 +28,7 @@ export const getCategoryArticles = ({ categoryName, categoriesIndex = {}, slugMa
   // puts "subnet_10" first, leaving articles.json and the page it mirrors in
   // conflicting order.
   return articles.sort(
-    (a, b) => compareTitles(a.title, b.title) || (a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0),
+    (a, b) => compareTitles(a.title, b.title) || compareSlugTiebreak(a.slug, b.slug),
   );
 };
 

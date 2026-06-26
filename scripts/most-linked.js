@@ -13,7 +13,7 @@
 // order when titles tie -- so numeric-suffixed titles like "Subnet 9" vs "Subnet 10"
 // still sort correctly, while same-title slug ties match references/backlinks ordering.
 
-import { compareTitles } from '../src/lib/title-sort.js';
+import { compareTitles, compareSlugTiebreak } from '../src/lib/title-sort.js';
 
 export function publishedInboundLinkCount(backlinks, slug, titleBySlug) {
   const links = backlinks?.[slug];
@@ -37,6 +37,6 @@ export function buildMostLinkedPages({ backlinks, titleBySlug }) {
       (a, b) =>
         b.count - a.count ||
         compareTitles(a.title, b.title) ||
-        (a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0),
+        compareSlugTiebreak(a.slug, b.slug),
     );
 }

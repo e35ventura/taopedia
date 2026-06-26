@@ -1,4 +1,4 @@
-import { compareTitles } from './title-sort.js';
+import { compareTitles, compareSlugTiebreak } from './title-sort.js';
 
 export const getArticleReferences = ({ slug, linkGraph = {}, titleBySlug = {} }) => {
   const links = Array.isArray(linkGraph[slug]) ? linkGraph[slug] : [];
@@ -18,7 +18,7 @@ export const getArticleReferences = ({ slug, linkGraph = {}, titleBySlug = {} })
   // on the slug, whose numeric collation would order subnet_9 before subnet_10 while
   // the HTML listings (raw id order) put subnet_10 first.
   return references.sort(
-    (a, b) => compareTitles(a.title, b.title) || (a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0),
+    (a, b) => compareTitles(a.title, b.title) || compareSlugTiebreak(a.slug, b.slug),
   );
 };
 

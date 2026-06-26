@@ -1,7 +1,16 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { compareTitles, sortPagesByTitle } from '../src/lib/title-sort.js';
+import { compareTitles, sortPagesByTitle, compareSlugTiebreak } from '../src/lib/title-sort.js';
+
+assert.ok(
+  compareSlugTiebreak('subnet_10', 'subnet_9') < 0,
+  'slug tiebreak must order subnet_10 before subnet_9 (raw code units)',
+);
+assert.ok(
+  compareSlugTiebreak('alpha', 'alpha_beta') < 0,
+  'slug tiebreak must order alpha before alpha_beta (prefix pair)',
+);
 
 // Numbered titles must order numerically, not lexicographically.
 const titles = [
@@ -128,8 +137,8 @@ assert.ok(
   'most-linked.js must not use localeCompare for the title tiebreak',
 );
 assert.ok(
-  mlSource.includes('a.slug < b.slug'),
-  'most-linked.js must tiebreak same-title slug ties on raw slug order, not compareTitles numeric slug collation',
+  mlSource.includes('compareSlugTiebreak('),
+  'most-linked.js must tiebreak same-title slug ties through compareSlugTiebreak',
 );
 assert.ok(
   !mlSource.includes('compareTitles(a.slug, b.slug)'),

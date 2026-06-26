@@ -4,6 +4,11 @@
 // machine's locale.
 export const compareTitles = (a, b) => a.localeCompare(b, 'en', { numeric: true });
 
+// Plain code-unit slug tiebreak for same-title rows. Used wherever article lists
+// must agree with sortPagesByTitle / references.json (subnet_10 before subnet_9),
+// NOT compareTitles numeric slug collation.
+export const compareSlugTiebreak = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+
 // Titles are not guaranteed unique (nothing enforces it across the content
 // collection), so two same-title pages would otherwise fall back to the
 // import.meta.glob traversal order and could swap places between builds. Break
