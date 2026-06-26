@@ -105,6 +105,20 @@ for (const { file, slug } of articlePages) {
   const title = slugmap[slug]?.title;
   assert.ok(title, `${where}: slugmap is missing title metadata for ${slug}`);
 
+  const topicsBlock = html.match(/<div class="article-topics"[^>]*>([\s\S]*?)<\/div>/);
+  const expectedTopics = [...new Set(slugmap[slug]?.categories ?? [])];
+  if (expectedTopics.length > 0) {
+    assert.ok(topicsBlock, `${where}: article with categories must render the Topics footer`);
+    const renderedTopics = [...topicsBlock[1].matchAll(/<a[^>]*>([^<]*)<\/a>/g)].map((m) => decode(m[1]));
+    assert.deepEqual(
+      renderedTopics,
+      expectedTopics,
+      `${where}: Topics footer must list each frontmatter category once (deduped, first-seen order)`,
+    );
+  } else {
+    assert.ok(!topicsBlock, `${where}: article without categories must not render the Topics footer`);
+  }
+
   const history = historyOf(slug);
   const infoJsonFile = path.join(wikiDir, slug, 'info.json');
   assert.ok(fs.existsSync(infoJsonFile), `${where}: missing companion /wiki/${slug}/info.json endpoint`);
