@@ -604,6 +604,18 @@ const unsafeContentPatterns = [
   // same non-http class as the blocked schemes above. Article links are limited to
   // http(s). The // authority form is required so prose is never affected.
   { pattern: /\b(?:gopher|nntp|ircs|irc)\s*:\/\//i, reason: 'legacy internet-protocol URL schemes are not allowed in article content' },
+  // chrome:// chrome-extension:// moz-extension:// edge:// brave:// opera:// vivaldi://
+  // resource:// and view-source: are privileged browser-internal URL schemes the browser
+  // resolves to a context article links must never reach. chrome://settings / edge://settings
+  // / brave://settings / opera:// / vivaldi:// navigate the reader to a privileged
+  // browser-internal page (a UI-spoof / settings social-engineering surface), chrome-extension://
+  // and moz-extension:// load a resource from an installed extension's origin, resource:// reads
+  // a Firefox-internal chrome resource, and view-source:https://internal/ renders the raw source
+  // of an arbitrary (e.g. intranet) page. None is an http(s) link, the same non-http /
+  // out-of-scope navigation class as the blocked about:/data: and app-handler schemes. The
+  // //-authority form (and the hyphenated "view-source" token, which never occurs in prose)
+  // keeps benign words like "the cutting edge" or "a browser extension" unaffected.
+  { pattern: /\b(?:chrome|chrome-extension|moz-extension|edge|brave|opera|vivaldi|resource)\s*:\/\/|\bview-source\s*:/i, reason: 'privileged browser-internal URL schemes are not allowed in article content' },
   // ftp:// ftps:// tftp:// are file-transfer URL schemes that open a non-http connection to
   // a remote host to upload or download a file — not an http(s) resource. Article links are
   // limited to http(s), so these are never a valid article link; ftp:// is also a classic
@@ -892,6 +904,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /vbscript\s*:/i, reason: 'vbscript: URLs are not allowed in article content' },
   { pattern: /(?:blob|filesystem)\s*:/i, reason: 'object-URL schemes are not allowed in article content' },
   { pattern: /(?:gopher|nntp|ircs|irc)\s*:\/\//i, reason: 'legacy internet-protocol URL schemes are not allowed in article content' },
+  { pattern: /(?:chrome|chrome-extension|moz-extension|edge|brave|opera|vivaldi|resource)\s*:\/\/|view-source\s*:/i, reason: 'privileged browser-internal URL schemes are not allowed in article content' },
   { pattern: /(?:ftps|ftp|tftp)\s*:\/\//i, reason: 'file-transfer URL schemes are not allowed in article content' },
   { pattern: /(?:search-ms|ms-officecmd)\s*:/i, reason: 'Windows protocol-handler URLs are not allowed in article content' },
   { pattern: /ms-(?:msdt|appinstaller)\s*:/i, reason: 'Windows protocol-handler URLs are not allowed in article content' },
@@ -935,6 +948,7 @@ const infoboxRowValueSchemePatterns = [
   /vbscript\s*:/i,
   /(?:blob|filesystem)\s*:/i,
   /(?:gopher|nntp|ircs|irc)\s*:\/\//i,
+  /(?:chrome|chrome-extension|moz-extension|edge|brave|opera|vivaldi|resource)\s*:\/\/|view-source\s*:/i,
   /(?:ftps|ftp|tftp)\s*:\/\//i,
   /(?:search-ms|ms-officecmd)\s*:/i,
   /ms-(?:msdt|appinstaller)\s*:/i,

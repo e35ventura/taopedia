@@ -407,6 +407,23 @@ infoboxRowRejects('gopher://internal-host:6379/_payload', 'gopher:// rejected in
 infoboxRowRejects('irc://irc.evil.example/channel', 'irc:// rejected in an infobox row value');
 infoboxRowAccepts('Breaking news about an IRC channel, described as prose', 'benign legacy-net prose allowed in an infobox row value');
 accepts('Breaking news: the IRC channel and a gopher burrow are described here as prose.', 'benign news:/irc/gopher prose (no // authority)');
+// chrome:// edge:// brave:// chrome-extension:// moz-extension:// resource:// view-source: are
+// privileged browser-internal schemes article links must never reach (settings UI-spoof,
+// extension-origin resource load, raw source view of an intranet page). The // authority and
+// the hyphenated "view-source" token keep benign words ("cutting edge", "browser extension") safe.
+rejects('See [x](chrome://settings/passwords).', 'plain chrome:// internal page');
+rejects('See [x](edge://settings/privacy).', 'plain edge:// internal page');
+rejects('See [x](brave://settings/).', 'plain brave:// internal page');
+rejects('See [x](chrome-extension://abcdefghijklmnop/options.html).', 'plain chrome-extension:// resource');
+rejects('See [x](moz-extension://1111-2222/panel.html).', 'plain moz-extension:// resource');
+rejects('See [x](resource://gre/modules/Foo.jsm).', 'plain resource:// Firefox-internal');
+rejects('See [x](view-source:https://intranet.example/secret).', 'plain view-source: raw source view');
+// Entity-obfuscated: the literal scan misses "chr&#111;me://" but the decoded re-scan catches it.
+rejects('See [x](chr&#111;me://settings).', 'entity-obfuscated chrome:// (obfuscated scan path)');
+// Infobox-row-value scan path.
+infoboxRowRejects('chrome://settings/passwords', 'chrome:// rejected in an infobox row value');
+infoboxRowRejects('view-source:https://intranet.example/secret', 'view-source: rejected in an infobox row value');
+accepts('A cutting edge: design, a browser extension, and the Opera browser are described here only as prose.', 'benign "edge"/"extension"/"Opera" prose words (no // authority)');
 // ftp:// ftps:// tftp:// file-transfer schemes open a non-http connection to a remote host
 // (ftp:// is also an SSRF target); //-guarded so prose is unaffected. Coverage spans the
 // plain content scan, the entity-decoded obfuscated scan, and the infobox scan.
