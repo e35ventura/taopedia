@@ -752,6 +752,19 @@ rejects('See [x](web&#43;coin:pay?to=attacker).', 'entity-obfuscated web+coin: (
 infoboxRowRejects('web+coin:pay?to=attacker', 'web+ custom handler rejected in an infobox row value');
 // Prose: a name followed by a colon and a space must pass; "web" without the + is unaffected.
 accepts('Web: the World Wide Web, and web applications are described here only as prose.', 'benign "Web:" prose (no + prefix)');
+// spotify:/deezer: are music-streaming app deep-link schemes — a clicked link opens the
+// native client on attacker-chosen content outside the page, the same native-app-launch
+// class as tg:/skype:/steam:. The non-space lookahead keeps prose like "Spotify: a music
+// service" (colon then space) passing.
+rejects('See [x](spotify:user:attacker:playlist:6rqhFgbbKwnb9MLmUQDhG6).', 'plain spotify: opaque deep-link');
+rejects('See [x](spotify://track/4cOdK2wGLETKBW3PvgPWqT).', 'plain spotify:// deep-link');
+rejects('See [x](deezer://album/12345).', 'plain deezer:// deep-link');
+// Entity-obfuscated: the literal scan misses "spotif&#121;:" but the decoded re-scan catches it.
+rejects('See [x](spotif&#121;:track:4cOdK2wGLETKBW3PvgPWqT).', 'entity-obfuscated spotify: (obfuscated scan path)');
+// Infobox-row-value scan path.
+infoboxRowRejects('spotify:track:4cOdK2wGLETKBW3PvgPWqT', 'spotify: rejected in an infobox row value');
+// Prose: a brand name followed by a colon and a space must pass.
+accepts('Spotify: a music-streaming service, and Deezer are described here only as prose.', 'benign "Spotify:" prose (colon then space)');
 // search-ms: opens Explorer search on a remote WebDAV/SMB share (malware-delivery
 // chain), and ms-officecmd: invokes Office deep-link commands (argument-injection
 // RCE) — two more native Windows handlers blocked like ms-msdt:/javascript:.

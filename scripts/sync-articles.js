@@ -952,6 +952,16 @@ const unsafeContentPatterns = [
   // shape; the (?=non-space) lookahead requires a real target and "web+" never begins a
   // word in glossary prose, so ordinary text is never affected.
   { pattern: /\bweb\+[a-z]+\s*:(?=[^\s"'<>)])/i, reason: 'web+ custom protocol-handler URL schemes are not allowed in article content' },
+  // spotify: and deezer: are music-streaming app deep-link schemes the OS resolves to
+  // launch the locally-installed client — not the browser. A clicked
+  // spotify:user:attacker:playlist:… or spotify://… opens the Spotify app on
+  // attacker-chosen content, and deezer://… deep-links the Deezer app — driving a native
+  // app outside the page sandbox with no script, the same native app-launch class as the
+  // blocked tg:/skype:/steam: handlers. spotify: carries an opaque path (spotify:track:…)
+  // as well as the //-authority form, so the (?=non-space) lookahead is used; "Spotify" and
+  // "Deezer" are brand names that never begin a glossary word before a colon, so prose like
+  // "Spotify: a music service" (colon then space) is never affected.
+  { pattern: /\b(?:spotify|deezer)\s*:(?=[^\s"'<>)])/i, reason: 'music-streaming app deep-link URL schemes are not allowed in article content' },
   // shell: is the Windows Explorer protocol handler: shell:startup opens the user's
   // Startup folder (a drop-a-payload persistence path), shell:::{CLSID} opens special
   // folders / Control-Panel applets, and the OS — not the browser — resolves it, with
@@ -1036,6 +1046,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /\b(?:geo|maps|comgooglemaps)\s*:(?=[^\s"'<>)])/i, reason: 'native maps and geolocation app-launch URL schemes are not allowed in article content' },
   { pattern: /\bmatrix\s*:(?=[^\s"'<>)])/i, reason: 'Matrix chat client-launch URL scheme is not allowed in article content' },
   { pattern: /\bweb\+[a-z]+\s*:(?=[^\s"'<>)])/i, reason: 'web+ custom protocol-handler URL schemes are not allowed in article content' },
+  { pattern: /\b(?:spotify|deezer)\s*:(?=[^\s"'<>)])/i, reason: 'music-streaming app deep-link URL schemes are not allowed in article content' },
   { pattern: /\bshell\s*:(?=[^\s"'<>)])/i, reason: 'shell: protocol-handler URLs are not allowed in article content' },
   { pattern: /\bms-cxh(?:-full)?\s*:/i, reason: 'Windows CloudExperienceHost protocol-handler URLs are not allowed in article content' },
   { pattern: /data\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
@@ -1090,6 +1101,7 @@ const infoboxRowValueSchemePatterns = [
   /\b(?:geo|maps|comgooglemaps)\s*:(?=[^\s"'<>)])/i,
   /\bmatrix\s*:(?=[^\s"'<>)])/i,
   /\bweb\+[a-z]+\s*:(?=[^\s"'<>)])/i,
+  /\b(?:spotify|deezer)\s*:(?=[^\s"'<>)])/i,
   /\bshell\s*:(?=[^\s"'<>)])/i,
   /\bms-cxh(?:-full)?\s*:/i,
   /data\s*:\s*text\/html/i,
