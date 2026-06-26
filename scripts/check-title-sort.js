@@ -94,18 +94,26 @@ for (const listPage of listPages) {
 }
 
 // The metadata search fallback renders results in search-data order, so the
-// endpoint must order entries through the same comparator.
-const searchData = fs.readFileSync(
-  path.join(projectRoot, 'src/pages/search-data.json.ts'),
+// endpoint must order entries through the shared sortSearchEntries helper.
+const searchDataLib = fs.readFileSync(
+  path.join(projectRoot, 'src/lib/search-data.js'),
   'utf8',
 );
 assert.ok(
-  searchData.includes('compareTitles('),
-  'search-data.json.ts must order entries with compareTitles',
+  searchDataLib.includes('sortSearchEntries'),
+  'search-data.js must export sortSearchEntries for search-data.json.ts',
 );
 assert.ok(
-  !searchData.includes('.sort((a, b) => a.title.localeCompare(b.title))'),
-  'search-data.json.ts must not fall back to lexicographic title sorting',
+  searchDataLib.includes('compareTitles(a.title, b.title)'),
+  'search-data.js must sort titles with compareTitles',
+);
+assert.ok(
+  searchDataLib.includes('a.slug < b.slug'),
+  'search-data.js must tiebreak same-title slug ties on raw slug order, not compareTitles numeric slug collation',
+);
+assert.ok(
+  !searchDataLib.includes('compareTitles(a.slug, b.slug)'),
+  'search-data.js must not use compareTitles for slug tiebreak',
 );
 
 // Special:MostLinkedPages sorts by count then by title tiebreak. The title
