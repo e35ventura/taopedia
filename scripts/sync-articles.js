@@ -860,6 +860,18 @@ const unsafeContentPatterns = [
   // handlers. The //-authority form is required so the prose words "mumble"/"ventrilo" before
   // a colon are never affected; the scheme names never occur as URLs in glossary prose.
   { pattern: /\b(?:ts3server|mumble|ventrilo)\s*:\/\//i, reason: 'voice-chat client-launch URL schemes are not allowed in article content' },
+  // chrome:// chrome-extension:// moz-extension:// edge:// brave:// opera:// vivaldi://
+  // resource:// and view-source: are privileged browser-internal URL schemes the browser
+  // resolves to a context article links must never reach. chrome://settings / edge://settings
+  // / brave://settings / opera:// / vivaldi:// navigate the reader to a privileged
+  // browser-internal page (a UI-spoof / settings social-engineering surface), chrome-extension://
+  // and moz-extension:// load a resource from an installed extension's origin, resource:// reads
+  // a Firefox-internal chrome resource, and view-source:https://internal/ renders the raw source
+  // of an arbitrary (e.g. intranet) page. None is an http(s) link, the same non-http /
+  // out-of-scope navigation class as the blocked about:/data: and app-handler schemes. The
+  // //-authority form (and the hyphenated "view-source" token, which never occurs in prose)
+  // keeps benign words like "the cutting edge" or "a browser extension" unaffected.
+  { pattern: /\b(?:chrome|chrome-extension|moz-extension|edge|brave|opera|vivaldi|resource)\s*:\/\/|\bview-source\s*:/i, reason: 'privileged browser-internal URL schemes are not allowed in article content' },
   // webcal:// webcals:// feed:// itpc:// pcast:// are subscription-handler URL schemes the
   // OS resolves to point a native app at an attacker-controlled remote resource it then
   // fetches on a schedule — outside the browser with no script. webcal://attacker.example/x.ics
@@ -958,6 +970,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /\b(?:mailto|tel|sms)\s*:(?=[^\s"'<>)])/i, reason: 'contact-launch URL schemes are not allowed in article content' },
   { pattern: /(?:tg|whatsapp|discord|slack)\s*:\/\//i, reason: 'messaging-app deep-link URL schemes are not allowed in article content' },
   { pattern: /(?:ts3server|mumble|ventrilo)\s*:\/\//i, reason: 'voice-chat client-launch URL schemes are not allowed in article content' },
+  { pattern: /(?:chrome|chrome-extension|moz-extension|edge|brave|opera|vivaldi|resource)\s*:\/\/|view-source\s*:/i, reason: 'privileged browser-internal URL schemes are not allowed in article content' },
   { pattern: /(?:webcal|webcals|feed|itpc|pcast)\s*:\/\//i, reason: 'subscription-handler URL schemes are not allowed in article content' },
   { pattern: /(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash)\s*:(?=[^\s"'<>)])/i, reason: 'cryptocurrency payment URI schemes are not allowed in article content' },
   { pattern: /\bshell\s*:(?=[^\s"'<>)])/i, reason: 'shell: protocol-handler URLs are not allowed in article content' },
@@ -1005,6 +1018,7 @@ const infoboxRowValueSchemePatterns = [
   /\b(?:mailto|tel|sms)\s*:(?=[^\s"'<>)])/i,
   /(?:tg|whatsapp|discord|slack)\s*:\/\//i,
   /(?:ts3server|mumble|ventrilo)\s*:\/\//i,
+  /(?:chrome|chrome-extension|moz-extension|edge|brave|opera|vivaldi|resource)\s*:\/\/|view-source\s*:/i,
   /(?:webcal|webcals|feed|itpc|pcast)\s*:\/\//i,
   /(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash)\s*:(?=[^\s"'<>)])/i,
   /\bshell\s*:(?=[^\s"'<>)])/i,

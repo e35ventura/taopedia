@@ -599,6 +599,23 @@ rejects('See [x](mum&#98;le://attacker.example/).', 'entity-obfuscated mumble://
 // Infobox-row-value scan path.
 infoboxRowRejects('ts3server://attacker.example?port=9987', 'ts3server:// rejected in an infobox row value');
 accepts('A speaker might mumble, and TeamSpeak and Ventrilo are described here only as prose.', 'benign mumble/Ventrilo prose words (no // authority)');
+// chrome:// edge:// brave:// chrome-extension:// moz-extension:// resource:// view-source: are
+// privileged browser-internal schemes article links must never reach (settings UI-spoof,
+// extension-origin resource load, raw source view of an intranet page). The // authority and
+// the hyphenated "view-source" token keep benign words ("cutting edge", "browser extension") safe.
+rejects('See [x](chrome://settings/passwords).', 'plain chrome:// internal page');
+rejects('See [x](edge://settings/privacy).', 'plain edge:// internal page');
+rejects('See [x](brave://settings/).', 'plain brave:// internal page');
+rejects('See [x](chrome-extension://abcdefghijklmnop/options.html).', 'plain chrome-extension:// resource');
+rejects('See [x](moz-extension://1111-2222/panel.html).', 'plain moz-extension:// resource');
+rejects('See [x](resource://gre/modules/Foo.jsm).', 'plain resource:// Firefox-internal');
+rejects('See [x](view-source:https://intranet.example/secret).', 'plain view-source: raw source view');
+// Entity-obfuscated: the literal scan misses "chr&#111;me://" but the decoded re-scan catches it.
+rejects('See [x](chr&#111;me://settings).', 'entity-obfuscated chrome:// (obfuscated scan path)');
+// Infobox-row-value scan path.
+infoboxRowRejects('chrome://settings/passwords', 'chrome:// rejected in an infobox row value');
+infoboxRowRejects('view-source:https://intranet.example/secret', 'view-source: rejected in an infobox row value');
+accepts('A cutting edge: design, a browser extension, and the Opera browser are described here only as prose.', 'benign "edge"/"extension"/"Opera" prose words (no // authority)');
 // webcal:// webcals:// feed:// itpc:// pcast:// are subscription-handler schemes the OS points
 // a native app at an attacker remote resource it then fetches on a schedule (calendar/news/
 // podcast subscription) — same out-of-sandbox handler class as tg://. The // form keeps the
