@@ -28,6 +28,12 @@ function orderedBacklinks(entries) {
   );
 }
 
+export function normalizeArticleCategories(categories) {
+  // Dedupe repeated frontmatter topics at linkgraph build time so slugmap.json and
+  // categories.json never carry duplicate tags for one article.
+  return [...new Set(Array.isArray(categories) ? categories : [])];
+}
+
 export function orderGeneratedData({ linkGraph, backlinks, slugMap, categoryIndex }) {
   return {
     linkGraph: orderedObject(linkGraph),
@@ -114,20 +120,21 @@ function main() {
     slugSources.set(slug, relativePath);
     const content = fs.readFileSync(filePath, 'utf-8');
     const { data, content: body } = matter(content);
+    const articleCategories = normalizeArticleCategories(data.categories || []);
 
     slugMap[slug] = {
       title: data.title || slug,
-      categories: data.categories || [],
+      categories: articleCategories,
       summary: data.summary || '',
     };
 
-    // Build category index
-    (data.categories || []).forEach(cat => {
+    // Build category index — one membership per topic even when frontmatter repeats it.
+    for (const cat of articleCategories) {
       if (!categoryIndex[cat]) {
         categoryIndex[cat] = [];
       }
       categoryIndex[cat].push(slug);
-    });
+    }
 
     // Extract wiki links from both rendered article body and visible infobox metadata.
     const links = [

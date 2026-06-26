@@ -1,11 +1,18 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { orderGeneratedData, dedupeOutgoingLinks } from './build-linkgraph.js';
+import { orderGeneratedData, dedupeOutgoingLinks, normalizeArticleCategories } from './build-linkgraph.js';
 
 const projectRoot = path.resolve(new URL('..', import.meta.url).pathname);
 const dataDir = path.join(projectRoot, 'public', 'data');
 const compareKeys = (a, b) => String(a).localeCompare(String(b), 'en', { numeric: true });
+
+assert.deepEqual(
+  normalizeArticleCategories(['Mining', 'Consensus', 'Mining']),
+  ['Mining', 'Consensus'],
+  'normalizeArticleCategories must dedupe while preserving first-seen order',
+);
+assert.deepEqual(normalizeArticleCategories(undefined), [], 'normalizeArticleCategories must normalize missing input to []');
 
 function assertSortedKeys(object, label) {
   const keys = Object.keys(object);
@@ -112,6 +119,14 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
       new Set(slugs).size,
       slugs.length,
       `generated category members for ${category} must not repeat a slug`,
+    );
+  }
+  for (const [slug, entry] of Object.entries(slugMap)) {
+    const categories = Array.isArray(entry?.categories) ? entry.categories : [];
+    assert.equal(
+      new Set(categories).size,
+      categories.length,
+      `generated slugmap entry for ${slug} must not repeat a category tag`,
     );
   }
 }
