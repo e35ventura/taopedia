@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { render } from 'astro:content';
-import { allRecentChanges, historyForSlug } from '../../../lib/article-history';
+import { allRecentChanges, historyForSlug, revisionStatsFromHistory } from '../../../lib/article-history';
 import {
   publishedCategoriesBySlug,
   publishedSummaryBySlug,
@@ -84,17 +84,12 @@ export const GET: APIRoute = async ({ site }) => {
   // sectionCount above does), so they were folded out of two separate change
   // loops into one. Same compute-once pattern subnets.json / mostlinkedpages.json
   // use.
-  const revisionStatsBySlug: Record<string, { revisionCount: number; firstEdited: string | null; lastEdited: string | null }> = {};
+  const revisionStatsBySlug: Record<string, ReturnType<typeof revisionStatsFromHistory>> = {};
   const inboundBySlug: Record<string, number> = {};
   const referencesCountBySlug: Record<string, number> = {};
   for (const change of changes) {
     if (change.slug in revisionStatsBySlug) continue;
-    const history = historyForSlug(change.slug);
-    revisionStatsBySlug[change.slug] = {
-      revisionCount: history.length,
-      firstEdited: history[history.length - 1]?.date ?? null,
-      lastEdited: history[0]?.date ?? null,
-    };
+    revisionStatsBySlug[change.slug] = revisionStatsFromHistory(historyForSlug(change.slug));
     inboundBySlug[change.slug] = publishedInboundLinkCount(backlinksData, change.slug, titleBySlug);
     referencesCountBySlug[change.slug] = getArticleReferences({ slug: change.slug, linkGraph: linkgraphData, titleBySlug }).length;
   }
