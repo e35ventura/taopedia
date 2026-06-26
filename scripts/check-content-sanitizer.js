@@ -518,6 +518,19 @@ infoboxRowRejects('facetime:attacker@evil.example', 'facetime: rejected in an in
 infoboxRowAccepts('A VoIP video call app described as prose', 'benign comm prose allowed in an infobox row value');
 accepts('Skype: a VoIP app, FaceTime: Apple video calling, and Teams are defined here as prose.', 'benign Skype:/FaceTime: glossary definitions (colon then space)');
 accepts('A video call and a meeting link are described here only as prose.', 'benign call/meeting prose words');
+// mailto: tel: sms: launch a native mail / dialer / messaging client with an
+// attacker-chosen target and optional prefilled content — a no-script native
+// app-launch / social-engineering surface, same class as skype:/zoommtg:.
+rejects('See [x](mailto:attacker@example.com?subject=help&body=seed).', 'plain mailto: draft-exfiltration URL');
+rejects('See [x](tel:+15551234567).', 'plain tel: dialer URL');
+rejects('See [x](sms:+15551234567?body=send%20funds).', 'plain sms: message-compose URL');
+// Entity-obfuscated: the literal scan misses "mailt&#111;:" but the decoded re-scan
+// (obfuscatedSchemePatterns) catches mailto: after &#111; -> o.
+rejects('See [x](mailt&#111;:attacker@example.com?body=seed).', 'entity-obfuscated mailto: (obfuscated scan path)');
+// Infobox-row-value scan path.
+infoboxRowRejects('mailto:attacker@example.com?body=seed', 'mailto: rejected in an infobox row value');
+infoboxRowRejects('sms:+15551234567?body=send%20funds', 'sms: rejected in an infobox row value');
+accepts('Mailto: a URI scheme, tel: a dialer URI, and SMS: a message URI are described here as prose.', 'benign mailto:/tel:/sms: glossary definitions (colon then space)');
 // tg:// whatsapp:// discord:// slack:// are messaging-app deep-link protocol handlers the
 // OS resolves to launch the native client (join an attacker channel / open a DM to an
 // attacker contact) outside the page sandbox with no script — same native app-launch class
