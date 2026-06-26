@@ -122,8 +122,16 @@ assert.ok(
   'search-data.js must export sortSearchEntries for search-data.json.ts',
 );
 assert.ok(
-  searchDataLib.includes('compareTitles('),
-  'search-data.js must order search entries with compareTitles',
+  searchDataLib.includes('compareTitles(a.title, b.title)'),
+  'search-data.js must sort titles with compareTitles',
+);
+assert.ok(
+  searchDataLib.includes('a.slug < b.slug'),
+  'search-data.js must tiebreak same-title slug ties on raw slug order, not compareTitles numeric slug collation',
+);
+assert.ok(
+  !searchDataLib.includes('compareTitles(a.slug, b.slug)'),
+  'search-data.js must not use compareTitles for slug tiebreak',
 );
 
 // Special:MostLinkedPages sorts by count then by title tiebreak. The title

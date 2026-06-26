@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import matter from './frontmatter.js';
-import { compareTitles } from '../src/lib/title-sort.js';
 import { sortSearchEntries } from '../src/lib/search-data.js';
 
 const distDir = path.join(process.cwd(), 'dist');
@@ -33,7 +32,16 @@ assert.deepEqual(
     { title: 'Shared Title', slug: 'alpha', summary: '', url: `${ORIGIN}/wiki/alpha/`, categories: [] },
   ]).map((entry) => entry.slug),
   ['alpha', 'alpha_beta'],
-  'same-title search entries must tiebreak on the slug (alpha before alpha_beta), matching the rest of the site, NOT the full canonical URL',
+  'same-title search entries must tiebreak on slug (alpha before alpha_beta), not the full canonical URL',
+);
+
+assert.deepEqual(
+  sortSearchEntries([
+    { title: 'Shared Title', slug: 'subnet_9', summary: '', url: `${ORIGIN}/wiki/subnet_9/`, categories: [] },
+    { title: 'Shared Title', slug: 'subnet_10', summary: '', url: `${ORIGIN}/wiki/subnet_10/`, categories: [] },
+  ]).map((entry) => entry.slug),
+  ['subnet_10', 'subnet_9'],
+  'same-title search entries must tiebreak on raw slug order (subnet_10 before subnet_9), matching references.json',
 );
 
 assert.ok(Array.isArray(searchEntries), 'search data must serialize an array');
@@ -78,10 +86,9 @@ assert.equal(
 );
 
 // The entries must be in a deterministic order: by title (numeric collation),
-// then by slug with the SAME numeric collation as a tiebreak. Re-derive the expected order
-// independently from the article sources using the SAME comparator the endpoint
-// uses, and assert the built file matches exactly — so the ordering is pinned
-// and cannot silently regress or vary with the unspecified getCollection() order.
+// then by raw slug code-unit order when titles tie. Re-derive the expected order
+// independently from the article sources using sortSearchEntries, and assert the
+// built file matches exactly.
 const contentDir = path.join(process.cwd(), 'src', 'content', 'pages');
 const expected = [];
 for (const dirent of fs.readdirSync(contentDir, { withFileTypes: true })) {
@@ -95,19 +102,19 @@ for (const dirent of fs.readdirSync(contentDir, { withFileTypes: true })) {
   if (!data || typeof data.title !== 'string') continue;
   expected.push({ title: data.title, slug, url: `${ORIGIN}/wiki/${slug}/` });
 }
-expected.sort((a, b) => compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug));
+const expectedSorted = sortSearchEntries(expected);
 
 assert.equal(
   searchEntries.length,
-  expected.length,
-  `search data must list all ${expected.length} articles (got ${searchEntries.length})`,
+  expectedSorted.length,
+  `search data must list all ${expectedSorted.length} articles (got ${searchEntries.length})`,
 );
-for (let i = 0; i < expected.length; i++) {
+for (let i = 0; i < expectedSorted.length; i++) {
   assert.equal(
     searchEntries[i].url,
-    expected[i].url,
-    `search entries out of order at index ${i}: expected ${expected[i].url} ("${expected[i].title}"), got ${searchEntries[i].url} ("${searchEntries[i].title}")`,
+    expectedSorted[i].url,
+    `search entries out of order at index ${i}: expected ${expectedSorted[i].url} ("${expectedSorted[i].title}"), got ${searchEntries[i].url} ("${searchEntries[i].title}")`,
   );
 }
 
-console.log(`Search data check passed (${searchEntries.length} entries, canonical URLs, deterministic title+numeric-URL order)`);
+console.log(`Search data check passed (${searchEntries.length} entries, canonical URLs, deterministic title+slug order)`);
