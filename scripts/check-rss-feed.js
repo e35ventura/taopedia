@@ -225,6 +225,24 @@ assert.ok(!empty.includes('<lastBuildDate>'), 'an empty feed omits lastBuildDate
   );
 }
 
+// Prefix slugs: site-wide feeds omit sortKey, so the tiebreak must extract the
+// wiki slug from the canonical URL (alpha before alpha_beta). Comparing the full
+// URL inverts this pair because the "/" boundary collates before "_".
+{
+  const sameDate = '2026-06-01T06:01:22Z';
+  const alpha = { title: 'Shared', url: 'https://taopedia.org/wiki/alpha/', description: '', date: sameDate };
+  const alphaBeta = { title: 'Shared', url: 'https://taopedia.org/wiki/alpha_beta/', description: '', date: sameDate };
+  const feedForward = buildRssFeed({ siteUrl, items: [alphaBeta, alpha] });
+  const feedReversed = buildRssFeed({ siteUrl, items: [alpha, alphaBeta] });
+  assert.equal(feedForward, feedReversed, 'prefix-slug same-timestamp feeds must be input-order independent');
+  const posAlpha = feedForward.indexOf('/wiki/alpha/');
+  const posAlphaBeta = feedForward.indexOf('/wiki/alpha_beta/');
+  assert.ok(
+    posAlpha >= 0 && posAlphaBeta >= 0 && posAlpha < posAlphaBeta,
+    'prefix slugs must tiebreak on wiki slug (alpha before alpha_beta), not full URL order',
+  );
+}
+
 // RSS callers that have structured article dates should get the same known-date
 // fallback as Atom and JSON Feed: modified first, legacy date next, published
 // date last. Otherwise a published-only item sorts as undated and loses pubDate.

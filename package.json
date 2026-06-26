@@ -62,6 +62,7 @@
     "test:random-page": "node scripts/check-random-page.js",
     "test:sitemap": "node scripts/check-sitemap.js",
     "test:rss-feed": "node scripts/check-rss-feed.js",
+    "test:feed-item-sort": "node scripts/check-feed-item-sort.js",
     "test:atom-feed": "node scripts/check-atom-feed.js",
     "test:feed-enclosure": "node scripts/check-feed-enclosure.js",
     "test:atom-discovery": "node scripts/check-atom-discovery.js",
