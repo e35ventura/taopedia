@@ -534,9 +534,10 @@ infoboxRowRejects('postgres://user@internal-host:5432/db', 'postgres:// rejected
 infoboxRowRejects('sqlite:///var/lib/data.db', 'sqlite:// rejected in an infobox row value');
 infoboxRowAccepts('Redis and PostgreSQL are described as prose', 'benign DB-name prose allowed in an infobox row value');
 accepts('Redis, MongoDB, MySQL, MariaDB, SQLite, InfluxDB, PostgreSQL, Memcached, etcd, and Consul are described here only as prose.', 'benign database/service-name prose (no // authority)');
-// amqp:// mqtt:// stomp:// kafka:// nats:// message-broker connection schemes address an
-// internal broker (SSRF targets), never an http(s) article link; //-guarded. Coverage spans
-// the plain content scan, the entity-decoded scan, and the infobox scan.
+// amqp:// mqtt:// stomp:// kafka:// nats:// redpanda:// activemq:// nsq:// message-broker
+// connection schemes address an internal broker (SSRF targets), never an http(s) article
+// link; //-guarded. Coverage spans the plain content scan, the entity-decoded scan, and
+// the infobox scan.
 rejects('See [x](amqp://internal-host:5672/vhost).', 'plain amqp:// connection URL');
 rejects('See [x](amqps://internal-host:5671/vhost).', 'plain amqps:// connection URL');
 rejects('See [x](mqtt://internal-host:1883/topic).', 'plain mqtt:// connection URL');
@@ -546,13 +547,35 @@ rejects('See [x](stomp://internal-host:61613).', 'plain stomp:// connection URL'
 rejects('See [x](nats://internal-host:4222).', 'plain nats:// connection URL');
 rejects('See [x](rabbitmq://internal-host:5672/vhost).', 'plain rabbitmq:// connection URL');
 rejects('See [x](pulsar://internal-host:6650/).', 'plain pulsar:// connection URL');
+rejects('See [x](redpanda://internal-host:9092).', 'plain redpanda:// connection URL');
+rejects('See [x](activemq://internal-host:61616).', 'plain activemq:// connection URL');
+rejects('See [x](nsq://internal-host:4150/).', 'plain nsq:// connection URL');
 rejects('See [x](am&#113;p://internal-host:5672/v).', 'entity-obfuscated amqp:// (obfuscated scan path)');
+rejects('See [x](amqp&#115;://internal-host:5671/v).', 'entity-obfuscated amqps:// (obfuscated scan path)');
+rejects('See [x](mqt&#116;://internal-host:1883/topic).', 'entity-obfuscated mqtt:// (obfuscated scan path)');
+rejects('See [x](mqt&#116;s://internal-host:8883/topic).', 'entity-obfuscated mqtts:// (obfuscated scan path)');
+rejects('See [x](kafk&#97;://internal-host:9092).', 'entity-obfuscated kafka:// (obfuscated scan path)');
+rejects('See [x](stom&#112;://internal-host:61613).', 'entity-obfuscated stomp:// (obfuscated scan path)');
+rejects('See [x](nat&#115;://internal-host:4222).', 'entity-obfuscated nats:// (obfuscated scan path)');
 rejects('See [x](rabbit&#109;q://internal-host:5672/vhost).', 'entity-obfuscated rabbitmq:// (obfuscated scan path)');
+rejects('See [x](puls&#97;r://internal-host:6650/).', 'entity-obfuscated pulsar:// (obfuscated scan path)');
+rejects('See [x](redp&#097;nda://internal-host:9092).', 'entity-obfuscated redpanda:// (obfuscated scan path)');
+rejects('See [x](activ&#101;mq://internal-host:61616).', 'entity-obfuscated activemq:// (obfuscated scan path)');
+rejects('See [x](n&#115;q://internal-host:4150/).', 'entity-obfuscated nsq:// (obfuscated scan path)');
 infoboxRowRejects('amqp://internal-host:5672/vhost', 'amqp:// rejected in an infobox row value');
+infoboxRowRejects('amqps://internal-host:5671/vhost', 'amqps:// rejected in an infobox row value');
 infoboxRowRejects('mqtt://internal-host:1883/topic', 'mqtt:// rejected in an infobox row value');
+infoboxRowRejects('mqtts://internal-host:8883/topic', 'mqtts:// rejected in an infobox row value');
+infoboxRowRejects('kafka://internal-host:9092', 'kafka:// rejected in an infobox row value');
+infoboxRowRejects('stomp://internal-host:61613', 'stomp:// rejected in an infobox row value');
+infoboxRowRejects('nats://internal-host:4222', 'nats:// rejected in an infobox row value');
+infoboxRowRejects('rabbitmq://internal-host:5672/vhost', 'rabbitmq:// rejected in an infobox row value');
 infoboxRowRejects('pulsar://internal-host:6650/', 'pulsar:// rejected in an infobox row value');
+infoboxRowRejects('redpanda://internal-host:9092', 'redpanda:// rejected in an infobox row value');
+infoboxRowRejects('activemq://internal-host:61616', 'activemq:// rejected in an infobox row value');
+infoboxRowRejects('nsq://internal-host:4150/', 'nsq:// rejected in an infobox row value');
 infoboxRowAccepts('AMQP and MQTT messaging are described as prose', 'benign broker-name prose allowed in an infobox row value');
-accepts('AMQP, MQTT, Kafka, NATS, RabbitMQ, and Pulsar messaging are described here only as prose.', 'benign broker-name prose (no // authority)');
+accepts('AMQP, MQTT, Kafka, NATS, RabbitMQ, Pulsar, Redpanda, ActiveMQ, and NSQ messaging are described here only as prose.', 'benign broker-name prose (no // authority)');
 // clickhouse:// cassandra:// couchbase:// couchdb:// neo4j:// bolt:// data-store connection
 // schemes address an internal data store (SSRF targets), never an http(s) article link;
 // //-guarded. Plain reject for EVERY variant, plus entity-decoded and infobox coverage.
