@@ -86,6 +86,7 @@ export interface ArticleRelatedPagesDocument {
   backlinksJsonUrl: string;
   infoUrl: string;
   infoJsonUrl: string;
+  tocUrl: string;
   tocJsonUrl: string;
   citeUrl: string;
   citeJsonUrl: string;
@@ -123,6 +124,7 @@ export interface ArticleRelatedPagesDocument {
     referencesJsonUrl: string;
     relatedUrl: string;
     relatedJsonUrl: string;
+    tocUrl: string;
     tocJsonUrl: string;
     imageUrl: string;
   }>;
@@ -236,7 +238,9 @@ export function buildArticleRelatedPages({
     // The article's own published inbound-link count — the same figure
     // info.json / history.json / cite.json expose on their envelopes (via the
     // shared helper), so related.json can show link popularity without a refetch.
-    incomingLinks,
+    // Finite-guarded like every other count field below (and the per-related-entry
+    // incomingLinks) so a non-finite input can never serialize as JSON null.
+    incomingLinks: Number.isFinite(incomingLinks) ? incomingLinks : 0,
     // The article's published OUTBOUND reference count — the complement of
     // incomingLinks, the same figure info.json / history.json / cite.json expose.
     referencesCount: Number.isFinite(referencesCount) ? referencesCount : 0,

@@ -475,6 +475,36 @@ rejects('See [x](vscode-insiders://vscode.git/clone?url=https://evil.example/x).
 rejects('See [x](vscodium://extension/evil.publisher.evil).', 'plain vscodium: editor scheme');
 rejects('See [x](vscod&#101;://file/x).', 'entity-obfuscated vscode:');
 accepts('The VS Code editor and the VSCodium build are described here only as prose.', 'benign editor names are not the vscode: schemes');
+// jetbrains:/intellij:/pycharm:/webstorm:/phpstorm:/sublime:/atom: are the JetBrains-family /
+// Sublime / Atom code-editor protocol handlers the OS launches (open folder / run task /
+// drive editor commands), blocked alongside the merged vscode:/vscodium: handlers above.
+// github-mac:/github-windows:/github-desktop:/sourcetree:/gitkraken:/tower:/fork: are the
+// matching native Git / GitHub GUI clients: a clicked github-desktop://openRepo?url=… or
+// sourcetree://…/cloneRepo?… drives the registered desktop client to clone an attacker
+// repository outside the page sandbox, with no script. Same native protocol-handler class
+// as vscode:/git:/svn:/cvs:/onenote:/ms-*; the //-guarded Git-GUI scheme names never
+// occur as live URLs in glossary prose.
+rejects('See [x](jetbrains://idea/open?file=https://evil.example/x).', 'plain jetbrains: editor scheme');
+rejects('See [x](intellij://open?file=https://evil.example/x).', 'plain intellij: editor scheme');
+rejects('See [x](pycharm://open?file=https://evil.example/x).', 'plain pycharm: editor scheme');
+rejects('See [x](webstorm://open?file=https://evil.example/x).', 'plain webstorm: editor scheme');
+rejects('See [x](phpstorm://open?file=https://evil.example/x).', 'plain phpstorm: editor scheme');
+rejects('See [x](sublime://open?url=file:///etc/passwd).', 'plain sublime: editor scheme');
+rejects('See [x](atom://core/open/file?path=https://evil.example/x).', 'plain atom: editor scheme');
+rejects('See [x](jetbr&#97;ins://idea/open?file=https://evil.example/x).', 'entity-obfuscated jetbrains:');
+rejects('See [x](github-mac://openRepo?url=https://evil.example/.git).', 'plain github-mac: GUI scheme');
+rejects('See [x](github-windows://openRepo?url=https://evil.example/.git).', 'plain github-windows: GUI scheme');
+rejects('See [x](github-desktop://openRepo?url=https://evil.example/.git).', 'plain github-desktop: GUI scheme');
+rejects('See [x](sourcetree://openRepo?url=https://evil.example/.git).', 'plain sourcetree: GUI scheme');
+rejects('See [x](gitkraken://repo?url=https://evil.example/.git).', 'plain gitkraken: GUI scheme');
+rejects('See [x](tower://openRepo?url=https://evil.example/.git).', 'plain tower: GUI scheme');
+rejects('See [x](fork://openRepo?url=https://evil.example/.git).', 'plain fork: GUI scheme');
+rejects('See [x](github-des&#107;top://openRepo?url=https://evil.example/.git).', 'entity-obfuscated github-desktop:');
+infoboxRowRejects('jetbrains://idea/open?file=https://evil.example/x', 'jetbrains: rejected in an infobox row value');
+infoboxRowRejects('github-desktop://openRepo?url=https://evil.example/.git', 'github-desktop: rejected in an infobox row value');
+accepts('JetBrains IDEs and a Sublime Text config are described here only as prose.', 'benign editor names are not the jetbrains:/sublime: schemes');
+accepts('A Git Tower client and a SourceTree repository browser are described here only as prose.', 'benign GUI names are not the tower:/sourcetree: schemes');
+accepts('The Atom editor and the GitHub Desktop client are described here only as prose.', 'benign atom/github-desktop prose (no scheme colon)');
 // chrome:// edge:// opera:// devtools:// browser-internal page schemes address privileged
 // browser UI, never an http(s) article link; //-guarded so prose is unaffected. Coverage
 // spans the plain content scan, the entity-decoded scan, and the infobox scan.
@@ -574,18 +604,38 @@ rejects('See [x](bolt://internal-host:7687).', 'plain bolt:// (Neo4j) connection
 rejects('See [x](arangodb://internal-host:8529/db).', 'plain arangodb:// connection URL');
 rejects('See [x](dynamodb://internal-host:8000/table).', 'plain dynamodb:// connection URL');
 rejects('See [x](elasticsearch://internal-host:9200/index).', 'plain elasticsearch:// connection URL');
+rejects('See [x](zookeeper://internal-host:2181).', 'plain zookeeper:// connection URL');
+rejects('See [x](hdfs://internal-host:9000/data).', 'plain hdfs:// connection URL');
+rejects('See [x](hazelcast://internal-host:5701).', 'plain hazelcast:// connection URL');
+rejects('See [x](riak://internal-host:8087/bucket).', 'plain riak:// connection URL');
+rejects('See [x](minio://internal-host:9000/bucket).', 'plain minio:// connection URL');
+rejects('See [x](solr://internal-host:8983/solr/core).', 'plain solr:// connection URL');
 rejects('See [x](arangod&#98;://internal-host:8529/db).', 'entity-obfuscated arangodb:// (obfuscated scan path)');
 infoboxRowRejects('arangodb://internal-host:8529/db', 'arangodb:// rejected in an infobox row value');
 infoboxRowAccepts('ArangoDB is described as prose', 'benign data-store prose allowed in an infobox row value');
 accepts('ArangoDB graphs are described here only as prose.', 'benign arangodb prose (no // authority)');
 rejects('See [x](cl&#105;ckhouse://internal-host:9000/db).', 'entity-obfuscated clickhouse:// (obfuscated scan path)');
 rejects('See [x](dynam&#111;db://internal-host:8000/table).', 'entity-obfuscated dynamodb:// (obfuscated scan path)');
+rejects('See [x](zo&#111;keeper://internal-host:2181).', 'entity-obfuscated zookeeper:// (obfuscated scan path)');
+rejects('See [x](h&#100;fs://internal-host:9000/data).', 'entity-obfuscated hdfs:// (obfuscated scan path)');
+rejects('See [x](haz&#101;lcast://internal-host:5701).', 'entity-obfuscated hazelcast:// (obfuscated scan path)');
+rejects('See [x](r&#105;ak://internal-host:8087/bucket).', 'entity-obfuscated riak:// (obfuscated scan path)');
+rejects('See [x](m&#105;nio://internal-host:9000/bucket).', 'entity-obfuscated minio:// (obfuscated scan path)');
+rejects('See [x](s&#111;lr://internal-host:8983/solr/core).', 'entity-obfuscated solr:// (obfuscated scan path)');
 infoboxRowRejects('neo4j://internal-host:7687', 'neo4j:// rejected in an infobox row value');
 infoboxRowRejects('cassandra://internal-host:9042/ks', 'cassandra:// rejected in an infobox row value');
 infoboxRowRejects('dynamodb://internal-host:8000/table', 'dynamodb:// rejected in an infobox row value');
 infoboxRowRejects('elasticsearch://internal-host:9200/index', 'elasticsearch:// rejected in an infobox row value');
+infoboxRowRejects('zookeeper://internal-host:2181', 'zookeeper:// rejected in an infobox row value');
+infoboxRowRejects('hdfs://internal-host:9000/data', 'hdfs:// rejected in an infobox row value');
+infoboxRowRejects('hazelcast://internal-host:5701', 'hazelcast:// rejected in an infobox row value');
+infoboxRowRejects('riak://internal-host:8087/bucket', 'riak:// rejected in an infobox row value');
+infoboxRowRejects('minio://internal-host:9000/bucket', 'minio:// rejected in an infobox row value');
+infoboxRowRejects('solr://internal-host:8983/solr/core', 'solr:// rejected in an infobox row value');
 infoboxRowAccepts('Cassandra and Neo4j are described as prose', 'benign data-store prose allowed in an infobox row value');
+infoboxRowAccepts('ZooKeeper, HDFS, Hazelcast, Riak, MinIO, and Solr are described as prose', 'benign data-store prose allowed in an infobox row value');
 accepts('A bolt of lightning, the Cassandra prophecy, and a Neo4j graph are described here only as prose.', 'benign bolt/cassandra/neo4j prose (no // authority)');
+accepts('ZooKeeper coordination, HDFS storage, Hazelcast caching, Riak KV, MinIO object storage, and Solr search are described here only as prose.', 'benign zookeeper/hdfs/hazelcast/riak/minio/solr prose (no // authority)');
 // coap://coaps:// (Constrained Application Protocol, IoT) address a non-http device at a
 // host:port — an SSRF target. Covered across plain, entity-decoded, and infobox scans.
 rejects('See [x](coap://internal-device:5683/sensor).', 'plain coap:// IoT URL');
@@ -766,7 +816,13 @@ rejects('See [x](disc&#111;rd://-/channels/123).', 'entity-obfuscated discord://
 // Infobox-row-value scan path.
 infoboxRowRejects('tg://resolve?domain=evilchannel', 'tg:// rejected in an infobox row value');
 infoboxRowRejects('slack://open?team=T0', 'slack:// rejected in an infobox row value');
-accepts('Slack: a team chat app, Discord servers, and Telegram channels are described here only as prose.', 'benign Slack:/Discord/Telegram prose (no // authority)');
+// mattermost:// and rocketchat:// are self-hostable Slack-alternative team-chat app deep-link
+// handlers in the same native client-launch class as slack://discord://line://viber://.
+rejects('See [x](mattermost://team/channel/abc).', 'plain mattermost:// deep-link');
+rejects('See [x](rocketchat://group/channel/xyz).', 'plain rocketchat:// deep-link');
+rejects('See [x](matt&#101;rmost://team/channel).', 'entity-obfuscated mattermost:// (obfuscated scan path)');
+infoboxRowRejects('rocketchat://group/channel', 'rocketchat:// rejected in an infobox row value');
+accepts('Slack: a team chat app, Discord servers, Mattermost and Rocket.Chat are described here only as prose.', 'benign Slack:/Discord/Mattermost/Rocket.Chat prose (no // authority)');
 accepts('LINE: a messaging app and Viber calls are described here only as prose.', 'benign LINE:/Viber prose (no // authority)');
 // ts3server:// mumble:// ventrilo:// are voice-chat client-launch protocol handlers the OS
 // resolves to launch the native client at an attacker server (ts3server: had a documented

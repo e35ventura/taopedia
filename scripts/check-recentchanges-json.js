@@ -33,6 +33,25 @@ const collectRecentChanges = (historyBySlug, titleBySlug, limit) => {
   return limit > 0 ? changes.slice(0, limit) : changes;
 };
 
+// revisionStatsFromHistory contract (mirrors src/lib/article-history.ts): newest-first history.
+{
+  const revisionStatsFromHistory = (history) => ({
+    revisionCount: history.length,
+    firstEdited: history.at(-1)?.date ?? null,
+    lastEdited: history[0]?.date ?? null,
+  });
+  assert.deepEqual(
+    revisionStatsFromHistory([{ date: '2024-02-01' }, { date: '2024-01-01' }]),
+    { revisionCount: 2, firstEdited: '2024-01-01', lastEdited: '2024-02-01' },
+    'revisionStatsFromHistory must derive count and edit dates from newest-first history',
+  );
+  assert.deepEqual(
+    revisionStatsFromHistory([]),
+    { revisionCount: 0, firstEdited: null, lastEdited: null },
+    'revisionStatsFromHistory must return zeros for empty history',
+  );
+}
+
 // Builder contract: a recent change is only valid if its entry carries both a
 // date AND a sha (the sha is the stable event-id component
 // urn:taopedia:recentchanges:<slug>:<sha>). Entries missing either are dropped,

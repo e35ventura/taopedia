@@ -182,6 +182,7 @@ const sectionCountOf = (slug) => {
         relatedUrl: `${ORIGIN}/wiki/alpha/related.json`,
         relatedJsonUrl: `${ORIGIN}/wiki/alpha/related.json`,
         infoJsonUrl: `${ORIGIN}/wiki/alpha/info.json`,
+        tocUrl: `${ORIGIN}/wiki/alpha/toc.json`,
         tocJsonUrl: `${ORIGIN}/wiki/alpha/toc.json`,
         imageUrl: `${ORIGIN}/og/alpha.png`,
       },
@@ -214,6 +215,7 @@ const sectionCountOf = (slug) => {
         relatedUrl: `${ORIGIN}/wiki/gamma/related.json`,
         relatedJsonUrl: `${ORIGIN}/wiki/gamma/related.json`,
         infoJsonUrl: `${ORIGIN}/wiki/gamma/info.json`,
+        tocUrl: `${ORIGIN}/wiki/gamma/toc.json`,
         tocJsonUrl: `${ORIGIN}/wiki/gamma/toc.json`,
         imageUrl: `${ORIGIN}/og/gamma.png`,
       },
@@ -246,6 +248,7 @@ const sectionCountOf = (slug) => {
         relatedUrl: `${ORIGIN}/wiki/delta/related.json`,
         relatedJsonUrl: `${ORIGIN}/wiki/delta/related.json`,
         infoJsonUrl: `${ORIGIN}/wiki/delta/info.json`,
+        tocUrl: `${ORIGIN}/wiki/delta/toc.json`,
         tocJsonUrl: `${ORIGIN}/wiki/delta/toc.json`,
         imageUrl: `${ORIGIN}/og/delta.png`,
       },
@@ -266,6 +269,28 @@ const sectionCountOf = (slug) => {
   assert.equal(empty.revisionCount, 0, 'builder: revisionCount defaults to 0 when omitted');
   assert.equal(empty.firstEdited, null, 'builder: firstEdited defaults to null when omitted');
   assert.equal(empty.lastEdited, null, 'builder: lastEdited defaults to null when omitted');
+
+  // Non-finite counts coerce to 0 on the envelope — matching every other count
+  // field (and the per-related-entry incomingLinks) and the sibling info.json /
+  // cite.json builders — so related.json's numeric fields are never emitted as
+  // JSON null. The `= 0` defaults only catch `undefined`, so an explicit
+  // NaN/Infinity would otherwise leak through (incomingLinks was the lone outlier).
+  const nonFinite = buildArticleRelatedPages({
+    slug: 'nf',
+    title: 'NF',
+    origin: ORIGIN,
+    incomingLinks: NaN,
+    referencesCount: Infinity,
+    sectionCount: NaN,
+    wordCount: -Infinity,
+    revisionCount: NaN,
+  });
+  assert.equal(nonFinite.incomingLinks, 0, 'builder: non-finite incomingLinks coerces to 0');
+  assert.equal(nonFinite.referencesCount, 0, 'builder: non-finite referencesCount coerces to 0');
+  assert.equal(nonFinite.sectionCount, 0, 'builder: non-finite sectionCount coerces to 0');
+  assert.equal(nonFinite.wordCount, 0, 'builder: non-finite wordCount coerces to 0');
+  assert.equal(nonFinite.revisionCount, 0, 'builder: non-finite revisionCount coerces to 0');
+  assert.equal(nonFinite.readingMinutes, 1, 'builder: non-finite wordCount yields readingMinutes 1 (ceil(0/200))');
 }
 
 // Repeated frontmatter categories must be deduped on the envelope and entries.
