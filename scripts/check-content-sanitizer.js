@@ -993,6 +993,15 @@ rejects('See [x](ms-cxh://localonly/?comingFromMSA=1).', 'plain ms-cxh: handler 
 rejects('See [x](ms-cxh-full://addworkorschool).', 'plain ms-cxh-full: handler URL');
 rejects('See [x](ms-c&#120;h://localonly).', 'entity-obfuscated ms-cxh:');
 accepts('The CloudExperienceHost setup component is described here only as prose.', 'benign prose without the ms-cxh: scheme');
+// microsoft-edge: is the Windows protocol handler that forces a URL open in Edge, bypassing
+// the default browser and SmartScreen (a documented malware-delivery / control-bypass vector).
+// It is distinct from the edge:// browser-internal pages. The non-space lookahead keeps prose
+// like "Microsoft Edge: a web browser" (colon then space) passing.
+rejects('See [x](microsoft-edge:https://attacker.example/phish).', 'plain microsoft-edge: forced-open handler URL');
+rejects('See [x](microsoft-edge:https%3A%2F%2Fattacker.example).', 'plain microsoft-edge: with encoded target');
+rejects('See [x](microsoft-e&#100;ge:https://attacker.example).', 'entity-obfuscated microsoft-edge: (obfuscated scan path)');
+infoboxRowRejects('microsoft-edge:https://attacker.example/phish', 'microsoft-edge: rejected in an infobox row value');
+accepts('Microsoft Edge: a Chromium-based web browser is described here only as prose.', 'benign "Microsoft Edge:" prose (colon then space)');
 
 // MDX expression braces execute at build time in article bodies. They are only
 // allowed when escaped as literal prose or inside Markdown code examples.
