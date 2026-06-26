@@ -268,6 +268,15 @@ rejects('Intro.\n\n<  strike  >struck</strike>', 'spaced <strike>');
 rejects('Intro.\n\n<tt>monospace</tt>', 'plain <tt>');
 rejects('Intro.\n\n<nobr>unwrapped</nobr>', 'plain <nobr>');
 accepts('Big monospace headings and strike-through prices are described here as prose.', 'benign obsolete-text prose');
+// <blink>/<spacer>/<multicol> are obsolete Netscape-era presentational elements: <blink>
+// flashes text (sibling of the blocked <marquee>), <spacer> reserves a large blank layout
+// box, and <multicol> forces columns — presentational/layout defacement with no script,
+// the same class as the blocked <marquee>/<font> and the width=/height= dimension attributes.
+rejects('Intro.\n\n<blink>FAKE FLASHING ALERT</blink>', 'plain <blink>');
+rejects('Intro.\n\n<  blink  >flash</blink>', 'spaced <blink>');
+rejects('Intro.\n\n<spacer type="block" width="9999" height="9999">', 'plain <spacer>');
+rejects('Intro.\n\n<multicol cols="3">columns</multicol>', 'plain <multicol>');
+accepts('A blank spacer image and a multi-column layout are described here only as prose.', 'benign spacer/multicol prose (not the elements)');
 
 // <plaintext>/<xmp>/<listing> are obsolete raw-text elements the parser still
 // honors. An injected <plaintext> renders all following content as literal text —

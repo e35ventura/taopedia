@@ -465,6 +465,16 @@ const unsafeContentPatterns = [
   // same no-attribute content-styling spoof as <font>/<center> above, with no
   // script, handler, or flagged scheme. Block them with the rest.
   { pattern: /<\s*(big|strike|tt|nobr)\b/i, reason: 'big, strike, tt, and nobr elements are not allowed in article content' },
+  // <blink>/<spacer>/<multicol> are obsolete Netscape-era presentational elements in the
+  // same content-defacement class as the blocked <marquee>/<font>/<center> and the blocked
+  // width=/height= dimension attributes. <blink> animates text to flash (the sibling of the
+  // already-blocked <marquee> attention-grabbing animation), <spacer type="block"
+  // width="9999" height="9999"> reserves a large blank layout box that pushes real content
+  // off-screen, and <multicol> reflows the article body into forced columns — all
+  // presentational/layout defacement with no script, handler, or flagged scheme. A glossary's
+  // Markdown body never authors them, so block them with the other obsolete presentational
+  // elements.
+  { pattern: /<\s*(blink|spacer|multicol)\b/i, reason: 'blink, spacer, and multicol elements are not allowed in article content' },
   // <plaintext>/<xmp>/<listing> are obsolete raw-text elements that browsers still
   // honor in the parser. A single injected <plaintext> makes the browser render
   // EVERYTHING after it — the rest of the article and page — as literal text: a
