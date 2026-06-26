@@ -82,6 +82,10 @@ export function articleJsonCompanionUrls(origin, slug) {
     referencesJsonUrl: wikiCompanionJsonHref(origin, slug, 'references'),
     relatedUrl: wikiCompanionJsonHref(origin, slug, 'related'),
     relatedJsonUrl: wikiCompanionJsonHref(origin, slug, 'related'),
+    // toc has no HTML companion page, so tocUrl points at the JSON endpoint — the
+    // same convention referencesUrl / relatedUrl follow for their JSON-only
+    // companions — giving toc the consistent <name>Url alias every sibling exposes.
+    tocUrl: wikiCompanionJsonHref(origin, slug, 'toc'),
     tocJsonUrl: wikiCompanionJsonHref(origin, slug, 'toc'),
   };
 }
