@@ -4,6 +4,9 @@ import {
   isWikiArticleHref,
   slugFromWikiHref,
   wikiArticleHref,
+  wikiCompanionFileHref,
+  wikiCompanionHref,
+  wikiCompanionJsonHref,
 } from '../src/lib/wiki-article-path.js';
 
 assert.equal(slugFromWikiHref('/wiki/subnet_10/'), 'subnet_10', 'single-segment article slug');
@@ -33,5 +36,21 @@ const broken = '/wiki/alpha_tokens/notes/'.split('/')[2];
 const fixed = slugFromWikiHref('/wiki/alpha_tokens/notes/');
 assert.notEqual(broken, fixed, 'split("/")[2] truncates nested slugs');
 assert.equal(fixed, 'alpha_tokens/notes', 'slugFromWikiHref returns the full route slug');
+
+assert.equal(
+  wikiCompanionHref('https://taopedia.org', 'alpha_tokens/notes', 'history'),
+  'https://taopedia.org/wiki/alpha_tokens/notes/history/',
+  'wikiCompanionHref supports nested article slugs',
+);
+assert.equal(
+  wikiCompanionJsonHref('https://taopedia.org', 'subnet_10', 'toc'),
+  'https://taopedia.org/wiki/subnet_10/toc.json',
+  'wikiCompanionJsonHref builds machine-readable companion URLs',
+);
+assert.equal(
+  wikiCompanionFileHref('https://taopedia.org', 'subnet_10', 'cite.bib'),
+  'https://taopedia.org/wiki/subnet_10/cite.bib',
+  'wikiCompanionFileHref builds static companion file URLs',
+);
 
 console.log('Wiki article path helper check passed');

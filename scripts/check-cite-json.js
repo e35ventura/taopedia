@@ -6,6 +6,12 @@ import { getArticleReferences } from '../src/lib/article-references.js';
 import { buildCiteJson } from './cite-json.js';
 import { buildCitations, CITATION_FORMATS, CITATION_META } from './citations.js';
 import { publishedInboundLinkCount } from './most-linked.js';
+import {
+  wikiArticleHref,
+  wikiCompanionFileHref,
+  wikiCompanionHref,
+  wikiCompanionJsonHref,
+} from '../src/lib/wiki-article-path.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
@@ -206,7 +212,7 @@ for (const slug of articleSlugs) {
   const title = slugmap[slug]?.title;
   assert.ok(title, `slugmap is missing a title for ${slug}`);
   const date = lastRevisionOf(slug);
-  const url = `${ORIGIN}/wiki/${slug}/`;
+  const url = wikiArticleHref(ORIGIN, slug);
   const expected = buildCitations({ title, url, slug, date });
 
   const doc = JSON.parse(fs.readFileSync(jsonFile, 'utf8'));
@@ -215,22 +221,22 @@ for (const slug of articleSlugs) {
   assert.equal(doc.url, url, `cite.json url must be the canonical trailing-slash article URL for ${slug}`);
   assert.equal(
     doc.citeJsonUrl,
-    `${ORIGIN}/wiki/${slug}/cite.json`,
+    wikiCompanionJsonHref(ORIGIN, slug, 'cite'),
     `cite.json citeJsonUrl must point at the canonical JSON citation endpoint for ${slug}`,
   );
   assert.equal(
     doc.citeUrl,
-    `${ORIGIN}/wiki/${slug}/cite/`,
+    wikiCompanionHref(ORIGIN, slug, 'cite'),
     `cite.json citeUrl must point at the sibling HTML cite page for ${slug}`,
   );
   assert.equal(
     doc.bibtexUrl,
-    `${ORIGIN}/wiki/${slug}/cite.bib`,
+    wikiCompanionFileHref(ORIGIN, slug, 'cite.bib'),
     `cite.json bibtexUrl must point at the sibling cite.bib export for ${slug}`,
   );
   assert.equal(
     doc.historyUrl,
-    `${ORIGIN}/wiki/${slug}/history/`,
+    wikiCompanionHref(ORIGIN, slug, 'history'),
     `cite.json historyUrl must point at the sibling HTML history page for ${slug}`,
   );
   // historyJsonUrl is the JSON companion of historyUrl — cite.json already
@@ -238,12 +244,12 @@ for (const slug of articleSlugs) {
   // exposed by recentchanges.json / subnets.json, so expose it here too.
   assert.equal(
     doc.historyJsonUrl,
-    `${ORIGIN}/wiki/${slug}/history.json`,
+    wikiCompanionJsonHref(ORIGIN, slug, 'history'),
     `cite.json historyJsonUrl must point at the sibling machine-readable history endpoint for ${slug}`,
   );
   assert.equal(
     doc.backlinksUrl,
-    `${ORIGIN}/wiki/${slug}/backlinks/`,
+    wikiCompanionHref(ORIGIN, slug, 'backlinks'),
     `cite.json backlinksUrl must point at the sibling HTML backlinks page for ${slug}`,
   );
   // backlinksJsonUrl is the JSON companion of backlinksUrl — cite.json already
@@ -252,56 +258,43 @@ for (const slug of articleSlugs) {
   // subnets.json, so pair backlinksUrl with its machine-readable companion too.
   assert.equal(
     doc.backlinksJsonUrl,
-    `${ORIGIN}/wiki/${slug}/backlinks.json`,
+    wikiCompanionJsonHref(ORIGIN, slug, 'backlinks'),
     `cite.json backlinksJsonUrl must point at the sibling machine-readable backlinks endpoint for ${slug}`,
   );
-  // infoUrl / infoJsonUrl link back to the canonical Page-information hub, which
-  // info.json already links out to every sibling endpoint from; closing the loop
-  // lets a consumer of cite.json reach the article's metadata hub.
   assert.equal(
     doc.infoUrl,
-    `${ORIGIN}/wiki/${slug}/info/`,
+    wikiCompanionHref(ORIGIN, slug, 'info'),
     `cite.json infoUrl must point at the sibling HTML info page for ${slug}`,
   );
   assert.equal(
     doc.infoJsonUrl,
-    `${ORIGIN}/wiki/${slug}/info.json`,
+    wikiCompanionJsonHref(ORIGIN, slug, 'info'),
     `cite.json infoJsonUrl must point at the sibling machine-readable info endpoint for ${slug}`,
   );
-  // tocJsonUrl links to the article's table-of-contents endpoint — every sibling
-  // JSON endpoint already exposes this companion, and /wiki/<slug>/toc.json is
-  // a shipped route, so cite.json should surface it too.
   assert.equal(
     doc.tocJsonUrl,
-    `${ORIGIN}/wiki/${slug}/toc.json`,
+    wikiCompanionJsonHref(ORIGIN, slug, 'toc'),
     `cite.json tocJsonUrl must point at the article's machine-readable table-of-contents endpoint for ${slug}`,
   );
-  // referencesUrl / relatedUrl complete the envelope's cross-links to the
-  // article's other machine-readable endpoints (the outbound-reference index and
-  // the related-pages set), the same siblings info.json aggregates, so a consumer
-  // of cite.json can reach them without reconstructing the routes.
   assert.equal(
     doc.referencesUrl,
-    `${ORIGIN}/wiki/${slug}/references.json`,
+    wikiCompanionJsonHref(ORIGIN, slug, 'references'),
     `cite.json referencesUrl must point at the sibling references.json endpoint for ${slug}`,
   );
   assert.equal(
     doc.relatedUrl,
-    `${ORIGIN}/wiki/${slug}/related.json`,
+    wikiCompanionJsonHref(ORIGIN, slug, 'related'),
     `cite.json relatedUrl must point at the sibling related.json endpoint for ${slug}`,
   );
-  // referencesJsonUrl / relatedJsonUrl are the consistently-named *JsonUrl aliases
-  // for referencesUrl / relatedUrl; each must equal the canonical .json URL and
-  // its non-JsonUrl-named counterpart.
   assert.equal(
     doc.referencesJsonUrl,
-    `${ORIGIN}/wiki/${slug}/references.json`,
+    wikiCompanionJsonHref(ORIGIN, slug, 'references'),
     `cite.json referencesJsonUrl must point at the sibling references.json endpoint for ${slug}`,
   );
   assert.equal(doc.referencesJsonUrl, doc.referencesUrl, `cite.json referencesJsonUrl must equal referencesUrl for ${slug}`);
   assert.equal(
     doc.relatedJsonUrl,
-    `${ORIGIN}/wiki/${slug}/related.json`,
+    wikiCompanionJsonHref(ORIGIN, slug, 'related'),
     `cite.json relatedJsonUrl must point at the sibling related.json endpoint for ${slug}`,
   );
   assert.equal(doc.relatedJsonUrl, doc.relatedUrl, `cite.json relatedJsonUrl must equal relatedUrl for ${slug}`);

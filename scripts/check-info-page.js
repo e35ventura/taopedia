@@ -5,6 +5,12 @@ import { fileURLToPath } from 'node:url';
 import { buildArticleInfo } from './article-info.js';
 import { getArticleReferences } from '../src/lib/article-references.js';
 import { publishedInboundLinkCount } from './most-linked.js';
+import {
+  wikiArticleHref,
+  wikiCompanionFileHref,
+  wikiCompanionHref,
+  wikiCompanionJsonHref,
+} from '../src/lib/wiki-article-path.js';
 
 // Load-bearing regression check for the per-article "Page information"
 // (action=info) pages at /wiki/<slug>/info/ and their machine-readable companion
@@ -299,26 +305,26 @@ for (const slug of articleSlugs) {
   // Extract the origin from the article URL so the companion-URL checks are
   // independent of the configured site value.
   const jsonOrigin = new URL(infoJson.url).origin;
-  assert.equal(infoJson.backlinksUrl, `${jsonOrigin}/wiki/${slug}/backlinks/`, `/wiki/${slug}/info.json backlinksUrl`);
+  assert.equal(infoJson.backlinksUrl, wikiCompanionHref(jsonOrigin, slug, 'backlinks'), `/wiki/${slug}/info.json backlinksUrl`);
   assert.equal(
     infoJson.backlinksJsonUrl,
-    `${jsonOrigin}/wiki/${slug}/backlinks.json`,
+    wikiCompanionJsonHref(jsonOrigin, slug, 'backlinks'),
     `/wiki/${slug}/info.json backlinksJsonUrl`,
   );
-  assert.equal(infoJson.citeUrl, `${jsonOrigin}/wiki/${slug}/cite/`, `/wiki/${slug}/info.json citeUrl`);
-  assert.equal(infoJson.citeJsonUrl, `${jsonOrigin}/wiki/${slug}/cite.json`, `/wiki/${slug}/info.json citeJsonUrl`);
-  assert.equal(infoJson.bibtexUrl, `${jsonOrigin}/wiki/${slug}/cite.bib`, `/wiki/${slug}/info.json bibtexUrl`);
-  assert.equal(infoJson.infoUrl, `${jsonOrigin}/wiki/${slug}/info/`, `/wiki/${slug}/info.json infoUrl`);
-  assert.equal(infoJson.infoJsonUrl, `${jsonOrigin}/wiki/${slug}/info.json`, `/wiki/${slug}/info.json infoJsonUrl (self)`);
-  assert.equal(infoJson.historyJsonUrl, `${jsonOrigin}/wiki/${slug}/history.json`, `/wiki/${slug}/info.json historyJsonUrl`);
-  assert.equal(infoJson.historyUrl, `${jsonOrigin}/wiki/${slug}/history/`, `/wiki/${slug}/info.json historyUrl`);
-  assert.equal(infoJson.referencesUrl, `${jsonOrigin}/wiki/${slug}/references.json`, `/wiki/${slug}/info.json referencesUrl`);
-  assert.equal(infoJson.relatedUrl, `${jsonOrigin}/wiki/${slug}/related.json`, `/wiki/${slug}/info.json relatedUrl`);
-  assert.equal(infoJson.referencesJsonUrl, `${jsonOrigin}/wiki/${slug}/references.json`, `/wiki/${slug}/info.json referencesJsonUrl alias`);
+  assert.equal(infoJson.citeUrl, wikiCompanionHref(jsonOrigin, slug, 'cite'), `/wiki/${slug}/info.json citeUrl`);
+  assert.equal(infoJson.citeJsonUrl, wikiCompanionJsonHref(jsonOrigin, slug, 'cite'), `/wiki/${slug}/info.json citeJsonUrl`);
+  assert.equal(infoJson.bibtexUrl, wikiCompanionFileHref(jsonOrigin, slug, 'cite.bib'), `/wiki/${slug}/info.json bibtexUrl`);
+  assert.equal(infoJson.infoUrl, wikiCompanionHref(jsonOrigin, slug, 'info'), `/wiki/${slug}/info.json infoUrl`);
+  assert.equal(infoJson.infoJsonUrl, wikiCompanionJsonHref(jsonOrigin, slug, 'info'), `/wiki/${slug}/info.json infoJsonUrl (self)`);
+  assert.equal(infoJson.historyJsonUrl, wikiCompanionJsonHref(jsonOrigin, slug, 'history'), `/wiki/${slug}/info.json historyJsonUrl`);
+  assert.equal(infoJson.historyUrl, wikiCompanionHref(jsonOrigin, slug, 'history'), `/wiki/${slug}/info.json historyUrl`);
+  assert.equal(infoJson.referencesUrl, wikiCompanionJsonHref(jsonOrigin, slug, 'references'), `/wiki/${slug}/info.json referencesUrl`);
+  assert.equal(infoJson.relatedUrl, wikiCompanionJsonHref(jsonOrigin, slug, 'related'), `/wiki/${slug}/info.json relatedUrl`);
+  assert.equal(infoJson.referencesJsonUrl, wikiCompanionJsonHref(jsonOrigin, slug, 'references'), `/wiki/${slug}/info.json referencesJsonUrl alias`);
   assert.equal(infoJson.referencesJsonUrl, infoJson.referencesUrl, `/wiki/${slug}/info.json referencesJsonUrl must equal referencesUrl`);
-  assert.equal(infoJson.relatedJsonUrl, `${jsonOrigin}/wiki/${slug}/related.json`, `/wiki/${slug}/info.json relatedJsonUrl alias`);
+  assert.equal(infoJson.relatedJsonUrl, wikiCompanionJsonHref(jsonOrigin, slug, 'related'), `/wiki/${slug}/info.json relatedJsonUrl alias`);
   assert.equal(infoJson.relatedJsonUrl, infoJson.relatedUrl, `/wiki/${slug}/info.json relatedJsonUrl must equal relatedUrl`);
-  assert.equal(infoJson.tocJsonUrl, `${jsonOrigin}/wiki/${slug}/toc.json`, `/wiki/${slug}/info.json tocJsonUrl`);
+  assert.equal(infoJson.tocJsonUrl, wikiCompanionJsonHref(jsonOrigin, slug, 'toc'), `/wiki/${slug}/info.json tocJsonUrl`);
   // imageUrl is the article's own OG share-card (/og/<slug>.png) — the same
   // per-article image the allpages/mostlinkedpages/recentchanges directory
   // entries and the feeds expose, so a consumer of info.json gets a thumbnail.
