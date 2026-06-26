@@ -36,6 +36,21 @@ assert.deepEqual(
   'same-title search entries must tiebreak on the slug (alpha before alpha_beta), matching the rest of the site, NOT the full canonical URL',
 );
 
+// The slug tiebreak must use a PLAIN code-unit comparison — the canonical contract
+// sortPagesByTitle / getArticleReferences / getCategoryArticles follow — NOT
+// compareTitles' numeric collation. For two same-title members "subnet_9" and
+// "subnet_10" the article listings (raw id order) put "subnet_10" first ('1' < '9'),
+// while a numeric slug collation would put "subnet_9" first, ordering search results
+// differently than every listing on the site. Pin "subnet_10" before "subnet_9".
+assert.deepEqual(
+  sortSearchEntries([
+    { title: 'Shared Title', slug: 'subnet_9', summary: '', url: `${ORIGIN}/wiki/subnet_9/`, categories: [] },
+    { title: 'Shared Title', slug: 'subnet_10', summary: '', url: `${ORIGIN}/wiki/subnet_10/`, categories: [] },
+  ]).map((entry) => entry.slug),
+  ['subnet_10', 'subnet_9'],
+  'same-title search entries must tiebreak on the slug with a PLAIN code-unit comparison (subnet_10 before subnet_9), matching sortPagesByTitle / references / category listings, NOT numeric collation',
+);
+
 assert.ok(Array.isArray(searchEntries), 'search data must serialize an array');
 assert.ok(searchEntries.length > 0, 'search data must include article entries');
 
@@ -78,10 +93,11 @@ assert.equal(
 );
 
 // The entries must be in a deterministic order: by title (numeric collation),
-// then by slug with the SAME numeric collation as a tiebreak. Re-derive the expected order
-// independently from the article sources using the SAME comparator the endpoint
-// uses, and assert the built file matches exactly — so the ordering is pinned
-// and cannot silently regress or vary with the unspecified getCollection() order.
+// then by slug with a PLAIN code-unit comparison as a tiebreak — the SAME comparator
+// the endpoint uses (sortSearchEntries) and the canonical sortPagesByTitle contract.
+// Re-derive the expected order independently from the article sources and assert the
+// built file matches exactly — so the ordering is pinned and cannot silently regress
+// or vary with the unspecified getCollection() order.
 const contentDir = path.join(process.cwd(), 'src', 'content', 'pages');
 const expected = [];
 for (const dirent of fs.readdirSync(contentDir, { withFileTypes: true })) {
@@ -95,7 +111,7 @@ for (const dirent of fs.readdirSync(contentDir, { withFileTypes: true })) {
   if (!data || typeof data.title !== 'string') continue;
   expected.push({ title: data.title, slug, url: `${ORIGIN}/wiki/${slug}/` });
 }
-expected.sort((a, b) => compareTitles(a.title, b.title) || compareTitles(a.slug, b.slug));
+expected.sort((a, b) => compareTitles(a.title, b.title) || (a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0));
 
 assert.equal(
   searchEntries.length,
@@ -110,4 +126,4 @@ for (let i = 0; i < expected.length; i++) {
   );
 }
 
-console.log(`Search data check passed (${searchEntries.length} entries, canonical URLs, deterministic title+numeric-URL order)`);
+console.log(`Search data check passed (${searchEntries.length} entries, canonical URLs, deterministic title+plain-slug order)`);
