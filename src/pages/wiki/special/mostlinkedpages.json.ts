@@ -28,6 +28,8 @@ export const GET: APIRoute = async ({ site }) => {
   const origin = (site ?? new URL('https://taopedia.org')).origin;
   const titleBySlug = publishedTitleBySlug();
   const ranked = buildMostLinkedPages({ backlinks: backlinksData, titleBySlug });
+  const dedupeCategories = (categories: unknown) =>
+    Array.isArray(categories) ? [...new Set(categories)] : [];
 
   // categories/summary come from public/data/slugmap.json for ranked slugs only —
   // the same artifact search-data.json (#1405) reads — instead of copying
@@ -36,7 +38,7 @@ export const GET: APIRoute = async ({ site }) => {
   const categoriesBySlug: Record<string, string[]> = {};
   const summaryBySlug: Record<string, string> = {};
   for (const slug of rankedSlugs) {
-    categoriesBySlug[slug] = slugMap[slug]?.categories ?? [];
+    categoriesBySlug[slug] = dedupeCategories(slugMap[slug]?.categories);
     summaryBySlug[slug] = slugMap[slug]?.summary ?? '';
   }
 

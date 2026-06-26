@@ -156,7 +156,7 @@ data.pages.forEach((row, i) => {
   assert.ok(Array.isArray(row.categories), `row ${i} categories must be an array`);
   assert.deepEqual(
     row.categories,
-    slugmap[row.slug]?.categories ?? [],
+    Array.isArray(slugmap[row.slug]?.categories) ? [...new Set(slugmap[row.slug].categories)] : [],
     `row ${i} categories must match the article's topics in the slug map for ${row.slug}`,
   );
   // summary is the article's frontmatter summary (null when blank) — the same
