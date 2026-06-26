@@ -38,7 +38,7 @@ export const buildArticleInfo = ({
   // Estimated reading time in minutes — the same ~200 wpm ceil formula the
   // article-page footer ("N min read") renders from wordCount.
   readingMinutes: Math.max(1, Math.ceil((Number.isFinite(wordCount) ? wordCount : 0) / 200)),
-  revisionCount,
+  revisionCount: Number.isFinite(revisionCount) ? revisionCount : 0,
   firstEdited: firstEdited ?? null,
   lastEdited: lastEdited ?? null,
 });
