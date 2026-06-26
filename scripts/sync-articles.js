@@ -819,6 +819,18 @@ const unsafeContentPatterns = [
   // "feed:" (e.g. "a price feed:") keeps its boundary and is never affected; the names never
   // occur as URLs in glossary prose.
   { pattern: /\b(?:webcal|webcals|feed|itpc|pcast)\s*:\/\//i, reason: 'subscription-handler URL schemes are not allowed in article content' },
+  // bitcoin:/ethereum:/litecoin:/monero: are cryptocurrency payment URI schemes
+  // (BIP-21, EIP-681, and their equivalents): a clicked bitcoin:<address>?amount=…
+  // or ethereum:<address>@1/transfer… opens the reader's locally-installed or
+  // browser-extension wallet pre-filled with the attacker's address and a
+  // requested amount — a fund-redirection attack with no script and no browser
+  // sandbox involvement. Same native-handler / payment-spoofing class as the
+  // blocked itms-services: install and intent: app-launch schemes.
+  // A real payment URI always carries an address immediately after the colon
+  // (no space), so require a non-space character via lookahead; prose like
+  // "Bitcoin: A Peer-to-Peer…" (colon then space) is never affected.
+  // These names never appear as live URLs in Bittensor glossary articles.
+  { pattern: /\b(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash)\s*:(?=[^\s"'<>)])/i, reason: 'cryptocurrency payment URI schemes are not allowed in article content' },
   // shell: is the Windows Explorer protocol handler: shell:startup opens the user's
   // Startup folder (a drop-a-payload persistence path), shell:::{CLSID} opens special
   // folders / Control-Panel applets, and the OS — not the browser — resolves it, with
@@ -890,6 +902,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /\b(?:skype|callto|facetime-audio|facetime|sgnl)\s*:(?=[^\s"'<>)])/i, reason: 'communication-app launch URL schemes are not allowed in article content' },
   { pattern: /(?:tg|whatsapp|discord|slack)\s*:\/\//i, reason: 'messaging-app deep-link URL schemes are not allowed in article content' },
   { pattern: /(?:webcal|webcals|feed|itpc|pcast)\s*:\/\//i, reason: 'subscription-handler URL schemes are not allowed in article content' },
+  { pattern: /(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash)\s*:(?=[^\s"'<>)])/i, reason: 'cryptocurrency payment URI schemes are not allowed in article content' },
   { pattern: /\bshell\s*:(?=[^\s"'<>)])/i, reason: 'shell: protocol-handler URLs are not allowed in article content' },
   { pattern: /\bms-cxh(?:-full)?\s*:/i, reason: 'Windows CloudExperienceHost protocol-handler URLs are not allowed in article content' },
   { pattern: /data\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
@@ -931,6 +944,7 @@ const infoboxRowValueSchemePatterns = [
   /\b(?:skype|callto|facetime-audio|facetime|sgnl)\s*:(?=[^\s"'<>)])/i,
   /(?:tg|whatsapp|discord|slack)\s*:\/\//i,
   /(?:webcal|webcals|feed|itpc|pcast)\s*:\/\//i,
+  /(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash)\s*:(?=[^\s"'<>)])/i,
   /\bshell\s*:(?=[^\s"'<>)])/i,
   /\bms-cxh(?:-full)?\s*:/i,
   /data\s*:\s*text\/html/i,

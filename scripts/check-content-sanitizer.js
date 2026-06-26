@@ -541,6 +541,23 @@ rejects('See [x](webc&#97;l://attacker.example/evil.ics).', 'entity-obfuscated w
 // Infobox-row-value scan path.
 infoboxRowRejects('webcal://attacker.example/evil.ics', 'webcal:// rejected in an infobox row value');
 accepts('An RSS feed: a stream of updates, and a price feed are described here only as prose.', 'benign "feed:" prose (no // authority)');
+// bitcoin:/ethereum:/litecoin:/monero: etc. are cryptocurrency payment URI schemes
+// (BIP-21, EIP-681) that open the reader's wallet pre-filled with an attacker's
+// address — fund-redirection with no script.  The non-space lookahead keeps prose
+// like "Bitcoin: A Peer-to-Peer…" passing (colon then space).
+rejects('See [x](bitcoin:1A1zP1eP5QGefi2DMPTfTL5SLmv7Divf Na).', 'plain bitcoin: payment URI');
+rejects('See [x](ethereum:0xde0B295669a9FD93d5F28D9Ec85E40f4cb697BAe).', 'plain ethereum: payment URI');
+rejects('See [x](litecoin:LaMT348PWRnrqeeWArpwQPbuanpXDZGEgh).', 'plain litecoin: payment URI');
+rejects('See [x](monero:888tNkZrPN6JsEgekjMnABU4TBzc2Dt29EPAvkRxbANsAnjyPbb3iQ1YBRk1UXcdRsiKc9dhwMVgN5S9cQUiyoogDavup3H).', 'plain monero: payment URI');
+rejects('See [x](dogecoin:DH5yaieqoZN36fDVciNyRueRGvGLR3mr7L).', 'plain dogecoin: payment URI');
+rejects('See [x](bitcoincash:qp3wjpa3tjlj042z2wv7hahsldgwhwy0rq9sywjpyy).', 'plain bitcoincash: payment URI');
+// Entity-obfuscated: the literal scan misses "bitc&#111;in:" but the decoded re-scan catches it.
+rejects('See [x](bitc&#111;in:1A1zP1eP5QGefi2DMPTfTL5SLmv7Divf Na).', 'entity-obfuscated bitcoin: (obfuscated scan path)');
+// Infobox-row-value scan path.
+infoboxRowRejects('bitcoin:1A1zP1eP5QGefi2DMPTfTL5SLmv7Divf Na', 'bitcoin: rejected in an infobox row value');
+// Prose: "Bitcoin: A Peer-to-Peer…" has a space after the colon, so it must pass.
+accepts('Bitcoin: A Peer-to-Peer Electronic Cash System is described here only as prose.', 'benign "Bitcoin:" prose (colon then space)');
+accepts('Ethereum: a decentralized platform, and Litecoin are described here only as prose.', 'benign "Ethereum:" prose (colon then space)');
 // search-ms: opens Explorer search on a remote WebDAV/SMB share (malware-delivery
 // chain), and ms-officecmd: invokes Office deep-link commands (argument-injection
 // RCE) — two more native Windows handlers blocked like ms-msdt:/javascript:.
