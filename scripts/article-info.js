@@ -16,7 +16,9 @@ export const buildArticleInfo = ({
   slug,
   summary: summary || null,
   url: `${origin}/wiki/${slug}/`,
-  categories,
+  // Dedupe repeated frontmatter topics so Page-information JSON cannot list the
+  // same category twice when an article's YAML repeats a topic tag.
+  categories: [...new Set(categories)],
   incomingLinks,
   // The article's published outbound-reference count — the complement of
   // incomingLinks, the same figure history.json / cite.json expose.

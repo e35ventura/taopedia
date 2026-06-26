@@ -56,7 +56,7 @@ const revisionCount = history.length;
 const lastRevision = history[0]?.date ?? '';
 const firstRevision = history[history.length - 1]?.date ?? '';
 
-const categories = page.data.categories ?? [];
+const categories = [...new Set(page.data.categories ?? [])];
 
 const formatDate = (value: string) =>
   value

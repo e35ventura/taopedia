@@ -74,6 +74,17 @@ const ORIGIN = 'https://taopedia.org';
   assert.equal(empty.lastEdited, null, 'builder: default lastEdited is null');
   assert.equal(empty.summary, null, 'builder: default summary is null');
   assert.deepEqual(empty.categories, [], 'builder: default categories is []');
+  const deduped = buildArticleInfo({
+    title: 'Dup',
+    slug: 'dup',
+    origin: ORIGIN,
+    categories: ['Consensus', 'Mining', 'Consensus'],
+  });
+  assert.deepEqual(
+    deduped.categories,
+    ['Consensus', 'Mining'],
+    'builder: repeated frontmatter categories must be deduped while preserving first-seen order',
+  );
   assert.equal(empty.backlinksJsonUrl, `${ORIGIN}/wiki/x/backlinks.json`, 'builder: backlinksJsonUrl with defaults');
   assert.equal(empty.citeUrl, `${ORIGIN}/wiki/x/cite/`, 'builder: citeUrl with defaults');
   assert.equal(empty.citeJsonUrl, `${ORIGIN}/wiki/x/cite.json`, 'builder: citeJsonUrl with defaults');
@@ -170,7 +181,7 @@ for (const slug of articleSlugs) {
   const categoriesField = infoField(html, 'categories');
   assert.ok(categoriesField !== null, `/wiki/${slug}/info/ is missing the topics field`);
   const renderedCategories = [...categoriesField.matchAll(/<a[^>]*href="\/wiki\/category\/[^"]*"[^>]*>([^<]*)<\/a>/g)].map((m) => decode(m[1]));
-  const expectedCategories = slugmap[slug]?.categories ?? [];
+  const expectedCategories = [...new Set(slugmap[slug]?.categories ?? [])];
   assert.deepEqual(renderedCategories, expectedCategories, `/wiki/${slug}/info/ topics must match the article's categories`);
 
   // Incoming links: the rendered count must equal the published inbound-link
