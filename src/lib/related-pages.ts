@@ -86,6 +86,7 @@ export interface ArticleRelatedPagesDocument {
   backlinksJsonUrl: string;
   infoUrl: string;
   infoJsonUrl: string;
+  tocUrl: string;
   tocJsonUrl: string;
   citeUrl: string;
   citeJsonUrl: string;
@@ -123,6 +124,7 @@ export interface ArticleRelatedPagesDocument {
     referencesJsonUrl: string;
     relatedUrl: string;
     relatedJsonUrl: string;
+    tocUrl: string;
     tocJsonUrl: string;
     imageUrl: string;
   }>;

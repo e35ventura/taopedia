@@ -762,6 +762,27 @@ const unsafeContentPatterns = [
   // sandbox with no script. Same native protocol-handler class as the blocked
   // ms-*/onenote: handlers; the editor scheme names never occur in glossary prose.
   { pattern: /\b(?:vscode-insiders|vscodium|vscode)\s*:/i, reason: 'code-editor protocol-handler URLs are not allowed in article content' },
+  // jetbrains:/intellij:/pycharm:/webstorm:/phpstorm:/sublime:/atom: are the remaining
+  // JetBrains-family / Sublime / Atom code-editor protocol handlers the OS resolves to
+  // launch the locally-installed editor — not the browser — when a link is clicked. A
+  // crafted jetbrains://…/open?file=…, sublime://open?url=… or atom://… link can open
+  // an attacker-chosen folder / file / workspace (whose tasks or trusted-workspace
+  // settings then run through the editor's own build/launch tooling — Gradle, npm,
+  // Make, or arbitrary Run Configurations) or drive editor commands, all outside the
+  // page sandbox with no script. github-mac:/github-windows:/github-desktop:/sourcetree:/
+  // gitkraken:/tower:/fork: are the matching native Git / GitHub GUI clients: a clicked
+  // github-desktop://openRepo?url=https://evil.example/.git or
+  // sourcetree://…/cloneRepo?… drives the registered desktop client to clone an
+  // attacker-chosen repository outside the page sandbox, with no script. All 14 scheme
+  // names never occur as live URLs in glossary prose; the editor schemes use the
+  // (?=non-space) lookahead (the same structural-marker form as the existing obsidian:/
+  // onenote:/wc: blocks) so prose like "JetBrains IDEs" or "Sublime Text" or "Atom: a
+  // code editor" (a scheme name followed by a space) is never affected. Same native
+  // protocol-handler class as the blocked vscode:/vscodium:/git:/svn:/cvs:/onenote:/
+  // ms-* handlers above; the // authority form on the github-/sourcetree/gitkraken/
+  // tower/fork handlers keeps prose like "a Git Tower client" safe.
+  { pattern: /\b(?:jetbrains|intellij|pycharm|webstorm|phpstorm|sublime|atom)\s*:(?=[^\s"'<>)])/i, reason: 'code-editor protocol-handler URLs are not allowed in article content' },
+  { pattern: /\b(?:github-mac|github-windows|github-desktop|sourcetree|gitkraken|tower|fork)\s*:\/\//i, reason: 'source-control GUI protocol-handler URLs are not allowed in article content' },
   // chrome:// edge:// opera:// vivaldi:// brave:// devtools:// chrome-untrusted:// are
   // browser-INTERNAL page URL schemes that address privileged browser UI (chrome://settings,
   // edge://flags, devtools://) rather than an http(s) resource. Article links are limited to
@@ -792,13 +813,14 @@ const unsafeContentPatterns = [
   // required so prose about "AMQP", "MQTT", or "Kafka" is unaffected.
   { pattern: /\b(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats|rabbitmq|pulsar)\s*:\/\//i, reason: 'message-broker connection URL schemes are not allowed in article content' },
   // clickhouse:// cassandra:// couchbase:// couchdb:// neo4j:// bolt:// dynamodb://
-  // elasticsearch:// arangodb:// are additional data-store connection URL schemes
+  // elasticsearch:// arangodb:// zookeeper:// hdfs:// hazelcast:// riak:// minio://
+  // solr:// are additional data-store connection URL schemes
   // (analytics / graph / NoSQL / search), the sibling of the database-connection and
   // message-broker schemes above: each addresses an internal data store at a host:port
   // (an SSRF target), not an http(s) resource. Article links are limited to http(s), so
   // these are never a valid article link. The // authority form is required so prose
   // ("a bolt of lightning", "the Cassandra prophecy", "DynamoDB: a key-value store") is unaffected.
-  { pattern: /\b(?:clickhouse|cassandra|couchbase|couchdb|neo4j|bolt|dynamodb|elasticsearch|arangodb)\s*:\/\//i, reason: 'data-store connection URL schemes are not allowed in article content' },
+  { pattern: /\b(?:clickhouse|cassandra|couchbase|couchdb|neo4j|bolt|dynamodb|elasticsearch|arangodb|zookeeper|hdfs|hazelcast|riak|minio|solr)\s*:\/\//i, reason: 'data-store connection URL schemes are not allowed in article content' },
   // coap:// coaps:// are the Constrained Application Protocol (IoT) schemes: like the
   // message-broker/database schemes above they address a non-http service at a host:port
   // (an IoT device or gateway), not an http(s) resource — never a valid article link and a
@@ -941,7 +963,7 @@ const unsafeContentPatterns = [
   // handlers. The //-authority form is required so prose like "Slack: a team chat app" or
   // "a Discord server" (a name then a colon/word, no ://) is never affected; the scheme
   // names never occur as URLs in glossary prose.
-  { pattern: /\b(?:tg|whatsapp|discord|slack|line|viber)\s*:\/\//i, reason: 'messaging-app deep-link URL schemes are not allowed in article content' },
+  { pattern: /\b(?:tg|whatsapp|discord|slack|line|viber|mattermost|rocketchat)\s*:\/\//i, reason: 'messaging-app deep-link URL schemes are not allowed in article content' },
   // ts3server:// mumble:// ventrilo:// are voice-chat client-launch protocol handlers the OS
   // resolves to launch the locally-installed client — not the browser — pointed at an
   // attacker-chosen server. A clicked ts3server://attacker.example?port=… joins a TeamSpeak
@@ -1106,11 +1128,13 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:mhtml|jar)\s*:/i, reason: 'archive-extraction URL schemes are not allowed in article content' },
   { pattern: /(?:magnet|ed2k)\s*:/i, reason: 'peer-to-peer file-sharing URL schemes are not allowed in article content' },
   { pattern: /(?:vscode-insiders|vscodium|vscode)\s*:/i, reason: 'code-editor protocol-handler URLs are not allowed in article content' },
+  { pattern: /(?:jetbrains|intellij|pycharm|webstorm|phpstorm|sublime|atom)\s*:(?=[^\s"'<>)])/i, reason: 'code-editor protocol-handler URLs are not allowed in article content' },
+  { pattern: /(?:github-mac|github-windows|github-desktop|sourcetree|gitkraken|tower|fork)\s*:\/\//i, reason: 'source-control GUI protocol-handler URLs are not allowed in article content' },
   { pattern: /(?:chrome-untrusted|chrome|edge|opera|vivaldi|brave|devtools)\s*:\/\//i, reason: 'browser-internal page URL schemes are not allowed in article content' },
   { pattern: /(?:redis|rediss|mongodb(?:\+srv)?|mysql|mariadb|sqlite|influxdb|postgresql|postgres|memcached|etcd|consul|snowflake|sqlserver|mssql|timescaledb)\s*:\/\//i, reason: 'database-connection URL schemes are not allowed in article content' },
   { pattern: /(?:git|svn|cvs)\s*:\/\//i, reason: 'version-control protocol URL schemes are not allowed in article content' },
   { pattern: /(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats|rabbitmq|pulsar)\s*:\/\//i, reason: 'message-broker connection URL schemes are not allowed in article content' },
-  { pattern: /(?:clickhouse|cassandra|couchbase|couchdb|neo4j|bolt|dynamodb|elasticsearch|arangodb)\s*:\/\//i, reason: 'data-store connection URL schemes are not allowed in article content' },
+  { pattern: /(?:clickhouse|cassandra|couchbase|couchdb|neo4j|bolt|dynamodb|elasticsearch|arangodb|zookeeper|hdfs|hazelcast|riak|minio|solr)\s*:\/\//i, reason: 'data-store connection URL schemes are not allowed in article content' },
   { pattern: /(?:coaps|coap)\s*:\/\//i, reason: 'CoAP IoT connection URL schemes are not allowed in article content' },
   { pattern: /(?:ftp|rdp|vnc|spice|teamviewer|anydesk|rustdesk|logmein|parsec|nomachine|ultraviewer|splashtop|chrome-remote-desktop|googlechromeremotedesktop|telnet|ssh|sftp|fish|rlogin|rsh|tn3270)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:rtsps?|rtspu|mms)\s*:\/\//i, reason: 'media-streaming client-launch URL schemes are not allowed in article content' },
@@ -1131,7 +1155,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:zoommtg|zoomus|msteams)\s*:/i, reason: 'video-conferencing client protocol-handler URLs are not allowed in article content' },
   { pattern: /\b(?:skype|callto|facetime-audio|facetime|sgnl)\s*:(?=[^\s"'<>)])/i, reason: 'communication-app launch URL schemes are not allowed in article content' },
   { pattern: /\b(?:mailto|tel|sms)\s*:(?=[^\s"'<>)])/i, reason: 'contact-launch URL schemes are not allowed in article content' },
-  { pattern: /(?:tg|whatsapp|discord|slack|line|viber)\s*:\/\//i, reason: 'messaging-app deep-link URL schemes are not allowed in article content' },
+  { pattern: /(?:tg|whatsapp|discord|slack|line|viber|mattermost|rocketchat)\s*:\/\//i, reason: 'messaging-app deep-link URL schemes are not allowed in article content' },
   { pattern: /(?:ts3server|mumble|ventrilo)\s*:\/\//i, reason: 'voice-chat client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:webcal|webcals|feed|itpc|pcast)\s*:\/\//i, reason: 'subscription-handler URL schemes are not allowed in article content' },
   { pattern: /(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash|solana|cardano|ripple|xrp|tron|bnb)\s*:(?=[^\s"'<>)])/i, reason: 'cryptocurrency payment URI schemes are not allowed in article content' },
@@ -1174,11 +1198,13 @@ const infoboxRowValueSchemePatterns = [
   /(?:mhtml|jar)\s*:/i,
   /(?:magnet|ed2k)\s*:/i,
   /(?:vscode-insiders|vscodium|vscode)\s*:/i,
+  /\b(?:jetbrains|intellij|pycharm|webstorm|phpstorm|sublime|atom)\s*:(?=[^\s"'<>)])/i,
+  /\b(?:github-mac|github-windows|github-desktop|sourcetree|gitkraken|tower|fork)\s*:\/\//i,
   /(?:chrome-untrusted|chrome|edge|opera|vivaldi|brave|devtools)\s*:\/\//i,
   /(?:redis|rediss|mongodb(?:\+srv)?|mysql|mariadb|sqlite|influxdb|postgresql|postgres|memcached|etcd|consul|snowflake|sqlserver|mssql|timescaledb)\s*:\/\//i,
   /(?:git|svn|cvs)\s*:\/\//i,
   /(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats|rabbitmq|pulsar)\s*:\/\//i,
-  /(?:clickhouse|cassandra|couchbase|couchdb|neo4j|bolt|dynamodb|elasticsearch|arangodb)\s*:\/\//i,
+  /(?:clickhouse|cassandra|couchbase|couchdb|neo4j|bolt|dynamodb|elasticsearch|arangodb|zookeeper|hdfs|hazelcast|riak|minio|solr)\s*:\/\//i,
   /(?:coaps|coap)\s*:\/\//i,
   /(?:ftp|rdp|vnc|spice|teamviewer|anydesk|rustdesk|logmein|parsec|nomachine|ultraviewer|splashtop|chrome-remote-desktop|googlechromeremotedesktop|telnet|ssh|sftp|fish|rlogin|rsh|tn3270)\s*:\/\//i,
   /(?:rtsps?|rtspu|mms)\s*:\/\//i,
@@ -1192,7 +1218,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:zoommtg|zoomus|msteams)\s*:/i,
   /\b(?:skype|callto|facetime-audio|facetime|sgnl)\s*:(?=[^\s"'<>)])/i,
   /\b(?:mailto|tel|sms)\s*:(?=[^\s"'<>)])/i,
-  /(?:tg|whatsapp|discord|slack|line|viber)\s*:\/\//i,
+  /(?:tg|whatsapp|discord|slack|line|viber|mattermost|rocketchat)\s*:\/\//i,
   /(?:ts3server|mumble|ventrilo)\s*:\/\//i,
   /(?:webcal|webcals|feed|itpc|pcast)\s*:\/\//i,
   /(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash|solana|cardano|ripple|xrp|tron|bnb)\s*:(?=[^\s"'<>)])/i,
