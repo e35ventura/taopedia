@@ -546,6 +546,13 @@ rejects('See [x](spice://attacker-host:5900/).', 'plain spice:// remote-desktop 
 rejects('See [x](sp&#105;ce://attacker-host/).', 'entity-obfuscated spice:// (obfuscated scan path)');
 infoboxRowRejects('spice://attacker-host:5900/', 'spice:// rejected in an infobox row value');
 accepts('The spice trade and spiced food are described here only as prose.', 'benign "spice" prose word (no // authority)');
+// teamviewer:// anydesk:// rustdesk:// launch consumer remote-desktop clients — same class as rdp://vnc://spice://.
+rejects('See [x](teamviewer://attacker.example/).', 'plain teamviewer:// remote-desktop URL');
+rejects('See [x](anydesk://attacker.example@123456789).', 'plain anydesk:// remote-desktop URL');
+rejects('See [x](rustdesk://attacker.example/).', 'plain rustdesk:// remote-desktop URL');
+rejects('See [x](teamv&#105;ewer://attacker.example/).', 'entity-obfuscated teamviewer:// (obfuscated scan path)');
+infoboxRowRejects('anydesk://attacker.example@123456789', 'anydesk:// rejected in an infobox row value');
+accepts('TeamViewer support and an AnyDesk session are described here only as prose.', 'benign remote-desktop product names (no // authority)');
 rejects('See [x](telnet://internal-host:23).', 'plain telnet:// URL');
 rejects('See [x](vnc://evil.example:5900).', 'plain vnc:// URL');
 rejects('See [x](sftp://user@evil.example/).', 'plain sftp:// URL (SSH file-transfer client launch)');
