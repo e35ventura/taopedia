@@ -53,7 +53,8 @@ export const buildArticleReferences = ({ slug, title, origin, summary = '', cate
   relatedJsonUrl: `${origin}/wiki/${slug}/related.json`,
   tocJsonUrl: `${origin}/wiki/${slug}/toc.json`,
   imageUrl: `${origin}/og/${slug}.png`,
-  categories,
+  // Dedupe repeated frontmatter topics on the envelope and each reference entry.
+  categories: [...new Set(categories)],
   // The article's own published inbound-link count — the same figure info.json /
   // history.json / cite.json expose on their envelopes (via the shared helper).
   incomingLinks,
@@ -79,7 +80,7 @@ export const buildArticleReferences = ({ slug, title, origin, summary = '', cate
     slug: link.slug,
     title: link.title,
     summary: link.summary || null,
-    categories: Array.isArray(link.categories) ? link.categories : [],
+    categories: Array.isArray(link.categories) ? [...new Set(link.categories)] : [],
     backlinks: Number.isFinite(link.backlinks) ? link.backlinks : 0,
     // info.json names this figure incomingLinks; keep backlinks for the field
     // name the HTML listing endpoints (allpages/subnets/category) expose.
