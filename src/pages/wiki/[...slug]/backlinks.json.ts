@@ -9,8 +9,7 @@ import {
   publishedTitleBySlug,
 } from '../../../lib/article-metadata';
 import { buildArticleBacklinks, sortInboundBacklinkEntries } from '../../../../scripts/article-backlinks.js';
-import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
-import { getArticleReferences } from '../../../lib/article-references.js';
+import { gatherLinkStatsBySlug } from '../../../lib/article-link-stats';
 import { getArticleToc } from '../../../lib/article-toc.js';
 import slugMap from '../../../../public/data/slugmap.json';
 
@@ -48,19 +47,16 @@ export async function getStaticPaths() {
       sectionCountBySlug[slug] = getArticleToc(headings).length;
     }),
   );
-  // Published inbound-link count and outbound reference count — the same source
-  // links to many articles, so computing them inside the entry map below would
-  // recompute each source's stats once per article it backlinks to (O(articles ×
-  // backlinks)), and getArticleReferences is a full link-graph join. Precompute
-  // them once here, in a single pass; both depend on the complete titleBySlug
-  // (the published-only join), so this runs after the map above is fully built.
-  const inboundBySlug: Record<string, number> = {};
-  const referencesCountBySlug: Record<string, number> = {};
-  for (const slug of Object.keys(slugMap)) {
-    if (!pageFromSlug(slug, slugMap)) continue;
-    inboundBySlug[slug] = publishedInboundLinkCount(backlinksData, slug, titleBySlug);
-    referencesCountBySlug[slug] = getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length;
-  }
+  // Published inbound-link count and outbound reference count for every published
+  // slug, gathered once via the shared gatherLinkStatsBySlug helper — the same
+  // source links to many articles, so precomputing here keeps each source's stats
+  // out of the O(articles × backlinks) entry map below.
+  const linkStatSlugs = Object.keys(slugMap).filter((slug) => pageFromSlug(slug, slugMap));
+  const { inboundBySlug, referencesCountBySlug } = gatherLinkStatsBySlug(linkStatSlugs, {
+    titleBySlug,
+    backlinksData,
+    linkgraphData,
+  });
 
   return Object.keys(slugMap).flatMap((slug) => {
     const page = pageFromSlug(slug, slugMap);
