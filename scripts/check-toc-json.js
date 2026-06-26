@@ -5,6 +5,12 @@ import { fileURLToPath } from 'node:url';
 import { buildArticleToc, getArticleToc } from '../src/lib/article-toc.js';
 import { getArticleReferences } from '../src/lib/article-references.js';
 import { publishedInboundLinkCount } from './most-linked.js';
+import {
+  wikiArticleHref,
+  wikiCompanionFileHref,
+  wikiCompanionHref,
+  wikiCompanionJsonHref,
+} from '../src/lib/wiki-article-path.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
@@ -225,30 +231,21 @@ for (const slug of articleSlugs) {
   assert.equal(typeof doc.slug, 'string', `${slug}: toc.json slug must be a string`);
   assert.equal(typeof doc.title, 'string', `${slug}: toc.json title must be a string`);
   assert.equal(doc.slug, slug, `${slug}: toc.json slug must equal the article slug`);
-  assert.equal(doc.url, `${ORIGIN}/wiki/${slug}/`, `${slug}: toc.json url must be the canonical article URL`);
-  // tocJsonUrl is the endpoint's own canonical URL; infoUrl / infoJsonUrl link
-  // back to the article's Page-information hub (the same self + info-hub
-  // cross-links the sibling per-article JSON endpoints expose).
-  assert.equal(doc.tocJsonUrl, `${ORIGIN}/wiki/${slug}/toc.json`, `${slug}: toc.json must expose its own canonical tocJsonUrl`);
-  assert.equal(doc.infoUrl, `${ORIGIN}/wiki/${slug}/info/`, `${slug}: toc.json infoUrl must point to the Page-information hub`);
-  assert.equal(doc.infoJsonUrl, `${ORIGIN}/wiki/${slug}/info.json`, `${slug}: toc.json infoJsonUrl must point to the info.json hub`);
-  // historyUrl / historyJsonUrl cross-link to the article's revision history, the
-  // same companion the cite/history/backlinks/references/related envelopes expose.
-  assert.equal(doc.historyUrl, `${ORIGIN}/wiki/${slug}/history/`, `${slug}: toc.json historyUrl must point to the HTML history page`);
-  assert.equal(doc.historyJsonUrl, `${ORIGIN}/wiki/${slug}/history.json`, `${slug}: toc.json historyJsonUrl must point to the machine-readable history endpoint`);
-  // backlinksUrl / backlinksJsonUrl cross-link to the article's What-links-here
-  // endpoint, the same companion the sibling per-article JSON envelopes expose.
-  assert.equal(doc.backlinksUrl, `${ORIGIN}/wiki/${slug}/backlinks/`, `${slug}: toc.json backlinksUrl must point to the HTML backlinks page`);
-  assert.equal(doc.backlinksJsonUrl, `${ORIGIN}/wiki/${slug}/backlinks.json`, `${slug}: toc.json backlinksJsonUrl must point to the machine-readable backlinks endpoint`);
-  // cite / references / related cross-links complete the envelope's links to the
-  // article's sibling endpoints — the full set info.json aggregates.
-  assert.equal(doc.citeUrl, `${ORIGIN}/wiki/${slug}/cite/`, `${slug}: toc.json citeUrl must be canonical`);
-  assert.equal(doc.citeJsonUrl, `${ORIGIN}/wiki/${slug}/cite.json`, `${slug}: toc.json citeJsonUrl must be canonical`);
-  assert.equal(doc.bibtexUrl, `${ORIGIN}/wiki/${slug}/cite.bib`, `${slug}: toc.json bibtexUrl must be canonical`);
-  assert.equal(doc.referencesUrl, `${ORIGIN}/wiki/${slug}/references.json`, `${slug}: toc.json referencesUrl must be canonical`);
-  assert.equal(doc.referencesJsonUrl, `${ORIGIN}/wiki/${slug}/references.json`, `${slug}: toc.json referencesJsonUrl alias must be canonical`);
-  assert.equal(doc.relatedUrl, `${ORIGIN}/wiki/${slug}/related.json`, `${slug}: toc.json relatedUrl must be canonical`);
-  assert.equal(doc.relatedJsonUrl, `${ORIGIN}/wiki/${slug}/related.json`, `${slug}: toc.json relatedJsonUrl alias must be canonical`);
+  assert.equal(doc.url, wikiArticleHref(ORIGIN, slug), `${slug}: toc.json url must be the canonical article URL`);
+  assert.equal(doc.tocJsonUrl, wikiCompanionJsonHref(ORIGIN, slug, 'toc'), `${slug}: toc.json must expose its own canonical tocJsonUrl`);
+  assert.equal(doc.infoUrl, wikiCompanionHref(ORIGIN, slug, 'info'), `${slug}: toc.json infoUrl must point to the Page-information hub`);
+  assert.equal(doc.infoJsonUrl, wikiCompanionJsonHref(ORIGIN, slug, 'info'), `${slug}: toc.json infoJsonUrl must point to the info.json hub`);
+  assert.equal(doc.historyUrl, wikiCompanionHref(ORIGIN, slug, 'history'), `${slug}: toc.json historyUrl must point to the HTML history page`);
+  assert.equal(doc.historyJsonUrl, wikiCompanionJsonHref(ORIGIN, slug, 'history'), `${slug}: toc.json historyJsonUrl must point to the machine-readable history endpoint`);
+  assert.equal(doc.backlinksUrl, wikiCompanionHref(ORIGIN, slug, 'backlinks'), `${slug}: toc.json backlinksUrl must point to the HTML backlinks page`);
+  assert.equal(doc.backlinksJsonUrl, wikiCompanionJsonHref(ORIGIN, slug, 'backlinks'), `${slug}: toc.json backlinksJsonUrl must point to the machine-readable backlinks endpoint`);
+  assert.equal(doc.citeUrl, wikiCompanionHref(ORIGIN, slug, 'cite'), `${slug}: toc.json citeUrl must be canonical`);
+  assert.equal(doc.citeJsonUrl, wikiCompanionJsonHref(ORIGIN, slug, 'cite'), `${slug}: toc.json citeJsonUrl must be canonical`);
+  assert.equal(doc.bibtexUrl, wikiCompanionFileHref(ORIGIN, slug, 'cite.bib'), `${slug}: toc.json bibtexUrl must be canonical`);
+  assert.equal(doc.referencesUrl, wikiCompanionJsonHref(ORIGIN, slug, 'references'), `${slug}: toc.json referencesUrl must be canonical`);
+  assert.equal(doc.referencesJsonUrl, wikiCompanionJsonHref(ORIGIN, slug, 'references'), `${slug}: toc.json referencesJsonUrl alias must be canonical`);
+  assert.equal(doc.relatedUrl, wikiCompanionJsonHref(ORIGIN, slug, 'related'), `${slug}: toc.json relatedUrl must be canonical`);
+  assert.equal(doc.relatedJsonUrl, wikiCompanionJsonHref(ORIGIN, slug, 'related'), `${slug}: toc.json relatedJsonUrl alias must be canonical`);
   // imageUrl is the article's own OG share-card (/og/<slug>.png).
   assert.equal(doc.imageUrl, `${ORIGIN}/og/${slug}.png`, `${slug}: toc.json imageUrl must be the article's OG share-card URL`);
   // categories must match the article's own topic categories from the slug map,
