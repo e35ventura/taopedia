@@ -23,7 +23,7 @@ export const getArticleReferences = ({ slug, linkGraph = {}, titleBySlug = {} })
   );
 };
 
-export const buildArticleReferences = ({ slug, title, origin, summary = '', categories = [], incomingLinks = 0, revisionCount = 0, firstEdited = null, lastEdited = null, sectionCount = 0, wordCount = 0, references = [] }) => ({
+export const buildArticleReferences = ({ slug, title, origin, summary = '', categories = [], incomingLinks = 0, referencesCount = 0, revisionCount = 0, firstEdited = null, lastEdited = null, sectionCount = 0, wordCount = 0, references = [] }) => ({
   slug,
   title,
   summary: summary || null,
@@ -34,6 +34,9 @@ export const buildArticleReferences = ({ slug, title, origin, summary = '', cate
   // The article's own published inbound-link count — the same figure info.json /
   // history.json / cite.json expose on their envelopes (via the shared helper).
   incomingLinks,
+  // The article's published outbound reference count — the same figure
+  // info.json / history.json / cite.json / backlinks.json / related.json expose.
+  referencesCount: Number.isFinite(referencesCount) ? referencesCount : 0,
   // The article's revision count (its commit-history length) — the same figure
   // info.json / history.json / cite.json expose on their envelopes.
   revisionCount: Number.isFinite(revisionCount) ? revisionCount : 0,
