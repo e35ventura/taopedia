@@ -22,3 +22,16 @@ export function formatRevisionDate(dateString) {
     timeZoneName: 'short',
   });
 }
+
+// Calendar dates on article surfaces (footer, info, cite, statistics) use a
+// date-only UTC label — no time component. Invalid/missing values degrade to ''.
+export function formatArticleDate(dateString) {
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'UTC',
+  });
+}

@@ -5,6 +5,7 @@ import CiteCopyButtons from '../../../components/CiteCopyButtons.astro';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
 import { publishedTitleBySlug } from '../../../lib/article-metadata';
 import { buildCitations, CITATION_FORMATS, CITATION_META } from '../../../../scripts/citations.js';
+import { formatArticleDate } from '../../../lib/format-date.js';
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
@@ -38,9 +39,7 @@ const { page, slug, title, lastRevision, citations } = Astro.props;
 
 const url = new URL(`/wiki/${slug}/`, Astro.site).toString();
 
-const lastRevisionLabel = lastRevision
-  ? new Date(lastRevision).toLocaleDateString('en-US', { timeZone: 'UTC', year: 'numeric', month: 'long', day: 'numeric' })
-  : '';
+const lastRevisionLabel = formatArticleDate(lastRevision);
 
 const articleUrl = `/wiki/${slug}/`;
 const historyUrl = `/wiki/${slug}/history/`;

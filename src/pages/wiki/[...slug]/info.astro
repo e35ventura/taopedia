@@ -4,6 +4,7 @@ import WikiLayout from '../../../layouts/WikiLayout.astro';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
 import { publishedTitleBySlug } from '../../../lib/site-feed-context';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
+import { formatArticleDate } from '../../../lib/format-date.js';
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
@@ -58,11 +59,6 @@ const firstRevision = history[history.length - 1]?.date ?? '';
 
 const categories = [...new Set(page.data.categories ?? [])];
 
-const formatDate = (value: string) =>
-  value
-    ? new Date(value).toLocaleDateString('en-US', { timeZone: 'UTC', year: 'numeric', month: 'long', day: 'numeric' })
-    : '';
-
 const articleUrl = `/wiki/${slug}/`;
 const historyUrl = `/wiki/${slug}/history/`;
 const backlinksUrl = `/wiki/${slug}/backlinks/`;
@@ -115,13 +111,13 @@ const pageDescription = `Page metadata for the Taopedia article "${page.data.tit
         {firstRevision && (
           <div class="mw-info-row">
             <dt>Date of page creation</dt>
-            <dd><time datetime={firstRevision}>{formatDate(firstRevision)}</time> (UTC)</dd>
+            <dd><time datetime={firstRevision}>{formatArticleDate(firstRevision)}</time> (UTC)</dd>
           </div>
         )}
         {lastRevision && (
           <div class="mw-info-row">
             <dt>Date of latest revision</dt>
-            <dd><time datetime={lastRevision}>{formatDate(lastRevision)}</time> (UTC)</dd>
+            <dd><time datetime={lastRevision}>{formatArticleDate(lastRevision)}</time> (UTC)</dd>
           </div>
         )}
         <div class="mw-info-row"><dt>Permanent URL</dt><dd><a href={articleUrl}>{url}</a></dd></div>
