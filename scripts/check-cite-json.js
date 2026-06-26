@@ -123,6 +123,18 @@ const CITE_KEYS = CITATION_FORMATS.map((format) => format.key);
   assert.equal(undated.firstEdited, null, 'builder: default firstEdited is null');
   assert.equal(undated.lastEdited, null, 'builder: default lastEdited is null');
   assert.ok(!('date' in undated), 'builder: undated article must omit date key');
+
+  const deduped = buildCiteJson({
+    title: 'Dup',
+    slug: 'dup',
+    origin: ORIGIN,
+    categories: ['Mining', 'Consensus', 'Mining'],
+  });
+  assert.deepEqual(
+    deduped.categories,
+    ['Mining', 'Consensus'],
+    'builder: repeated frontmatter categories must be deduped while preserving first-seen order',
+  );
 }
 
 assert.ok(fs.existsSync(wikiDir), 'dist/wiki not found; run the build first');
@@ -303,7 +315,7 @@ for (const slug of articleSlugs) {
   // categories must match the article's own topic categories from the slug map,
   // the same field history.json / backlinks.json / toc.json / references.json
   // expose on their envelopes.
-  const expectedCategories = Array.isArray(slugmap[slug]?.categories) ? slugmap[slug].categories : [];
+  const expectedCategories = [...new Set(slugmap[slug]?.categories ?? [])];
   assert.deepEqual(
     doc.categories,
     expectedCategories,
