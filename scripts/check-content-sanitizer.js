@@ -472,6 +472,21 @@ infoboxRowRejects('redis://internal-host:6379/0', 'redis:// rejected in an infob
 infoboxRowRejects('postgres://user@internal-host:5432/db', 'postgres:// rejected in an infobox row value');
 infoboxRowAccepts('Redis and PostgreSQL are described as prose', 'benign DB-name prose allowed in an infobox row value');
 accepts('Redis, MongoDB, MySQL, and PostgreSQL are described here only as prose.', 'benign database-name prose (no // authority)');
+// amqp:// mqtt:// stomp:// kafka:// nats:// message-broker connection schemes address an
+// internal broker (SSRF targets), never an http(s) article link; //-guarded. Coverage spans
+// the plain content scan, the entity-decoded scan, and the infobox scan.
+rejects('See [x](amqp://internal-host:5672/vhost).', 'plain amqp:// connection URL');
+rejects('See [x](amqps://internal-host:5671/vhost).', 'plain amqps:// connection URL');
+rejects('See [x](mqtt://internal-host:1883/topic).', 'plain mqtt:// connection URL');
+rejects('See [x](mqtts://internal-host:8883/topic).', 'plain mqtts:// connection URL');
+rejects('See [x](kafka://internal-host:9092).', 'plain kafka:// connection URL');
+rejects('See [x](stomp://internal-host:61613).', 'plain stomp:// connection URL');
+rejects('See [x](nats://internal-host:4222).', 'plain nats:// connection URL');
+rejects('See [x](am&#113;p://internal-host:5672/v).', 'entity-obfuscated amqp:// (obfuscated scan path)');
+infoboxRowRejects('amqp://internal-host:5672/vhost', 'amqp:// rejected in an infobox row value');
+infoboxRowRejects('mqtt://internal-host:1883/topic', 'mqtt:// rejected in an infobox row value');
+infoboxRowAccepts('AMQP and MQTT messaging are described as prose', 'benign broker-name prose allowed in an infobox row value');
+accepts('AMQP, MQTT, Kafka, and NATS messaging are described here only as prose.', 'benign broker-name prose (no // authority)');
 // rdp:// vnc:// telnet:// ssh:// launch a native remote-session client at the host;
 // the // authority form is required so glossary definitions ("SSH: Secure Shell")
 // are unaffected.
