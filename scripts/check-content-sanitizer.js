@@ -787,7 +787,13 @@ rejects('See [x](disc&#111;rd://-/channels/123).', 'entity-obfuscated discord://
 // Infobox-row-value scan path.
 infoboxRowRejects('tg://resolve?domain=evilchannel', 'tg:// rejected in an infobox row value');
 infoboxRowRejects('slack://open?team=T0', 'slack:// rejected in an infobox row value');
-accepts('Slack: a team chat app, Discord servers, and Telegram channels are described here only as prose.', 'benign Slack:/Discord/Telegram prose (no // authority)');
+// mattermost:// and rocketchat:// are self-hostable Slack-alternative team-chat app deep-link
+// handlers in the same native client-launch class as slack://discord://line://viber://.
+rejects('See [x](mattermost://team/channel/abc).', 'plain mattermost:// deep-link');
+rejects('See [x](rocketchat://group/channel/xyz).', 'plain rocketchat:// deep-link');
+rejects('See [x](matt&#101;rmost://team/channel).', 'entity-obfuscated mattermost:// (obfuscated scan path)');
+infoboxRowRejects('rocketchat://group/channel', 'rocketchat:// rejected in an infobox row value');
+accepts('Slack: a team chat app, Discord servers, Mattermost and Rocket.Chat are described here only as prose.', 'benign Slack:/Discord/Mattermost/Rocket.Chat prose (no // authority)');
 accepts('LINE: a messaging app and Viber calls are described here only as prose.', 'benign LINE:/Viber prose (no // authority)');
 // ts3server:// mumble:// ventrilo:// are voice-chat client-launch protocol handlers the OS
 // resolves to launch the native client at an attacker server (ts3server: had a documented
