@@ -27,6 +27,20 @@ export const historyForSlug = (slug: string): Array<HistoryEntry> => {
   return mod?.default?.history ?? [];
 };
 
+export type RevisionStats = {
+  revisionCount: number;
+  firstEdited: string | null;
+  lastEdited: string | null;
+};
+
+// Derive the revisionCount/firstEdited/lastEdited trio from a newest-first history
+// array — the same shape info.json / allpages.json / recentchanges.json expose.
+export const revisionStatsFromHistory = (history: Array<HistoryEntry>): RevisionStats => ({
+  revisionCount: history.length,
+  firstEdited: history.at(-1)?.date ?? null,
+  lastEdited: history[0]?.date ?? null,
+});
+
 // The newest commit date is each article's last-modified time ('' when none).
 export const lastmodForSlug = (slug: string): string => {
   const date = historyForSlug(slug)[0]?.date;
