@@ -480,6 +480,13 @@ const unsafeContentPatterns = [
   // ordinary element only sets base paragraph direction and does NOT reverse LTR
   // runs, so <bdo> is a distinct primitive; a glossary's prose never needs it.
   { pattern: /<\s*bdo\b/i, reason: 'bidirectional override (bdo) elements are not allowed in article content' },
+  // <bdi> is the bidirectional-ISOLATE element: it starts a new bidi embedding
+  // level that is isolated from the surrounding text. An injected <bdi> can
+  // spoof wallet addresses or URLs by isolating attacker text from the page's
+  // bidi context — the element-level sibling of the raw bidi controls and the
+  // <bdo> override already blocked above (Trojan Source, CVE-2021-42574). A
+  // glossary's single-script prose never needs bidi isolation markup.
+  { pattern: /<\s*bdi\b/i, reason: 'bidirectional isolate (bdi) elements are not allowed in article content' },
   // <meter>/<progress> render native gauge and progress-bar widgets in every
   // current browser. An injected one in article prose is a content-spoofing
   // surface — e.g. a fake "wallet scan 80%" progress bar or a coloured risk

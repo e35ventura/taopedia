@@ -284,6 +284,13 @@ accepts('A plaintext export or an XMP metadata block is described here only as p
 rejects('Intro.\n\n<bdo dir="rtl">moc.elpmaxe-live//:sptth</bdo>', 'plain <bdo>');
 rejects('Intro.\n\n<  bdo   dir="rtl">x</bdo>', 'spaced <bdo>');
 accepts('Bidirectional override and the bdo element are described here only as prose.', 'benign bdo prose');
+// <bdi> is the bidirectional-isolate sibling of the blocked <bdo> override element:
+// it isolates attacker text from the surrounding bidi context (Trojan Source).
+rejects('Intro.\n\n<bdi>5Fake…address</bdi>', 'plain <bdi>');
+rejects('Intro.\n\n<bdi dir="rtl">moc.elpmaxe-live//:sptth</bdi>', 'plain <bdi> with dir');
+rejects('Intro.\n\n<  bdi   dir="ltr">x</bdi>', 'spaced <bdi>');
+accepts('Bidirectional isolate and the bdi element are described here only as prose.', 'benign bdi prose');
+accepts('<bditem>not a bdi element</bditem>', 'benign bditem is not <bdi>');
 
 // <meter>/<progress> render native gauge/progress-bar widgets — an injected one
 // is a content-spoofing surface (a fake "scan 80%" bar or risk gauge) a glossary
