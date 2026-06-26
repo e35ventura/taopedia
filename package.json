@@ -19,6 +19,7 @@
     "test:history-parser": "node scripts/check-history-parser.js",
     "test:history-privacy": "node scripts/check-history-privacy.js",
     "test:frontmatter": "node scripts/check-frontmatter.js",
+    "test:frontmatter-colon-repair": "node scripts/check-frontmatter-colon-repair.js",
     "test:content-sanitizer": "node scripts/check-content-sanitizer.js",
     "test:sync-article-paths": "node scripts/check-sync-article-paths.js",
     "test:sync-categories": "node scripts/check-sync-categories.js",

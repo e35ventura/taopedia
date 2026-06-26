@@ -1,4 +1,5 @@
 import YAML from 'yaml';
+import { quoteColonPlainScalars } from './frontmatter-colon-repair.js';
 
 // The YAML body between the fences is optional so a zero-line block (`---\n---`)
 // is recognized too: without the optional group an empty block fails to match and
@@ -7,44 +8,6 @@ import YAML from 'yaml';
 // requires its trailing newline, so a mid-line `---` (e.g. `foo---`) is NOT a
 // valid close and stays in the body as before.
 const frontmatterPattern = /^---\r?\n(?:([\s\S]*?)\r?\n)?---(?:\r?\n(?:\r?\n)?|$)/;
-
-function quoteColonPlainScalars(source) {
-  return source
-    .split(/\r?\n/)
-    .map((line) => {
-      const match = line.match(/^(\s*(?:-\s+)?[A-Za-z_][\w-]*:\s+)(.+)$/);
-      if (match) {
-        const remainder = match[2];
-        const commentMatch = remainder.match(/^(.*?)(\s+#.*)$/);
-        const value = (commentMatch?.[1] ?? remainder).trimEnd();
-        const comment = commentMatch?.[2] ?? '';
-
-        if (!/^[^"'[{|>&*!%@`#].*:\s+.+$/.test(value)) return line;
-        return `${match[1]}${JSON.stringify(value)}${comment}`;
-      }
-
-      // Bare list scalars (`  - Subnet 4: Targon`) have no `key:` token, so the
-      // mapping pattern above never matches and YAML silently parses the item as
-      // a one-key map. Only quote when the remainder is NOT a mapping-style list
-      // entry (`  - label: Netuid` is handled by the pattern above and must not
-      // be wrapped as a single quoted scalar — the rejection on #1486).
-      const listMatch = line.match(/^(\s*-\s+)(.+)$/);
-      if (listMatch) {
-        const remainder = listMatch[2];
-        if (/^[A-Za-z_][\w-]*:\s+/.test(remainder)) return line;
-
-        const commentMatch = remainder.match(/^(.*?)(\s+#.*)$/);
-        const value = (commentMatch?.[1] ?? remainder).trimEnd();
-        const comment = commentMatch?.[2] ?? '';
-
-        if (!/^[^"'[{|>&*!%@`#].*:\s+.+$/.test(value)) return line;
-        return `${listMatch[1]}${JSON.stringify(value)}${comment}`;
-      }
-
-      return line;
-    })
-    .join('\n');
-}
 
 function parseYamlFrontmatter(source) {
   const prepared = quoteColonPlainScalars(source);
