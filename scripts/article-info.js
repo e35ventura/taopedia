@@ -22,10 +22,13 @@ export const buildArticleInfo = ({
   // Dedupe repeated frontmatter topics so Page-information JSON cannot list the
   // same category twice when an article's YAML repeats a topic tag.
   categories: [...new Set(categories)],
-  incomingLinks,
+  // Coerce to a finite number — the same guard sectionCount/wordCount below and
+  // the cite.json sibling already apply to every count field — so a non-finite
+  // input can never serialize as JSON null where a consumer expects an integer.
+  incomingLinks: Number.isFinite(incomingLinks) ? incomingLinks : 0,
   // The article's published outbound-reference count — the complement of
   // incomingLinks, the same figure history.json / cite.json expose.
-  referencesCount,
+  referencesCount: Number.isFinite(referencesCount) ? referencesCount : 0,
   // The article's table-of-contents section count — the same figure toc.json
   // exposes as `count` (via the shared getArticleToc helper).
   sectionCount: Number.isFinite(sectionCount) ? sectionCount : 0,
