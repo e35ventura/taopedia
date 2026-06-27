@@ -50,6 +50,25 @@ import { uniqueFeedCategories } from '../src/lib/feed-categories.js';
   assert.deepEqual(buildLonelyPages({}), [], 'no lonely pages for an empty published set');
 }
 
+// revisionStatsFromHistory contract (mirrors src/lib/article-history.ts): newest-first history.
+{
+  const revisionStatsFromHistory = (history) => ({
+    revisionCount: history.length,
+    firstEdited: history.at(-1)?.date ?? null,
+    lastEdited: history[0]?.date ?? null,
+  });
+  assert.deepEqual(
+    revisionStatsFromHistory([{ date: '2024-02-01' }, { date: '2024-01-01' }]),
+    { revisionCount: 2, firstEdited: '2024-01-01', lastEdited: '2024-02-01' },
+    'revisionStatsFromHistory must derive count and edit dates from newest-first history',
+  );
+  assert.deepEqual(
+    revisionStatsFromHistory([]),
+    { revisionCount: 0, firstEdited: null, lastEdited: null },
+    'revisionStatsFromHistory must return zeros for empty history',
+  );
+}
+
 // Ordering: orphans sort by title with the shared compareTitles collation (numeric,
 // so "Subnet 9" precedes "Subnet 10"), then by a PLAIN code-unit slug tiebreak when
 // titles match (subnet_10 before subnet_9) — the same tiebreak MostLinkedPages /
@@ -86,6 +105,11 @@ import { uniqueFeedCategories } from '../src/lib/feed-categories.js';
 // page's own info.json would silently mislead editors.
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
+const lonelypagesEndpoint = path.join(projectRoot, 'src', 'pages', 'wiki', 'special', 'lonelypages.json.ts');
+assert.ok(
+  fs.readFileSync(lonelypagesEndpoint, 'utf8').includes('revisionStatsFromHistory'),
+  'lonelypages.json must derive revisionCount/firstEdited/lastEdited through revisionStatsFromHistory',
+);
 const wikiDir = path.join(projectRoot, 'dist', 'wiki');
 const distFile = path.join(wikiDir, 'special', 'lonelypages.json');
 const backlinksFile = path.join(projectRoot, 'public', 'data', 'backlinks.json');
