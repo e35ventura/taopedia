@@ -262,6 +262,24 @@ const revisionStatsOf = (slug) => {
   assert.deepEqual(empty.categories, [], 'builder: default categories is []');
   assert.equal(empty.summary, null, 'builder: default summary is null');
   assert.equal(empty.incomingLinks, 0, 'builder: default incomingLinks is 0');
+  // Envelope incomingLinks is coerced to a finite number like every sibling count
+  // field, so a NaN/Infinity/undefined from upstream never reaches the JSON as a
+  // non-numeric value (mirrors the referencesCount/revisionCount/sectionCount/wordCount guards).
+  assert.equal(
+    buildArticleReferences({ slug: 'orphan', title: 'Orphan', origin: ORIGIN, incomingLinks: Number.NaN }).incomingLinks,
+    0,
+    'builder: NaN incomingLinks coerces to 0',
+  );
+  assert.equal(
+    buildArticleReferences({ slug: 'orphan', title: 'Orphan', origin: ORIGIN, incomingLinks: Infinity }).incomingLinks,
+    0,
+    'builder: Infinity incomingLinks coerces to 0',
+  );
+  assert.equal(
+    buildArticleReferences({ slug: 'orphan', title: 'Orphan', origin: ORIGIN, incomingLinks: 7 }).incomingLinks,
+    7,
+    'builder: a finite incomingLinks is threaded through verbatim',
+  );
   assert.equal(empty.revisionCount, 0, 'builder: default revisionCount is 0');
   assert.equal(empty.firstEdited, null, 'builder: default firstEdited is null');
   assert.equal(empty.lastEdited, null, 'builder: default lastEdited is null');
@@ -412,6 +430,10 @@ for (const slug of articleSlugs) {
   assert.deepEqual(doc.summary, expectedSummary, `${slug}: references.json summary must match the article's slug-map summary (or null)`);
   // incomingLinks is the article's own published inbound-link count — the same
   // figure info.json / history.json / cite.json expose on their envelopes.
+  assert.ok(
+    Number.isInteger(doc.incomingLinks) && doc.incomingLinks >= 0,
+    `${slug}: references.json incomingLinks must be a non-negative integer (got ${JSON.stringify(doc.incomingLinks)})`,
+  );
   assert.equal(doc.incomingLinks, publishedInboundLinkCount(backlinksData, slug, titleBySlug), `${slug}: references.json incomingLinks must equal the published inbound-link count`);
   // revisionCount is the article's revision count (its commit-history length) —
   // the same figure info.json / history.json / cite.json expose on their

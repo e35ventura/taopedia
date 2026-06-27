@@ -33,7 +33,11 @@ export const buildArticleReferences = ({ slug, title, origin, summary = '', cate
   categories: [...new Set(categories)],
   // The article's own published inbound-link count — the same figure info.json /
   // history.json / cite.json expose on their envelopes (via the shared helper).
-  incomingLinks,
+  // Coerced to a finite number like every sibling count field below
+  // (referencesCount/revisionCount/sectionCount/wordCount), so a NaN/Infinity/
+  // undefined from upstream can never reach the JSON as a non-numeric value — this
+  // was the one envelope count still threaded through raw.
+  incomingLinks: Number.isFinite(incomingLinks) ? incomingLinks : 0,
   // The article's published outbound reference count — the same figure
   // info.json / history.json / cite.json / backlinks.json / related.json expose.
   referencesCount: Number.isFinite(referencesCount) ? referencesCount : 0,
