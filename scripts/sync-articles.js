@@ -790,6 +790,13 @@ const unsafeContentPatterns = [
   // other blocked schemes. The // authority form is required so prose ("the Chrome browser",
   // "the cutting edge of", "an opera house") is never affected.
   { pattern: /\b(?:chrome-untrusted|chrome|edge|opera|vivaldi|brave|devtools)\s*:\/\//i, reason: 'browser-internal page URL schemes are not allowed in article content' },
+  // chrome-extension:// moz-extension:// safari-extension:// safari-web-extension://
+  // ms-browser-extension:// address a resource INSIDE an installed browser extension's
+  // privileged origin (its background page, options UI, or packaged assets) rather than
+  // an http(s) resource — the sibling of the browser-internal page schemes above. Article
+  // links are limited to http(s), so these are never a valid article link. The // authority
+  // form is required so prose about "a browser extension" is unaffected.
+  { pattern: /\b(?:chrome-extension|moz-extension|safari-web-extension|safari-extension|ms-browser-extension)\s*:\/\//i, reason: 'browser-extension URL schemes are not allowed in article content' },
   // redis:// rediss:// mongodb:// mysql:// mariadb:// sqlite:// influxdb:// postgres://
   // postgresql:// memcached:// etcd:// consul:// are database- and service-discovery
   // connection URL schemes that address an
@@ -1157,6 +1164,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:jetbrains|intellij|pycharm|webstorm|phpstorm|sublime|atom)\s*:(?=[^\s"'<>)])/i, reason: 'code-editor protocol-handler URLs are not allowed in article content' },
   { pattern: /(?:github-mac|github-windows|github-desktop|sourcetree|gitkraken|tower|fork)\s*:\/\//i, reason: 'source-control GUI protocol-handler URLs are not allowed in article content' },
   { pattern: /(?:chrome-untrusted|chrome|edge|opera|vivaldi|brave|devtools)\s*:\/\//i, reason: 'browser-internal page URL schemes are not allowed in article content' },
+  { pattern: /(?:chrome-extension|moz-extension|safari-web-extension|safari-extension|ms-browser-extension)\s*:\/\//i, reason: 'browser-extension URL schemes are not allowed in article content' },
   { pattern: /(?:redis|rediss|mongodb(?:\+srv)?|mysql|mariadb|sqlite|influxdb|postgresql|postgres|memcached|etcd|consul|snowflake|sqlserver|mssql|timescaledb|presto|trino|hive|oracle)\s*:\/\//i, reason: 'database-connection URL schemes are not allowed in article content' },
   { pattern: /(?:git|svn|cvs)\s*:\/\//i, reason: 'version-control protocol URL schemes are not allowed in article content' },
   { pattern: /(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats|rabbitmq|pulsar)\s*:\/\//i, reason: 'message-broker connection URL schemes are not allowed in article content' },
@@ -1229,6 +1237,7 @@ const infoboxRowValueSchemePatterns = [
   /\b(?:jetbrains|intellij|pycharm|webstorm|phpstorm|sublime|atom)\s*:(?=[^\s"'<>)])/i,
   /\b(?:github-mac|github-windows|github-desktop|sourcetree|gitkraken|tower|fork)\s*:\/\//i,
   /(?:chrome-untrusted|chrome|edge|opera|vivaldi|brave|devtools)\s*:\/\//i,
+  /(?:chrome-extension|moz-extension|safari-web-extension|safari-extension|ms-browser-extension)\s*:\/\//i,
   /(?:redis|rediss|mongodb(?:\+srv)?|mysql|mariadb|sqlite|influxdb|postgresql|postgres|memcached|etcd|consul|snowflake|sqlserver|mssql|timescaledb|presto|trino|hive|oracle)\s*:\/\//i,
   /(?:git|svn|cvs)\s*:\/\//i,
   /(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats|rabbitmq|pulsar)\s*:\/\//i,

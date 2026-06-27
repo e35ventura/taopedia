@@ -520,6 +520,19 @@ infoboxRowRejects('chrome://settings/passwords', 'chrome:// rejected in an infob
 infoboxRowRejects('edge://flags', 'edge:// rejected in an infobox row value');
 infoboxRowAccepts('The Chrome browser and the cutting edge are described as prose', 'benign browser-name prose allowed in an infobox row value');
 accepts('The Chrome browser, the cutting edge of research, and an opera house are described here as prose.', 'benign chrome/edge/opera prose (no // authority)');
+// chrome-extension:// moz-extension:// safari-extension:// etc. address resources inside an
+// installed extension's privileged origin, never an http(s) article link; //-guarded. Plain
+// reject for EVERY variant, plus entity-decoded and infobox coverage.
+rejects('See [x](chrome-extension://abcdefghijklmnop/options.html).', 'plain chrome-extension:// URL');
+rejects('See [x](moz-extension://11112222-3333/page.html).', 'plain moz-extension:// URL');
+rejects('See [x](safari-extension://com.evil.ext-ABCDE/x).', 'plain safari-extension:// URL');
+rejects('See [x](safari-web-extension://11112222-3333/x).', 'plain safari-web-extension:// URL');
+rejects('See [x](ms-browser-extension://abcdef/x).', 'plain ms-browser-extension:// URL');
+rejects('See [x](chrome-extens&#105;on://abc/x).', 'entity-obfuscated chrome-extension:// (obfuscated scan path)');
+infoboxRowRejects('chrome-extension://abcdefghijklmnop/options.html', 'chrome-extension:// rejected in an infobox row value');
+infoboxRowRejects('moz-extension://11112222-3333/page.html', 'moz-extension:// rejected in an infobox row value');
+infoboxRowAccepts('A Chrome extension and a Safari extension are described as prose', 'benign extension prose allowed in an infobox row value');
+accepts('A Chrome extension and a browser extension are described here only as prose.', 'benign extension prose (no // authority)');
 // redis:// mongodb:// mysql:// postgres:// database-connection schemes address an internal
 // service (SSRF targets), never an http(s) article link; //-guarded so prose is unaffected.
 // Coverage spans the plain content scan, the entity-decoded scan, and the infobox scan.
