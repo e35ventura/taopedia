@@ -922,6 +922,27 @@ rejects('See [x](wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec
 infoboxRowRejects('wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=irn', 'wc: rejected in an infobox row value');
 // Prose: "WC:" with a space and no @<version> marker must pass.
 accepts('WC: a water closet, also written wc in floor plans, is described here only as prose.', 'benign "WC:" prose (colon then space, no @ marker)');
+// metamask:// trust:// rainbow:// phantom:// cbwallet:// ledgerlive:// zerion:// safepal://
+// exodus:// okx:// are mobile self-custody crypto wallet app deep-link schemes — the native-app
+// counterpart to the wc: WalletConnect pairing URI above. A clicked link opens the reader's
+// wallet straight to a connect / transaction-signing screen (wallet-drain phishing), never a
+// valid http(s) article link. The //-authority form keeps "Trust:"/"Rainbow:"/"Phantom:" prose safe.
+rejects('See [x](metamask://wc?uri=wc%3Aabc%402).', 'plain metamask:// wallet deep link');
+rejects('See [x](trust://wc?uri=wc%3Aabc%402).', 'plain trust:// wallet deep link');
+rejects('See [x](rainbow://wc?uri=wc%3Aabc%402).', 'plain rainbow:// wallet deep link');
+rejects('See [x](phantom://connect?app_url=https%3A%2F%2Fevil.example).', 'plain phantom:// wallet deep link');
+rejects('See [x](cbwallet://dapp?url=https%3A%2F%2Fevil.example).', 'plain cbwallet:// (Coinbase Wallet) deep link');
+rejects('See [x](ledgerlive://discover/evil-app).', 'plain ledgerlive:// wallet deep link');
+rejects('See [x](zerion://wc?uri=wc%3Aabc%402).', 'plain zerion:// wallet deep link');
+rejects('See [x](safepal://wc?uri=wc%3Aabc%402).', 'plain safepal:// wallet deep link');
+rejects('See [x](exodus://wc?uri=wc%3Aabc%402).', 'plain exodus:// wallet deep link');
+rejects('See [x](okx://wallet/dapp?url=https%3A%2F%2Fevil.example).', 'plain okx:// wallet deep link');
+rejects('See [x](metam&#97;sk://wc?uri=wc%3Aabc%402).', 'entity-obfuscated metamask:// (obfuscated scan path)');
+rejects('See [x](phan&#116;om://connect?app_url=https%3A%2F%2Fevil.example).', 'entity-obfuscated phantom:// (obfuscated scan path)');
+infoboxRowRejects('metamask://wc?uri=wc%3Aabc%402', 'metamask:// rejected in an infobox row value');
+infoboxRowRejects('phantom://connect?app_url=https%3A%2F%2Fevil.example', 'phantom:// rejected in an infobox row value');
+accepts('Trust: a foundation of staking, and Phantom is a Solana wallet, are described here only as prose.', 'benign wallet-name prose (colon then space, no //)');
+accepts('MetaMask, Rainbow, Zerion, SafePal, Exodus, and Ledger Live wallets are described here only as prose.', 'benign wallet-name prose (no // authority)');
 // payto: (RFC 8905) and upi: (UPI deep link) are bank / instant-payment app-launch URI
 // schemes — a clicked link opens the reader's banking / payment app pre-filled with the
 // attacker's payee and amount (fund redirection on a fiat/bank rail, distinct from the
