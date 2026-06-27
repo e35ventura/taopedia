@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { render } from 'astro:content';
-import { historyForSlug } from '../../../lib/article-history';
+import { historyForSlug, revisionStatsFromHistory } from '../../../lib/article-history';
+import { uniqueFeedCategories } from '../../../lib/feed-categories.js';
 import {
   publishedCategoriesBySlug,
   publishedSummaryBySlug,
@@ -76,7 +77,7 @@ export const GET: APIRoute = async ({ site }) => {
         summary: summaryBySlug[entry.slug] || null,
         ...articleJsonCompanionUrls(origin, entry.slug),
         imageUrl: `${origin}/og/${entry.slug}.png`,
-        categories: categoriesBySlug[entry.slug] ?? [],
+        categories: uniqueFeedCategories(categoriesBySlug[entry.slug]),
         backlinks: entry.count,
         // incomingLinks is the same published-only inbound-link count exposed
         // under `backlinks`, aliased to the key name info.json / references.json /
@@ -101,9 +102,7 @@ export const GET: APIRoute = async ({ site }) => {
         // expose per article and allpages.json exposes per directory entry — so a
         // consumer of the ranking can see each top page's age and recency without
         // a second fetch.
-        revisionCount: historyBySlug[entry.slug]?.length ?? 0,
-        firstEdited: historyBySlug[entry.slug]?.at(-1)?.date ?? null,
-        lastEdited: historyBySlug[entry.slug]?.[0]?.date ?? null,
+        ...revisionStatsFromHistory(historyBySlug[entry.slug] ?? []),
       })),
     },
     null,

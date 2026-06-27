@@ -10,6 +10,7 @@ import { contentPagesBySlug } from '../../../lib/content-pages-by-slug';
 import { getArticleReferences } from '../../../lib/article-references.js';
 import { getArticleToc } from '../../../lib/article-toc.js';
 import { buildLonelyPages } from '../../../../scripts/lonely-pages.js';
+import { uniqueFeedCategories } from '../../../lib/feed-categories.js';
 import { articleJsonCompanionUrls } from '../../../lib/wiki-article-path.js';
 
 // Machine-readable Special:LonelyPages report at /wiki/special/lonelypages.json:
@@ -74,7 +75,7 @@ export const GET: APIRoute = async ({ site }) => {
         // Dedupe repeated frontmatter topics so the directory cannot list the same
         // category twice, matching the info.json / toc.json / related.json envelopes
         // this entry is cross-checked against.
-        categories: [...new Set(categoriesBySlug[entry.slug] ?? [])],
+        categories: uniqueFeedCategories(categoriesBySlug[entry.slug]),
         // Zero by definition — an orphan is a page with no published inbound links.
         // Emitted under the same cross-endpoint name info.json / references.json use
         // so a consumer reads it under one key and can confirm the orphan invariant.

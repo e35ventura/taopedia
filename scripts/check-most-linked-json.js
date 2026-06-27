@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildMostLinkedPages } from './most-linked.js';
 import { getArticleReferences } from '../src/lib/article-references.js';
+import { uniqueFeedCategories } from '../src/lib/feed-categories.js';
 
 // /wiki/special/mostlinkedpages.json exposes the inbound-link ranking as
 // structured JSON for programmatic consumers. The contract is load-bearing: a
@@ -173,8 +174,8 @@ data.pages.forEach((row, i) => {
   assert.ok(Array.isArray(row.categories), `row ${i} categories must be an array`);
   assert.deepEqual(
     row.categories,
-    slugmap[row.slug]?.categories ?? [],
-    `row ${i} categories must match the article's topics in the slug map for ${row.slug}`,
+    uniqueFeedCategories(slugmap[row.slug]?.categories),
+    `row ${i} categories must match the deduped slug-map topics for ${row.slug}`,
   );
   // summary is the article's frontmatter summary (null when blank) — the same
   // field allpages.json / subnets.json expose per entry, so a consumer can show
@@ -397,6 +398,14 @@ data.pages.forEach((row, i) => {
     `${data.site}/wiki/${row.slug}/toc.json`,
     `row ${i} tocJsonUrl must equal ${data.site}/wiki/${row.slug}/toc.json`,
   );
+  // tocUrl is the toc companion's <name>Url alias — toc has no HTML page, so
+  // it points at toc.json (same convention articleJsonCompanionUrls follows).
+  assert.equal(
+    row.tocUrl,
+    `${data.site}/wiki/${row.slug}/toc.json`,
+    `row ${i} tocUrl must equal ${data.site}/wiki/${row.slug}/toc.json`,
+  );
+  assert.equal(row.tocUrl, row.tocJsonUrl, `row ${i} tocUrl must equal tocJsonUrl for ${row.slug}`);
   // imageUrl is the article's OG share-card (/og/<slug>.png) — each article
   // binds its own card, so a dashboard of the top-ranked pages can render a
   // per-article thumbnail without parsing the rendered HTML head.

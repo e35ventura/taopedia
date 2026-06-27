@@ -7,6 +7,7 @@ import { RECENT_LIMIT } from '../src/lib/recent-changes.js';
 import { publishedInboundLinkCount } from './most-linked.js';
 import { getArticleReferences } from '../src/lib/article-references.js';
 import { slugFromWikiHref } from '../src/lib/wiki-article-path.js';
+import { uniqueFeedCategories } from '../src/lib/feed-categories.js';
 
 const collectRecentChanges = (historyBySlug, titleBySlug, limit) => {
   const changes = [];
@@ -268,6 +269,12 @@ for (let i = 0; i < data.changes.length; i++) {
     `${data.site}/wiki/${change.slug}/toc.json`,
     `change tocJsonUrl must equal ${data.site}/wiki/${change.slug}/toc.json for ${change.slug}`,
   );
+  assert.equal(
+    change.tocUrl,
+    `${data.site}/wiki/${change.slug}/toc.json`,
+    `change tocUrl must equal ${data.site}/wiki/${change.slug}/toc.json for ${change.slug}`,
+  );
+  assert.equal(change.tocUrl, change.tocJsonUrl, `change tocUrl must equal tocJsonUrl for ${change.slug}`);
   // imageUrl is the article's OG share-card image — the same /og/<slug>.png the
   // recentchanges RSS/Atom/JSON feeds already embed per item. The structured
   // endpoint must expose it too so a consumer renders the same per-change
@@ -293,8 +300,8 @@ for (let i = 0; i < data.changes.length; i++) {
   assert.ok(Array.isArray(change.categories), `change ${i} categories must be an array`);
   assert.deepEqual(
     change.categories,
-    slugmap[change.slug]?.categories ?? [],
-    `change ${i} categories must match the article's topics in the slug map for ${change.slug}`,
+    uniqueFeedCategories(slugmap[change.slug]?.categories),
+    `change ${i} categories must match the deduped slug-map topics for ${change.slug}`,
   );
   // backlinks is the changed article's inbound-link count from OTHER published
   // articles — the same published-only, orphan-skipping metric allpages.json /
