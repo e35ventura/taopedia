@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { buildLonelyPages } from './lonely-pages.js';
+import { buildLonelyPages, finiteEnrichmentCount } from './lonely-pages.js';
 import { buildMostLinkedPages, publishedInboundLinkCount } from './most-linked.js';
 import { getArticleReferences } from '../src/lib/article-references.js';
 import { uniqueFeedCategories } from '../src/lib/feed-categories.js';
@@ -48,6 +48,15 @@ import { uniqueFeedCategories } from '../src/lib/feed-categories.js';
 
   // Empty input yields no orphans (no crash on missing maps).
   assert.deepEqual(buildLonelyPages({}), [], 'no lonely pages for an empty published set');
+}
+
+// Non-finite enrichment counts: ?? 0 does not replace NaN (JSON.stringify(NaN) is null),
+// so lonelypages.json.ts must coerce with finiteEnrichmentCount like info.json / cite.json.
+{
+  assert.ok(Number.isNaN(NaN ?? 0), 'NaN ?? 0 stays NaN — nullish coalescing does not fix non-finite counts');
+  assert.equal(finiteEnrichmentCount(NaN), 0, 'finiteEnrichmentCount(NaN) must be 0');
+  assert.equal(finiteEnrichmentCount(Infinity), 0, 'finiteEnrichmentCount(Infinity) must be 0');
+  assert.equal(finiteEnrichmentCount(5), 5, 'finiteEnrichmentCount(5) must pass through finite values');
 }
 
 // Ordering: orphans sort by title with the shared compareTitles collation (numeric,

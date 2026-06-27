@@ -9,7 +9,7 @@ import {
 import { contentPagesBySlug } from '../../../lib/content-pages-by-slug';
 import { getArticleReferences } from '../../../lib/article-references.js';
 import { getArticleToc } from '../../../lib/article-toc.js';
-import { buildLonelyPages } from '../../../../scripts/lonely-pages.js';
+import { buildLonelyPages, finiteEnrichmentCount } from '../../../../scripts/lonely-pages.js';
 import { uniqueFeedCategories } from '../../../lib/feed-categories.js';
 import { articleJsonCompanionUrls } from '../../../lib/wiki-article-path.js';
 
@@ -85,12 +85,12 @@ export const GET: APIRoute = async ({ site }) => {
         // getArticleReferences helper (published-only join) info.json / cite.json use,
         // so an editor can see whether the page is a true dead-end or just unlinked-to.
         referencesCount: getArticleReferences({ slug: entry.slug, linkGraph: linkgraphData, titleBySlug }).length,
-        sectionCount: sectionCountBySlug[entry.slug] ?? 0,
-        wordCount: wordCountBySlug[entry.slug] ?? 0,
+        sectionCount: finiteEnrichmentCount(sectionCountBySlug[entry.slug]),
+        wordCount: finiteEnrichmentCount(wordCountBySlug[entry.slug]),
         // The orphan's estimated reading time in minutes — the same ~200 wpm ceil
         // estimate info.json exposes and the article footer renders from wordCount,
         // so an editor can spot short stubs among the orphans without a second fetch.
-        readingMinutes: Math.max(1, Math.ceil((wordCountBySlug[entry.slug] ?? 0) / 200)),
+        readingMinutes: Math.max(1, Math.ceil(finiteEnrichmentCount(wordCountBySlug[entry.slug]) / 200)),
         // The orphan's revision stats (history is newest-first) — the same
         // revisionCount / firstEdited / lastEdited trio info.json / history.json
         // expose — so an editor can gauge each orphan's age and recency.
