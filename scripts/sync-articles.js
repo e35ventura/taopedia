@@ -1020,6 +1020,20 @@ const unsafeContentPatterns = [
   // as the intent: …#Intent rule); prose like "the WC: a water closet" (colon then space, no
   // @) is never affected, and "wc" never occurs as a live URL in glossary prose.
   { pattern: /\bwc\s*:[^\s"'<>)]*@/i, reason: 'WalletConnect pairing URI schemes are not allowed in article content' },
+  // metamask:// trust:// rainbow:// phantom:// cbwallet:// ledgerlive:// zerion:// safepal://
+  // exodus:// okx:// are the native-app deep-link schemes of the mobile self-custody crypto
+  // wallets a TAO holder is most likely to have installed. They are the native-app counterpart
+  // to the wc: WalletConnect pairing URI blocked directly above: a wc: pairing request is
+  // routinely wrapped as metamask://wc?uri=… / trust://wc?uri=… to deep-link a SPECIFIC wallet,
+  // and these schemes also open the app straight to a connect / transaction-signing / approval
+  // screen (e.g. metamask://dapp/<host>, phantom://…). A clicked link therefore launches the
+  // reader's wallet outside the page sandbox with no script — the same wallet-drain
+  // social-engineering vector as wc:, the most on-theme phishing surface for a Bittensor/TAO
+  // wiki. Article links are limited to http(s), so none is ever a valid article link. The
+  // //-authority form is required, so prose like "Trust: a foundation", "Rainbow: a wallet",
+  // or "Phantom: a Solana wallet" (a scheme name followed by a colon and space, no //) is
+  // never affected, and these names never occur as live URLs in glossary prose.
+  { pattern: /\b(?:metamask|trust|rainbow|phantom|cbwallet|ledgerlive|zerion|safepal|exodus|okx)\s*:\/\//i, reason: 'crypto wallet app deep-link URL schemes are not allowed in article content' },
   // payto: and upi: are bank / instant-payment app-launch URI schemes: a clicked
   // payto://iban/<IBAN>?amount=… (RFC 8905) or upi://pay?pa=<vpa>&am=… (UPI deep link)
   // is resolved by the OS to open the reader's locally-installed banking / payment app
@@ -1173,6 +1187,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:webcal|webcals|feed|itpc|pcast)\s*:\/\//i, reason: 'subscription-handler URL schemes are not allowed in article content' },
   { pattern: /(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash|solana|cardano|ripple|xrp|tron|bnb|zcash|dash|stellar|eos|polkadot|kusama|near|cosmos|osmosis|tezos|algorand|vechain|monacoin|nem|waves|theta|pando)\s*:(?=[^\s"'<>)])/i, reason: 'cryptocurrency payment URI schemes are not allowed in article content' },
   { pattern: /\bwc\s*:[^\s"'<>)]*@/i, reason: 'WalletConnect pairing URI schemes are not allowed in article content' },
+  { pattern: /\b(?:metamask|trust|rainbow|phantom|cbwallet|ledgerlive|zerion|safepal|exodus|okx)\s*:\/\//i, reason: 'crypto wallet app deep-link URL schemes are not allowed in article content' },
   { pattern: /\b(?:payto|upi|venmo|cashapp)\s*:\/\//i, reason: 'bank and instant-payment app-launch URL schemes are not allowed in article content' },
   { pattern: /\b(?:geo|maps|comgooglemaps)\s*:(?=[^\s"'<>)])/i, reason: 'native maps and geolocation app-launch URL schemes are not allowed in article content' },
   { pattern: /\bmatrix\s*:(?=[^\s"'<>)])/i, reason: 'Matrix chat client-launch URL scheme is not allowed in article content' },
@@ -1237,6 +1252,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:webcal|webcals|feed|itpc|pcast)\s*:\/\//i,
   /\b(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash|solana|cardano|ripple|xrp|tron|bnb|zcash|dash|stellar|eos|polkadot|kusama|near|cosmos|osmosis|tezos|algorand|vechain|monacoin|nem|waves|theta|pando)\s*:(?=[^\s"'<>)])/i,
   /\bwc\s*:[^\s"'<>)]*@/i,
+  /\b(?:metamask|trust|rainbow|phantom|cbwallet|ledgerlive|zerion|safepal|exodus|okx)\s*:\/\//i,
   /\b(?:payto|upi|venmo|cashapp)\s*:\/\//i,
   /\b(?:geo|maps|comgooglemaps)\s*:(?=[^\s"'<>)])/i,
   /\bmatrix\s*:(?=[^\s"'<>)])/i,
