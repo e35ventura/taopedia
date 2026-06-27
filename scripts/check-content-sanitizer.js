@@ -883,16 +883,41 @@ rejects('See [x](ripple:rN7n7otQDd6FczFgLdSqtcsAUxDkw6fzRH).', 'plain ripple: pa
 rejects('See [x](xrp:rN7n7otQDd6FczFgLdSqtcsAUxDkw6fzRH).', 'plain xrp: payment URI');
 rejects('See [x](tron:TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU).', 'plain tron: payment URI');
 rejects('See [x](bnb:bnb1grpf0955h0ykzq3ar5nmum7y6gdfl6lxfn46y2).', 'plain bnb: payment URI');
+rejects('See [x](zcash:tmHk1dSwDz1vL3mY3Z4L3pjV8RsXf5kKqEX).', 'plain zcash: payment URI');
+rejects('See [x](dash:XoVZzuEozRfFgrF8zRcd5Skgb2s8Pj1dRm).', 'plain dash: payment URI');
+rejects('See [x](stellar:GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACJUR?amount=42).', 'plain stellar: payment URI');
+rejects('See [x](eos:attackeracct?amount=1.0000 EOS).', 'plain eos: payment URI');
+rejects('See [x](polkadot:14aBCaKTsBoC7xjZrNNBg6Cq5h3vDp1nKu5zTn2JQtByjA4eF?action=transfer).', 'plain polkadot: payment URI');
+rejects('See [x](kusama:14aBCaKTsBoC7xjZrNNBg6Cq5h3vDp1nKu5zTn2JQtByjA4eF).', 'plain kusama: payment URI');
+rejects('See [x](near:attacker.testnet?action=transfer&amount=1).', 'plain near: payment URI');
+rejects('See [x](cosmos:cosmos1attackeraddrabcdefghijklmnopqrstuvwxyz).', 'plain cosmos: payment URI');
+rejects('See [x](osmosis:osmo1attackeraddrabcdefghijklmnopqrstuvwxyz).', 'plain osmosis: payment URI');
+rejects('See [x](tezos:tz1attackeraddrabcdefghijklmnop).', 'plain tezos: payment URI');
+rejects('See [x](algorand:ATTACKERALGOADFADFFADFFADFFADFFADFFADFFADFFADFFADFFADFFADFFADFFAD).', 'plain algorand: payment URI');
+rejects('See [x](vechain:0xattackeraddrabcdefabcdefabcdefabcdefabcdefabcd).', 'plain vechain: payment URI');
+rejects('See [x](monacoin:MATm1attackeraddrabcdefabcdefabcdefabcdefa).', 'plain monacoin: payment URI');
+rejects('See [x](nem:NADDRESSPublicKeyAttackerabcdefghijklmnopqrstuvw).', 'plain nem: payment URI');
+rejects('See [x](waves:3Pattackeraddrabcdefghijklmnopqrstuvw).', 'plain waves: payment URI');
+rejects('See [x](theta:0xattackeraddrabcdefabcdefabcdefabcdefabcdefabcd?amount=1).', 'plain theta: payment URI');
+rejects('See [x](pando:0xattackeraddrabcdefabcdefabcdefabcdefabcdefabcd?amount=1).', 'plain pando: payment URI');
 // Entity-obfuscated: the literal scan misses "bitc&#111;in:" but the decoded re-scan catches it.
 rejects('See [x](bitc&#111;in:1A1zP1eP5QGefi2DMPTfTL5SLmv7Divf Na).', 'entity-obfuscated bitcoin: (obfuscated scan path)');
 rejects('See [x](sol&#097;na:7EqQdEUYHqE8d8u2b9j8j8j8j8j8j8j8j8j8j8j8j8j).', 'entity-obfuscated solana: (obfuscated scan path)');
+rejects('See [x](zc&#097;sh:tmHk1dSwDz1vL3mY3Z4L3pjV8RsXf5kKqEX).', 'entity-obfuscated zcash: (obfuscated scan path)');
+rejects('See [x](ste&#108;lar:GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACJUR?amount=42).', 'entity-obfuscated stellar: (obfuscated scan path)');
 // Infobox-row-value scan path.
 infoboxRowRejects('bitcoin:1A1zP1eP5QGefi2DMPTfTL5SLmv7Divf Na', 'bitcoin: rejected in an infobox row value');
-infoboxRowRejects('solana:7EqQdEUYHqE8d8u2b9j8j8j8j8j8j8j8j8j8j8j8j8j', 'solana: rejected in an infobox row value');
+infoboxRowRejects('solana:7EqQdEUYHqE8d8u2b9j8j8j8j8j8j8j8j8j8j8j8j8j8j', 'solana: rejected in an infobox row value');
+infoboxRowRejects('zcash:tmHk1dSwDz1vL3mY3Z4L3pjV8RsXf5kKqEX', 'zcash: rejected in an infobox row value');
+infoboxRowRejects('stellar:GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACJUR?amount=42', 'stellar: rejected in an infobox row value');
 // Prose: "Bitcoin: A Peer-to-Peer…" has a space after the colon, so it must pass.
 accepts('Bitcoin: A Peer-to-Peer Electronic Cash System is described here only as prose.', 'benign "Bitcoin:" prose (colon then space)');
 accepts('Ethereum: a decentralized platform, and Litecoin are described here only as prose.', 'benign "Ethereum:" prose (colon then space)');
 accepts('Solana: a high-throughput chain, Cardano: proof of stake, and Ripple: the company are described here only as prose.', 'benign altcoin-name prose (colon then space)');
+accepts('Zcash: a privacy coin, Stellar: a federated payment network, and Polkadot parachains are described here only as prose.', 'benign zcash/stellar/polkadot prose (colon then space)');
+accepts('Near: a sharded L1, Cosmos IBC, Tezos LPoS, and Algorand pure-proof-of-stake are described here only as prose.', 'benign near/cosmos/tezos/algorand prose (colon then space)');
+accepts('Theta: a video-streaming chain, Dash: a privacy coin, and Kusama canary network are described here only as prose.', 'benign theta/dash/kusama prose (colon then space)');
+accepts('VeChain, Monacoin, NEM, Waves, Osmosis, EOS, and Pando are described here only as prose.', 'benign vechain/monacoin/nem/waves/osmosis/eos/pando prose (no scheme colon)');
 // wc: is the WalletConnect pairing URI (wc:<topic>@<version>?…) — a clicked link opens the
 // reader's crypto wallet and starts a session with the initiator's dApp, which can then push
 // malicious approval requests (wallet drain). It requires the @<version> marker, so prose like
@@ -905,6 +930,27 @@ rejects('See [x](wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec
 infoboxRowRejects('wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=irn', 'wc: rejected in an infobox row value');
 // Prose: "WC:" with a space and no @<version> marker must pass.
 accepts('WC: a water closet, also written wc in floor plans, is described here only as prose.', 'benign "WC:" prose (colon then space, no @ marker)');
+// metamask:// trust:// rainbow:// phantom:// cbwallet:// ledgerlive:// zerion:// safepal://
+// exodus:// okx:// are mobile self-custody crypto wallet app deep-link schemes — the native-app
+// counterpart to the wc: WalletConnect pairing URI above. A clicked link opens the reader's
+// wallet straight to a connect / transaction-signing screen (wallet-drain phishing), never a
+// valid http(s) article link. The //-authority form keeps "Trust:"/"Rainbow:"/"Phantom:" prose safe.
+rejects('See [x](metamask://wc?uri=wc%3Aabc%402).', 'plain metamask:// wallet deep link');
+rejects('See [x](trust://wc?uri=wc%3Aabc%402).', 'plain trust:// wallet deep link');
+rejects('See [x](rainbow://wc?uri=wc%3Aabc%402).', 'plain rainbow:// wallet deep link');
+rejects('See [x](phantom://connect?app_url=https%3A%2F%2Fevil.example).', 'plain phantom:// wallet deep link');
+rejects('See [x](cbwallet://dapp?url=https%3A%2F%2Fevil.example).', 'plain cbwallet:// (Coinbase Wallet) deep link');
+rejects('See [x](ledgerlive://discover/evil-app).', 'plain ledgerlive:// wallet deep link');
+rejects('See [x](zerion://wc?uri=wc%3Aabc%402).', 'plain zerion:// wallet deep link');
+rejects('See [x](safepal://wc?uri=wc%3Aabc%402).', 'plain safepal:// wallet deep link');
+rejects('See [x](exodus://wc?uri=wc%3Aabc%402).', 'plain exodus:// wallet deep link');
+rejects('See [x](okx://wallet/dapp?url=https%3A%2F%2Fevil.example).', 'plain okx:// wallet deep link');
+rejects('See [x](metam&#97;sk://wc?uri=wc%3Aabc%402).', 'entity-obfuscated metamask:// (obfuscated scan path)');
+rejects('See [x](phan&#116;om://connect?app_url=https%3A%2F%2Fevil.example).', 'entity-obfuscated phantom:// (obfuscated scan path)');
+infoboxRowRejects('metamask://wc?uri=wc%3Aabc%402', 'metamask:// rejected in an infobox row value');
+infoboxRowRejects('phantom://connect?app_url=https%3A%2F%2Fevil.example', 'phantom:// rejected in an infobox row value');
+accepts('Trust: a foundation of staking, and Phantom is a Solana wallet, are described here only as prose.', 'benign wallet-name prose (colon then space, no //)');
+accepts('MetaMask, Rainbow, Zerion, SafePal, Exodus, and Ledger Live wallets are described here only as prose.', 'benign wallet-name prose (no // authority)');
 // payto: (RFC 8905) and upi: (UPI deep link) are bank / instant-payment app-launch URI
 // schemes — a clicked link opens the reader's banking / payment app pre-filled with the
 // attacker's payee and amount (fund redirection on a fiat/bank rail, distinct from the
@@ -912,10 +958,13 @@ accepts('WC: a water closet, also written wc in floor plans, is described here o
 // "UPI: a payments system" (colon then space, no //) passes.
 rejects('See [x](payto://iban/DE75512108001245126199?amount=EUR:200.0).', 'plain payto: bank payment URI');
 rejects('See [x](upi://pay?pa=attacker@bank&pn=Attacker&am=500).', 'plain upi: instant-payment URI');
+rejects('See [x](venmo://pay?recipients=attacker&amount=500).', 'plain venmo: P2P payment URI');
+rejects('See [x](cashapp://attacker/500).', 'plain cashapp: P2P payment URI');
 // Entity-obfuscated: the literal scan misses "pa&#121;to://" but the decoded re-scan catches it.
 rejects('See [x](pa&#121;to://iban/DE75512108001245126199?amount=EUR:200.0).', 'entity-obfuscated payto: (obfuscated scan path)');
 // Infobox-row-value scan path.
 infoboxRowRejects('upi://pay?pa=attacker@bank&am=500', 'upi: rejected in an infobox row value');
+infoboxRowRejects('venmo://pay?recipients=attacker&amount=500', 'venmo: rejected in an infobox row value');
 // Prose: a name followed by a colon and a space (no //) must pass.
 accepts('UPI: a payments system, and payto interbank transfers are described here only as prose.', 'benign "UPI:" prose (colon then space, no //)');
 // geo:/maps:/comgooglemaps: are native maps / geolocation app-launch schemes — a clicked

@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { render } from 'astro:content';
 import { allRecentChanges, historyForSlug, revisionStatsFromHistory } from '../../../lib/article-history';
+import { uniqueFeedCategories } from '../../../lib/feed-categories.js';
 import {
   publishedCategoriesBySlug,
   publishedSummaryBySlug,
@@ -121,7 +122,7 @@ export const GET: APIRoute = async ({ site }) => {
         summary: summaryBySlug[change.slug] || null,
         ...articleJsonCompanionUrls(origin, change.slug),
         imageUrl: `${origin}/og/${change.slug}.png`,
-        categories: categoriesBySlug[change.slug] ?? [],
+        categories: uniqueFeedCategories(categoriesBySlug[change.slug]),
         backlinks: inboundBySlug[change.slug] ?? 0,
         // incomingLinks is the same published-only inbound-link count exposed
         // under `backlinks`, aliased to the key name info.json / references.json /

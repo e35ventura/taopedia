@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { render } from 'astro:content';
-import { historyForSlug } from '../../../lib/article-history';
+import { historyForSlug, revisionStatsFromHistory } from '../../../lib/article-history';
+import { uniqueFeedCategories } from '../../../lib/feed-categories.js';
 import { publishedTitleBySlug } from '../../../lib/article-metadata';
 import { contentPagesBySlug } from '../../../lib/content-pages-by-slug';
 import { getArticleReferences } from '../../../lib/article-references.js';
@@ -89,7 +90,7 @@ export const GET: APIRoute = async ({ site }) => {
           summary: subnet.summary || null,
           ...articleJsonCompanionUrls(origin, subnet.slug),
           imageUrl: `${origin}/og/${subnet.slug}.png`,
-          categories: subnet.categories,
+          categories: uniqueFeedCategories(subnet.categories),
           backlinks: inboundLinks,
           // incomingLinks is the same published-only inbound-link count exposed
           // under `backlinks`, aliased to the key name info.json / references.json /
@@ -114,9 +115,7 @@ export const GET: APIRoute = async ({ site }) => {
           // expose per article and allpages.json / mostlinkedpages.json expose per
           // directory entry — so a subnet dashboard can show each subnet's age and
           // recency without a second fetch.
-          revisionCount: historyBySlug[subnet.slug]?.length ?? 0,
-          firstEdited: historyBySlug[subnet.slug]?.at(-1)?.date ?? null,
-          lastEdited: historyBySlug[subnet.slug]?.[0]?.date ?? null,
+          ...revisionStatsFromHistory(historyBySlug[subnet.slug] ?? []),
         };
       }),
     },

@@ -991,18 +991,24 @@ const unsafeContentPatterns = [
   // "feed:" (e.g. "a price feed:") keeps its boundary and is never affected; the names never
   // occur as URLs in glossary prose.
   { pattern: /\b(?:webcal|webcals|feed|itpc|pcast)\s*:\/\//i, reason: 'subscription-handler URL schemes are not allowed in article content' },
-  // bitcoin:/ethereum:/litecoin:/monero:/solana:/cardano:/ripple:/xrp:/tron:/bnb: are
-  // cryptocurrency payment URI schemes (BIP-21, EIP-681, Solana Pay, and their
-  // equivalents): a clicked bitcoin:<address>?amount=… or solana:<address>… opens the reader's locally-installed or
-  // browser-extension wallet pre-filled with the attacker's address and a
-  // requested amount — a fund-redirection attack with no script and no browser
-  // sandbox involvement. Same native-handler / payment-spoofing class as the
+  // bitcoin:/ethereum:/litecoin:/monero:/solana:/cardano:/ripple:/xrp:/tron:/bnb:/zcash:/
+  // dash:/stellar:/eos:/polkadot:/kusama:/near:/cosmos:/osmosis:/tezos:/algorand:/vechain:/
+  // monacoin:/nem:/waves:/theta:/pando: are cryptocurrency payment URI schemes
+  // (BIP-21, EIP-681, Solana Pay, Stellar SEP-7, Zcash ZIP-321, Substrate, Cosmos
+  // IBC, NEAR, Theta Pay, and their equivalents): a clicked bitcoin:<address>?amount=…,
+  // stellar:<address>?amount=…, zcash:<addr>?amount=…, polkadot:<addr>?action=transfer, or
+  // theta:<addr>?amount=… opens the reader's locally-installed or browser-extension
+  // wallet pre-filled with the attacker's address and a requested amount — a
+  // fund-redirection attack on a Zcash/Stellar/Polkadot/Kusama/NEAR/Cosmos/Osmosis/
+  // Tezos/Algorand/VeChain/Monacoin/NEM/Waves/Theta/Pando rail with no script and no
+  // browser sandbox involvement. Same native-handler / payment-spoofing class as the
   // blocked itms-services: install and intent: app-launch schemes.
   // A real payment URI always carries an address immediately after the colon
   // (no space), so require a non-space character via lookahead; prose like
-  // "Bitcoin: A Peer-to-Peer…" (colon then space) is never affected.
+  // "Bitcoin: A Peer-to-Peer…", "Stellar: a federated payment network", or
+  // "Theta: a video-streaming chain" (colon then space) is never affected.
   // These names never appear as live URLs in Bittensor glossary articles.
-  { pattern: /\b(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash|solana|cardano|ripple|xrp|tron|bnb)\s*:(?=[^\s"'<>)])/i, reason: 'cryptocurrency payment URI schemes are not allowed in article content' },
+  { pattern: /\b(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash|solana|cardano|ripple|xrp|tron|bnb|zcash|dash|stellar|eos|polkadot|kusama|near|cosmos|osmosis|tezos|algorand|vechain|monacoin|nem|waves|theta|pando)\s*:(?=[^\s"'<>)])/i, reason: 'cryptocurrency payment URI schemes are not allowed in article content' },
   // wc: is the WalletConnect pairing URI (v1/v2): wc:<topic>@<version>?relay-protocol=…&symKey=…
   // A clicked wc: link is resolved by the OS to open the reader's crypto wallet and start a
   // pairing/session with the initiator's dApp — whoever controls that session can then push
@@ -1014,6 +1020,20 @@ const unsafeContentPatterns = [
   // as the intent: …#Intent rule); prose like "the WC: a water closet" (colon then space, no
   // @) is never affected, and "wc" never occurs as a live URL in glossary prose.
   { pattern: /\bwc\s*:[^\s"'<>)]*@/i, reason: 'WalletConnect pairing URI schemes are not allowed in article content' },
+  // metamask:// trust:// rainbow:// phantom:// cbwallet:// ledgerlive:// zerion:// safepal://
+  // exodus:// okx:// are the native-app deep-link schemes of the mobile self-custody crypto
+  // wallets a TAO holder is most likely to have installed. They are the native-app counterpart
+  // to the wc: WalletConnect pairing URI blocked directly above: a wc: pairing request is
+  // routinely wrapped as metamask://wc?uri=… / trust://wc?uri=… to deep-link a SPECIFIC wallet,
+  // and these schemes also open the app straight to a connect / transaction-signing / approval
+  // screen (e.g. metamask://dapp/<host>, phantom://…). A clicked link therefore launches the
+  // reader's wallet outside the page sandbox with no script — the same wallet-drain
+  // social-engineering vector as wc:, the most on-theme phishing surface for a Bittensor/TAO
+  // wiki. Article links are limited to http(s), so none is ever a valid article link. The
+  // //-authority form is required, so prose like "Trust: a foundation", "Rainbow: a wallet",
+  // or "Phantom: a Solana wallet" (a scheme name followed by a colon and space, no //) is
+  // never affected, and these names never occur as live URLs in glossary prose.
+  { pattern: /\b(?:metamask|trust|rainbow|phantom|cbwallet|ledgerlive|zerion|safepal|exodus|okx)\s*:\/\//i, reason: 'crypto wallet app deep-link URL schemes are not allowed in article content' },
   // payto: and upi: are bank / instant-payment app-launch URI schemes: a clicked
   // payto://iban/<IBAN>?amount=… (RFC 8905) or upi://pay?pa=<vpa>&am=… (UPI deep link)
   // is resolved by the OS to open the reader's locally-installed banking / payment app
@@ -1022,7 +1042,7 @@ const unsafeContentPatterns = [
   // the same native-handler / payment-spoofing class with no script. The //-authority
   // form is required, so prose like "UPI: a payments system" (colon then space) is never
   // affected; the scheme names never occur as live URLs in glossary prose.
-  { pattern: /\b(?:payto|upi)\s*:\/\//i, reason: 'bank and instant-payment app-launch URL schemes are not allowed in article content' },
+  { pattern: /\b(?:payto|upi|venmo|cashapp)\s*:\/\//i, reason: 'bank and instant-payment app-launch URL schemes are not allowed in article content' },
   // geo:, maps:, and comgooglemaps: are native maps / geolocation app-launch schemes.
   // A clicked geo:<lat>,<lng> (RFC 5870) opens the OS map app at attacker-chosen
   // coordinates, maps:?q=… opens Apple Maps, and comgooglemaps://?q=… opens Google
@@ -1165,9 +1185,10 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:tg|whatsapp|discord|slack|line|viber|mattermost|rocketchat)\s*:\/\//i, reason: 'messaging-app deep-link URL schemes are not allowed in article content' },
   { pattern: /(?:ts3server|mumble|ventrilo)\s*:\/\//i, reason: 'voice-chat client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:webcal|webcals|feed|itpc|pcast)\s*:\/\//i, reason: 'subscription-handler URL schemes are not allowed in article content' },
-  { pattern: /(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash|solana|cardano|ripple|xrp|tron|bnb)\s*:(?=[^\s"'<>)])/i, reason: 'cryptocurrency payment URI schemes are not allowed in article content' },
+  { pattern: /(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash|solana|cardano|ripple|xrp|tron|bnb|zcash|dash|stellar|eos|polkadot|kusama|near|cosmos|osmosis|tezos|algorand|vechain|monacoin|nem|waves|theta|pando)\s*:(?=[^\s"'<>)])/i, reason: 'cryptocurrency payment URI schemes are not allowed in article content' },
   { pattern: /\bwc\s*:[^\s"'<>)]*@/i, reason: 'WalletConnect pairing URI schemes are not allowed in article content' },
-  { pattern: /\b(?:payto|upi)\s*:\/\//i, reason: 'bank and instant-payment app-launch URL schemes are not allowed in article content' },
+  { pattern: /\b(?:metamask|trust|rainbow|phantom|cbwallet|ledgerlive|zerion|safepal|exodus|okx)\s*:\/\//i, reason: 'crypto wallet app deep-link URL schemes are not allowed in article content' },
+  { pattern: /\b(?:payto|upi|venmo|cashapp)\s*:\/\//i, reason: 'bank and instant-payment app-launch URL schemes are not allowed in article content' },
   { pattern: /\b(?:geo|maps|comgooglemaps)\s*:(?=[^\s"'<>)])/i, reason: 'native maps and geolocation app-launch URL schemes are not allowed in article content' },
   { pattern: /\bmatrix\s*:(?=[^\s"'<>)])/i, reason: 'Matrix chat client-launch URL scheme is not allowed in article content' },
   { pattern: /\bweb\+[a-z]+\s*:(?=[^\s"'<>)])/i, reason: 'web+ custom protocol-handler URL schemes are not allowed in article content' },
@@ -1229,9 +1250,10 @@ const infoboxRowValueSchemePatterns = [
   /(?:tg|whatsapp|discord|slack|line|viber|mattermost|rocketchat)\s*:\/\//i,
   /(?:ts3server|mumble|ventrilo)\s*:\/\//i,
   /(?:webcal|webcals|feed|itpc|pcast)\s*:\/\//i,
-  /(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash|solana|cardano|ripple|xrp|tron|bnb)\s*:(?=[^\s"'<>)])/i,
+  /\b(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash|solana|cardano|ripple|xrp|tron|bnb|zcash|dash|stellar|eos|polkadot|kusama|near|cosmos|osmosis|tezos|algorand|vechain|monacoin|nem|waves|theta|pando)\s*:(?=[^\s"'<>)])/i,
   /\bwc\s*:[^\s"'<>)]*@/i,
-  /\b(?:payto|upi)\s*:\/\//i,
+  /\b(?:metamask|trust|rainbow|phantom|cbwallet|ledgerlive|zerion|safepal|exodus|okx)\s*:\/\//i,
+  /\b(?:payto|upi|venmo|cashapp)\s*:\/\//i,
   /\b(?:geo|maps|comgooglemaps)\s*:(?=[^\s"'<>)])/i,
   /\bmatrix\s*:(?=[^\s"'<>)])/i,
   /\bweb\+[a-z]+\s*:(?=[^\s"'<>)])/i,
