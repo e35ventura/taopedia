@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { render } from 'astro:content';
-import { historyForSlug } from '../../../lib/article-history';
+import { historyForSlug, revisionStatsFromHistory } from '../../../lib/article-history';
 import {
   publishedCategoriesBySlug,
   publishedSummaryBySlug,
@@ -94,9 +94,7 @@ export const GET: APIRoute = async ({ site }) => {
         // The orphan's revision stats (history is newest-first) — the same
         // revisionCount / firstEdited / lastEdited trio info.json / history.json
         // expose — so an editor can gauge each orphan's age and recency.
-        revisionCount: historyBySlug[entry.slug]?.length ?? 0,
-        firstEdited: historyBySlug[entry.slug]?.at(-1)?.date ?? null,
-        lastEdited: historyBySlug[entry.slug]?.[0]?.date ?? null,
+        ...revisionStatsFromHistory(historyBySlug[entry.slug] ?? []),
       })),
     },
     null,
