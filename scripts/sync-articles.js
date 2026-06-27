@@ -465,6 +465,13 @@ const unsafeContentPatterns = [
   // same no-attribute content-styling spoof as <font>/<center> above, with no
   // script, handler, or flagged scheme. Block them with the rest.
   { pattern: /<\s*(big|strike|tt|nobr)\b/i, reason: 'big, strike, tt, and nobr elements are not allowed in article content' },
+  // <blink>/<spacer>/<multicol> are obsolete presentational layout elements that
+  // browsers still parse and render: <blink> flashes attention-grabbing text (a fake
+  // "wallet compromised" alert), <spacer> injects fixed-size layout gaps that can
+  // reposition or hide surrounding content, and <multicol> re-flows text into attacker-
+  // chosen columns — all without script, handlers, or flagged schemes. Block them with
+  // the other obsolete rendered elements (marquee, font, big/strike).
+  { pattern: /<\s*(blink|spacer|multicol)\b/i, reason: 'blink, spacer, and multicol elements are not allowed in article content' },
   // <plaintext>/<xmp>/<listing> are obsolete raw-text elements that browsers still
   // honor in the parser. A single injected <plaintext> makes the browser render
   // EVERYTHING after it — the rest of the article and page — as literal text: a
