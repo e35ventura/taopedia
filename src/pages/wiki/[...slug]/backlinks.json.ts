@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { render } from 'astro:content';
-import { historyForSlug } from '../../../lib/article-history';
+import { historyForSlug, revisionStatsFromHistory } from '../../../lib/article-history';
 import { contentPagesBySlug } from '../../../lib/content-pages-by-slug';
 import {
   pageFromSlug,
@@ -63,6 +63,7 @@ export async function getStaticPaths() {
     if (!page) return [];
 
     const history = historyBySlug[slug] ?? [];
+    const revisionStats = revisionStatsFromHistory(history);
     const backlinks = sortInboundBacklinkEntries(
       (backlinksData[slug] ?? [])
       .filter((entry) => titleBySlug[entry.from])
@@ -77,9 +78,7 @@ export async function getStaticPaths() {
           referencesCount: referencesCountBySlug[entry.from] ?? 0,
           sectionCount: sectionCountBySlug[entry.from] ?? 0,
           wordCount: wordCountBySlug[entry.from] ?? 0,
-          revisionCount: entryHistory.length,
-          firstEdited: entryHistory[entryHistory.length - 1]?.date ?? null,
-          lastEdited: entryHistory[0]?.date ?? null,
+          ...revisionStatsFromHistory(entryHistory),
         };
       }),
     );
@@ -95,9 +94,7 @@ export async function getStaticPaths() {
         referencesCount: referencesCountBySlug[slug] ?? 0,
         sectionCount: sectionCountBySlug[slug] ?? 0,
         wordCount: wordCountBySlug[slug] ?? 0,
-        revisionCount: history.length,
-        firstEdited: history[history.length - 1]?.date ?? null,
-        lastEdited: history[0]?.date ?? null,
+        ...revisionStats,
         backlinks,
       },
     };

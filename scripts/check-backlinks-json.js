@@ -75,6 +75,8 @@ const revisionStatsOf = (slug) => {
   assert.equal(result.relatedJsonUrl, `${ORIGIN}/wiki/recycling/related.json`, 'builder: relatedJsonUrl alias');
   assert.equal(result.relatedJsonUrl, result.relatedUrl, 'builder: relatedJsonUrl must equal relatedUrl');
   assert.equal(result.tocJsonUrl, `${ORIGIN}/wiki/recycling/toc.json`, 'builder: tocJsonUrl field');
+  assert.equal(result.tocUrl, `${ORIGIN}/wiki/recycling/toc.json`, 'builder: tocUrl field');
+  assert.equal(result.tocUrl, result.tocJsonUrl, 'builder: tocUrl must equal tocJsonUrl');
   assert.equal(result.imageUrl, `${ORIGIN}/og/recycling.png`, 'builder: imageUrl field');
   assert.deepEqual(result.categories, ['Consensus'], 'builder: categories field');
   assert.equal(result.incomingLinks, 2, 'builder: incomingLinks field');
@@ -108,6 +110,8 @@ const revisionStatsOf = (slug) => {
   assert.equal(result.backlinks[0].relatedUrl, `${ORIGIN}/wiki/neuron/related.json`, 'builder: backlinks[0].relatedUrl');
   assert.equal(result.backlinks[0].relatedJsonUrl, `${ORIGIN}/wiki/neuron/related.json`, 'builder: backlinks[0].relatedJsonUrl');
   assert.equal(result.backlinks[0].tocJsonUrl, `${ORIGIN}/wiki/neuron/toc.json`, 'builder: backlinks[0].tocJsonUrl');
+  assert.equal(result.backlinks[0].tocUrl, `${ORIGIN}/wiki/neuron/toc.json`, 'builder: backlinks[0].tocUrl');
+  assert.equal(result.backlinks[0].tocUrl, result.backlinks[0].tocJsonUrl, 'builder: backlinks[0].tocUrl must equal tocJsonUrl');
   assert.equal(result.backlinks[0].imageUrl, `${ORIGIN}/og/neuron.png`, 'builder: backlinks[0].imageUrl');
   assert.equal(result.backlinks[0].referencesCount, 5, 'builder: backlinks[0].referencesCount threaded verbatim');
   assert.equal(result.backlinks[0].sectionCount, 7, 'builder: backlinks[0].sectionCount threaded verbatim');
@@ -140,6 +144,8 @@ const revisionStatsOf = (slug) => {
   assert.equal(result.backlinks[1].relatedUrl, `${ORIGIN}/wiki/subnet_1/related.json`, 'builder: backlinks[1].relatedUrl');
   assert.equal(result.backlinks[1].relatedJsonUrl, `${ORIGIN}/wiki/subnet_1/related.json`, 'builder: backlinks[1].relatedJsonUrl');
   assert.equal(result.backlinks[1].tocJsonUrl, `${ORIGIN}/wiki/subnet_1/toc.json`, 'builder: backlinks[1].tocJsonUrl');
+  assert.equal(result.backlinks[1].tocUrl, `${ORIGIN}/wiki/subnet_1/toc.json`, 'builder: backlinks[1].tocUrl');
+  assert.equal(result.backlinks[1].tocUrl, result.backlinks[1].tocJsonUrl, 'builder: backlinks[1].tocUrl must equal tocJsonUrl');
   assert.equal(result.backlinks[1].imageUrl, `${ORIGIN}/og/subnet_1.png`, 'builder: backlinks[1].imageUrl');
 
   const empty = buildArticleBacklinks({ slug: 'orphan', title: 'Orphan', origin: ORIGIN });
@@ -294,6 +300,8 @@ for (const slug of articleSlugs) {
   // companion the history.json / related.json envelopes and the directory
   // entries expose, so a consumer of backlinks.json can reach the article's TOC.
   assert.equal(doc.tocJsonUrl, `${ORIGIN}/wiki/${slug}/toc.json`, `${slug}: backlinks.json tocJsonUrl must point to the article's toc.json endpoint`);
+  assert.equal(doc.tocUrl, `${ORIGIN}/wiki/${slug}/toc.json`, `${slug}: backlinks.json tocUrl must point to the article's toc.json endpoint`);
+  assert.equal(doc.tocUrl, doc.tocJsonUrl, `${slug}: backlinks.json tocUrl must equal tocJsonUrl`);
   // imageUrl is the article's own OG share-card (/og/<slug>.png), the same
   // companion the info/history/toc/references envelopes already expose.
   assert.equal(doc.imageUrl, `${ORIGIN}/og/${slug}.png`, `${slug}: backlinks.json imageUrl must be the article's OG share-card URL`);
@@ -594,6 +602,12 @@ for (const slug of articleSlugs) {
       `${ORIGIN}/wiki/${entry.slug}/toc.json`,
       `${slug}: every backlink entry tocJsonUrl must be the canonical article toc.json URL`,
     );
+    assert.equal(
+      entry.tocUrl,
+      `${ORIGIN}/wiki/${entry.slug}/toc.json`,
+      `${slug}: every backlink entry tocUrl must be the canonical article toc.json URL`,
+    );
+    assert.equal(entry.tocUrl, entry.tocJsonUrl, `${slug}: every backlink entry tocUrl must equal tocJsonUrl`);
     // imageUrl is each linking article's own OG share-card (/og/<slug>.png),
     // the same companion the listing-endpoint entries expose, so a consumer can
     // render a thumbnail per linking article without rebuilding the route.
