@@ -8,7 +8,7 @@ import {
 } from '../../../lib/article-metadata';
 import { contentPagesBySlug } from '../../../lib/content-pages-by-slug';
 import { getArticleToc } from '../../../lib/article-toc.js';
-import { buildDeadEndPages } from '../../../../scripts/dead-end-pages.js';
+import { buildDeadEndPages, finiteEnrichmentCount } from '../../../../scripts/dead-end-pages.js';
 import { uniqueFeedCategories } from '../../../lib/feed-categories.js';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
 import { articleJsonCompanionUrls } from '../../../lib/wiki-article-path.js';
@@ -84,12 +84,12 @@ export const GET: APIRoute = async ({ site }) => {
         // under the same cross-endpoint name info.json / references.json use so a
         // consumer reads it under one key and can confirm the dead-end invariant.
         referencesCount: 0,
-        sectionCount: sectionCountBySlug[entry.slug] ?? 0,
-        wordCount: wordCountBySlug[entry.slug] ?? 0,
+        sectionCount: finiteEnrichmentCount(sectionCountBySlug[entry.slug]),
+        wordCount: finiteEnrichmentCount(wordCountBySlug[entry.slug]),
         // The dead-end's estimated reading time in minutes — the same ~200 wpm ceil
         // estimate info.json exposes and the article footer renders from wordCount,
         // so an editor can spot short stubs among the dead-ends without a second fetch.
-        readingMinutes: Math.max(1, Math.ceil((wordCountBySlug[entry.slug] ?? 0) / 200)),
+        readingMinutes: Math.max(1, Math.ceil(finiteEnrichmentCount(wordCountBySlug[entry.slug]) / 200)),
         // The dead-end's revision stats (history is newest-first) — the same
         // revisionCount / firstEdited / lastEdited trio info.json / history.json
         // expose — so an editor can gauge each dead-end's age and recency.

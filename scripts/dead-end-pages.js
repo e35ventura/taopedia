@@ -17,6 +17,13 @@
 import { compareTitles } from '../src/lib/title-sort.js';
 import { getArticleReferences } from '../src/lib/article-references.js';
 
+// Coerce enrichment counts (sectionCount, wordCount) to 0 when non-finite — the same
+// Number.isFinite guard info.json / cite.json use. NaN ?? 0 stays NaN and JSON.stringify
+// serializes it as null, so callers must not rely on nullish coalescing alone.
+export function finiteEnrichmentCount(value) {
+  return Number.isFinite(value) ? value : 0;
+}
+
 // Reduce the published article set to the dead-ends (zero published outbound
 // references), ordered by title with the shared compareTitles collation (so
 // numeric-suffixed titles like "Subnet 9" vs "Subnet 10" read in human order) and a
