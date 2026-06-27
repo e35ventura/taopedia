@@ -651,6 +651,23 @@ rejects('See [x](snmp://internal-host/public).', 'plain snmp:// URL');
 rejects('See [x](w&#115;://internal-host:8080/socket).', 'entity-obfuscated ws:// (obfuscated scan path)');
 infoboxRowRejects('snmp://internal-host/public', 'snmp:// rejected in an infobox row value');
 accepts('SNMP: Simple Network Management Protocol is described here only as prose.', 'benign snmp prose (no // authority)');
+// ipfs:// ipns:// dweb:// dat:// hyper:// ssb:// are decentralized-web / peer-to-peer
+// content-addressing schemes: each resolves outside the page sandbox via a local
+// gateway/companion or native client (the same external-resolver / out-of-band load class
+// as the blocked magnet:/ed2k: P2P file-sharing and gemini:// schemes), never a valid
+// http(s) article link. The // authority form keeps "IPFS:"/"Dat:" glossary prose safe.
+rejects('See [x](ipfs://bafybeigdyrexample/page.html).', 'plain ipfs:// content-address URL');
+rejects('See [x](ipns://k51qzexamplekey/page.html).', 'plain ipns:// content-address URL');
+rejects('See [x](dweb://bafybeigdyrexample/page.html).', 'plain dweb:// content-address URL');
+rejects('See [x](dat://584faexamplekey/page.html).', 'plain dat:// peer-address URL');
+rejects('See [x](hyper://584faexamplekey/page.html).', 'plain hyper:// peer-address URL');
+rejects('See [x](ssb://%25examplefeedid.sha256).', 'plain ssb:// Scuttlebutt URL');
+rejects('See [x](ip&#102;s://bafybeigdyrexample/page.html).', 'entity-obfuscated ipfs:// (obfuscated scan path)');
+rejects('See [x](hy&#112;er://584faexamplekey/page.html).', 'entity-obfuscated hyper:// (obfuscated scan path)');
+infoboxRowRejects('ipfs://bafybeigdyrexample/page.html', 'ipfs:// rejected in an infobox row value');
+infoboxRowRejects('dat://584faexamplekey/page.html', 'dat:// rejected in an infobox row value');
+accepts('IPFS: the InterPlanetary File System is described here only as prose.', 'benign "IPFS:" prose (colon then space)');
+accepts('IPFS, IPNS, Dat, and Hyperdrive content addressing are described here only as prose.', 'benign decentralized-web prose (no // authority)');
 accepts('The CoAP protocol for IoT is described here only as prose.', 'benign "CoAP" prose (no // authority)');
 // rdp:// vnc:// telnet:// ssh:// launch a native remote-session client at the host;
 // the // authority form is required so glossary definitions ("SSH: Secure Shell")

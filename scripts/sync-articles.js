@@ -833,6 +833,16 @@ const unsafeContentPatterns = [
   // outside the page sandbox with no script. Article links are limited to http(s);
   // the // authority form keeps prose like "SNMP: Simple Network Management Protocol" unaffected.
   { pattern: /\b(?:wss|ws|gemini|snmp)\s*:\/\//i, reason: 'non-http network-protocol URL schemes are not allowed in article content' },
+  // ipfs:// ipns:// dweb:// dat:// hyper:// ssb:// are decentralized-web / peer-to-peer
+  // content-addressing schemes: a clicked ipfs://<CID> or ipns://<name> hands off to a
+  // local IPFS gateway/companion (or a public gateway) that fetches attacker-chosen
+  // content, dweb://, dat:// and its successor hyper:// open a Beaker/Hypercore peer
+  // address, and ssb:// launches a Secure Scuttlebutt client — all resolve outside the
+  // page sandbox to an external resolver with no script, the same out-of-band / external-
+  // resource-load class as the blocked magnet:/ed2k: peer-to-peer file-sharing and
+  // gemini:// alt-protocol schemes. Article links are limited to http(s); the // authority
+  // form keeps prose like "IPFS: the InterPlanetary File System" (colon then space) unaffected.
+  { pattern: /\b(?:ipfs|ipns|dweb|dat|hyper|ssb)\s*:\/\//i, reason: 'decentralized-web peer-to-peer URL schemes are not allowed in article content' },
   // rdp:// vnc:// telnet:// ssh:// sftp:// hand the URL's host to a native remote-session
   // client: a clicked rdp://attacker-host or telnet://internal-host opens an OS
   // client outside the page sandbox with no script — the same native protocol-handler
@@ -1149,6 +1159,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:clickhouse|cassandra|couchbase|couchdb|neo4j|bolt|dynamodb|elasticsearch|arangodb|zookeeper|hdfs|hazelcast|riak|minio|solr)\s*:\/\//i, reason: 'data-store connection URL schemes are not allowed in article content' },
   { pattern: /(?:coaps|coap)\s*:\/\//i, reason: 'CoAP IoT connection URL schemes are not allowed in article content' },
   { pattern: /(?:wss|ws|gemini|snmp)\s*:\/\//i, reason: 'non-http network-protocol URL schemes are not allowed in article content' },
+  { pattern: /(?:ipfs|ipns|dweb|dat|hyper|ssb)\s*:\/\//i, reason: 'decentralized-web peer-to-peer URL schemes are not allowed in article content' },
   { pattern: /(?:ftp|rdp|vnc|spice|teamviewer|anydesk|rustdesk|logmein|parsec|nomachine|ultraviewer|splashtop|chrome-remote-desktop|googlechromeremotedesktop|telnet|ssh|sftp|fish|rlogin|rsh|tn3270)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:rtsps?|rtspu|mms)\s*:\/\//i, reason: 'media-streaming client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:rtmpte|rtmpts|rtmpt|rtmpe|rtmps|rtmp)\s*:\/\//i, reason: 'media-streaming client-launch URL schemes are not allowed in article content' },
@@ -1220,6 +1231,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:clickhouse|cassandra|couchbase|couchdb|neo4j|bolt|dynamodb|elasticsearch|arangodb|zookeeper|hdfs|hazelcast|riak|minio|solr)\s*:\/\//i,
   /(?:coaps|coap)\s*:\/\//i,
   /(?:wss|ws|gemini|snmp)\s*:\/\//i,
+  /(?:ipfs|ipns|dweb|dat|hyper|ssb)\s*:\/\//i,
   /(?:ftp|rdp|vnc|spice|teamviewer|anydesk|rustdesk|logmein|parsec|nomachine|ultraviewer|splashtop|chrome-remote-desktop|googlechromeremotedesktop|telnet|ssh|sftp|fish|rlogin|rsh|tn3270)\s*:\/\//i,
   /(?:rtsps?|rtspu|mms)\s*:\/\//i,
   /(?:rtmpte|rtmpts|rtmpt|rtmpe|rtmps|rtmp)\s*:\/\//i,
