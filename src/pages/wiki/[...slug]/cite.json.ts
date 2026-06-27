@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { render } from 'astro:content';
-import { historyForSlug } from '../../../lib/article-history';
+import { historyForSlug, revisionStatsFromHistory } from '../../../lib/article-history';
 import { contentPagesBySlug } from '../../../lib/content-pages-by-slug';
 import {
   pageFromSlug,
@@ -72,12 +72,10 @@ export async function getStaticPaths() {
         referencesCount: referencesCountBySlug[slug] ?? 0,
         sectionCount: sectionCountBySlug[slug] ?? 0,
         wordCount: wordCountBySlug[slug] ?? 0,
-        // Precomputed once per route in getStaticPaths — the same revision
-        // stats GET used to re-derive via historyForSlug on every cite.json
-        // build. Matches info.json (#1037) / backlinks.json (#1042).
-        revisionCount: history.length,
-        firstEdited: history[history.length - 1]?.date ?? null,
-        lastEdited: history[0]?.date ?? null,
+        // Precomputed once per route in getStaticPaths — the same revision-stats
+        // trio (revisionCount/firstEdited/lastEdited) the special listing endpoints
+        // derive via the shared revisionStatsFromHistory helper.
+        ...revisionStatsFromHistory(history),
         date: history[0]?.date ?? '',
       },
     };

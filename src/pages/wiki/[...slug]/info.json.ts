@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { render } from 'astro:content';
-import { historyForSlug } from '../../../lib/article-history';
+import { historyForSlug, revisionStatsFromHistory } from '../../../lib/article-history';
 import { contentPagesBySlug } from '../../../lib/content-pages-by-slug';
 import {
   pageFromSlug,
@@ -75,9 +75,7 @@ export async function getStaticPaths() {
         referencesCount: referencesCountBySlug[slug] ?? 0,
         sectionCount: sectionCountBySlug[slug] ?? 0,
         wordCount: wordCountBySlug[slug] ?? 0,
-        revisionCount: history.length,
-        firstEdited: history[history.length - 1]?.date ?? null,
-        lastEdited: history[0]?.date ?? null,
+        ...revisionStatsFromHistory(history),
       },
     };
   });
