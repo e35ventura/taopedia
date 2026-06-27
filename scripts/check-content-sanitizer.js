@@ -845,6 +845,40 @@ rejects('See [x](mum&#98;le://attacker.example/).', 'entity-obfuscated mumble://
 // Infobox-row-value scan path.
 infoboxRowRejects('ts3server://attacker.example?port=9987', 'ts3server:// rejected in an infobox row value');
 accepts('A speaker might mumble, and TeamSpeak and Ventrilo are described here only as prose.', 'benign mumble/Ventrilo prose words (no // authority)');
+// homekit:// matter:// thread:// zigbee:// zwave:// hue:// lifx:// kasa:// wemo://
+// homeassistant:// hass:// are smart-home / IoT device protocol-handler schemes the OS
+// resolves to launch the registered native smart-home control app or IoT SDK outside
+// the browser sandbox — same out-of-sandbox handler class as tg://zoommtg:/webex:. A
+// clicked hue://attacker-bridge/api/new-user opens the Philips Hue app pointed at an
+// attacker-controlled bridge; homekit:// deep-links the Apple Home pairing surface;
+// matter:// / thread:// open Matter / Thread commissioning flows; zigbee:// / zwave://
+// open IoT radio commissioning; homeassistant:// / hass:// deep-link Home Assistant
+// to attacker-chosen entity/service calls; lifx:// hits the LIFX cloud API; kasa:// /
+// wemo:// control TP-Link / Belkin devices. The // form keeps the common English word
+// "matter:" (e.g. "Matter: a physical substance") and the brand-name prose "Hue, LIFX,
+// Kasa, Wemo, Thread, Zigbee, Z-Wave products" safe.
+rejects('See [x](hue://192.0.2.1/api/attacker-user).', 'plain hue:// smart-home scheme');
+rejects('See [x](lifx://api.lifx.com/v1/lights/all/effects/breathe).', 'plain lifx:// cloud API');
+rejects('See [x](kasa://192.0.2.1/app?action=turnOn).', 'plain kasa:// TP-Link scheme');
+rejects('See [x](wemo://192.0.2.1/setup).', 'plain wemo:// Belkin scheme');
+rejects('See [x](homekit://attacker.example/add-accessory).', 'plain homekit:// Apple Home scheme');
+rejects('See [x](matter://attacker.example/commission).', 'plain matter:// scheme');
+rejects('See [x](thread://attacker-border-router/commission).', 'plain thread:// scheme');
+rejects('See [x](zigbee://attacker.example/commission).', 'plain zigbee:// scheme');
+rejects('See [x](zwave://attacker.example/commission).', 'plain zwave:// scheme');
+rejects('See [x](homeassistant://attacker.local/api/services).', 'plain homeassistant:// scheme');
+rejects('See [x](hass://attacker.local/api/services).', 'plain hass:// scheme');
+// Entity-obfuscated: the literal scan misses "h&#117;e://" but the decoded re-scan catches it.
+rejects('See [x](h&#117;e://192.0.2.1/api/attacker-user).', 'entity-obfuscated hue:// (obfuscated scan path)');
+rejects('See [x](home&#107;it://attacker.example/add-accessory).', 'entity-obfuscated homekit:// (obfuscated scan path)');
+// Infobox-row-value scan path.
+infoboxRowRejects('hue://192.0.2.1/api/attacker-user', 'hue:// rejected in an infobox row value');
+infoboxRowRejects('homeassistant://attacker.local/api/services', 'homeassistant:// rejected in an infobox row value');
+// Prose: "Matter: a physical substance" / "Thread: a lightweight process" / "Hue, LIFX, Kasa,
+// Wemo, Thread, Zigbee, Z-Wave products" — all benign because there is no // after the colon.
+accepts('Matter: a physical substance, Zigbee: a mesh protocol, and Thread: a lightweight process are described here only as prose.', 'benign "Matter:" / "Zigbee:" / "Thread:" prose (colon then space)');
+accepts('HomeKit: the Apple framework, Thread Local Storage, and the Z-Wave radio mesh are described here only as prose.', 'benign "HomeKit:" / "Thread" / "Z-Wave" prose (no scheme //)');
+accepts('Hue, LIFX, Kasa, Wemo, and Z-Wave products are described here only as prose.', 'benign smart-home brand names (no scheme colon)');
 // webcal:// webcals:// feed:// itpc:// pcast:// are subscription-handler schemes the OS points
 // a native app at an attacker remote resource it then fetches on a schedule (calendar/news/
 // podcast subscription) — same out-of-sandbox handler class as tg://. The // form keeps the

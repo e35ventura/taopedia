@@ -980,6 +980,22 @@ const unsafeContentPatterns = [
   // handlers. The //-authority form is required so the prose words "mumble"/"ventrilo" before
   // a colon are never affected; the scheme names never occur as URLs in glossary prose.
   { pattern: /\b(?:ts3server|mumble|ventrilo)\s*:\/\//i, reason: 'voice-chat client-launch URL schemes are not allowed in article content' },
+  // homekit:// matter:// thread:// zigbee:// zwave:// hue:// lifx:// kasa:// wemo://
+  // homeassistant:// hass:// are smart-home / IoT device protocol-handler URL schemes the
+  // OS resolves to launch the registered native smart-home control app or IoT SDK outside
+  // the browser sandbox. A clicked hue://attacker-bridge/api/new-user opens the Philips
+  // Hue app pointed at an attacker-controlled bridge (silently adding a remote
+  // administrator to the reader's lighting installation); homekit:// deep-links the Apple
+  // Home pairing surface; matter:// / thread:// open Matter / Thread commissioning flows;
+  // zigbee:// / zwave:// open IoT radio commissioning; homeassistant:// / hass:// deep-link
+  // Home Assistant to attacker-chosen entity/service calls; lifx:// hits the LIFX cloud
+  // API; kasa:// / wemo:// control TP-Link / Belkin devices. All outside the page sandbox
+  // with no script and no inline handler. Same native protocol-handler / app-launch class
+  // as the blocked tg://zoommtg:/webex: handlers; the //-authority form is required so the
+  // common English word "matter:" (e.g. "Matter: a physical substance") and the brand-name
+  // prose "Hue, LIFX, Kasa, Wemo, Thread, Zigbee, Z-Wave products" keep their boundary and
+  // are never affected; the scheme names never occur as live URLs in glossary prose.
+  { pattern: /\b(?:homekit|matter|thread|zigbee|zwave|hue|lifx|kasa|wemo|homeassistant|hass)\s*:\/\//i, reason: 'smart-home and IoT device protocol-handler URLs are not allowed in article content' },
   // webcal:// webcals:// feed:// itpc:// pcast:// are subscription-handler URL schemes the
   // OS resolves to point a native app at an attacker-controlled remote resource it then
   // fetches on a schedule — outside the browser with no script. webcal://attacker.example/x.ics
@@ -1170,6 +1186,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /\b(?:mailto|tel|sms)\s*:(?=[^\s"'<>)])/i, reason: 'contact-launch URL schemes are not allowed in article content' },
   { pattern: /(?:tg|whatsapp|discord|slack|line|viber|mattermost|rocketchat)\s*:\/\//i, reason: 'messaging-app deep-link URL schemes are not allowed in article content' },
   { pattern: /(?:ts3server|mumble|ventrilo)\s*:\/\//i, reason: 'voice-chat client-launch URL schemes are not allowed in article content' },
+  { pattern: /\b(?:homekit|matter|thread|zigbee|zwave|hue|lifx|kasa|wemo|homeassistant|hass)\s*:\/\//i, reason: 'smart-home and IoT device protocol-handler URLs are not allowed in article content' },
   { pattern: /(?:webcal|webcals|feed|itpc|pcast)\s*:\/\//i, reason: 'subscription-handler URL schemes are not allowed in article content' },
   { pattern: /(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash|solana|cardano|ripple|xrp|tron|bnb|zcash|dash|stellar|eos|polkadot|kusama|near|cosmos|osmosis|tezos|algorand|vechain|monacoin|nem|waves|theta|pando)\s*:(?=[^\s"'<>)])/i, reason: 'cryptocurrency payment URI schemes are not allowed in article content' },
   { pattern: /\bwc\s*:[^\s"'<>)]*@/i, reason: 'WalletConnect pairing URI schemes are not allowed in article content' },
@@ -1234,6 +1251,7 @@ const infoboxRowValueSchemePatterns = [
   /\b(?:mailto|tel|sms)\s*:(?=[^\s"'<>)])/i,
   /(?:tg|whatsapp|discord|slack|line|viber|mattermost|rocketchat)\s*:\/\//i,
   /(?:ts3server|mumble|ventrilo)\s*:\/\//i,
+  /\b(?:homekit|matter|thread|zigbee|zwave|hue|lifx|kasa|wemo|homeassistant|hass)\s*:\/\//i,
   /(?:webcal|webcals|feed|itpc|pcast)\s*:\/\//i,
   /\b(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash|solana|cardano|ripple|xrp|tron|bnb|zcash|dash|stellar|eos|polkadot|kusama|near|cosmos|osmosis|tezos|algorand|vechain|monacoin|nem|waves|theta|pando)\s*:(?=[^\s"'<>)])/i,
   /\bwc\s*:[^\s"'<>)]*@/i,
