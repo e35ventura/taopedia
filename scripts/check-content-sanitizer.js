@@ -833,6 +833,13 @@ rejects('See [x](matt&#101;rmost://team/channel).', 'entity-obfuscated mattermos
 infoboxRowRejects('rocketchat://group/channel', 'rocketchat:// rejected in an infobox row value');
 accepts('Slack: a team chat app, Discord servers, Mattermost and Rocket.Chat are described here only as prose.', 'benign Slack:/Discord/Mattermost/Rocket.Chat prose (no // authority)');
 accepts('LINE: a messaging app and Viber calls are described here only as prose.', 'benign LINE:/Viber prose (no // authority)');
+// instagram:// facebook:// twitter:// linkedin:// are social-network app deep-link handlers.
+rejects('See [x](instagram://user?username=attacker).', 'plain instagram:// deep-link');
+rejects('See [x](facebook://profile/attacker).', 'plain facebook:// deep-link');
+rejects('See [x](twitter://user?screen_name=attacker).', 'plain twitter:// deep-link');
+rejects('See [x](linke&#100;in://profile/attacker).', 'entity-obfuscated linkedin:// (obfuscated scan path)');
+infoboxRowRejects('instagram://user?username=attacker', 'instagram:// rejected in an infobox row value');
+accepts('Instagram: a photo app, Facebook, Twitter, and LinkedIn are described here only as prose.', 'benign social-network prose (no // authority)');
 // ts3server:// mumble:// ventrilo:// are voice-chat client-launch protocol handlers the OS
 // resolves to launch the native client at an attacker server (ts3server: had a documented
 // client RCE/launch vector) — same out-of-sandbox handler class as steam://launcher/tg://.
