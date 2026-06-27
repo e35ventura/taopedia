@@ -1,0 +1,88 @@
+---
+import WikiLayout from '../../../layouts/WikiLayout.astro';
+import { getCollection } from 'astro:content';
+import { getPageSlug } from '../../../lib/article-history';
+import { buildLonelyPages } from '../../../../scripts/lonely-pages.js';
+
+// Special:LonelyPages — the orphaned articles: published pages that NO other
+// published article links to (zero inbound links), the exact complement of
+// Special:MostLinkedPages. This is the human-readable sibling of the existing
+// machine-readable lonelypages.json, surfacing pages an editor should wire into
+// the link graph. Loaded via glob so a missing file (e.g. a dev run before the
+// link graph is built) degrades to an empty list.
+const pages = await getCollection('pages');
+const titleBySlug: Record<string, string> = {};
+for (const page of pages) {
+  titleBySlug[getPageSlug(page)] = page.data.title;
+}
+
+const backlinksModules = import.meta.glob('../../../../public/data/backlinks.json', { eager: true }) as Record<
+  string,
+  { default?: Record<string, Array<{ from: string }>> }
+>;
+const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
+
+// Select the orphans (zero published inbound links) via the SAME shared builder the
+// machine-readable sibling (lonelypages.json) and its regression check
+// (check-lonely-pages.js) use, so all surfaces derive one orphan set from one
+// source. buildLonelyPages counts only links from OTHER published articles (a
+// self-link or a draft source never rescues a page) and orders by compareTitles
+// then a plain slug tiebreak — the same ordering MostLinkedPages uses. Because
+// MostLinkedPages keeps count > 0 and this keeps count === 0, the two reports
+// partition the whole published set.
+const lonely = buildLonelyPages({ titleBySlug, backlinks: backlinksData });
+---
+
+<WikiLayout
+  title="Lonely pages"
+  description="Orphaned articles in the Taopedia Bittensor knowledge base — published pages that no other article links to, the complement of Most linked pages."
+>
+  <div class="mw-body-content">
+    <h1 class="firstHeading">Lonely pages</h1>
+
+    <div class="mw-parser-output">
+      <p>
+        Published articles that no other article links to. These orphans are reachable only from the
+        directory or search — wiring them into related articles helps readers find them. Each entry
+        links to its "What links here" page, which confirms it currently has no incoming links.
+      </p>
+
+      {lonely.length === 0 ? (
+        <p>No lonely pages — every published article has at least one incoming link.</p>
+      ) : (
+        <ol class="mw-lonelypages">
+          {lonely.map((entry) => (
+            <li class="mw-lp-row">
+              <a class="mw-lp-title" href={`/wiki/${entry.slug}/`}>{entry.title}</a>
+              <a class="mw-lp-links" href={`/wiki/${entry.slug}/backlinks/`}>No incoming links</a>
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
+  </div>
+</WikiLayout>
+
+<style>
+  .mw-lonelypages {
+    margin: 16px 0;
+    padding-left: 32px;
+  }
+  .mw-lp-row {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border-color-subtle);
+    font-size: 14px;
+  }
+  .mw-lp-title {
+    font-weight: 600;
+  }
+  .mw-lp-links {
+    margin-left: auto;
+    font-size: 13px;
+    white-space: nowrap;
+    color: var(--color-base-subtle);
+  }
+</style>

@@ -175,6 +175,67 @@ data.pages.forEach((row, i) => {
   }
 });
 
+// ---- 3) Built-output contract: the human-readable Special:LonelyPages page ----
+//
+// The browsable report at /wiki/special/lonelypages must list exactly the same
+// orphan set as the JSON sibling, in the same order, each linking to the article
+// and to its "What links here" page, and it must be reachable from the shared
+// footer and the homepage nav (so it is discoverable without the sitemap). It
+// fails if the rendered membership, order, links, or discovery regress.
+const decode = (s) =>
+  s
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, '&');
+
+const pageFile = path.join(wikiDir, 'special', 'lonelypages', 'index.html');
+assert.ok(fs.existsSync(pageFile), 'dist/wiki/special/lonelypages/index.html not found; run the build first');
+const pageHtml = fs.readFileSync(pageFile, 'utf8');
+
+const pageRows = [...pageHtml.matchAll(/<li[^>]*class="mw-lp-row"[^>]*>([\s\S]*?)<\/li>/g)].map(([, block]) => ({
+  titleHref: (block.match(/mw-lp-title[^>]*href="([^"]+)"/) || [])[1],
+  titleText: decode((block.match(/mw-lp-title[^>]*>([^<]*)<\/a>/) || [])[1] || ''),
+  linksHref: (block.match(/mw-lp-links[^>]*href="([^"]+)"/) || [])[1],
+}));
+
+// Rendered membership + order must match the shared builder exactly (handles the
+// zero-orphan case too: both sides are empty).
+const pageSlugs = pageRows.map((row, i) => {
+  const m = (row.titleHref || '').match(/^\/wiki\/(.+)\/$/);
+  assert.ok(m, `lonely-page row ${i} has a malformed article link: ${row.titleHref}`);
+  const slug = m[1];
+  assert.ok(fs.existsSync(path.join(wikiDir, slug, 'index.html')), `lonely-page row ${i} links to unbuilt /wiki/${slug}/`);
+  assert.equal(row.linksHref, `/wiki/${slug}/backlinks/`, `lonely-page row ${i} must link to /wiki/${slug}/backlinks/`);
+  assert.ok(
+    fs.existsSync(path.join(wikiDir, slug, 'backlinks', 'index.html')),
+    `lonely-page row ${i} links to /wiki/${slug}/backlinks/ but that page was not built`,
+  );
+  assert.equal(row.titleText, realTitleBySlug[slug], `lonely-page row ${i} title must match the article title for ${slug}`);
+  return slug;
+});
+assert.deepEqual(
+  pageSlugs,
+  expected.map((e) => e.slug),
+  'rendered Lonely pages (order + membership) must match the link graph exactly',
+);
+
+// On-site discovery: the shared footer (every article page) and the homepage nav
+// must link to the page, so it is reachable without the sitemap.
+const builtArticle = Object.keys(realTitleBySlug).find((slug) =>
+  fs.existsSync(path.join(wikiDir, slug, 'index.html')),
+);
+assert.ok(builtArticle, 'expected at least one built article to verify footer discovery');
+assert.ok(
+  fs.readFileSync(path.join(wikiDir, builtArticle, 'index.html'), 'utf8').includes('href="/wiki/special/lonelypages"'),
+  'the shared page footer must link to /wiki/special/lonelypages (article-page discovery path)',
+);
+assert.ok(
+  fs.readFileSync(path.join(projectRoot, 'dist', 'index.html'), 'utf8').includes('href="/wiki/special/lonelypages"'),
+  'the homepage primary nav must link to /wiki/special/lonelypages (homepage discovery path)',
+);
+
 console.log(
-  `Lonely pages check passed (${data.pages.length} orphaned pages from the built endpoint match the link graph; lonely + most-linked partition all ${Object.keys(realTitleBySlug).length} published articles)`,
+  `Lonely pages check passed (${data.pages.length} orphaned pages from the built endpoint and ${pageSlugs.length} rendered on the page match the link graph; lonely + most-linked partition all ${Object.keys(realTitleBySlug).length} published articles; footer + homepage discovery present)`,
 );

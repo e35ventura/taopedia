@@ -74,6 +74,7 @@ export const GET: APIRoute = ({ site }) => {
     { path: '/wiki/special/allpages/', lastmod: '' },
     { path: '/wiki/special/categories/', lastmod: '' },
     { path: '/wiki/special/mostlinkedpages/', lastmod: '' },
+    { path: '/wiki/special/lonelypages/', lastmod: '' },
     { path: '/wiki/special/recentchanges/', lastmod: '' },
     { path: '/wiki/special/statistics/', lastmod: '' },
     { path: '/wiki/special/subnets/', lastmod: '' },
