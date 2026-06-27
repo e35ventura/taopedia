@@ -86,6 +86,8 @@ const CITE_KEYS = CITATION_FORMATS.map((format) => format.key);
   assert.equal(doc.infoUrl, `${ORIGIN}/wiki/yuma_consensus/info/`, 'builder: infoUrl');
   assert.equal(doc.infoJsonUrl, `${ORIGIN}/wiki/yuma_consensus/info.json`, 'builder: infoJsonUrl');
   assert.equal(doc.tocJsonUrl, `${ORIGIN}/wiki/yuma_consensus/toc.json`, 'builder: tocJsonUrl');
+  assert.equal(doc.tocUrl, `${ORIGIN}/wiki/yuma_consensus/toc.json`, 'builder: tocUrl');
+  assert.equal(doc.tocUrl, doc.tocJsonUrl, 'builder: tocUrl must equal tocJsonUrl');
   assert.equal(doc.referencesUrl, `${ORIGIN}/wiki/yuma_consensus/references.json`, 'builder: referencesUrl');
   assert.equal(doc.relatedUrl, `${ORIGIN}/wiki/yuma_consensus/related.json`, 'builder: relatedUrl');
   assert.equal(doc.referencesJsonUrl, `${ORIGIN}/wiki/yuma_consensus/references.json`, 'builder: referencesJsonUrl alias');
@@ -285,6 +287,12 @@ for (const slug of articleSlugs) {
     wikiCompanionJsonHref(ORIGIN, slug, 'toc'),
     `cite.json tocJsonUrl must point at the article's machine-readable table-of-contents endpoint for ${slug}`,
   );
+  assert.equal(
+    doc.tocUrl,
+    wikiCompanionJsonHref(ORIGIN, slug, 'toc'),
+    `cite.json tocUrl must point at the article's machine-readable table-of-contents endpoint for ${slug}`,
+  );
+  assert.equal(doc.tocUrl, doc.tocJsonUrl, `cite.json tocUrl must equal tocJsonUrl for ${slug}`);
   assert.equal(
     doc.referencesUrl,
     wikiCompanionJsonHref(ORIGIN, slug, 'references'),
