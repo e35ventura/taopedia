@@ -4,7 +4,7 @@ import { buildCategoryArticlesDocument, getCategoryArticles } from '../../../../
 import { publishedTitleBySlug } from '../../../../lib/article-metadata';
 import { contentPagesBySlug } from '../../../../lib/content-pages-by-slug';
 import { gatherLinkStatsBySlug } from '../../../../lib/article-link-stats';
-import { historyForSlug } from '../../../../lib/article-history';
+import { historyForSlug, revisionStatsFromHistory } from '../../../../lib/article-history';
 import { getArticleToc } from '../../../../lib/article-toc.js';
 
 const categoriesModules = import.meta.glob('../../../../../public/data/categories.json', { eager: true }) as Record<
@@ -89,9 +89,7 @@ export async function getStaticPaths() {
             ...article,
             backlinks: inboundBySlug[article.slug] ?? 0,
             referencesCount: referencesCountBySlug[article.slug] ?? 0,
-            revisionCount: history.length,
-            firstEdited: history[history.length - 1]?.date ?? null,
-            lastEdited: history[0]?.date ?? null,
+            ...revisionStatsFromHistory(history),
             wordCount: wordCountBySlug[article.slug] ?? 0,
             sectionCount: sectionCountBySlug[article.slug] ?? 0,
             readingMinutes: Math.max(1, Math.ceil((wordCountBySlug[article.slug] ?? 0) / 200)),
