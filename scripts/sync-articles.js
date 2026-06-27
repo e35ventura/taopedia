@@ -970,6 +970,12 @@ const unsafeContentPatterns = [
   // "a Discord server" (a name then a colon/word, no ://) is never affected; the scheme
   // names never occur as URLs in glossary prose.
   { pattern: /\b(?:tg|whatsapp|discord|slack|line|viber|mattermost|rocketchat)\s*:\/\//i, reason: 'messaging-app deep-link URL schemes are not allowed in article content' },
+  // weixin:// (WeChat), kakaotalk://, threema://, wickr://, kik://, and zalo:// are
+  // additional mobile-messenger app deep-link handlers in the same native client-launch
+  // class as tg://whatsapp://discord://: a clicked weixin://dl/… or kakaotalk://… hands
+  // the URL to the OS, launching the native app outside the page sandbox. Never an
+  // http(s) article link; the // authority form keeps prose unaffected.
+  { pattern: /\b(?:weixin|kakaotalk|threema|wickr|kik|zalo)\s*:\/\//i, reason: 'mobile-messenger app deep-link URL schemes are not allowed in article content' },
   // ts3server:// mumble:// ventrilo:// are voice-chat client-launch protocol handlers the OS
   // resolves to launch the locally-installed client — not the browser — pointed at an
   // attacker-chosen server. A clicked ts3server://attacker.example?port=… joins a TeamSpeak
@@ -1183,6 +1189,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /\b(?:skype|callto|facetime-audio|facetime|sgnl)\s*:(?=[^\s"'<>)])/i, reason: 'communication-app launch URL schemes are not allowed in article content' },
   { pattern: /\b(?:mailto|tel|sms)\s*:(?=[^\s"'<>)])/i, reason: 'contact-launch URL schemes are not allowed in article content' },
   { pattern: /(?:tg|whatsapp|discord|slack|line|viber|mattermost|rocketchat)\s*:\/\//i, reason: 'messaging-app deep-link URL schemes are not allowed in article content' },
+  { pattern: /(?:weixin|kakaotalk|threema|wickr|kik|zalo)\s*:\/\//i, reason: 'mobile-messenger app deep-link URL schemes are not allowed in article content' },
   { pattern: /(?:ts3server|mumble|ventrilo)\s*:\/\//i, reason: 'voice-chat client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:webcal|webcals|feed|itpc|pcast)\s*:\/\//i, reason: 'subscription-handler URL schemes are not allowed in article content' },
   { pattern: /(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash|solana|cardano|ripple|xrp|tron|bnb|zcash|dash|stellar|eos|polkadot|kusama|near|cosmos|osmosis|tezos|algorand|vechain|monacoin|nem|waves|theta|pando)\s*:(?=[^\s"'<>)])/i, reason: 'cryptocurrency payment URI schemes are not allowed in article content' },
@@ -1248,6 +1255,7 @@ const infoboxRowValueSchemePatterns = [
   /\b(?:skype|callto|facetime-audio|facetime|sgnl)\s*:(?=[^\s"'<>)])/i,
   /\b(?:mailto|tel|sms)\s*:(?=[^\s"'<>)])/i,
   /(?:tg|whatsapp|discord|slack|line|viber|mattermost|rocketchat)\s*:\/\//i,
+  /(?:weixin|kakaotalk|threema|wickr|kik|zalo)\s*:\/\//i,
   /(?:ts3server|mumble|ventrilo)\s*:\/\//i,
   /(?:webcal|webcals|feed|itpc|pcast)\s*:\/\//i,
   /\b(?:bitcoin|ethereum|litecoin|monero|dogecoin|bitcoincash|solana|cardano|ripple|xrp|tron|bnb|zcash|dash|stellar|eos|polkadot|kusama|near|cosmos|osmosis|tezos|algorand|vechain|monacoin|nem|waves|theta|pando)\s*:(?=[^\s"'<>)])/i,

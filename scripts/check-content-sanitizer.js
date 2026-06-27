@@ -833,6 +833,20 @@ rejects('See [x](matt&#101;rmost://team/channel).', 'entity-obfuscated mattermos
 infoboxRowRejects('rocketchat://group/channel', 'rocketchat:// rejected in an infobox row value');
 accepts('Slack: a team chat app, Discord servers, Mattermost and Rocket.Chat are described here only as prose.', 'benign Slack:/Discord/Mattermost/Rocket.Chat prose (no // authority)');
 accepts('LINE: a messaging app and Viber calls are described here only as prose.', 'benign LINE:/Viber prose (no // authority)');
+// weixin:// (WeChat), kakaotalk://, threema://, wickr://, kik://, zalo:// are additional
+// mobile-messenger app deep-link handlers in the same native client-launch class as the
+// messaging deep-links above; //-guarded so prose is unaffected. Covered across the plain,
+// entity-decoded, and infobox scan paths.
+rejects('See [x](weixin://dl/chat?evil).', 'plain weixin:// (WeChat) deep-link');
+rejects('See [x](kakaotalk://friend/add/evil).', 'plain kakaotalk:// deep-link');
+rejects('See [x](threema://add?id=EVIL1234).', 'plain threema:// deep-link');
+rejects('See [x](wickr://addfriend/evil).', 'plain wickr:// deep-link');
+rejects('See [x](kik://users/evil/profile).', 'plain kik:// deep-link');
+rejects('See [x](zalo://chat?evil).', 'plain zalo:// deep-link');
+rejects('See [x](kak&#97;otalk://friend/add/evil).', 'entity-obfuscated kakaotalk:// (obfuscated scan path)');
+infoboxRowRejects('weixin://dl/chat?evil', 'weixin:// rejected in an infobox row value');
+infoboxRowRejects('threema://add?id=EVIL1234', 'threema:// rejected in an infobox row value');
+accepts('WeChat, KakaoTalk, Threema, Wickr, Kik, and Zalo are described here only as prose.', 'benign mobile-messenger-name prose (no // authority)');
 // ts3server:// mumble:// ventrilo:// are voice-chat client-launch protocol handlers the OS
 // resolves to launch the native client at an attacker server (ts3server: had a documented
 // client RCE/launch vector) — same out-of-sandbox handler class as steam://launcher/tg://.
