@@ -833,6 +833,24 @@ rejects('See [x](matt&#101;rmost://team/channel).', 'entity-obfuscated mattermos
 infoboxRowRejects('rocketchat://group/channel', 'rocketchat:// rejected in an infobox row value');
 accepts('Slack: a team chat app, Discord servers, Mattermost and Rocket.Chat are described here only as prose.', 'benign Slack:/Discord/Mattermost/Rocket.Chat prose (no // authority)');
 accepts('LINE: a messaging app and Viber calls are described here only as prose.', 'benign LINE:/Viber prose (no // authority)');
+// fb:// twitter:// instagram:// snapchat:// tiktok:// reddit:// etc. are social-media app
+// deep-link handlers in the same native-app-launch class as the messaging-app deep-links
+// above; //-guarded so prose ("the Twitter API", "a Reddit thread") is unaffected. Covered
+// across the plain, entity-decoded, and infobox scan paths.
+rejects('See [x](fb://profile/100000000).', 'plain fb:// social deep-link');
+rejects('See [x](twitter://user?screen_name=evil).', 'plain twitter:// social deep-link');
+rejects('See [x](fb-messenger://user/100000000).', 'plain fb-messenger:// social deep-link');
+rejects('See [x](instagram://user?username=evil).', 'plain instagram:// social deep-link');
+rejects('See [x](snapchat://add/evil).', 'plain snapchat:// social deep-link');
+rejects('See [x](tiktok://user/profile/evil).', 'plain tiktok:// social deep-link');
+rejects('See [x](reddit://user/evil).', 'plain reddit:// social deep-link');
+rejects('See [x](pinterest://user/evil).', 'plain pinterest:// social deep-link');
+rejects('See [x](tumblr://blog/evil).', 'plain tumblr:// social deep-link');
+rejects('See [x](linkedin://profile/evil).', 'plain linkedin:// social deep-link');
+rejects('See [x](inst&#97;gram://user?username=evil).', 'entity-obfuscated instagram:// (obfuscated scan path)');
+infoboxRowRejects('twitter://user?screen_name=evil', 'twitter:// rejected in an infobox row value');
+infoboxRowRejects('fb://profile/100000000', 'fb:// rejected in an infobox row value');
+accepts('The Twitter API, a Reddit thread, an Instagram post, and a LinkedIn profile are described here only as prose.', 'benign social-media-name prose (no // authority)');
 // ts3server:// mumble:// ventrilo:// are voice-chat client-launch protocol handlers the OS
 // resolves to launch the native client at an attacker server (ts3server: had a documented
 // client RCE/launch vector) — same out-of-sandbox handler class as steam://launcher/tg://.
