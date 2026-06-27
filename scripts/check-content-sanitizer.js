@@ -553,6 +553,18 @@ infoboxRowRejects('trino://internal-host:8080/catalog', 'trino:// rejected in an
 infoboxRowRejects('oracle://internal-host:1521/orcl', 'oracle:// rejected in an infobox row value');
 infoboxRowAccepts('Presto, Trino, Hive, and Oracle are described as prose', 'benign database-name prose allowed in an infobox row value');
 accepts('Presto queries, Trino connectors, Hive tables, and Oracle databases are described here only as prose.', 'benign database-name prose (no // authority)');
+// jdbc: and odbc: are the canonical Java/ODBC database connection-string schemes (a prefix
+// form like jdbc:mysql://host/db), addressing an internal database. Coverage spans the
+// plain content scan, the entity-decoded scan, and the infobox scan.
+rejects('See [x](jdbc:mysql://internal-host:3306/db).', 'plain jdbc: connection-string URL');
+rejects('See [x](jdbc:postgresql://internal-host:5432/db).', 'plain jdbc:postgresql connection string');
+rejects('See [x](odbc:Driver={SQL Server};Server=internal-host).', 'plain odbc: connection string');
+rejects('See [x](jd&#98;c:mysql://internal-host/db).', 'entity-obfuscated jdbc: (obfuscated scan path)');
+infoboxRowRejects('jdbc:mysql://internal-host:3306/db', 'jdbc: rejected in an infobox row value');
+infoboxRowRejects('odbc:Driver=x;Server=internal-host', 'odbc: rejected in an infobox row value');
+infoboxRowAccepts('JDBC drivers and ODBC connectors are described as prose', 'benign JDBC/ODBC prose allowed in an infobox row value');
+accepts('A JDBC driver and an ODBC connector for the database are described here only as prose.', 'benign JDBC/ODBC prose (no scheme colon)');
+accepts('JDBC: Java Database Connectivity and ODBC: Open Database Connectivity are defined here as prose.', 'benign JDBC:/ODBC: glossary definitions (colon then space, no connection string)');
 // git://svn://cvs:// version-control protocol-handler schemes launch a native VC client to
 // connect to the attacker's host. Covered across plain, entity-decoded, and infobox scans.
 rejects('See [x](git://attacker.example/evil.git).', 'plain git:// clone URL');
