@@ -436,6 +436,12 @@ for (const category of categories) {
       `${ORIGIN}/wiki/${article.slug}/toc.json`,
       `${category}: article ${article.slug} tocJsonUrl must be the canonical toc.json URL`,
     );
+    assert.equal(
+      article.tocUrl,
+      `${ORIGIN}/wiki/${article.slug}/toc.json`,
+      `${category}: article ${article.slug} tocUrl must be the canonical toc.json URL`,
+    );
+    assert.equal(article.tocUrl, article.tocJsonUrl, `${category}: article ${article.slug} tocUrl must equal tocJsonUrl`);
     // imageUrl links the article's OG share-card image — the same companion
     // every other article-listing JSON endpoint (allpages, mostlinkedpages,
     // subnets, recentchanges) already exposes per entry.
