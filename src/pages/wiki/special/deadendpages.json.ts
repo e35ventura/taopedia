@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { render } from 'astro:content';
-import { historyForSlug } from '../../../lib/article-history';
+import { historyForSlug, revisionStatsFromHistory } from '../../../lib/article-history';
 import {
   publishedCategoriesBySlug,
   publishedSummaryBySlug,
@@ -9,6 +9,7 @@ import {
 import { contentPagesBySlug } from '../../../lib/content-pages-by-slug';
 import { getArticleToc } from '../../../lib/article-toc.js';
 import { buildDeadEndPages } from '../../../../scripts/dead-end-pages.js';
+import { uniqueFeedCategories } from '../../../lib/feed-categories.js';
 import { publishedInboundLinkCount } from '../../../../scripts/most-linked.js';
 import { articleJsonCompanionUrls } from '../../../lib/wiki-article-path.js';
 
@@ -74,7 +75,7 @@ export const GET: APIRoute = async ({ site }) => {
         // Dedupe repeated frontmatter topics so the directory cannot list the same
         // category twice, matching the info.json / toc.json / related.json envelopes
         // this entry is cross-checked against.
-        categories: [...new Set(categoriesBySlug[entry.slug] ?? [])],
+        categories: uniqueFeedCategories(categoriesBySlug[entry.slug]),
         // A dead-end may still be linked TO, so its inbound count is meaningful and
         // enriched here (the same published-only, self-excluded count info.json /
         // mostlinkedpages.json expose) — it is the OUTBOUND count that is zero.
@@ -92,9 +93,7 @@ export const GET: APIRoute = async ({ site }) => {
         // The dead-end's revision stats (history is newest-first) — the same
         // revisionCount / firstEdited / lastEdited trio info.json / history.json
         // expose — so an editor can gauge each dead-end's age and recency.
-        revisionCount: historyBySlug[entry.slug]?.length ?? 0,
-        firstEdited: historyBySlug[entry.slug]?.at(-1)?.date ?? null,
-        lastEdited: historyBySlug[entry.slug]?.[0]?.date ?? null,
+        ...revisionStatsFromHistory(historyBySlug[entry.slug] ?? []),
       })),
     },
     null,
