@@ -92,19 +92,21 @@ const groupedArticles = [
               <h2>{topic}</h2>
               {categoryHref && <a href={categoryHref}>View topic</a>}
             </div>
-            <ul>
+            <div class="article-group-grid">
               {pages.map((page) => (
-                <li
+                <a
+                  class="article-card"
+                  href={`/wiki/${getPageSlug(page)}/`}
                   data-article-card
                   data-title={page.data.title.toLowerCase()}
                   data-summary={(page.data.summary ?? '').toLowerCase()}
                   data-topics={pageCategories(page).join('|')}
                 >
-                  <a href={`/wiki/${getPageSlug(page)}/`}>{page.data.title}</a>
+                  <strong>{page.data.title}</strong>
                   {page.data.summary && <span>{page.data.summary}</span>}
-                </li>
+                </a>
               ))}
-            </ul>
+            </div>
           </section>
         ))}
       </div>
@@ -237,15 +239,13 @@ const groupedArticles = [
     text-decoration: none;
   }
 
-  .article-card strong,
-  .article-group li a {
+  .article-card strong {
     color: var(--color-link);
     font-weight: 700;
     text-decoration: none;
   }
 
-  .article-card span,
-  .article-group li span {
+  .article-card span {
     display: block;
     margin-top: 5px;
     color: var(--color-base-subtle);
@@ -253,8 +253,7 @@ const groupedArticles = [
     line-height: 1.45;
   }
 
-  .article-card:hover,
-  .article-group li:hover {
+  .article-card:hover {
     border-color: var(--color-link);
   }
 
@@ -287,19 +286,10 @@ const groupedArticles = [
     text-decoration: none;
   }
 
-  .article-group ul {
+  .article-group-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .article-group li {
-    padding: 12px;
-    border: 1px solid var(--border-color-subtle);
-    background: var(--background-color-interactive);
   }
 
   [hidden] {
@@ -308,7 +298,7 @@ const groupedArticles = [
 
   @media (max-width: 780px) {
     .featured-directory,
-    .article-group ul {
+    .article-group-grid {
       grid-template-columns: 1fr;
     }
   }
