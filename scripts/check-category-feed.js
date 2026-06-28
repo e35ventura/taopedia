@@ -2,75 +2,91 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
-// The site ships a category-scoped RSS feed at
-// /wiki/category/<category>/rss.xml (src/pages/wiki/category/[category]/rss.xml.ts).
-// It is the only syndication route WITHOUT a route-level regression check: the
-// shared builder is covered by check-rss-feed.js, but that test feeds hardcoded
-// items in and so cannot tell whether the endpoint actually scopes its output to
-// the requested category. The load-bearing behavior here is the per-category
-// filter — a regression that dropped it would silently publish every article in
-// every category feed, which the builder check would not catch. This guard locks
-// the endpoint's invariants down so a refactor or deletion fails fast.
+// The site ships a category-scoped RSS / Atom / JSON Feed at
+// /wiki/category/<category>/{rss.xml,atom.xml,feed.json}
+// (src/pages/wiki/category/[category]/rss.xml.ts and its atom / feed.json
+// siblings). After the #1442 syndication refactor the slugifier
+// (categoryName → underscore slug) and the per-category filter both moved
+// into the shared buildCategoryFeedStaticPaths helper in
+// src/lib/category-feed-context.ts; the three route files now each just
+// delegate to it. This guard locks the delegation + helper invariants down so
+// a refactor or deletion fails fast.
+//
+// The previous version of this check looked for the literal inline patterns
+// ("replace(/ /g, '_')", "category: categorySlug(categoryName)",
+// "page.data.categories?.includes(categoryName)") inside rss.xml.ts itself.
+// After #1442 those literals moved into the helper, so the old assertions
+// fail on every clean run — the check has been silently broken since the
+// refactor. This rewrite keeps the same invariants by checking them where
+// they now live (the helper and the hub), plus asserts each route delegates
+// to the helper instead of reimplementing the slugifier inline.
 
 const projectRoot = path.resolve(new URL('..', import.meta.url).pathname);
-const endpointPath = path.join(
-  projectRoot,
-  'src',
-  'pages',
-  'wiki',
-  'category',
-  '[category]',
-  'rss.xml.ts',
-);
-const source = fs.readFileSync(endpointPath, 'utf8');
+const categoryDir = path.join(projectRoot, 'src', 'pages', 'wiki', 'category');
+const routes = [
+  { file: path.join(categoryDir, '[category]', 'rss.xml.ts'), serializer: 'buildRssFeed' },
+  { file: path.join(categoryDir, '[category]', 'atom.xml.ts'), serializer: 'buildAtomFeed' },
+  { file: path.join(categoryDir, '[category]', 'feed.json.ts'), serializer: 'buildJsonFeed' },
+];
 
-// Reuse the shared, determinism/escape-tested serializer rather than hand-rolling
-// RSS output, so category feeds stay byte-compatible with the site-wide feed.
-assert.ok(
-  source.includes("import { buildRssFeed }") && source.includes('scripts/rss-feed.js'),
-  'category feed must build its output through the shared buildRssFeed serializer',
-);
+// The shared helper is the single source of truth for the slugifier and the
+// per-category membership filter — both invariants the prior check was
+// asserting inside rss.xml.ts now live here, so lock them down where they
+// actually live.
+const helperPath = path.join(projectRoot, 'src', 'lib', 'category-feed-context.ts');
+const helperSource = fs.readFileSync(helperPath, 'utf8');
 
-// The route slug maps category label spaces to underscores. This must match the
-// category hub (wiki/category/[category].astro) and the sitemap's category loc
-// derivation exactly, or the feed URL would diverge from the hub it advertises.
 assert.ok(
-  source.includes("replace(/ /g, '_')"),
-  'category feed must slugify category names with the space-to-underscore convention',
+  /export const categoryPathFromName\s*=\s*\(\s*categoryName\s*:\s*string\s*\)\s*=>\s*categoryName\.replace\(\s*\/\s\s*\/\s*g\s*,\s*'_'\s*\)/m.test(
+    helperSource,
+  ),
+  'categoryPathFromName must slugify category labels with the space-to-underscore convention (the source of truth after the #1442 refactor)',
 );
 
-// One feed route per category, param derived through the slugifier — not a fixed
-// route, and not keyed on the raw label (which can contain spaces).
 assert.ok(
-  source.includes('category: categorySlug(categoryName)'),
-  'getStaticPaths must generate one slugified route param per category',
+  helperSource.includes('getCategoryArticles'),
+  'buildCategoryFeedStaticPaths must filter items to the requested category (the only place per-category membership is applied)',
 );
 
-// THE load-bearing invariant: items are scoped to the requested category. Without
-// this filter every category feed would contain the full article corpus.
-assert.ok(
-  source.includes('page.data.categories?.includes(categoryName)'),
-  'category feed must filter items to articles whose categories include the route category',
-);
+// Each route file must delegate to the shared helper for static paths —
+// prevents a future refactor from re-introducing a hand-rolled slugifier or
+// membership filter that drifts from the helper.
+for (const { file, serializer } of routes) {
+  const source = fs.readFileSync(file, 'utf8');
+  assert.ok(
+    source.includes("buildCategoryFeedStaticPaths") && source.includes("category-feed-context"),
+    `${path.relative(projectRoot, file)} must build static paths through the shared buildCategoryFeedStaticPaths helper`,
+  );
 
-// The feed must identify itself against the category hub: the channel link points
-// at the hub URL while the atom:self link points at the nested feed endpoint, so
-// readers and crawlers resolve the feed relative to the topic it covers.
+  // The shared, determinism/escape-tested serializer — not hand-rolled XML /
+  // JSON output — so per-category feeds stay byte-compatible with the site-
+  // wide feeds.
+  assert.ok(
+    source.includes(serializer),
+    `${path.relative(projectRoot, file)} must render its body through ${serializer}`,
+  );
+}
+
+// The rss route still hardcodes its channel link and feedPath (the
+// serializer-derived URL must mirror the category hub slug). Lock the literal
+// channel-link and feed-path conventions so a refactor that drops them is
+// caught.
+const rssSource = fs.readFileSync(path.join(categoryDir, '[category]', 'rss.xml.ts'), 'utf8');
 assert.ok(
-  source.includes('channelLink: `${origin}/wiki/category/${categoryPath}/`'),
-  'category feed must point its channel link at the matching category hub',
+  rssSource.includes('channelLink: `${origin}/wiki/category/${categoryPath}/`'),
+  'category RSS feed must point its channel link at the matching category hub',
 );
 assert.ok(
-  source.includes('feedPath: `/wiki/category/${categoryPath}/rss.xml`'),
-  'category feed must advertise its nested atom:self URL on the feed endpoint',
+  rssSource.includes('feedPath: `/wiki/category/${categoryPath}/rss.xml`'),
+  'category RSS feed must advertise its nested atom:self URL on the feed endpoint',
 );
 
 // Cross-route consistency: the feed's channel link points at the category hub,
 // so the hub must slugify with the SAME convention — otherwise the channel URL
-// would 404 and orphan the feed from the topic it covers. Assert the convention
-// is present in the hub (not the exact param-line syntax, so an unrelated hub
-// refactor that keeps the convention does not trip this feed check).
-const hubPath = path.join(projectRoot, 'src', 'pages', 'wiki', 'category', '[category].astro');
+// would 404 and orphan the feed from the topic it covers. Assert the
+// convention is present in the hub (not the exact param-line syntax, so an
+// unrelated hub refactor that keeps the convention does not trip this check).
+const hubPath = path.join(categoryDir, '[category].astro');
 const hubSource = fs.readFileSync(hubPath, 'utf8');
 assert.ok(
   hubSource.includes("replace(/ /g, '_')"),
