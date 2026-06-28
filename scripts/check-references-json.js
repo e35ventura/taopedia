@@ -269,6 +269,19 @@ const revisionStatsOf = (slug) => {
   assert.equal(empty.wordCount, 0, 'builder: default wordCount is 0');
   assert.equal(empty.count, 0, 'builder: empty count is 0');
   assert.deepEqual(empty.references, [], 'builder: empty references is []');
+
+  // A non-finite incomingLinks must coerce to 0, not serialize as JSON null.
+  // references.json is the only per-article envelope whose incomingLinks was a
+  // raw passthrough; every sibling (info / history / cite / backlinks / related
+  // / toc) already guards it with Number.isFinite, so a NaN/Infinity here would
+  // serialize as `null` (JSON.stringify(NaN) === 'null') while siblings emit 0.
+  const nanLinks = buildArticleReferences({ slug: 'nan', title: 'Nan', origin: ORIGIN, incomingLinks: NaN });
+  assert.equal(nanLinks.incomingLinks, 0, 'builder: non-finite incomingLinks (NaN) coerces to 0');
+  assert.ok(Number.isFinite(nanLinks.incomingLinks), 'builder: incomingLinks is always finite (NaN case)');
+  const infLinks = buildArticleReferences({ slug: 'inf', title: 'Inf', origin: ORIGIN, incomingLinks: Infinity });
+  assert.equal(infLinks.incomingLinks, 0, 'builder: non-finite incomingLinks (Infinity) coerces to 0');
+  assert.ok(Number.isFinite(infLinks.incomingLinks), 'builder: incomingLinks is always finite (Infinity case)');
+  assert.equal(JSON.stringify(nanLinks.incomingLinks), '0', 'builder: NaN incomingLinks serializes as 0, not null');
 }
 
 // Repeated frontmatter categories must be deduped on the envelope and entries.
