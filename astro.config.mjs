@@ -26,13 +26,8 @@ export default defineConfig({
     }),
   ],
   markdown: {
-    remarkPlugins: [
-      [
-        remarkWikiLink,
-        wikiLinkOptions,
-      ],
-    ],
-    rehypePlugins: [rehypeExternalLinks, rehypeDropRedundantH1],
+    // Top-level remarkPlugins/rehypePlugins are deprecated in Astro 6;
+    // the same plugins load via the mdx() integration above.
     shikiConfig: {
       theme: 'github-light',
     },
