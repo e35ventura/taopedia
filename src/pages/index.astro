@@ -57,7 +57,8 @@ const featuredPages = featuredSlugs
 // into the full Special:Subnets directory. Reuses the same buildSubnets() helper
 // that powers Special:Subnets and subnets.json, so the homepage can never
 // disagree with them on netuid, name, or slug. Refs #521.
-const featuredSubnets = buildSubnets({ pages: pagesFromSlugMap(slugMap), getPageSlug })
+const allSubnets = buildSubnets({ pages: pagesFromSlugMap(slugMap), getPageSlug });
+const featuredSubnets = allSubnets
   .filter((subnet) => !/deprecated/i.test(subnet.name))
   .slice(0, 6);
 
@@ -79,6 +80,30 @@ for (const change of allRecentChanges(titleBySlug, 0)) {
   recentlyUpdated.push(change);
   if (recentlyUpdated.length >= 6) break;
 }
+
+const latestUpdate = recentlyUpdated[0]?.date ?? '';
+const siteSnapshot = [
+  {
+    label: 'Articles',
+    value: sortedPages.length.toLocaleString('en-US'),
+    detail: 'Short reference pages on TAO, wallets, staking, mining, validation, and governance.',
+  },
+  {
+    label: 'Topics',
+    value: categoryIndex.size.toLocaleString('en-US'),
+    detail: 'Browse the knowledge base by themes such as Wallets, Subnets, Staking, Consensus, and Tokenomics.',
+  },
+  {
+    label: 'Subnets',
+    value: allSubnets.length.toLocaleString('en-US'),
+    detail: 'Numbered subnet coverage, plus the protocol mechanics and market structure around them.',
+  },
+  {
+    label: 'Latest update',
+    value: latestUpdate ? formatRevisionDate(latestUpdate) : 'Build time',
+    detail: 'Revision history is pulled into article pages and the Recent changes report during the static build.',
+  },
+];
 
 const alphaGroups = new Map<string, PageEntry[]>();
 for (const page of sortedPages) {
@@ -179,8 +204,15 @@ const initialLetter = alphabet[0] ?? '#';
       }
 
       .home-hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.6fr) minmax(280px, 1fr);
+        align-items: start;
+        gap: 24px;
         padding: 44px 0 38px;
-        max-width: 760px;
+      }
+
+      .home-hero-copy {
+        min-width: 0;
       }
 
       h1 {
@@ -271,6 +303,64 @@ const initialLetter = alphabet[0] ?? '#';
 
       .search-suggestions a:hover {
         text-decoration: underline;
+      }
+
+      .home-snapshot {
+        padding: 18px;
+        border: 1px solid var(--border-color-subtle);
+        background: var(--background-color-interactive);
+      }
+
+      .home-snapshot-title {
+        margin: 0;
+        font-family: var(--font-family-serif);
+        font-size: 24px;
+        font-weight: 400;
+      }
+
+      .home-snapshot-intro {
+        margin: 8px 0 0;
+        color: var(--color-base-subtle);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .home-snapshot-list {
+        display: grid;
+        gap: 10px;
+        margin: 18px 0 0;
+      }
+
+      .home-snapshot-item {
+        padding: 12px 0 0;
+        border-top: 1px solid var(--border-color-subtle);
+      }
+
+      .home-snapshot-item:first-child {
+        padding-top: 0;
+        border-top: 0;
+      }
+
+      .home-snapshot-item dt {
+        color: var(--color-base-subtle);
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .home-snapshot-item dd {
+        margin: 2px 0 0;
+        font-family: var(--font-family-serif);
+        font-size: 30px;
+        line-height: 1.1;
+      }
+
+      .home-snapshot-item p {
+        margin: 6px 0 0;
+        color: var(--color-base-subtle);
+        font-size: 13px;
+        line-height: 1.45;
       }
 
       .home-section {
@@ -448,8 +538,7 @@ const initialLetter = alphabet[0] ?? '#';
       }
 
       @media (max-width: 820px) {
-        .home-header,
-        .home-hero {
+        .home-header {
           display: block;
         }
 
@@ -460,6 +549,8 @@ const initialLetter = alphabet[0] ?? '#';
 
         .home-hero {
           padding-top: 32px;
+          grid-template-columns: 1fr;
+          gap: 18px;
         }
 
         h1 {
@@ -527,7 +618,7 @@ const initialLetter = alphabet[0] ?? '#';
       </header>
 
       <section class="home-hero">
-        <div>
+        <div class="home-hero-copy">
           <h1>Bittensor concepts, organized.</h1>
           <p class="home-intro">Short reference pages for builders, validators, miners, and TAO holders.</p>
           <form class="home-search" action="/search/" method="get">
@@ -545,6 +636,22 @@ const initialLetter = alphabet[0] ?? '#';
             <a href="/wiki/dynamic_tao/">Dynamic TAO</a>
           </div>
         </div>
+        <aside class="home-snapshot" aria-labelledby="home-snapshot-title">
+          <h2 id="home-snapshot-title" class="home-snapshot-title">At a glance</h2>
+          <p class="home-snapshot-intro">
+            A quick build-time snapshot of what the wiki covers, so the first screen explains the
+            scope without repeating the page navigation.
+          </p>
+          <dl class="home-snapshot-list" data-home-snapshot>
+            {siteSnapshot.map((item) => (
+              <div class="home-snapshot-item">
+                <dt>{item.label}</dt>
+                <dd>{item.value}</dd>
+                <p>{item.detail}</p>
+              </div>
+            ))}
+          </dl>
+        </aside>
       </section>
 
       <section class="home-section">
