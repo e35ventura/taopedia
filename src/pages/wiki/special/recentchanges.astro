@@ -1,6 +1,7 @@
 ---
 import WikiLayout from '../../../layouts/WikiLayout.astro';
 import { allRecentChanges } from '../../../lib/article-history';
+import { getSpecialPageMeta } from '../../../lib/share-preview';
 import { publishedTitleBySlug } from '../../../lib/site-feed-context';
 import { RECENT_LIMIT } from '../../../lib/recent-changes.js';
 import { formatRevisionDate } from '../../../lib/format-date.js';
@@ -20,11 +21,12 @@ const feeds = [
   { type: 'application/atom+xml', title: feedTitle, href: '/wiki/special/recentchanges/atom.xml' },
   { type: 'application/feed+json', title: feedTitle, href: '/wiki/special/recentchanges/feed.json' },
 ];
+const meta = getSpecialPageMeta('recentchanges');
 ---
 
 <WikiLayout
-  title="Recent changes"
-  description="The most recently updated articles across the Taopedia Bittensor knowledge base."
+  title={meta?.title ?? 'Recent changes'}
+  description={meta?.description}
   feeds={feeds}
 >
   <div class="mw-body-content">

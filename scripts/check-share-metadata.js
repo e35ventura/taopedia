@@ -21,6 +21,7 @@ import path from 'node:path';
 
 const projectRoot = path.resolve(new URL('..', import.meta.url).pathname);
 const seo = fs.readFileSync(path.join(projectRoot, 'src', 'components', 'Seo.astro'), 'utf8');
+const distDir = path.join(projectRoot, 'dist');
 
 // og:image dimensions must match the generated /og/<slug>.png aspect ratio
 // (1200x630, see src/lib/og-image.ts). Crawlers that fetch images
@@ -70,6 +71,39 @@ assert.match(
   seo,
   /<meta\s+property="og:locale"\s+content="en_US"\s*\/>/,
   'Seo head must declare og:locale as en_US so social crawlers render the card in the site locale',
+);
+
+assert.ok(fs.existsSync(distDir), 'dist/ not found; run the build first');
+
+function readBuiltPage(relativePath) {
+  return fs.readFileSync(path.join(distDir, relativePath), 'utf8');
+}
+
+function assertBuiltMeta(html, expectedPath, message) {
+  const ogMeta = `<meta property="og:image" content="https://taopedia.org${expectedPath}">`;
+  const twitterMeta = `<meta name="twitter:image" content="https://taopedia.org${expectedPath}">`;
+  assert.ok(html.includes(ogMeta), message);
+  assert.ok(html.includes(twitterMeta), `${message} (twitter:image)`);
+}
+
+const homeHtml = readBuiltPage('index.html');
+assertBuiltMeta(homeHtml, '/og/home.png', 'Homepage must keep the homepage OG image');
+
+const articleHtml = readBuiltPage('wiki/tao/index.html');
+assertBuiltMeta(articleHtml, '/og/tao.png', 'Article pages must keep their article OG image');
+
+const categoryHtml = readBuiltPage('wiki/category/Wallets/index.html');
+assertBuiltMeta(
+  categoryHtml,
+  '/og/category/Wallets.png',
+  'Category pages must advertise their category-specific OG image instead of home.png',
+);
+
+const specialHtml = readBuiltPage('wiki/special/recentchanges/index.html');
+assertBuiltMeta(
+  specialHtml,
+  '/og/special/recentchanges.png',
+  'Special pages must advertise their special-page OG image instead of home.png',
 );
 
 console.log('Share metadata check passed');

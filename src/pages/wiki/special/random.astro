@@ -1,10 +1,11 @@
 ---
 import WikiLayout from '../../../layouts/WikiLayout.astro';
+import { getSpecialPageMeta } from '../../../lib/share-preview';
 
-const pageDescription = 'Jump to a randomly selected article in the Taopedia Bittensor knowledge base.';
+const meta = getSpecialPageMeta('random');
 ---
 
-<WikiLayout title="Random article" description={pageDescription}>
+<WikiLayout title={meta?.title ?? 'Random article'} description={meta?.description}>
   <div class="mw-body-content">
     <h1 class="firstHeading">Random article</h1>
 

@@ -1,15 +1,17 @@
 ---
 import WikiLayout from '../../../layouts/WikiLayout.astro';
 import { buildCategories } from '../../../../scripts/categories.js';
+import { getSpecialPageMeta } from '../../../lib/share-preview';
 import categoriesIndex from '../../../../public/data/categories.json';
 
 // Read public/data/categories.json — the same artifact categories.json (#1403)
 // and feeds.opml (#1299) use — instead of calling getCollection('pages') and
 // re-scanning every article's categories frontmatter.
 const sortedCategories = buildCategories({ categoriesIndex });
+const meta = getSpecialPageMeta('categories');
 ---
 
-<WikiLayout title="Categories" description="Browse all topics in the Taopedia Bittensor knowledge base.">
+<WikiLayout title={meta?.title ?? 'Categories'} description={meta?.description}>
   <div class="mw-body-content">
     <h1 class="firstHeading">Topics</h1>
     

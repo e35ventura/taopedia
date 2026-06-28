@@ -1,6 +1,7 @@
 ---
 import WikiLayout from '../../../layouts/WikiLayout.astro';
 import { buildSubnetsFromSlugMap } from '../../../../scripts/subnets.js';
+import { getSpecialPageMeta } from '../../../lib/share-preview';
 import slugMap from '../../../../public/data/slugmap.json';
 
 // Special:Subnets — a netuid-ordered registry of every numbered Bittensor subnet
@@ -17,11 +18,12 @@ import slugMap from '../../../../public/data/slugmap.json';
 // order they render in. Registry metadata comes from public/data/slugmap.json —
 // the same artifact check-subnets-json.js uses as ground truth.
 const subnets = buildSubnetsFromSlugMap(slugMap);
+const meta = getSpecialPageMeta('subnets');
 ---
 
 <WikiLayout
-  title="Subnets"
-  description="A registry of every numbered Bittensor subnet documented on Taopedia, ordered by netuid."
+  title={meta?.title ?? 'Subnets'}
+  description={meta?.description}
 >
   <div class="mw-body-content">
     <h1 class="firstHeading">Subnets</h1>

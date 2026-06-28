@@ -24,6 +24,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
 const distOgDir = path.join(projectRoot, 'dist', 'og');
 const wikiDir = path.join(projectRoot, 'dist', 'wiki');
+const distOgCategoryDir = path.join(distOgDir, 'category');
+const distOgSpecialDir = path.join(distOgDir, 'special');
 
 assert.ok(fs.existsSync(distOgDir), 'dist/og/ not found; run the build first');
 assert.ok(fs.existsSync(wikiDir), 'dist/wiki/ not found; run the build first');
@@ -81,3 +83,69 @@ assert.deepEqual(
 );
 
 console.log(`OG images check passed (${articleSlugs.size} articles, ${ogSlugs.size} OG images including home)`);
+
+assert.ok(fs.existsSync(distOgCategoryDir), 'dist/og/category/ not found; run the build first');
+assert.ok(fs.existsSync(distOgSpecialDir), 'dist/og/special/ not found; run the build first');
+
+const builtCategorySlugs = new Set();
+const categoryDir = path.join(wikiDir, 'category');
+for (const entry of fs.readdirSync(categoryDir, { withFileTypes: true })) {
+  if (!entry.isDirectory()) continue;
+  const indexPath = path.join(categoryDir, entry.name, 'index.html');
+  if (fs.existsSync(indexPath)) builtCategorySlugs.add(entry.name);
+}
+assert.ok(builtCategorySlugs.size > 0, 'no built category pages found in dist/wiki/category/');
+
+const builtSpecialSlugs = new Set();
+const specialDir = path.join(wikiDir, 'special');
+for (const entry of fs.readdirSync(specialDir, { withFileTypes: true })) {
+  if (!entry.isDirectory()) continue;
+  const indexPath = path.join(specialDir, entry.name, 'index.html');
+  if (fs.existsSync(indexPath)) builtSpecialSlugs.add(entry.name);
+}
+assert.ok(builtSpecialSlugs.size > 0, 'no built special pages found in dist/wiki/special/');
+
+const categoryOgSlugs = new Set(
+  fs
+    .readdirSync(distOgCategoryDir)
+    .filter((name) => name.endsWith('.png'))
+    .map((name) => name.slice(0, -'.png'.length)),
+);
+const specialOgSlugs = new Set(
+  fs
+    .readdirSync(distOgSpecialDir)
+    .filter((name) => name.endsWith('.png'))
+    .map((name) => name.slice(0, -'.png'.length)),
+);
+
+const missingCategoryImages = [...builtCategorySlugs].filter((slug) => !categoryOgSlugs.has(slug)).sort();
+assert.deepEqual(
+  missingCategoryImages,
+  [],
+  `every built category must have a corresponding dist/og/category/<slug>.png; missing for: ${missingCategoryImages.join(', ') || '(none)'}`,
+);
+
+const staleCategoryImages = [...categoryOgSlugs].filter((slug) => !builtCategorySlugs.has(slug)).sort();
+assert.deepEqual(
+  staleCategoryImages,
+  [],
+  `every dist/og/category/<slug>.png must correspond to a built category page; stale: ${staleCategoryImages.join(', ') || '(none)'}`,
+);
+
+const missingSpecialImages = [...builtSpecialSlugs].filter((slug) => !specialOgSlugs.has(slug)).sort();
+assert.deepEqual(
+  missingSpecialImages,
+  [],
+  `every built special page must have a corresponding dist/og/special/<name>.png; missing for: ${missingSpecialImages.join(', ') || '(none)'}`,
+);
+
+const staleSpecialImages = [...specialOgSlugs].filter((slug) => !builtSpecialSlugs.has(slug)).sort();
+assert.deepEqual(
+  staleSpecialImages,
+  [],
+  `every dist/og/special/<name>.png must correspond to a built special page; stale: ${staleSpecialImages.join(', ') || '(none)'}`,
+);
+
+console.log(
+  `Hub OG images check passed (${builtCategorySlugs.size} categories, ${builtSpecialSlugs.size} special pages)`,
+);

@@ -2,6 +2,7 @@
 import WikiLayout from '../../../layouts/WikiLayout.astro';
 import { getCollection } from 'astro:content';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
+import { getSpecialPageMeta } from '../../../lib/share-preview';
 import { compareTitles } from '../../../lib/title-sort.js';
 
 const pages = await getCollection('pages');
@@ -45,9 +46,10 @@ const stats: Array<{ label: string; value: string }> = [
 if (largestTopic) {
   stats.push({ label: 'Largest topic', value: `${largestTopic[0]} (${largestTopic[1].toLocaleString('en-US')})` });
 }
+const meta = getSpecialPageMeta('statistics');
 ---
 
-<WikiLayout title="Statistics" description="Content statistics for the Taopedia Bittensor knowledge base.">
+<WikiLayout title={meta?.title ?? 'Statistics'} description={meta?.description}>
   <div class="mw-body-content">
     <h1 class="firstHeading">Statistics</h1>
 

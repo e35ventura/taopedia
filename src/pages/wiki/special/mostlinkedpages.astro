@@ -2,6 +2,7 @@
 import WikiLayout from '../../../layouts/WikiLayout.astro';
 import { getCollection } from 'astro:content';
 import { getPageSlug } from '../../../lib/article-history';
+import { getSpecialPageMeta } from '../../../lib/share-preview';
 import { buildMostLinkedPages } from '../../../../scripts/most-linked.js';
 
 // Most linked pages: articles ranked by how many other articles link to them,
@@ -31,11 +32,12 @@ const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
 // compareTitles(title) then compareTitles(slug) for a deterministic order, with
 // zero-inbound targets dropped.
 const mostLinked = buildMostLinkedPages({ backlinks: backlinksData, titleBySlug });
+const meta = getSpecialPageMeta('mostlinkedpages');
 ---
 
 <WikiLayout
-  title="Most linked pages"
-  description="The most-referenced articles across the Taopedia Bittensor knowledge base, ranked by how many other articles link to them."
+  title={meta?.title ?? 'Most linked pages'}
+  description={meta?.description}
 >
   <div class="mw-body-content">
     <h1 class="firstHeading">Most linked pages</h1>

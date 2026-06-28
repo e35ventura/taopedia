@@ -1,6 +1,7 @@
 ---
 import WikiLayout from '../../../layouts/WikiLayout.astro';
 import { getCategoryArticles } from '../../../lib/category-articles.js';
+import { categoryPageDescription, categoryPageTitle } from '../../../lib/share-preview';
 import { compareTitles } from '../../../lib/title-sort.js';
 import categoriesIndex from '../../../../public/data/categories.json';
 import slugMap from '../../../../public/data/slugmap.json';
@@ -24,8 +25,8 @@ export async function getStaticPaths() {
 const { category } = Astro.params;
 const { categoryName, articles: categoryPages } = Astro.props;
 
-const pageTitle = `Category: ${categoryName}`;
-const pageDescription = `Taopedia articles about ${categoryName} in the Bittensor knowledge base.`;
+const pageTitle = categoryPageTitle(categoryName);
+const pageDescription = categoryPageDescription(categoryName);
 
 // Advertise this category's own RSS, Atom, and JSON feeds from the page <head>
 // so feed readers can auto-discover the scoped per-category feed (not just the

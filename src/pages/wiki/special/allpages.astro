@@ -1,6 +1,7 @@
 ---
 import WikiLayout from '../../../layouts/WikiLayout.astro';
 import { getCollection } from 'astro:content';
+import { getSpecialPageMeta } from '../../../lib/share-preview';
 import { sortPagesByTitle } from '../../../lib/title-sort.js';
 
 const pages = await getCollection('pages');
@@ -44,9 +45,10 @@ const groupedArticles = [
   })),
   ...(otherPages.length > 0 ? [{ topic: 'Other topics', pages: otherPages, categoryHref: null }] : []),
 ];
+const meta = getSpecialPageMeta('allpages');
 ---
 
-<WikiLayout title="Articles" description="Browse the full directory of Taopedia articles in the Bittensor knowledge base.">
+<WikiLayout title={meta?.title ?? 'Articles'} description={meta?.description}>
   <div class="mw-body-content">
     <h1 class="firstHeading">Articles</h1>
 
