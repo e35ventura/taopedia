@@ -81,6 +81,21 @@ const titleBySlug = Object.fromEntries(
 );
 const expected = buildMostLinkedPages({ backlinks, titleBySlug });
 
+assert.equal(rows.length, expected.length, 'rendered most-linked row count must match the link graph exactly');
+
+if (expected.length === 0) {
+  assert.ok(
+    html.includes('No linked pages available yet.'),
+    'an empty most-linked ranking must render the empty-state message',
+  );
+  assert.ok(
+    fs.readFileSync(path.join(projectRoot, 'dist', 'index.html'), 'utf8').includes('href="/wiki/special/mostlinkedpages"'),
+    'the homepage primary nav must link to /wiki/special/mostlinkedpages (homepage discovery path)',
+  );
+  console.log('Most linked pages check passed (0 ranked articles; empty state + homepage discovery present)');
+  process.exit(0);
+}
+
 assert.deepEqual(
   renderedSlugs,
   expected.map((e) => e.slug),

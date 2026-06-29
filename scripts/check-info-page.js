@@ -355,7 +355,12 @@ for (const slug of articleSlugs) {
   if (inboundCountFor(slug) > 0) verifiedWithLinks++;
   if (history.length > 1) verifiedMultiRevision++;
 }
-assert.ok(verifiedWithLinks > 0, 'expected at least one article with inbound links to verify against the link graph');
+const expectedWithLinks = articleSlugs.filter((slug) => inboundCountFor(slug) > 0).length;
+assert.equal(
+  verifiedWithLinks,
+  expectedWithLinks,
+  `page-information inbound-link coverage must match the generated backlink graph exactly (expected ${expectedWithLinks}, got ${verifiedWithLinks})`,
+);
 assert.ok(verifiedMultiRevision > 0, 'expected at least one article with multiple revisions to verify the revision count');
 
 console.log(

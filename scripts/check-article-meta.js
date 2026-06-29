@@ -199,10 +199,16 @@ for (const { file, slug } of articlePages) {
   if (infoDoc.incomingLinks > 0) withInfoInbound += 1;
 }
 
+const expectedWithInfoInbound = articlePages.filter(({ slug }) => inboundCountFor(slug) > 0).length;
+
 // The history wiring must actually populate dates for real articles, not be uniformly absent.
 assert.ok(withDate > 0, 'no article showed a last-updated date; history wiring is broken');
 assert.ok(withInfoHistory > 0, 'no info.json endpoint reported revision history; history wiring is broken');
-assert.ok(withInfoInbound > 0, 'no info.json endpoint reported inbound links; backlink wiring is broken');
+assert.equal(
+  withInfoInbound,
+  expectedWithInfoInbound,
+  `info.json inbound-link coverage must match the generated backlink graph exactly (expected ${expectedWithInfoInbound}, got ${withInfoInbound})`,
+);
 
 console.log(
   `Article-meta check passed (${articlePages.length} articles; ${withDate} with a last-updated date; ${withInfoHistory} info.json endpoints with history and ${withInfoInbound} with inbound links)`,

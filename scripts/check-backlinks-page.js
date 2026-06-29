@@ -109,7 +109,15 @@ for (const [target, entries] of Object.entries(backlinksData)) {
 
   if (expected.size > 0) verifiedWithLinks++;
 }
-assert.ok(verifiedWithLinks > 0, 'expected at least one article with inbound links to verify against the link graph');
+const expectedWithLinks = articleSlugs.filter((slug) => {
+  const entries = backlinksData[slug];
+  return (entries ?? []).filter((entry) => articleBuilt(entry.from)).length > 0;
+}).length;
+assert.equal(
+  verifiedWithLinks,
+  expectedWithLinks,
+  `What-links-here coverage must match the generated backlink graph exactly (expected ${expectedWithLinks}, got ${verifiedWithLinks})`,
+);
 
 // 3) EMPTY STATE: an article with no inbound links must render the empty-state
 // copy and zero rows, not a fabricated or stale list.

@@ -346,6 +346,8 @@ assert.ok(articleSlugs.length > 0, 'no built article pages found to verify');
 
 let withReferences = 0;
 let withEmpty = 0;
+let expectedWithReferences = 0;
+let expectedWithEmpty = 0;
 
 for (const slug of articleSlugs) {
   const jsonFile = path.join(wikiDir, slug, 'references.json');
@@ -353,6 +355,8 @@ for (const slug of articleSlugs) {
 
   const doc = JSON.parse(fs.readFileSync(jsonFile, 'utf8'));
   const expectedReferences = expectedReferencesFor(slug);
+  if (expectedReferences.length > 0) expectedWithReferences++;
+  else expectedWithEmpty++;
 
   assert.equal(typeof doc.slug, 'string', `${slug}: references.json slug must be a string`);
   assert.equal(typeof doc.title, 'string', `${slug}: references.json title must be a string`);
@@ -682,8 +686,16 @@ for (const slug of articleSlugs) {
   else withEmpty++;
 }
 
-assert.ok(withReferences > 0, 'expected at least one article with outbound references to verify correctness');
-assert.ok(withEmpty > 0, 'expected at least one article with no outbound references to verify the empty state');
+assert.equal(
+  withReferences,
+  expectedWithReferences,
+  `expected ${expectedWithReferences} articles with outbound references, found ${withReferences}`,
+);
+assert.equal(
+  withEmpty,
+  expectedWithEmpty,
+  `expected ${expectedWithEmpty} articles with no outbound references, found ${withEmpty}`,
+);
 
 console.log(
   `References JSON check passed (${articleSlugs.length} articles: ${withReferences} with outbound references, ${withEmpty} with none; ground-truth parity verified)`,

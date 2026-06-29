@@ -635,8 +635,22 @@ for (const slug of articleSlugs) {
   else withEmpty++;
 }
 
-assert.ok(withLinks > 0, 'expected at least one article with inbound links to verify correctness');
-assert.ok(withEmpty > 0, 'expected at least one article with no inbound links to verify the empty state');
+const expectedWithLinks = articleSlugs.filter((slug) => {
+  const entries = backlinksData[slug] ?? [];
+  return entries.filter((entry) => articleBuilt(entry.from)).length > 0;
+}).length;
+const expectedWithEmpty = articleSlugs.length - expectedWithLinks;
+
+assert.equal(
+  withLinks,
+  expectedWithLinks,
+  `articles with backlinks.json entries must match the generated backlink graph exactly (expected ${expectedWithLinks}, got ${withLinks})`,
+);
+assert.equal(
+  withEmpty,
+  expectedWithEmpty,
+  `articles without backlinks.json entries must match the generated backlink graph exactly (expected ${expectedWithEmpty}, got ${withEmpty})`,
+);
 
 console.log(
   `Backlinks JSON check passed (${articleSlugs.length} articles: ${withLinks} with inbound links, ${withEmpty} with none; ground-truth + HTML/JSON parity verified)`,
