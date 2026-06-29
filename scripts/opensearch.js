@@ -36,7 +36,15 @@ export function buildOpenSearchDescription({
     '<OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">',
     `  <ShortName>${escapeXml(siteName)}</ShortName>`,
     `  <Description>${escapeXml(description)}</Description>`,
+    // Content language so a user agent can match this search engine to the user's
+    // locale; Taopedia's articles and UI are English (mirrors <html lang>).
+    `  <Language>en-us</Language>`,
     `  <InputEncoding>UTF-8</InputEncoding>`,
+    // Spec complement of InputEncoding: declare the charset of the returned
+    // /search/ results so a user agent decodes them correctly. The descriptor
+    // previously advertised InputEncoding only, leaving the encoding pair
+    // half-specified.
+    `  <OutputEncoding>UTF-8</OutputEncoding>`,
     // Brand icons so a user agent can show the search engine's favicon next to
     // its entry in the search box. The 16x16 and 32x32 PNGs already ship in
     // public/ (the same ones the <head> favicons reference), and the spec allows

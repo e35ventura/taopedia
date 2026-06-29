@@ -9,7 +9,13 @@ assert.match(
   'OpenSearch description must declare the 1.1 namespace',
 );
 assert.match(body, /<ShortName>Taopedia<\/ShortName>/, 'OpenSearch description must name the site');
+assert.match(body, /<Language>en-us<\/Language>/, 'OpenSearch description must advertise the content language');
 assert.match(body, /<InputEncoding>UTF-8<\/InputEncoding>/, 'OpenSearch description must use UTF-8');
+assert.match(
+  body,
+  /<OutputEncoding>UTF-8<\/OutputEncoding>/,
+  'OpenSearch description must declare OutputEncoding to complement InputEncoding',
+);
 assert.match(
   body,
   /<Url type="text\/html" method="get" template="https:\/\/taopedia\.org\/search\/\?q=\{searchTerms\}" \/>/,
