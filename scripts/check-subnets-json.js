@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { buildSubnets } from './subnets.js';
 import { publishedInboundLinkCount } from './most-linked.js';
 import { getArticleReferences } from '../src/lib/article-references.js';
+import { uniqueFeedCategories } from '../src/lib/feed-categories.js';
 
 // /wiki/special/subnets.json exposes the by-netuid subnet registry as
 // structured JSON for programmatic consumers. The contract is load-bearing: a
@@ -431,6 +432,12 @@ data.subnets.forEach((row, i) => {
     `${data.site}/wiki/${expected[i].slug}/toc.json`,
     `row ${i} tocJsonUrl must equal ${data.site}/wiki/${expected[i].slug}/toc.json`,
   );
+  assert.equal(
+    row.tocUrl,
+    `${data.site}/wiki/${expected[i].slug}/toc.json`,
+    `row ${i} tocUrl must equal ${data.site}/wiki/${expected[i].slug}/toc.json`,
+  );
+  assert.equal(row.tocUrl, row.tocJsonUrl, `row ${i} tocUrl must equal tocJsonUrl for ${row.slug}`);
   // imageUrl is the subnet article's OG share-card (/og/<slug>.png) — each
   // article binds its own card, the same per-entry field mostlinkedpages.json /
   // allpages.json / recentchanges.json expose — so a dashboard of subnets can
@@ -448,11 +455,11 @@ data.subnets.forEach((row, i) => {
   // categories — the subnet article's topic list from its frontmatter, the same
   // per-entry field allpages.json exposes, so a consumer of subnets.json can
   // filter or group by topic without a separate lookup.
-  const expectedCategories = slugmap[row.slug]?.categories ?? [];
+  const expectedCategories = uniqueFeedCategories(slugmap[row.slug]?.categories);
   assert.deepEqual(
     row.categories,
     expectedCategories,
-    `row ${i} categories must match the slug-map categories`,
+    `row ${i} categories must match the deduped slug-map categories`,
   );
   // Every slug must point to a built article. The article's TITLE in the slug
   // map is the full "Subnet <n>: <name>" string — row.name is just the split
