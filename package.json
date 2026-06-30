@@ -108,6 +108,7 @@
     "test:article-meta": "node scripts/check-article-meta.js",
     "test:article-og-image": "node scripts/check-article-og-image.js",
     "test:dark-theme": "node scripts/check-dark-theme.js",
+    "test:appearance-color-values": "node scripts/check-appearance-color-values.js",
     "test:print-styles": "node scripts/check-print-styles.js",
     "test:document-base": "node scripts/check-document-base.js",
     "test:search-typeahead": "node scripts/check-search-typeahead.js",
