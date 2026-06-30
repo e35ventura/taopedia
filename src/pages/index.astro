@@ -80,6 +80,17 @@ for (const change of allRecentChanges(titleBySlug, 0)) {
   if (recentlyUpdated.length >= 6) break;
 }
 
+// Complete topic directory: every category with its article count, sorted like
+// the rest of the site (compareTitles). The featured "Start With A Topic" cards
+// above surface only six hand-picked topics; this is the on-page counterpart of
+// the A–Z article index below — the full browsable topic list, so a reader can
+// see the wiki's whole subject breadth without leaving the homepage. Built from
+// the same categoryIndex (public/data/categories.json) the featured cards use, so
+// the two can never disagree on a topic's article count. Refs #521.
+const allTopics = [...categoryIndex.entries()]
+  .map(([name, topicPages]) => ({ name, count: topicPages.length }))
+  .sort((a, b) => compareTitles(a.name, b.name));
+
 const alphaGroups = new Map<string, PageEntry[]>();
 for (const page of sortedPages) {
   const firstLetter = page.data.title.trim().charAt(0).toUpperCase();
@@ -400,6 +411,12 @@ const initialLetter = alphabet[0] ?? '#';
         text-decoration: underline;
       }
 
+      .topic-index-count {
+        margin-left: 6px;
+        color: var(--color-base-subtle);
+        font-size: 12px;
+      }
+
       .more-terms {
         margin-top: 18px;
       }
@@ -608,6 +625,27 @@ const initialLetter = alphabet[0] ?? '#';
               </li>
             ))}
           </ul>
+        </section>
+      )}
+
+      {allTopics.length > 0 && (
+        <section class="home-section" id="topic-index">
+          <div class="section-heading">
+            <h2>All Topics</h2>
+            <a href="/wiki/special/categories">Topic directory</a>
+          </div>
+          <div class="term-panel">
+            <section class="term-group">
+              <ul>
+                {allTopics.map((topic) => (
+                  <li>
+                    <a href={`/wiki/category/${topic.name.replace(/ /g, '_')}/`}>{topic.name}</a>
+                    <span class="topic-index-count">{topic.count}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          </div>
         </section>
       )}
 
