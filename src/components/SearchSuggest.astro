@@ -37,8 +37,26 @@
     }
 
     // Rank by where the query hits: title prefix > title word-start > title
-    // substring > summary substring. Entries are already title-sorted, so a
-    // stable sort keeps each tier alphabetical.
+    // substring > category prefix/word-start > category substring > summary
+    // substring. Entries are already title-sorted, so a stable sort keeps each
+    // tier alphabetical.
+    function categoryHaystack(entry) {
+      var cats = entry.categories;
+      if (!Array.isArray(cats) || !cats.length) return '';
+      return cats.join(' ').toLowerCase();
+    }
+
+    function categoryScore(haystack, nq) {
+      if (!haystack) return -1;
+      if (haystack.indexOf(nq) === 0) return 3;
+      var parts = haystack.split(/\s+/);
+      for (var j = 0; j < parts.length; j++) {
+        if (parts[j].indexOf(nq) === 0) return 4;
+      }
+      if (haystack.indexOf(nq) > -1) return 5;
+      return -1;
+    }
+
     function rank(entries, q) {
       var nq = q.toLowerCase();
       var scored = [];
@@ -49,8 +67,11 @@
         if (t.indexOf(nq) === 0) s = 0;
         else if (t.indexOf(' ' + nq) > -1) s = 1;
         else if (t.indexOf(nq) > -1) s = 2;
-        else if ((e.summary || '').toLowerCase().indexOf(nq) > -1) s = 3;
-        else continue;
+        else {
+          s = categoryScore(categoryHaystack(e), nq);
+          if (s < 0 && (e.summary || '').toLowerCase().indexOf(nq) > -1) s = 6;
+          else if (s < 0) continue;
+        }
         scored.push({ e: e, s: s, i: i });
       }
       scored.sort(function (a, b) { return a.s - b.s || a.i - b.i; });

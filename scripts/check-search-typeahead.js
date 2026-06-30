@@ -45,6 +45,8 @@ for (const [label, file] of [['article', articleFile], ['homepage', path.join(di
   assert.ok(html.includes("'combobox'"), `${label} typeahead must wire the input as an ARIA combobox`);
   assert.ok(html.includes('aria-activedescendant'), `${label} typeahead must track the active option for screen readers`);
   assert.ok(html.includes("'aria-selected'"), `${label} typeahead must set aria-selected on the active option (listbox contract)`);
+  assert.ok(html.includes('categoryHaystack'), `${label} typeahead must rank category/topic matches`);
+  assert.ok(html.includes('categoryScore'), `${label} typeahead must score category/topic matches below title hits`);
   // The enhancement target must actually exist on the page, not just be named
   // in the script: a real canonical search form with a name="q" input.
   const form = html.match(/<form[^>]*action="\/search\/"[^>]*>([\s\S]*?)<\/form>/);
