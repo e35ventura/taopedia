@@ -18,6 +18,7 @@ assert.deepEqual(normalizeArticleCategories(undefined), [], 'normalizeArticleCat
 const resolverSlugMap = {
   dynamic_tao: { title: 'Dynamic TAO' },
   delegate: { title: 'Delegate' },
+  network_min_lock_cost: { title: 'Network Min Lock Cost' },
 };
 const resolverAliases = buildSlugAliases(resolverSlugMap);
 assert.equal(
@@ -39,6 +40,16 @@ assert.equal(
   }),
   '',
   'plain-text Related infobox rows without a local article match must stay out of the link graph',
+);
+assert.equal(
+  resolveBuildLinkTarget({
+    target: 'NetworkMinLockCost',
+    slugAliases: resolverAliases,
+    slugMap: resolverSlugMap,
+    requireExisting: true,
+  }),
+  'network_min_lock_cost',
+  'plain-text Related infobox rows must resolve collapsed camel-case chain names to an existing local slug',
 );
 
 function assertSortedKeys(object, label) {

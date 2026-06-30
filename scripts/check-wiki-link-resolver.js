@@ -25,6 +25,7 @@ assert.equal(slugFromContentPath('dynamic_tao\\index.md'), 'dynamic_tao', 'backs
 const slugMap = {
   dynamic_tao: { title: 'Dynamic TAO' },
   alpha_tokens: { title: 'Alpha Tokens' },
+  network_min_lock_cost: { title: 'Network Min Lock Cost' },
 };
 const aliases = buildSlugAliases(slugMap);
 const options = createRemarkWikiLinkOptions(slugMap);
@@ -109,6 +110,12 @@ assert.equal(
   resolveTargetSlug('//taopedia.org/wiki/Dynamic%20TAO/', aliases),
   'dynamic_tao',
   'rendered wiki links should resolve protocol-relative canonical URLs to canonical slugs',
+);
+
+assert.equal(
+  resolveTargetSlug('NetworkMinLockCost', aliases),
+  'network_min_lock_cost',
+  'collapsed camel-case chain names should resolve to the matching snake_case article slug',
 );
 
 assert.deepEqual(

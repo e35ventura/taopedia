@@ -44,6 +44,10 @@ export function slugify(text) {
   return String(text || '').toLowerCase().replace(/ /g, '_').replace(/[^\w-]/g, '');
 }
 
+function collapsedSlugKey(text) {
+  return slugify(text).replace(/[_-]/g, '');
+}
+
 // Derive the route slug from a content-collection-relative path the SAME way the
 // Astro pages derive it from `page.id` (src/lib/article-history.ts `getPageSlug`):
 // strip a trailing `/index.{md,mdx}`, `/index`, or `.{md,mdx}`. The content
@@ -107,13 +111,16 @@ export function buildSlugAliases(slugMap) {
       slug.toLowerCase(),
       slugify(slug),
       slugify(slug.replaceAll('_', ' ')),
+      collapsedSlugKey(slug),
       slugify(meta?.title || ''),
+      collapsedSlugKey(meta?.title || ''),
     ]);
     for (const key of keys) {
       // Never overwrite an existing alias: a seeded identity mapping and the
       // first article to claim a derived key both win over a later article's
       // derived (title/lowercase/slugified) key, so a real slug is never
-      // clobbered by another article's title and the map is deterministic
+      // clobbered by another article's title / collapsed chain-name alias and
+      // the map is deterministic
       // regardless of iteration order.
       if (key && !aliases.has(key)) aliases.set(key, slug);
     }
