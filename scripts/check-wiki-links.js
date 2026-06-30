@@ -120,4 +120,27 @@ assert.ok(
   'dendrite linkgraph must include its infobox relationship to subnet_protocol'
 );
 
+const sandwichAttackHtml = path.join(distWikiDir, 'sandwich_attack', 'index.html');
+if (
+  fs.existsSync(sandwichAttackHtml) &&
+  Object.prototype.hasOwnProperty.call(slugMap, 'mev_maximal_extractable_value') &&
+  Object.prototype.hasOwnProperty.call((slugMap.mev_maximal_extractable_value || {}), 'infoboxTitle') &&
+  slugMap.mev_maximal_extractable_value.infoboxTitle === 'MEV'
+) {
+  const html = fs.readFileSync(sandwichAttackHtml, 'utf8');
+  const infoboxMatch = html.match(/<aside class="infobox"[^>]*>[\s\S]*?<\/aside>/);
+  const infobox = infoboxMatch ? infoboxMatch[0] : '';
+
+  assert.match(
+    infobox,
+    /<tr>\s*<th scope="row">\s*Related term\s*<\/th>\s*<td>\s*<a\b[^>]*\bhref="\/wiki\/mev_maximal_extractable_value\/"[^>]*>\s*MEV\s*<\/a>\s*<\/td>\s*<\/tr>/,
+    'sandwich_attack infobox "Related term" plain-text MEV must render as an internal link to mev_maximal_extractable_value'
+  );
+  assert.doesNotMatch(
+    infobox,
+    /<tr>\s*<th scope="row">\s*Related term\s*<\/th>\s*<td>\s*MEV\s*<\/td>\s*<\/tr>/,
+    'sandwich_attack infobox "Related term" must not render the plain-text MEV unlinked'
+  );
+}
+
 console.log('Wiki link rendering check passed');

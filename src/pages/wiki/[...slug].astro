@@ -36,7 +36,7 @@ export async function getStaticPaths() {
   const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
   const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
 
-  let slugMap: Record<string, { title?: string; categories?: string[]; summary?: string }> = {};
+  let slugMap: Record<string, { title?: string; infoboxTitle?: string; categories?: string[]; summary?: string }> = {};
   try {
     const slugData = await import('../../../public/data/slugmap.json');
     slugMap = slugData.default as typeof slugMap;
@@ -114,14 +114,33 @@ const validSlugs = Object.keys(slugMap);
 
 function renderInfoboxValue(value: string) {
   return parseWikiLinkTokens(value).map((token) => {
-    if (token.type !== 'link') return token;
+    if (token.type === 'link') {
+      const targetSlug = resolveTargetSlug(token.target, slugAliases);
+      return {
+        ...token,
+        href: `/wiki/${targetSlug}/`,
+        exists: Object.prototype.hasOwnProperty.call(slugMap, targetSlug),
+      };
+    }
 
-    const targetSlug = resolveTargetSlug(token.target, slugAliases);
-    return {
-      ...token,
-      href: `/wiki/${targetSlug}/`,
-      exists: Object.prototype.hasOwnProperty.call(slugMap, targetSlug),
-    };
+    const trimmed = token.text.trim();
+    if (trimmed.length === 0 || trimmed.includes('\n')) return token;
+
+    const targetSlug = resolveTargetSlug(trimmed, slugAliases);
+    if (
+      targetSlug &&
+      Object.prototype.hasOwnProperty.call(slugMap, targetSlug)
+    ) {
+      return {
+        type: 'link',
+        target: trimmed,
+        text: token.text,
+        href: `/wiki/${targetSlug}/`,
+        exists: true,
+      };
+    }
+
+    return token;
   });
 }
 

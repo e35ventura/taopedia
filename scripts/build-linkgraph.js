@@ -231,13 +231,15 @@ function main() {
 
     slugMap[slug] = {
       title: data.title || slug,
+      infoboxTitle: data.infoboxTitle || '',
       categories: articleCategories,
       summary: data.summary || '',
     };
     // Plain-text Related rows often use the article's visible infobox label
-    // (for example "MEV") rather than its full title or slug. Feed that
-    // short on-page label into the alias resolver without widening the
-    // published slugmap.json contract.
+    // (for example "MEV") rather than its full title or slug. The published
+    // slugmap.json carries that label via `infoboxTitle` so the article-page
+    // renderer can resolve plain-text tokens in infobox cells via the alias
+    // map built from slugmap.
     slugAliasMap[slug] = {
       title: data.title || slug,
       infoboxTitle: data.infoboxTitle || '',
