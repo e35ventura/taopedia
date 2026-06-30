@@ -19,9 +19,10 @@ assert.deepEqual(
     'See [tempo](https://docs.learnbittensor.org/resources/glossary#tempo), [Glossary: Tempo](https://docs.learnbittensor.org/resources/glossary#tempo), and [Subnet Hyperparameters](https://docs.learnbittensor.org/subnets/subnet-hyperparameters).',
   ),
   [
-    { target: 'tempo', text: 'tempo', requireExisting: true, skipSelf: true },
+    { target: 'tempo', text: 'tempo', requireExisting: true, skipSelf: true, allowSplitTargets: true },
+    { target: 'Tempo', text: 'Glossary: Tempo', requireExisting: true, skipSelf: true, allowSplitTargets: false },
   ],
-  'canonical Learn Bittensor glossary markdown links should keep plain visible labels as existing-only local graph candidates and ignore glossary-prefixed resource labels',
+  'canonical Learn Bittensor glossary markdown links should keep plain labels and strip only the "Glossary:" prefix into exact existing-only local graph candidates',
 );
 
 const resolverSlugMap = {
@@ -65,6 +66,28 @@ assert.deepEqual(
   }),
   [],
   'plain-text Related infobox rows without a local article match must stay out of the link graph',
+);
+assert.deepEqual(
+  resolveBuildLinkTargets({
+    target: 'Tempo',
+    slugAliases: resolverAliases,
+    slugMap: resolverSlugMap,
+    requireExisting: true,
+    allowSplitTargets: false,
+  }),
+  ['tempo'],
+  'canonical glossary body links should resolve exact local aliases after stripping the visible Glossary: prefix',
+);
+assert.deepEqual(
+  resolveBuildLinkTargets({
+    target: 'Introduction to Bittensor',
+    slugAliases: resolverAliases,
+    slugMap: resolverSlugMap,
+    requireExisting: true,
+    allowSplitTargets: false,
+  }),
+  [],
+  'exact-existing glossary recovery must not fall back to the plain-text Related splitter when no local alias exists',
 );
 
 function assertSortedKeys(object, label) {
@@ -137,16 +160,16 @@ assert.deepEqual(
 
 assert.deepEqual(
   dedupeOutgoingLinks([
-    { target: 'alpha', text: 'A' },
+    { target: 'alpha', text: 'Glossary: A' },
     { target: 'alpha', text: 'B' },
     { target: 'beta', text: 'B' },
     { target: '', text: 'Empty' },
   ]),
   [
-    { target: 'alpha', text: 'A' },
+    { target: 'alpha', text: 'B' },
     { target: 'beta', text: 'B' },
   ],
-  'outgoing link targets must be deduped after alias resolution',
+  'outgoing link targets must be deduped after alias resolution while preferring a later non-Glossary label for the same target',
 );
 
 const generatedFiles = ['linkgraph.json', 'backlinks.json', 'slugmap.json', 'categories.json']
@@ -191,6 +214,10 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated linkgraph must recover the current activity_cutoff body link to the local tempo article from a canonical glossary markdown link',
   );
   assert.ok(
+    (linkGraph.address_poisoning_scams || []).some((entry) => entry.target === 'public_key' && entry.text === 'Glossary: Public Key'),
+    'generated linkgraph must recover the current address_poisoning_scams body link to the local public_key article from a canonical glossary label with a visible Glossary: prefix',
+  );
+  assert.ok(
     (backlinks.mev_maximal_extractable_value || []).some((entry) => entry.from === 'sandwich_attack'),
     'generated backlinks must list sandwich_attack under the current local MEV article when its Related infobox row points there',
   );
@@ -199,8 +226,16 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated backlinks must list activity_cutoff under tempo when the body uses a canonical glossary markdown link to the local tempo concept',
   );
   assert.ok(
+    (backlinks.public_key || []).some((entry) => entry.from === 'address_poisoning_scams'),
+    'generated backlinks must list address_poisoning_scams under public_key when the body uses a canonical glossary label with a visible Glossary: prefix',
+  );
+  assert.ok(
     !(linkGraph.tempo || []).some((entry) => entry.target === 'tempo'),
     'generated linkgraph must not create a self-link when a glossary markdown link names the current article itself',
+  );
+  assert.ok(
+    !(linkGraph.mainchain || []).some((entry) => entry.target === 'mainchain'),
+    'generated linkgraph must not create a self-link when a visible Glossary: label names the current article itself',
   );
 }
 

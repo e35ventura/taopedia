@@ -94,15 +94,18 @@ export function extractCanonicalGlossaryLinks(content) {
   let match;
 
   while ((match = glossaryLinkRegex.exec(value)) !== null) {
-    const target = match[1].trim();
-    if (!target || /^Glossary:\s*/i.test(target)) continue;
+    const text = match[1].trim();
+    const hasGlossaryPrefix = /^Glossary:\s*/i.test(text);
+    const target = text.replace(/^Glossary:\s*/i, '').trim();
+    if (!target) continue;
 
     // Current article prose often references Learn Bittensor glossary anchors
-    // whose visible label already names an existing local Taopedia concept.
-    // Feed only those visible glossary labels into the local link graph, skip
-    // glossary-prefixed resource labels, and let the later resolver keep
-    // unmatched labels plus same-page targets out of the graph.
-    links.push({ target, text: target, requireExisting: true, skipSelf: true });
+    // whose visible label already names an existing local Taopedia concept,
+    // including labels written as "Glossary: Foo". Strip only that prefix,
+    // preserve the visible label as link text, and keep the stricter exact-only
+    // resolver path only for prefixed labels so existing plural/split glossary
+    // recovery keeps working for plain labels.
+    links.push({ target, text, requireExisting: true, skipSelf: true, allowSplitTargets: !hasGlossaryPrefix });
   }
 
   return links;
@@ -119,18 +122,35 @@ export function getVisibleInfoboxRows(articleDir, frontmatterRows) {
 }
 
 export function dedupeOutgoingLinks(links) {
-  const seen = new Set();
-  return links.filter((link) => {
-    if (!link?.target || seen.has(link.target)) return false;
-    seen.add(link.target);
-    return true;
-  });
+  const deduped = [];
+  const indexByTarget = new Map();
+
+  for (const link of links) {
+    if (!link?.target) continue;
+
+    const existingIndex = indexByTarget.get(link.target);
+    if (existingIndex === undefined) {
+      indexByTarget.set(link.target, deduped.length);
+      deduped.push(link);
+      continue;
+    }
+
+    const existing = deduped[existingIndex];
+    // Prefer a later non-prefixed visible label when a newly recovered
+    // "Glossary: Foo" edge points at the same target as an existing link.
+    if (/^Glossary:\s*/i.test(String(existing?.text ?? '')) && !/^Glossary:\s*/i.test(String(link?.text ?? ''))) {
+      deduped[existingIndex] = link;
+    }
+  }
+
+  return deduped;
 }
 
-export function resolveBuildLinkTargets({ target, slugAliases, slugMap, requireExisting = false }) {
+export function resolveBuildLinkTargets({ target, slugAliases, slugMap, requireExisting = false, allowSplitTargets = true }) {
   const resolvedTarget = resolveTargetSlug(target, slugAliases);
   if (slugMap[resolvedTarget]) return [resolvedTarget];
   if (!requireExisting) return resolvedTarget ? [resolvedTarget] : [];
+  if (!allowSplitTargets) return [];
 
   for (const aliasKey of relatedAliasKeys(target)) {
     const aliasTarget = slugAliases.get(aliasKey);
@@ -208,6 +228,7 @@ function main() {
       text: link.text,
       requireExisting: link.requireExisting === true,
       skipSelf: link.skipSelf === true,
+      allowSplitTargets: link.allowSplitTargets !== false,
     }));
   });
 
@@ -220,6 +241,7 @@ function main() {
           slugAliases,
           slugMap,
           requireExisting: link.requireExisting,
+          allowSplitTargets: link.allowSplitTargets,
         })
           .filter((target) => !(link.skipSelf && target === fromSlug))
           .map((target) => ({
