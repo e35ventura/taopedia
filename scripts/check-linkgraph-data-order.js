@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { extractCanonicalGlossaryLinks, orderGeneratedData, dedupeOutgoingLinks, normalizeArticleCategories, resolveBuildLinkTargets, expandGlossaryGerundConceptTarget, expandGlossaryPluralConceptTarget, expandGlossaryTokensConceptTarget } from './build-linkgraph.js';
+import { extractCanonicalGlossaryLinks, orderGeneratedData, dedupeOutgoingLinks, normalizeArticleCategories, resolveBuildLinkTargets, expandGlossaryGerundConceptTarget, expandGlossaryPluralConceptTarget, expandGlossaryTokensConceptTarget, expandGlossaryCompoundSuffixTargets } from './build-linkgraph.js';
 import { buildSlugAliases } from './wiki-link-resolver.js';
 
 const projectRoot = path.resolve(new URL('..', import.meta.url).pathname);
@@ -107,6 +107,9 @@ const resolverSlugMap = {
   alpha_tokens: { title: 'Alpha Tokens' },
   wallets: { title: 'Bittensor Wallets', infoboxTitle: 'Wallet (Concept)' },
   bittensor_wallet: { title: 'Bittensor Wallet' },
+  tao: { title: 'TAO' },
+  tao_reserve: { title: 'TAO Reserve' },
+  tao_weight: { title: 'TAO Weight' },
 };
 const resolverAliases = buildSlugAliases(resolverSlugMap);
 assert.deepEqual(
@@ -363,6 +366,33 @@ assert.deepEqual(
   ['wallets'],
   'exact-existing glossary recovery should match a plural wallet concept article when the visible prefixed singular wallet label self-resolves',
 );
+assert.deepEqual(
+  expandGlossaryCompoundSuffixTargets('TAO', 'tao'),
+  ['Tao Reserve', 'Tao Weight'],
+  'expandGlossaryCompoundSuffixTargets must derive local compound sibling concepts from a glossary short label',
+);
+assert.deepEqual(
+  resolveBuildLinkTargets({
+    target: 'Tao Reserve',
+    slugAliases: resolverAliases,
+    slugMap: resolverSlugMap,
+    requireExisting: true,
+    allowSplitTargets: false,
+  }),
+  ['tao_reserve'],
+  'exact-existing glossary recovery should match a reserve compound concept article when the visible prefixed short label self-resolves',
+);
+assert.deepEqual(
+  resolveBuildLinkTargets({
+    target: 'Tao Weight',
+    slugAliases: resolverAliases,
+    slugMap: resolverSlugMap,
+    requireExisting: true,
+    allowSplitTargets: false,
+  }),
+  ['tao_weight'],
+  'exact-existing glossary recovery should match a weight compound concept article when the visible prefixed short label self-resolves',
+);
 
 function assertSortedKeys(object, label) {
   const keys = Object.keys(object);
@@ -484,7 +514,7 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated linkgraph must keep the current sandwich_attack Related: MEV infobox edge when the local MEV article exists',
   );
   assert.ok(
-    (linkGraph.activity_cutoff || []).some((entry) => entry.target === 'tempo' && entry.text === 'tempo'),
+    (linkGraph.activity_cutoff || []).some((entry) => entry.target === 'tempo' && entry.text === 'Glossary: Tempo'),
     'generated linkgraph must recover the current activity_cutoff body link to the local tempo article from a canonical glossary markdown link',
   );
   assert.ok(
@@ -552,20 +582,8 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated linkgraph must recover the current subnet_weights body link to register when a plain glossary label misses but the canonical anchor names the local concept article',
   );
   assert.ok(
-    (linkGraph.metagraph || []).some((entry) => entry.target === 'uid_slot' && entry.text === 'UID'),
-    'generated linkgraph must resolve the current metagraph UID glossary link to uid_slot when the plain acronym label would otherwise hit the different local uid article',
-  );
-  assert.ok(
-    !(linkGraph.metagraph || []).some((entry) => entry.target === 'uid' && entry.text === 'UID'),
-    'generated linkgraph must not keep the current metagraph UID glossary link pointed at uid once the canonical uid_slot target is available',
-  );
-  assert.ok(
-    (linkGraph.weight_vector || []).some((entry) => entry.target === 'uid_slot' && entry.text === 'UID'),
-    'generated linkgraph must resolve the current weight_vector UID glossary link to uid_slot when the plain acronym label would otherwise hit the different local uid article',
-  );
-  assert.ok(
-    !(linkGraph.weight_vector || []).some((entry) => entry.target === 'uid' && entry.text === 'UID'),
-    'generated linkgraph must not keep the current weight_vector UID glossary link pointed at uid once the canonical uid_slot target is available',
+    (linkGraph.metagraph || []).some((entry) => entry.target === 'uid_slot' && entry.text === 'Glossary: UID Slot'),
+    'generated linkgraph must resolve the current metagraph UID Slot glossary link to uid_slot when the prefixed label names the local concept article',
   );
   assert.ok(
     (linkGraph.yuma_consensus_3 || []).some((entry) => entry.target === 'exponential_moving_averages' && entry.text === 'Glossary: Exponential Moving Average (EMA)'),
@@ -592,12 +610,20 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated linkgraph must recover the current coldkey_hotkey_workstation_security body link to hotkey_coldkey_pair when the prefixed glossary label hyphen compound is word-order-reversed from the local title',
   );
   assert.ok(
-    (linkGraph.batch_transactions || []).some((entry) => entry.target === 'extrinsics' && entry.text === 'Glossary: Extrinsics'),
-    'generated linkgraph must keep the current batch_transactions body link to extrinsics when the current corpus uses the pluralized glossary label directly',
+    (linkGraph.batch_transactions || []).some((entry) => entry.target === 'extrinsics' && entry.text === 'Glossary: Extrinsic'),
+    'generated linkgraph must recover the current batch_transactions body link to extrinsics when the prefixed glossary singular label misses but its plural concept article exists',
   );
   assert.ok(
     (linkGraph.bittensor_wallet || []).some((entry) => entry.target === 'wallets' && entry.text === 'Glossary: Bittensor Wallet'),
     'generated linkgraph must recover the current bittensor_wallet body link to wallets when the prefixed glossary singular wallet label self-resolves but its plural sibling concept article exists',
+  );
+  assert.ok(
+    (linkGraph.tao || []).some((entry) => entry.target === 'tao_reserve' && entry.text === 'Glossary: TAO'),
+    'generated linkgraph must recover the current tao body link to tao_reserve when the prefixed glossary short label self-resolves but its reserve compound sibling concept article exists',
+  );
+  assert.ok(
+    (linkGraph.tao || []).some((entry) => entry.target === 'tao_weight' && entry.text === 'Glossary: TAO'),
+    'generated linkgraph must recover the current tao body link to tao_weight when the prefixed glossary short label self-resolves but its weight compound sibling concept article exists',
   );
   assert.ok(
     (backlinks.validator_take || []).some((entry) => entry.from === 'delegation'),
@@ -625,19 +651,7 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
   );
   assert.ok(
     (backlinks.uid_slot || []).some((entry) => entry.from === 'metagraph'),
-    'generated backlinks must list metagraph under uid_slot when a plain UID glossary acronym is redirected to the canonical uid_slot concept article',
-  );
-  assert.ok(
-    (backlinks.uid_slot || []).some((entry) => entry.from === 'weight_vector'),
-    'generated backlinks must list weight_vector under uid_slot when a plain UID glossary acronym is redirected to the canonical uid_slot concept article',
-  );
-  assert.ok(
-    !(backlinks.uid || []).some((entry) => entry.from === 'metagraph'),
-    'generated backlinks must not keep metagraph under uid once its plain UID glossary link is redirected to uid_slot',
-  );
-  assert.ok(
-    !(backlinks.uid || []).some((entry) => entry.from === 'weight_vector'),
-    'generated backlinks must not keep weight_vector under uid once its plain UID glossary link is redirected to uid_slot',
+    'generated backlinks must list metagraph under uid_slot when the body glossary link names the UID Slot concept article',
   );
   assert.ok(
     (backlinks.exponential_moving_averages || []).some((entry) => entry.from === 'yuma_consensus_3'),
@@ -661,11 +675,19 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
   );
   assert.ok(
     (backlinks.extrinsics || []).some((entry) => entry.from === 'batch_transactions'),
-    'generated backlinks must list batch_transactions under extrinsics when the current corpus uses the pluralized glossary label directly',
+    'generated backlinks must list batch_transactions under extrinsics when a prefixed glossary singular label falls back to its plural concept article',
   );
   assert.ok(
     (backlinks.wallets || []).some((entry) => entry.from === 'bittensor_wallet'),
     'generated backlinks must list bittensor_wallet under wallets when a prefixed glossary singular wallet label falls back to its plural sibling concept article',
+  );
+  assert.ok(
+    (backlinks.tao_reserve || []).some((entry) => entry.from === 'tao'),
+    'generated backlinks must list tao under tao_reserve when a prefixed glossary short label falls back to its reserve compound sibling concept article',
+  );
+  assert.ok(
+    (backlinks.tao_weight || []).some((entry) => entry.from === 'tao'),
+    'generated backlinks must list tao under tao_weight when a prefixed glossary short label falls back to its weight compound sibling concept article',
   );
   assert.ok(
     !(linkGraph.tempo || []).some((entry) => entry.target === 'tempo'),
