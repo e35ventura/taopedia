@@ -16,7 +16,7 @@ assert.deepEqual(
 assert.deepEqual(normalizeArticleCategories(undefined), [], 'normalizeArticleCategories must normalize missing input to []');
 assert.deepEqual(
   extractCanonicalGlossaryLinks(
-    'See [tempo](https://docs.learnbittensor.org/resources/glossary#tempo), [Glossary: Validator Take %](https://docs.learnbittensor.org/resources/glossary#validator-take-), [Glossary: Drand/time-lock encryption](https://docs.learnbittensor.org/resources/glossary#drandtime-lock-encryption), [Glossary: Root Subnet/Subnet Zero](https://docs.learnbittensor.org/resources/glossary#root-subnetsubnet-zero), [Glossary: ADR](https://docs.learnbittensor.org/resources/glossary#adr-alpha-distribution-ratio), and [Subnet Hyperparameters](https://docs.learnbittensor.org/subnets/subnet-hyperparameters).',
+    'See [tempo](https://docs.learnbittensor.org/resources/glossary#tempo), [Glossary: Validator Take %](https://docs.learnbittensor.org/resources/glossary#validator-take-), [Glossary: Drand/time-lock encryption](https://docs.learnbittensor.org/resources/glossary#drandtime-lock-encryption), [Glossary: Root Subnet/Subnet Zero](https://docs.learnbittensor.org/resources/glossary#root-subnetsubnet-zero), [Glossary: Exponential Moving Average (EMA)](https://docs.learnbittensor.org/resources/glossary#exponential-moving-average-ema), [Glossary: ADR](https://docs.learnbittensor.org/resources/glossary#adr-alpha-distribution-ratio), and [Subnet Hyperparameters](https://docs.learnbittensor.org/subnets/subnet-hyperparameters).',
   ),
   [
     { target: 'tempo', alternateTarget: '', canonicalTarget: '', text: 'tempo', requireExisting: true, skipSelf: true, allowSplitTargets: true },
@@ -48,6 +48,15 @@ assert.deepEqual(
       allowSplitTargets: false,
     },
     {
+      target: 'Exponential Moving Average (EMA)',
+      alternateTarget: '',
+      canonicalTarget: 'exponential moving average ema',
+      text: 'Glossary: Exponential Moving Average (EMA)',
+      requireExisting: true,
+      skipSelf: true,
+      allowSplitTargets: false,
+    },
+    {
       target: 'ADR',
       alternateTarget: '',
       canonicalTarget: 'alpha distribution ratio',
@@ -57,7 +66,7 @@ assert.deepEqual(
       allowSplitTargets: false,
     },
   ],
-  'canonical Learn Bittensor glossary markdown links should preserve plain labels, keep prefixed-label anchor fallbacks, normalize slash-separated labels, preserve a first visible slash alternative, and strip redundant leading acronyms from exact-only fallback anchors',
+  'canonical Learn Bittensor glossary markdown links should preserve plain labels, keep prefixed-label anchor fallbacks, normalize slash-separated labels, preserve a first visible slash alternative, and keep acronym-bearing prefixed labels available for later exact-only fallback refinement',
 );
 
 const resolverSlugMap = {
@@ -75,6 +84,7 @@ const resolverSlugMap = {
   validator_weights: { title: 'Validator Weights' },
   root_subnet: { title: 'Root Subnet' },
   alpha_distribution_ratio: { title: 'Alpha Distribution Ratio' },
+  exponential_moving_averages: { title: 'Exponential Moving Averages', infoboxTitle: 'Exponential Moving Averages' },
 };
 const resolverAliases = buildSlugAliases(resolverSlugMap);
 assert.deepEqual(
@@ -342,6 +352,14 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated linkgraph must recover the current alpha_staker body link to root_subnet when the slash-normalized prefixed glossary label misses but its first visible alternative matches the local article',
   );
   assert.ok(
+    (linkGraph.validator_miner_bonds || []).some((entry) => entry.target === 'exponential_moving_averages' && entry.text === 'Glossary: Exponential Moving Average (EMA)'),
+    'generated linkgraph must recover the current validator_miner_bonds body link to exponential_moving_averages when the prefixed glossary label ends with a parenthetical acronym but the local article title is pluralized',
+  );
+  assert.ok(
+    (linkGraph.yuma_consensus_3 || []).some((entry) => entry.target === 'exponential_moving_averages' && entry.text === 'Glossary: Exponential Moving Average (EMA)'),
+    'generated linkgraph must recover the current yuma_consensus_3 body link to exponential_moving_averages when the prefixed glossary label ends with a parenthetical acronym but the local article title is pluralized',
+  );
+  assert.ok(
     (linkGraph.alpha_outstanding || []).some((entry) => entry.target === 'alpha_distribution_ratio' && entry.text === 'Glossary: ADR'),
     'generated linkgraph must recover the current alpha_outstanding body link to alpha_distribution_ratio when the visible glossary label is an acronym that is redundantly repeated at the start of the canonical anchor',
   );
@@ -364,6 +382,14 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
   assert.ok(
     (backlinks.root_subnet || []).some((entry) => entry.from === 'alpha_staker'),
     'generated backlinks must list alpha_staker under root_subnet when a prefixed glossary slash label falls back to its first visible local alternative',
+  );
+  assert.ok(
+    (backlinks.exponential_moving_averages || []).some((entry) => entry.from === 'validator_miner_bonds'),
+    'generated backlinks must list validator_miner_bonds under exponential_moving_averages when a prefixed glossary acronym-parenthetical label falls back to the local plural concept article',
+  );
+  assert.ok(
+    (backlinks.exponential_moving_averages || []).some((entry) => entry.from === 'yuma_consensus_3'),
+    'generated backlinks must list yuma_consensus_3 under exponential_moving_averages when a prefixed glossary acronym-parenthetical label falls back to the local plural concept article',
   );
   assert.ok(
     (backlinks.alpha_distribution_ratio || []).some((entry) => entry.from === 'alpha_outstanding'),
