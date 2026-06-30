@@ -46,6 +46,14 @@ assert.ok(articleHtml.includes("fetch('/data/slugmap.json')"), 'article must loa
 assert.ok(articleHtml.includes('__taopediaHovercards'), 'article must include the hovercard script');
 assert.ok(articleHtml.includes('hover: hover'), 'hovercards must restrict hover previews to mouse pointers');
 assert.ok(articleHtml.includes('focusin'), 'hovercards must be reachable by keyboard focus');
+assert.ok(
+  articleHtml.includes("setAttribute('aria-hidden', 'false')"),
+  'hovercards must expose the preview to assistive tech when visible',
+);
+assert.ok(
+  articleHtml.includes("setAttribute('aria-hidden', 'true')"),
+  'hovercards must hide the preview from assistive tech when dismissed',
+);
 assert.ok(/\\\/wiki\\\/\(\[\^\/#\?\]\+\)/.test(articleHtml), 'hovercards must match only /wiki/<slug>/ links');
 // Previews are scoped to the article reading content so they never repeat a
 // summary already shown on cards/lists/search results.
