@@ -110,6 +110,10 @@ const resolverSlugMap = {
   tao: { title: 'TAO' },
   tao_reserve: { title: 'TAO Reserve' },
   tao_weight: { title: 'TAO Weight' },
+  halving_mechanisms: { title: 'Halving Mechanisms' },
+  mempool_visibility: { title: 'Mempool Visibility' },
+  emission_split: { title: 'Emission Split' },
+  delegation_rewards: { title: 'Delegation Rewards' },
 };
 const resolverAliases = buildSlugAliases(resolverSlugMap);
 assert.deepEqual(
@@ -368,7 +372,14 @@ assert.deepEqual(
 );
 assert.deepEqual(
   expandGlossaryCompoundSuffixTargets('TAO', 'tao'),
-  ['Tao Reserve', 'Tao Weight'],
+  [
+    'Tao Reserve',
+    'Tao Weight',
+    'Tao Mechanisms',
+    'Tao Visibility',
+    'Tao Split',
+    'Tao Rewards',
+  ],
   'expandGlossaryCompoundSuffixTargets must derive local compound sibling concepts from a glossary short label',
 );
 assert.deepEqual(
@@ -392,6 +403,55 @@ assert.deepEqual(
   }),
   ['tao_weight'],
   'exact-existing glossary recovery should match a weight compound concept article when the visible prefixed short label self-resolves',
+);
+assert.equal(
+  expandGlossaryCompoundSuffixTargets('Halving', 'halving').includes('Halving Mechanisms'),
+  true,
+  'expandGlossaryCompoundSuffixTargets must include a mechanisms compound sibling from a halving glossary label',
+);
+assert.deepEqual(
+  resolveBuildLinkTargets({
+    target: 'Halving Mechanisms',
+    slugAliases: resolverAliases,
+    slugMap: resolverSlugMap,
+    requireExisting: true,
+    allowSplitTargets: false,
+  }),
+  ['halving_mechanisms'],
+  'exact-existing glossary recovery should match a mechanisms compound concept article when the visible prefixed short label self-resolves',
+);
+assert.deepEqual(
+  resolveBuildLinkTargets({
+    target: 'Delegation Rewards',
+    slugAliases: resolverAliases,
+    slugMap: resolverSlugMap,
+    requireExisting: true,
+    allowSplitTargets: false,
+  }),
+  ['delegation_rewards'],
+  'exact-existing glossary recovery should match a rewards compound concept article when the visible prefixed short label self-resolves',
+);
+assert.deepEqual(
+  resolveBuildLinkTargets({
+    target: 'Emission Split',
+    slugAliases: resolverAliases,
+    slugMap: resolverSlugMap,
+    requireExisting: true,
+    allowSplitTargets: false,
+  }),
+  ['emission_split'],
+  'exact-existing glossary recovery should match a split compound concept article when the visible prefixed short label self-resolves',
+);
+assert.deepEqual(
+  resolveBuildLinkTargets({
+    target: 'Mempool Visibility',
+    slugAliases: resolverAliases,
+    slugMap: resolverSlugMap,
+    requireExisting: true,
+    allowSplitTargets: false,
+  }),
+  ['mempool_visibility'],
+  'exact-existing glossary recovery should match a visibility compound concept article when the visible prefixed short label self-resolves',
 );
 
 function assertSortedKeys(object, label) {
@@ -626,6 +686,22 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated linkgraph must recover the current tao body link to tao_weight when the prefixed glossary short label self-resolves but its weight compound sibling concept article exists',
   );
   assert.ok(
+    (linkGraph.delegation || []).some((entry) => entry.target === 'delegation_rewards' && entry.text === 'Glossary: Delegation'),
+    'generated linkgraph must recover the current delegation body link to delegation_rewards when the prefixed glossary short label self-resolves but its rewards compound sibling concept article exists',
+  );
+  assert.ok(
+    (linkGraph.emission || []).some((entry) => entry.target === 'emission_split' && entry.text === 'Glossary: Emission'),
+    'generated linkgraph must recover the current emission body link to emission_split when the prefixed glossary short label self-resolves but its split compound sibling concept article exists',
+  );
+  assert.ok(
+    (linkGraph.halving || []).some((entry) => entry.target === 'halving_mechanisms' && entry.text === 'Glossary: Halving'),
+    'generated linkgraph must recover the current halving body link to halving_mechanisms when the prefixed glossary short label self-resolves but its mechanisms compound sibling concept article exists',
+  );
+  assert.ok(
+    (linkGraph.mempool || []).some((entry) => entry.target === 'mempool_visibility' && entry.text === 'Glossary: Mempool'),
+    'generated linkgraph must recover the current mempool body link to mempool_visibility when the prefixed glossary short label self-resolves but its visibility compound sibling concept article exists',
+  );
+  assert.ok(
     (backlinks.validator_take || []).some((entry) => entry.from === 'delegation'),
     'generated backlinks must list delegation under validator_take when a prefixed glossary alias falls back to the canonical glossary anchor',
   );
@@ -688,6 +764,22 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
   assert.ok(
     (backlinks.tao_weight || []).some((entry) => entry.from === 'tao'),
     'generated backlinks must list tao under tao_weight when a prefixed glossary short label falls back to its weight compound sibling concept article',
+  );
+  assert.ok(
+    (backlinks.delegation_rewards || []).some((entry) => entry.from === 'delegation'),
+    'generated backlinks must list delegation under delegation_rewards when a prefixed glossary short label falls back to its rewards compound sibling concept article',
+  );
+  assert.ok(
+    (backlinks.emission_split || []).some((entry) => entry.from === 'emission'),
+    'generated backlinks must list emission under emission_split when a prefixed glossary short label falls back to its split compound sibling concept article',
+  );
+  assert.ok(
+    (backlinks.halving_mechanisms || []).some((entry) => entry.from === 'halving'),
+    'generated backlinks must list halving under halving_mechanisms when a prefixed glossary short label falls back to its mechanisms compound sibling concept article',
+  );
+  assert.ok(
+    (backlinks.mempool_visibility || []).some((entry) => entry.from === 'mempool'),
+    'generated backlinks must list mempool under mempool_visibility when a prefixed glossary short label falls back to its visibility compound sibling concept article',
   );
   assert.ok(
     !(linkGraph.tempo || []).some((entry) => entry.target === 'tempo'),
