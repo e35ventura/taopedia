@@ -25,6 +25,10 @@ assert.equal(slugFromContentPath('dynamic_tao\\index.md'), 'dynamic_tao', 'backs
 const slugMap = {
   dynamic_tao: { title: 'Dynamic TAO' },
   alpha_tokens: { title: 'Alpha Tokens' },
+  mev_maximal_extractable_value: {
+    title: 'MEV (Maximal Extractable Value)',
+    infoboxTitle: 'MEV',
+  },
 };
 const aliases = buildSlugAliases(slugMap);
 const options = createRemarkWikiLinkOptions(slugMap);
@@ -109,6 +113,12 @@ assert.equal(
   resolveTargetSlug('//taopedia.org/wiki/Dynamic%20TAO/', aliases),
   'dynamic_tao',
   'rendered wiki links should resolve protocol-relative canonical URLs to canonical slugs',
+);
+
+assert.equal(
+  resolveTargetSlug('MEV', aliases),
+  'mev_maximal_extractable_value',
+  'rendered wiki links should resolve an article infoboxTitle alias to the canonical slug',
 );
 
 assert.deepEqual(
