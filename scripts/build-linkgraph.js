@@ -266,7 +266,7 @@ function main() {
             })
           : [];
         const resolvedTargets = canonicalTargets.length > 0
-          && (labelTargets.length === 0 || (labelTargets.length === 1 && labelTargets[0] !== canonicalTargets[0]))
+          && labelTargets.length === 0
           ? canonicalTargets
           : labelTargets;
 
