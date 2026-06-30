@@ -94,6 +94,8 @@ const resolverSlugMap = {
     infoboxTitle: 'MEV',
   },
   tempo: { title: 'Tempo' },
+  multiple_incentive_mechanisms: { title: 'Multiple Incentive Mechanisms' },
+  subnet_scoring_model: { title: 'Subnet Scoring Model' },
   validator_take: { title: 'Validator Take' },
   subnet_validator: { title: 'Subnet Validator' },
   validator_weights: { title: 'Validator Weights' },
@@ -371,6 +373,35 @@ assert.deepEqual(
   'exact-existing glossary recovery should match a plural wallet concept article when the visible prefixed singular wallet label self-resolves',
 );
 assert.deepEqual(
+  extractCanonicalGlossaryLinks(
+    'See [Glossary](https://docs.learnbittensor.org/resources/glossary#multiple-incentive-mechanisms).',
+  ),
+  [
+    {
+      target: 'Glossary',
+      alternateTarget: '',
+      slashSecondTarget: '',
+      canonicalTarget: 'multiple incentive mechanisms',
+      text: 'Glossary',
+      requireExisting: true,
+      skipSelf: true,
+      allowSplitTargets: true,
+    },
+  ],
+  'canonical Learn Bittensor glossary markdown links should preserve generic glossary labels with canonical anchors for later exact-only fallback refinement',
+);
+assert.deepEqual(
+  resolveBuildLinkTargets({
+    target: 'multiple incentive mechanisms',
+    slugAliases: resolverAliases,
+    slugMap: resolverSlugMap,
+    requireExisting: true,
+    allowSplitTargets: false,
+  }),
+  ['multiple_incentive_mechanisms'],
+  'exact-existing glossary recovery should resolve a generic glossary label through its canonical anchor when the visible label is only Glossary',
+);
+assert.deepEqual(
   expandGlossaryCompoundSuffixTargets('TAO', 'tao'),
   [
     'Tao Reserve',
@@ -534,6 +565,28 @@ assert.deepEqual(
     { target: 'beta', text: 'B' },
   ],
   'outgoing link targets must be deduped after alias resolution while preferring a later non-Glossary label for the same target',
+);
+
+assert.deepEqual(
+  dedupeOutgoingLinks([
+    { target: 'weight_matrix', text: 'Glossary: Weight Matrix' },
+    { target: 'weight_matrix', text: 'Glossary' },
+  ]),
+  [
+    { target: 'weight_matrix', text: 'Glossary: Weight Matrix' },
+  ],
+  'outgoing link targets must keep a prefixed glossary label when a generic glossary label resolves to the same target',
+);
+
+assert.deepEqual(
+  dedupeOutgoingLinks([
+    { target: 'weight_matrix', text: 'Glossary' },
+    { target: 'weight_matrix', text: 'Glossary: Weight Matrix' },
+  ]),
+  [
+    { target: 'weight_matrix', text: 'Glossary: Weight Matrix' },
+  ],
+  'outgoing link targets must upgrade a generic glossary label when a later prefixed glossary label resolves to the same target',
 );
 
 const generatedFiles = ['linkgraph.json', 'backlinks.json', 'slugmap.json', 'categories.json']
@@ -780,6 +833,22 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
   assert.ok(
     (backlinks.mempool_visibility || []).some((entry) => entry.from === 'mempool'),
     'generated backlinks must list mempool under mempool_visibility when a prefixed glossary short label falls back to its visibility compound sibling concept article',
+  );
+  assert.ok(
+    (linkGraph.subnet_11 || []).some((entry) => entry.target === 'multiple_incentive_mechanisms' && entry.text === 'Glossary'),
+    'generated linkgraph must recover the current subnet_11 body link to multiple_incentive_mechanisms when the visible label is only Glossary',
+  );
+  assert.ok(
+    (linkGraph.subnet_26 || []).some((entry) => entry.target === 'subnet_scoring_model' && entry.text === 'glossary'),
+    'generated linkgraph must recover the current subnet_26 body link to subnet_scoring_model when the visible label is only glossary',
+  );
+  assert.ok(
+    (backlinks.multiple_incentive_mechanisms || []).some((entry) => entry.from === 'subnet_11'),
+    'generated backlinks must list subnet_11 under multiple_incentive_mechanisms when a generic glossary label falls back to its canonical anchor',
+  );
+  assert.ok(
+    (backlinks.subnet_scoring_model || []).some((entry) => entry.from === 'subnet_26'),
+    'generated backlinks must list subnet_26 under subnet_scoring_model when a generic glossary label falls back to its canonical anchor',
   );
   assert.ok(
     !(linkGraph.tempo || []).some((entry) => entry.target === 'tempo'),
