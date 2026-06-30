@@ -162,6 +162,8 @@ const { title, description, image, type = 'website', path, feeds, robots } = Ast
     </script>
 
     <script>
+      import { computeTocVisibility } from '../lib/toc-collapse.js';
+
       document.addEventListener('DOMContentLoaded', function() {
         // TOC collapse/expand functionality
         const tocToggles = document.querySelectorAll('.toc-toggle');
@@ -169,32 +171,35 @@ const { title, description, image, type = 'website', path, feeds, robots } = Ast
           toggle.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            
+
             const parentLi = this.closest('li');
             const parentLevel = parseInt(parentLi.dataset.tocLevel);
-            
+
             // Toggle collapsed state
             parentLi.classList.toggle('collapsed');
-            
-            // Find all subsections
+            const expanded = !parentLi.classList.contains('collapsed');
+
+            // Collect the rows that follow this section, in document order.
+            const rows = [];
             let nextLi = parentLi.nextElementSibling;
             while (nextLi && nextLi.dataset.tocLevel) {
-              const nextLevel = parseInt(nextLi.dataset.tocLevel);
-              
-              // If we hit a same-level or higher-level heading, stop
-              if (nextLevel <= parentLevel) {
-                break;
-              }
-              
-              // Toggle subsection visibility
-              if (parentLi.classList.contains('collapsed')) {
-                nextLi.style.display = 'none';
-              } else {
-                nextLi.style.display = 'flex';
-              }
-              
+              rows.push(nextLi);
               nextLi = nextLi.nextElementSibling;
             }
+
+            // Reveal/hide each descendant, but keep rows under a still-collapsed
+            // inner subsection hidden when expanding an outer section.
+            const visibility = computeTocVisibility(
+              parentLevel,
+              expanded,
+              rows.map((li) => ({
+                level: parseInt(li.dataset.tocLevel),
+                collapsed: li.classList.contains('collapsed'),
+              })),
+            );
+            visibility.forEach((display, i) => {
+              if (display !== null) rows[i].style.display = display;
+            });
           });
         });
         

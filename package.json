@@ -94,6 +94,7 @@
     "test:lonely-pages": "node scripts/check-lonely-pages.js",
     "test:dead-end-pages": "node scripts/check-dead-end-pages.js",
     "test:toc-json": "node scripts/check-toc-json.js",
+    "test:toc-collapse": "node scripts/check-toc-collapse.js",
     "test:backlinks-page": "node scripts/check-backlinks-page.js",
     "test:cite-page": "node scripts/check-cite-page.js",
     "test:cite-json": "node scripts/check-cite-json.js",
