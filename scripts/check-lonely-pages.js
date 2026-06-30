@@ -7,6 +7,25 @@ import { buildMostLinkedPages, publishedInboundLinkCount } from './most-linked.j
 import { getArticleReferences } from '../src/lib/article-references.js';
 import { uniqueFeedCategories } from '../src/lib/feed-categories.js';
 
+// revisionStatsFromHistory contract (mirrors src/lib/article-history.ts): newest-first history.
+{
+  const revisionStatsFromHistory = (history) => ({
+    revisionCount: history.length,
+    firstEdited: history.at(-1)?.date ?? null,
+    lastEdited: history[0]?.date ?? null,
+  });
+  assert.deepEqual(
+    revisionStatsFromHistory([{ date: '2024-02-01' }, { date: '2024-01-01' }]),
+    { revisionCount: 2, firstEdited: '2024-01-01', lastEdited: '2024-02-01' },
+    'revisionStatsFromHistory must derive count and edit dates from newest-first history',
+  );
+  assert.deepEqual(
+    revisionStatsFromHistory([]),
+    { revisionCount: 0, firstEdited: null, lastEdited: null },
+    'revisionStatsFromHistory must return zeros for empty history',
+  );
+}
+
 // ---- 1) Unit: buildLonelyPages selects + orders orphans correctly ----------
 //
 // titleBySlug = the published articles. backlinks = each article's inbound links
