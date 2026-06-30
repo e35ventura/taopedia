@@ -9,6 +9,7 @@ import { getPageSlug } from '../../lib/article-history';
 import { publishedTitleBySlug } from '../../lib/article-metadata';
 import { getArticleToc } from '../../lib/article-toc.js';
 import { getRelatedPages } from '../../lib/related-pages';
+import { relatedAliasKeys } from '../../lib/related-link-targets.ts';
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
@@ -69,6 +70,7 @@ export async function getStaticPaths() {
 const { page, slug, relatedPages } = Astro.props;
 const { Content, headings } = await render(page);
 const tocHeadings = getArticleToc(headings);
+const allPages = await getCollection('pages');
 
 // Try to load per-article infobox.json if present
 const infoboxModules = import.meta.glob('../../content/pages/**/infobox.json', { eager: true }) as Record<string, any>;
@@ -105,15 +107,38 @@ try {
 } catch (e) {
   // Slug map not yet generated
 }
-const slugAliases = buildSlugAliases(slugMap);
+const resolverSlugMap = Object.fromEntries(
+  allPages.map((entry) => {
+    const entrySlug = getPageSlug(entry);
+    return [entrySlug, {
+      title: entry.data.title || entrySlug,
+      infoboxTitle: entry.data.infoboxTitle || '',
+    }];
+  }),
+);
+const slugAliases = buildSlugAliases(resolverSlugMap);
 const validSlugs = Object.keys(slugMap);
 
 // relatedPages is precomputed once per route in getStaticPaths (see above) and
 // passed via props, instead of re-reading the whole content collection on every
 // article page.
 
-function renderInfoboxValue(value: string) {
-  return parseWikiLinkTokens(value).map((token) => {
+function resolveRenderedInfoboxTarget(target: string) {
+  const resolvedTarget = resolveTargetSlug(target, slugAliases);
+  if (Object.prototype.hasOwnProperty.call(slugMap, resolvedTarget)) return resolvedTarget;
+
+  for (const aliasKey of relatedAliasKeys(target)) {
+    const aliasTarget = slugAliases.get(aliasKey);
+    if (aliasTarget && Object.prototype.hasOwnProperty.call(slugMap, aliasTarget)) {
+      return aliasTarget;
+    }
+  }
+
+  return '';
+}
+
+function renderInfoboxValue(label: string, value: string) {
+  const tokens = parseWikiLinkTokens(value).map((token) => {
     if (token.type !== 'link') return token;
 
     const targetSlug = resolveTargetSlug(token.target, slugAliases);
@@ -123,6 +148,38 @@ function renderInfoboxValue(value: string) {
       exists: Object.prototype.hasOwnProperty.call(slugMap, targetSlug),
     };
   });
+  if (tokens.some((token) => token.type === 'link') || !/\brelated\b/i.test(label)) return tokens;
+
+  const directTarget = resolveRenderedInfoboxTarget(value);
+  if (directTarget) {
+    return [{
+      type: 'link',
+      text: value,
+      href: `/wiki/${directTarget}/`,
+      exists: true,
+    }];
+  }
+
+  const parts = value.split(/(\s*(?:,|\/|;|\band\b)\s*)/i);
+  if (parts.length === 1) return tokens;
+
+  let resolvedCount = 0;
+  const rendered = parts.map((part, index) => {
+    if (index % 2 === 1) return { type: 'text', text: part };
+
+    const target = resolveRenderedInfoboxTarget(part);
+    if (!target) return { type: 'text', text: part };
+
+    resolvedCount++;
+    return {
+      type: 'link',
+      text: part.trim(),
+      href: `/wiki/${target}/`,
+      exists: true,
+    };
+  });
+
+  return resolvedCount > 0 ? rendered : tokens;
 }
 
 const historyUrl = `/wiki/${slug}/history/`;
@@ -265,7 +322,7 @@ const readingMinutes = Math.max(1, Math.ceil(wordCount / 200));
                   <tr>
                     <th scope="row">{row.label}</th>
                     <td>
-                      {renderInfoboxValue(row.value).map((part) =>
+                      {renderInfoboxValue(row.label, row.value).map((part) =>
                         part.type === 'link' ? (
                           <a class={part.exists ? 'internal' : 'internal new'} href={part.href}>{part.text}</a>
                         ) : (

@@ -111,6 +111,46 @@ if (fs.existsSync(alphaTokensHtml) && Object.prototype.hasOwnProperty.call(slugM
   );
 }
 
+const sandwichAttackHtml = path.join(distWikiDir, 'sandwich_attack', 'index.html');
+if (fs.existsSync(sandwichAttackHtml) && Object.prototype.hasOwnProperty.call(slugMap, 'mev_maximal_extractable_value')) {
+  const html = fs.readFileSync(sandwichAttackHtml, 'utf8');
+  const infoboxMatch = html.match(/<aside class="infobox"[^>]*>[\s\S]*?<\/aside>/);
+  const infobox = infoboxMatch ? infoboxMatch[0] : '';
+
+  assert.match(
+    infobox,
+    /href="\/wiki\/mev_maximal_extractable_value\/"/,
+    'sandwich_attack infobox must link its plain-text Related term MEV to the canonical local article'
+  );
+  assert.doesNotMatch(
+    html,
+    /<a\b(?=[^>]*class="[^"]*\binternal\b[^"]*\bnew\b[^"]*")(?=[^>]*href="\/wiki\/mev_maximal_extractable_value\/")[^>]*>/,
+    'sandwich_attack must not mark the local MEV article as a missing link'
+  );
+}
+
+const bittensorWalletHtml = path.join(distWikiDir, 'bittensor_wallet', 'index.html');
+if (
+  fs.existsSync(bittensorWalletHtml) &&
+  Object.prototype.hasOwnProperty.call(slugMap, 'coldkeys') &&
+  Object.prototype.hasOwnProperty.call(slugMap, 'hotkeys')
+) {
+  const html = fs.readFileSync(bittensorWalletHtml, 'utf8');
+  const infoboxMatch = html.match(/<aside class="infobox"[^>]*>[\s\S]*?<\/aside>/);
+  const infobox = infoboxMatch ? infoboxMatch[0] : '';
+
+  assert.match(
+    infobox,
+    /href="\/wiki\/coldkeys\/"/,
+    'bittensor_wallet infobox must link the plain-text Related keys row to coldkeys'
+  );
+  assert.match(
+    infobox,
+    /href="\/wiki\/hotkeys\/"/,
+    'bittensor_wallet infobox must link the plain-text Related keys row to hotkeys'
+  );
+}
+
 assert.ok(
   (linkGraph.axon || []).some((link) => link.target === 'subnet_protocol' && link.text === 'Subnet Protocol'),
   'axon linkgraph must include its infobox relationship to subnet_protocol'
