@@ -77,12 +77,12 @@ export function extractInfoboxWikiLinks(rows) {
 
     if (!/\brelated\b/i.test(String(row?.label ?? ''))) return [];
 
-    return splitPlainTextRelatedTargets(row.value).map((target) => ({
-      target,
-      text: target,
+    return [{
+      target: row.value,
+      text: row.value,
       preferResolvedTitle: true,
       requireExisting: true,
-    }));
+    }];
   });
 }
 

@@ -38,6 +38,23 @@ try {
     ],
     'linkgraph should extract visible plain-text Related rows and explicit wiki links from infobox JSON',
   );
+  assert.deepEqual(
+    extractInfoboxWikiLinks([
+      {
+        label: 'Related',
+        value: 'Mining and Validating',
+      },
+    ]),
+    [
+      {
+        target: 'Mining and Validating',
+        text: 'Mining and Validating',
+        preferResolvedTitle: true,
+        requireExisting: true,
+      },
+    ],
+    'linkgraph should keep a plain-text Related row intact so resolution can prefer an existing compound article before falling back to split parts',
+  );
 
   const frontmatterRows = [
     {
@@ -95,6 +112,22 @@ try {
     }),
     ['research_and_development'],
     'linkgraph should keep a directly resolvable Related title intact instead of splitting it',
+  );
+  assert.deepEqual(
+    resolveBuildLinkTargets({
+      target: 'Mining and Validating',
+      slugAliases: buildSlugAliases({
+        ...slugMap,
+        mining_and_validating: { title: 'Mining and Validating' },
+      }),
+      slugMap: {
+        ...slugMap,
+        mining_and_validating: { title: 'Mining and Validating' },
+      },
+      requireExisting: true,
+    }),
+    ['mining_and_validating'],
+    'linkgraph should prefer an existing compound Related title before considering split fallback targets',
   );
   assert.deepEqual(
     resolveBuildLinkTargets({
