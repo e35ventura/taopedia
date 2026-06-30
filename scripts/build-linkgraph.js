@@ -96,9 +96,14 @@ export function extractCanonicalGlossaryLinks(content) {
   while ((match = glossaryLinkRegex.exec(value)) !== null) {
     const text = match[1].trim();
     const hasGlossaryPrefix = /^Glossary:\s*/i.test(text);
-    const target = text.replace(/^Glossary:\s*/i, '').trim();
+    const hasGlossarySuffix = /\s+glossary(?:\s+entry)?$/i.test(text);
+    const target = text
+      .replace(/^Glossary:\s*/i, '')
+      .replace(/\s+glossary(?:\s+entry)?$/i, '')
+      .trim();
     if (!target) continue;
     const canonicalTarget = hasGlossaryPrefix
+      || hasGlossarySuffix
       ? decodeURIComponent(match[2].split('#')[1] || '').replace(/[-_]+/g, ' ').trim()
       : '';
 
@@ -116,7 +121,7 @@ export function extractCanonicalGlossaryLinks(content) {
       text,
       requireExisting: true,
       skipSelf: true,
-      allowSplitTargets: !hasGlossaryPrefix,
+      allowSplitTargets: !hasGlossaryPrefix && !hasGlossarySuffix,
     });
   }
 

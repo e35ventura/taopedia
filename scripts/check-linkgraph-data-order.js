@@ -16,7 +16,7 @@ assert.deepEqual(
 assert.deepEqual(normalizeArticleCategories(undefined), [], 'normalizeArticleCategories must normalize missing input to []');
 assert.deepEqual(
   extractCanonicalGlossaryLinks(
-    'See [tempo](https://docs.learnbittensor.org/resources/glossary#tempo), [Glossary: Validator Take %](https://docs.learnbittensor.org/resources/glossary#validator-take-), and [Subnet Hyperparameters](https://docs.learnbittensor.org/subnets/subnet-hyperparameters).',
+    'See [tempo](https://docs.learnbittensor.org/resources/glossary#tempo), [Glossary: Validator Take %](https://docs.learnbittensor.org/resources/glossary#validator-take-), [Public Key glossary](https://docs.learnbittensor.org/resources/glossary#public-key), and [Subnet Hyperparameters](https://docs.learnbittensor.org/subnets/subnet-hyperparameters).',
   ),
   [
     { target: 'tempo', canonicalTarget: '', text: 'tempo', requireExisting: true, skipSelf: true, allowSplitTargets: true },
@@ -28,8 +28,16 @@ assert.deepEqual(
       skipSelf: true,
       allowSplitTargets: false,
     },
+    {
+      target: 'Public Key',
+      canonicalTarget: 'public key',
+      text: 'Public Key glossary',
+      requireExisting: true,
+      skipSelf: true,
+      allowSplitTargets: false,
+    },
   ],
-  'canonical Learn Bittensor glossary markdown links should preserve plain labels and keep the glossary anchor text as a prefixed-label fallback candidate',
+  'canonical Learn Bittensor glossary markdown links should preserve plain labels and keep the glossary anchor text as a fallback candidate for prefixed and glossary-suffixed labels',
 );
 
 const resolverSlugMap = {
@@ -248,6 +256,26 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
   assert.ok(
     (backlinks.public_key || []).some((entry) => entry.from === 'address_poisoning_scams'),
     'generated backlinks must list address_poisoning_scams under public_key when the body uses a canonical glossary label with a visible Glossary: prefix',
+  );
+  assert.ok(
+    (linkGraph.wallet_address || []).some((entry) => entry.target === 'public_key' && entry.text === 'Public Key glossary'),
+    'generated linkgraph must recover the current wallet_address body link to public_key from a glossary-suffixed visible label',
+  );
+  assert.ok(
+    (linkGraph.transfer || []).some((entry) => entry.target === 'wallet_address' && entry.text === 'Wallet Address glossary'),
+    'generated linkgraph must recover the current transfer body link to wallet_address from a glossary-suffixed visible label',
+  );
+  assert.ok(
+    (linkGraph.private_key || []).some((entry) => entry.target === 'eddsa_cryptographic_keypairs' && entry.text === 'EdDSA Cryptographic Keypairs glossary entry'),
+    'generated linkgraph must recover the current private_key body link to eddsa_cryptographic_keypairs from a glossary-entry label',
+  );
+  assert.ok(
+    (backlinks.public_key || []).some((entry) => entry.from === 'wallet_address'),
+    'generated backlinks must list wallet_address under public_key when the body uses a glossary-suffixed visible label',
+  );
+  assert.ok(
+    (backlinks.wallet_address || []).some((entry) => entry.from === 'transfer'),
+    'generated backlinks must list transfer under wallet_address when the body uses a glossary-suffixed visible label',
   );
   assert.ok(
     (linkGraph.delegation || []).some((entry) => entry.target === 'validator_take' && entry.text === 'Glossary: Validator Take %'),
