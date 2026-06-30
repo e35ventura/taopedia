@@ -157,6 +157,7 @@
         }
         fill(entry);
         position(link);
+        card.setAttribute('aria-hidden', 'false');
         card.classList.add('is-visible');
       });
     }
@@ -175,7 +176,10 @@
     function hide() {
       clearTimeout(showTimer);
       pendingHide = false;
-      if (card) card.classList.remove('is-visible');
+      if (card) {
+        card.classList.remove('is-visible');
+        card.setAttribute('aria-hidden', 'true');
+      }
       activeLink = null;
     }
 
