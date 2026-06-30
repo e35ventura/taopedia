@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { extractCanonicalGlossaryLinks, orderGeneratedData, dedupeOutgoingLinks, normalizeArticleCategories, resolveBuildLinkTargets, expandGlossaryGerundConceptTarget } from './build-linkgraph.js';
+import { extractCanonicalGlossaryLinks, orderGeneratedData, dedupeOutgoingLinks, normalizeArticleCategories, resolveBuildLinkTargets, expandGlossaryGerundConceptTarget, expandGlossaryPluralConceptTarget, expandGlossaryTokensConceptTarget } from './build-linkgraph.js';
 import { buildSlugAliases } from './wiki-link-resolver.js';
 
 const projectRoot = path.resolve(new URL('..', import.meta.url).pathname);
@@ -103,6 +103,10 @@ const resolverSlugMap = {
   hotkey_coldkey_pair: { title: 'Hotkey-Coldkey Pair' },
   recycling: { title: 'Recycling' },
   time_lock_encryption: { title: 'Time-Lock Encryption' },
+  extrinsics: { title: 'Extrinsics' },
+  alpha_tokens: { title: 'Alpha Tokens' },
+  wallets: { title: 'Bittensor Wallets', infoboxTitle: 'Wallet (Concept)' },
+  bittensor_wallet: { title: 'Bittensor Wallet' },
 };
 const resolverAliases = buildSlugAliases(resolverSlugMap);
 assert.deepEqual(
@@ -274,6 +278,90 @@ assert.deepEqual(
   }),
   ['time_lock_encryption'],
   'exact-existing glossary recovery should match a slash-separated second segment when earlier slash fallbacks miss',
+);
+assert.deepEqual(
+  extractCanonicalGlossaryLinks(
+    'See [Glossary: Extrinsic](https://docs.learnbittensor.org/resources/glossary#extrinsic).',
+  ),
+  [
+    {
+      target: 'Extrinsic',
+      alternateTarget: '',
+      slashSecondTarget: '',
+      canonicalTarget: 'extrinsic',
+      text: 'Glossary: Extrinsic',
+      requireExisting: true,
+      skipSelf: true,
+      allowSplitTargets: false,
+    },
+  ],
+  'canonical Learn Bittensor glossary markdown links should preserve plural-recoverable singular labels for later exact-only fallback refinement',
+);
+assert.equal(
+  expandGlossaryPluralConceptTarget('Extrinsic', 'extrinsic'),
+  'Extrinsics',
+  'expandGlossaryPluralConceptTarget must derive the local plural concept from a glossary singular label',
+);
+assert.deepEqual(
+  resolveBuildLinkTargets({
+    target: 'Extrinsics',
+    slugAliases: resolverAliases,
+    slugMap: resolverSlugMap,
+    requireExisting: true,
+    allowSplitTargets: false,
+  }),
+  ['extrinsics'],
+  'exact-existing glossary recovery should match a plural concept article when the visible prefixed singular label misses',
+);
+assert.deepEqual(
+  extractCanonicalGlossaryLinks(
+    'See [Glossary: Alpha](https://docs.learnbittensor.org/resources/glossary#alpha).',
+  ),
+  [
+    {
+      target: 'Alpha',
+      alternateTarget: '',
+      slashSecondTarget: '',
+      canonicalTarget: 'alpha',
+      text: 'Glossary: Alpha',
+      requireExisting: true,
+      skipSelf: true,
+      allowSplitTargets: false,
+    },
+  ],
+  'canonical Learn Bittensor glossary markdown links should preserve tokens-suffixed concept labels for later exact-only fallback refinement',
+);
+assert.equal(
+  expandGlossaryTokensConceptTarget('Alpha', 'alpha'),
+  'Alpha Tokens',
+  'expandGlossaryTokensConceptTarget must derive the local tokens concept from a glossary short label',
+);
+assert.deepEqual(
+  resolveBuildLinkTargets({
+    target: 'Alpha Tokens',
+    slugAliases: resolverAliases,
+    slugMap: resolverSlugMap,
+    requireExisting: true,
+    allowSplitTargets: false,
+  }),
+  ['alpha_tokens'],
+  'exact-existing glossary recovery should match a tokens concept article when the visible prefixed short label misses',
+);
+assert.equal(
+  expandGlossaryPluralConceptTarget('Bittensor Wallet', 'bittensor wallet'),
+  'Bittensor Wallets',
+  'expandGlossaryPluralConceptTarget must derive a plural sibling concept from a glossary singular wallet label',
+);
+assert.deepEqual(
+  resolveBuildLinkTargets({
+    target: 'Bittensor Wallets',
+    slugAliases: resolverAliases,
+    slugMap: resolverSlugMap,
+    requireExisting: true,
+    allowSplitTargets: false,
+  }),
+  ['wallets'],
+  'exact-existing glossary recovery should match a plural wallet concept article when the visible prefixed singular wallet label self-resolves',
 );
 
 function assertSortedKeys(object, label) {
@@ -500,6 +588,18 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated linkgraph must recover the current drand_time_lock_encryption body link to time_lock_encryption when the slash-normalized prefixed glossary label self-resolves but the remaining slash segment names a sibling local concept article',
   );
   assert.ok(
+    (linkGraph.batch_transactions || []).some((entry) => entry.target === 'extrinsics' && entry.text === 'Glossary: Extrinsic'),
+    'generated linkgraph must recover the current batch_transactions body link to extrinsics when the prefixed glossary singular label misses but its plural concept article exists',
+  );
+  assert.ok(
+    (linkGraph.bittensor_wallet || []).some((entry) => entry.target === 'wallets' && entry.text === 'Glossary: Bittensor Wallet'),
+    'generated linkgraph must recover the current bittensor_wallet body link to wallets when the prefixed glossary singular wallet label self-resolves but its plural sibling concept article exists',
+  );
+  assert.ok(
+    (linkGraph.alpha_price || []).some((entry) => entry.target === 'alpha_tokens' && entry.text === 'Glossary: Alpha'),
+    'generated linkgraph must recover the current alpha_price body link to alpha_tokens when the prefixed glossary short label misses but its tokens concept article exists',
+  );
+  assert.ok(
     (backlinks.validator_take || []).some((entry) => entry.from === 'delegation'),
     'generated backlinks must list delegation under validator_take when a prefixed glossary alias falls back to the canonical glossary anchor',
   );
@@ -554,6 +654,18 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
   assert.ok(
     (backlinks.time_lock_encryption || []).some((entry) => entry.from === 'drand_time_lock_encryption'),
     'generated backlinks must list drand_time_lock_encryption under time_lock_encryption when a slash-separated prefixed glossary label falls back to its remaining slash segment',
+  );
+  assert.ok(
+    (backlinks.extrinsics || []).some((entry) => entry.from === 'batch_transactions'),
+    'generated backlinks must list batch_transactions under extrinsics when a prefixed glossary singular label falls back to its plural concept article',
+  );
+  assert.ok(
+    (backlinks.wallets || []).some((entry) => entry.from === 'bittensor_wallet'),
+    'generated backlinks must list bittensor_wallet under wallets when a prefixed glossary singular wallet label falls back to its plural sibling concept article',
+  );
+  assert.ok(
+    (backlinks.alpha_tokens || []).some((entry) => entry.from === 'alpha_price'),
+    'generated backlinks must list alpha_price under alpha_tokens when a prefixed glossary short label falls back to its tokens concept article',
   );
   assert.ok(
     !(linkGraph.tempo || []).some((entry) => entry.target === 'tempo'),

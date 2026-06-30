@@ -145,7 +145,11 @@ export function extractCanonicalGlossaryLinks(content) {
     // "Hotkey-Coldkey Pair"), keep a swapped hyphen fallback before consulting
     // the canonical glossary anchor. When a prefixed glossary verb like
     // "Recycle" names a local gerund concept article ("Recycling"), allow one
-    // final exact-only retry on the -ing form.
+    // final exact-only retry on the -ing form. When a prefixed glossary singular
+    // like "Extrinsic" names a local plural concept article ("Extrinsics"), allow
+    // one exact-only retry on the pluralized label. When a prefixed glossary short
+    // label like "Alpha" names a local compound concept article ("Alpha Tokens"),
+    // allow one exact-only retry on the suffixed title.
     links.push({
       target,
       alternateTarget,
@@ -211,6 +215,34 @@ export function expandGlossaryGerundConceptTarget(target, canonicalTarget) {
     const gerundTarget = gerundFinalWord(String(base || '').trim());
     if (!gerundTarget || gerundTarget.toLowerCase() === String(base || '').trim().toLowerCase()) continue;
     return gerundTarget;
+  }
+
+  return '';
+}
+
+export function expandGlossaryPluralConceptTarget(target, canonicalTarget) {
+  for (const base of [target, canonicalTarget]) {
+    const pluralTarget = pluralizeFinalWord(String(base || '').trim());
+    if (!pluralTarget || pluralTarget.toLowerCase() === String(base || '').trim().toLowerCase()) continue;
+    return pluralTarget;
+  }
+
+  return '';
+}
+
+function titleCaseWord(word) {
+  const value = String(word || '').trim();
+  if (!value) return '';
+  return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+}
+
+export function expandGlossaryTokensConceptTarget(target, canonicalTarget) {
+  for (const base of [target, canonicalTarget]) {
+    const word = String(base || '').trim();
+    if (!word || /\s/.test(word)) continue;
+    const tokensTarget = `${titleCaseWord(word)} Tokens`;
+    if (tokensTarget.toLowerCase() === word.toLowerCase()) continue;
+    return tokensTarget;
   }
 
   return '';
@@ -408,31 +440,66 @@ function main() {
             allowSplitTargets: false,
           }))
         : [];
-      const glossaryGerundTargets = nonSelfLabelTargets.length === 0
-        && alternateTargets.length === 0
-        && slashSecondTargets.length === 0
-        && glossaryAcronymPluralTargets.length === 0
-        && fallbackCanonicalTargets.length === 0
-        && isPrefixedGlossaryLabel
-        ? filterSelfTargets(resolveBuildLinkTargets({
-            target: expandGlossaryGerundConceptTarget(link.target, link.canonicalTarget),
-            slugAliases,
-            slugMap,
-            requireExisting: true,
-            allowSplitTargets: false,
-          }))
-        : [];
-      const resolvedTargets = nonSelfLabelTargets.length > 0
-        ? nonSelfLabelTargets
-        : alternateTargets.length > 0
-          ? alternateTargets
-          : slashSecondTargets.length > 0
-            ? slashSecondTargets
-            : glossaryAcronymPluralTargets.length > 0
-              ? glossaryAcronymPluralTargets
-              : glossaryGerundTargets.length > 0
-                ? glossaryGerundTargets
-                : fallbackCanonicalTargets;
+        const glossaryGerundTargets = nonSelfLabelTargets.length === 0
+          && alternateTargets.length === 0
+          && slashSecondTargets.length === 0
+          && glossaryAcronymPluralTargets.length === 0
+          && fallbackCanonicalTargets.length === 0
+          && isPrefixedGlossaryLabel
+          ? filterSelfTargets(resolveBuildLinkTargets({
+              target: expandGlossaryGerundConceptTarget(link.target, link.canonicalTarget),
+              slugAliases,
+              slugMap,
+              requireExisting: true,
+              allowSplitTargets: false,
+            }))
+          : [];
+        const glossaryPluralTargets = nonSelfLabelTargets.length === 0
+          && alternateTargets.length === 0
+          && slashSecondTargets.length === 0
+          && glossaryAcronymPluralTargets.length === 0
+          && glossaryGerundTargets.length === 0
+          && fallbackCanonicalTargets.length === 0
+          && isPrefixedGlossaryLabel
+          ? filterSelfTargets(resolveBuildLinkTargets({
+              target: expandGlossaryPluralConceptTarget(link.target, link.canonicalTarget),
+              slugAliases,
+              slugMap,
+              requireExisting: true,
+              allowSplitTargets: false,
+            }))
+          : [];
+        const glossaryTokensTargets = nonSelfLabelTargets.length === 0
+          && alternateTargets.length === 0
+          && slashSecondTargets.length === 0
+          && glossaryAcronymPluralTargets.length === 0
+          && glossaryGerundTargets.length === 0
+          && glossaryPluralTargets.length === 0
+          && fallbackCanonicalTargets.length === 0
+          && isPrefixedGlossaryLabel
+          ? filterSelfTargets(resolveBuildLinkTargets({
+              target: expandGlossaryTokensConceptTarget(link.target, link.canonicalTarget),
+              slugAliases,
+              slugMap,
+              requireExisting: true,
+              allowSplitTargets: false,
+            }))
+          : [];
+        const resolvedTargets = nonSelfLabelTargets.length > 0
+          ? nonSelfLabelTargets
+          : alternateTargets.length > 0
+            ? alternateTargets
+            : slashSecondTargets.length > 0
+              ? slashSecondTargets
+              : glossaryAcronymPluralTargets.length > 0
+                ? glossaryAcronymPluralTargets
+                : glossaryGerundTargets.length > 0
+                  ? glossaryGerundTargets
+                  : glossaryPluralTargets.length > 0
+                    ? glossaryPluralTargets
+                    : glossaryTokensTargets.length > 0
+                      ? glossaryTokensTargets
+                      : fallbackCanonicalTargets;
 
       return {
         link,
@@ -445,6 +512,8 @@ function main() {
           && slashSecondTargets.length === 0
           && glossaryAcronymPluralTargets.length === 0
           && glossaryGerundTargets.length === 0
+          && glossaryPluralTargets.length === 0
+          && glossaryTokensTargets.length === 0
           && fallbackCanonicalTargets.length > 0,
       };
     });
