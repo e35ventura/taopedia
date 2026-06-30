@@ -3,7 +3,7 @@ import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import matter from './frontmatter.js';
 import { buildSlugAliases, extractWikiLinks, resolveTargetSlug, slugFromContentPath } from './wiki-link-resolver.js';
-import { splitPlainTextRelatedTargets } from '../src/lib/related-link-targets.ts';
+import { relatedAliasKeys, splitPlainTextRelatedTargets } from '../src/lib/related-link-targets.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -110,6 +110,13 @@ export function resolveBuildLinkTargets({ target, slugAliases, slugMap, requireE
   const resolvedTarget = resolveTargetSlug(target, slugAliases);
   if (slugMap[resolvedTarget]) return [resolvedTarget];
   if (!requireExisting) return resolvedTarget ? [resolvedTarget] : [];
+
+  for (const aliasKey of relatedAliasKeys(target)) {
+    const aliasTarget = slugAliases.get(aliasKey);
+    if (aliasTarget && slugMap[aliasTarget]) {
+      return [aliasTarget];
+    }
+  }
 
   return [...new Set(
     splitPlainTextRelatedTargets(target)
