@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import matter from './frontmatter.js';
 import { buildSlugAliases, extractWikiLinks, resolveTargetSlug, slugFromContentPath } from './wiki-link-resolver.js';
+import { splitPlainTextRelatedTargets } from '../src/lib/related-link-targets.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -105,10 +106,16 @@ export function dedupeOutgoingLinks(links) {
   });
 }
 
-export function resolveBuildLinkTarget({ target, slugAliases, slugMap, requireExisting = false }) {
+export function resolveBuildLinkTargets({ target, slugAliases, slugMap, requireExisting = false }) {
   const resolvedTarget = resolveTargetSlug(target, slugAliases);
-  if (slugMap[resolvedTarget]) return resolvedTarget;
-  return requireExisting ? '' : resolvedTarget;
+  if (slugMap[resolvedTarget]) return [resolvedTarget];
+  if (!requireExisting) return resolvedTarget ? [resolvedTarget] : [];
+
+  return [...new Set(
+    splitPlainTextRelatedTargets(target)
+      .map((part) => resolveTargetSlug(part, slugAliases))
+      .filter((part) => slugMap[part]),
+  )];
 }
 
 function main() {
@@ -168,10 +175,17 @@ function main() {
   const slugAliases = buildSlugAliases(slugMap);
   for (const [fromSlug, links] of Object.entries(linkGraph)) {
     linkGraph[fromSlug] = dedupeOutgoingLinks(
-      links.map(link => ({
-        target: resolveBuildLinkTarget({ target: link.target, slugAliases, slugMap, requireExisting: link.requireExisting }),
-        text: link.text,
-      })).filter(link => link.target),
+      links.flatMap((link) =>
+        resolveBuildLinkTargets({
+          target: link.target,
+          slugAliases,
+          slugMap,
+          requireExisting: link.requireExisting,
+        }).map((target) => ({
+          target,
+          text: link.text,
+        })),
+      ),
     );
   }
 
