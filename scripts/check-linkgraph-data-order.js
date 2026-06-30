@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { extractCanonicalGlossaryLinks, orderGeneratedData, dedupeOutgoingLinks, normalizeArticleCategories, resolveBuildLinkTargets, expandGlossaryGerundConceptTarget, expandGlossaryPluralConceptTarget, expandGlossaryTokensConceptTarget } from './build-linkgraph.js';
+import { extractCanonicalGlossaryLinks, orderGeneratedData, dedupeOutgoingLinks, normalizeArticleCategories, resolveBuildLinkTargets, expandGlossaryGerundConceptTarget, expandGlossaryPluralConceptTarget, expandGlossaryTokensConceptTarget, expandGlossaryCompoundSuffixTargets } from './build-linkgraph.js';
 import { buildSlugAliases } from './wiki-link-resolver.js';
 
 const projectRoot = path.resolve(new URL('..', import.meta.url).pathname);
@@ -107,6 +107,9 @@ const resolverSlugMap = {
   alpha_tokens: { title: 'Alpha Tokens' },
   wallets: { title: 'Bittensor Wallets', infoboxTitle: 'Wallet (Concept)' },
   bittensor_wallet: { title: 'Bittensor Wallet' },
+  tao: { title: 'TAO' },
+  tao_reserve: { title: 'TAO Reserve' },
+  tao_weight: { title: 'TAO Weight' },
 };
 const resolverAliases = buildSlugAliases(resolverSlugMap);
 assert.deepEqual(
@@ -363,6 +366,33 @@ assert.deepEqual(
   ['wallets'],
   'exact-existing glossary recovery should match a plural wallet concept article when the visible prefixed singular wallet label self-resolves',
 );
+assert.deepEqual(
+  expandGlossaryCompoundSuffixTargets('TAO', 'tao'),
+  ['Tao Reserve', 'Tao Weight'],
+  'expandGlossaryCompoundSuffixTargets must derive local compound sibling concepts from a glossary short label',
+);
+assert.deepEqual(
+  resolveBuildLinkTargets({
+    target: 'Tao Reserve',
+    slugAliases: resolverAliases,
+    slugMap: resolverSlugMap,
+    requireExisting: true,
+    allowSplitTargets: false,
+  }),
+  ['tao_reserve'],
+  'exact-existing glossary recovery should match a reserve compound concept article when the visible prefixed short label self-resolves',
+);
+assert.deepEqual(
+  resolveBuildLinkTargets({
+    target: 'Tao Weight',
+    slugAliases: resolverAliases,
+    slugMap: resolverSlugMap,
+    requireExisting: true,
+    allowSplitTargets: false,
+  }),
+  ['tao_weight'],
+  'exact-existing glossary recovery should match a weight compound concept article when the visible prefixed short label self-resolves',
+);
 
 function assertSortedKeys(object, label) {
   const keys = Object.keys(object);
@@ -600,6 +630,14 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated linkgraph must recover the current alpha_price body link to alpha_tokens when the prefixed glossary short label misses but its tokens concept article exists',
   );
   assert.ok(
+    (linkGraph.tao || []).some((entry) => entry.target === 'tao_reserve' && entry.text === 'Glossary: TAO'),
+    'generated linkgraph must recover the current tao body link to tao_reserve when the prefixed glossary short label self-resolves but its reserve compound sibling concept article exists',
+  );
+  assert.ok(
+    (linkGraph.tao || []).some((entry) => entry.target === 'tao_weight' && entry.text === 'Glossary: TAO'),
+    'generated linkgraph must recover the current tao body link to tao_weight when the prefixed glossary short label self-resolves but its weight compound sibling concept article exists',
+  );
+  assert.ok(
     (backlinks.validator_take || []).some((entry) => entry.from === 'delegation'),
     'generated backlinks must list delegation under validator_take when a prefixed glossary alias falls back to the canonical glossary anchor',
   );
@@ -666,6 +704,14 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
   assert.ok(
     (backlinks.alpha_tokens || []).some((entry) => entry.from === 'alpha_price'),
     'generated backlinks must list alpha_price under alpha_tokens when a prefixed glossary short label falls back to its tokens concept article',
+  );
+  assert.ok(
+    (backlinks.tao_reserve || []).some((entry) => entry.from === 'tao'),
+    'generated backlinks must list tao under tao_reserve when a prefixed glossary short label falls back to its reserve compound sibling concept article',
+  );
+  assert.ok(
+    (backlinks.tao_weight || []).some((entry) => entry.from === 'tao'),
+    'generated backlinks must list tao under tao_weight when a prefixed glossary short label falls back to its weight compound sibling concept article',
   );
   assert.ok(
     !(linkGraph.tempo || []).some((entry) => entry.target === 'tempo'),
