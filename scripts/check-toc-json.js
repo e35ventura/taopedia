@@ -222,6 +222,11 @@ for (const slug of articleSlugs) {
   const doc = JSON.parse(fs.readFileSync(jsonFile, 'utf8'));
   const html = fs.readFileSync(htmlFile, 'utf8');
   const htmlSections = parseRenderedToc(html);
+  assert.match(
+    html,
+    /<a\s+href="#content"\s+class="toc-back-to-top"/,
+    `${slug}: TOC back-to-top link must target the #content landmark`,
+  );
 
   assert.equal(typeof doc.slug, 'string', `${slug}: toc.json slug must be a string`);
   assert.equal(typeof doc.title, 'string', `${slug}: toc.json title must be a string`);
