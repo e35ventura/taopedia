@@ -16,13 +16,20 @@ assert.deepEqual(
 assert.deepEqual(normalizeArticleCategories(undefined), [], 'normalizeArticleCategories must normalize missing input to []');
 assert.deepEqual(
   extractCanonicalGlossaryLinks(
-    'See [tempo](https://docs.learnbittensor.org/resources/glossary#tempo), [Glossary: Tempo](https://docs.learnbittensor.org/resources/glossary#tempo), and [Subnet Hyperparameters](https://docs.learnbittensor.org/subnets/subnet-hyperparameters).',
+    'See [tempo](https://docs.learnbittensor.org/resources/glossary#tempo), [Glossary: Validator Take %](https://docs.learnbittensor.org/resources/glossary#validator-take-), and [Subnet Hyperparameters](https://docs.learnbittensor.org/subnets/subnet-hyperparameters).',
   ),
   [
-    { target: 'tempo', text: 'tempo', requireExisting: true, skipSelf: true, allowSplitTargets: true },
-    { target: 'Tempo', text: 'Glossary: Tempo', requireExisting: true, skipSelf: true, allowSplitTargets: false },
+    { target: 'tempo', canonicalTarget: '', text: 'tempo', requireExisting: true, skipSelf: true, allowSplitTargets: true },
+    {
+      target: 'Validator Take %',
+      canonicalTarget: 'validator take',
+      text: 'Glossary: Validator Take %',
+      requireExisting: true,
+      skipSelf: true,
+      allowSplitTargets: false,
+    },
   ],
-  'canonical Learn Bittensor glossary markdown links should keep plain labels and strip only the "Glossary:" prefix into exact existing-only local graph candidates',
+  'canonical Learn Bittensor glossary markdown links should preserve plain labels and keep the glossary anchor text as a prefixed-label fallback candidate',
 );
 
 const resolverSlugMap = {
@@ -34,6 +41,8 @@ const resolverSlugMap = {
     infoboxTitle: 'MEV',
   },
   tempo: { title: 'Tempo' },
+  validator_take: { title: 'Validator Take' },
+  subnet_validator: { title: 'Subnet Validator' },
   validator_weights: { title: 'Validator Weights' },
 };
 const resolverAliases = buildSlugAliases(resolverSlugMap);
@@ -69,14 +78,25 @@ assert.deepEqual(
 );
 assert.deepEqual(
   resolveBuildLinkTargets({
-    target: 'Tempo',
+    target: 'validator take',
     slugAliases: resolverAliases,
     slugMap: resolverSlugMap,
     requireExisting: true,
     allowSplitTargets: false,
   }),
-  ['tempo'],
-  'canonical glossary body links should resolve exact local aliases after stripping the visible Glossary: prefix',
+  ['validator_take'],
+  'canonical glossary anchor fallbacks should resolve exact local aliases without the plain-text Related splitter',
+);
+assert.deepEqual(
+  resolveBuildLinkTargets({
+    target: 'subnet validator',
+    slugAliases: resolverAliases,
+    slugMap: resolverSlugMap,
+    requireExisting: true,
+    allowSplitTargets: false,
+  }),
+  ['subnet_validator'],
+  'canonical glossary anchor fallbacks should recover existing local aliases like subnet validator when the visible label is shorter',
 );
 assert.deepEqual(
   resolveBuildLinkTargets({
@@ -228,6 +248,22 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
   assert.ok(
     (backlinks.public_key || []).some((entry) => entry.from === 'address_poisoning_scams'),
     'generated backlinks must list address_poisoning_scams under public_key when the body uses a canonical glossary label with a visible Glossary: prefix',
+  );
+  assert.ok(
+    (linkGraph.delegation || []).some((entry) => entry.target === 'validator_take' && entry.text === 'Glossary: Validator Take %'),
+    'generated linkgraph must recover the current delegation body link to validator_take from a prefixed glossary alias whose visible label includes punctuation',
+  );
+  assert.ok(
+    (linkGraph.delegation || []).some((entry) => entry.target === 'subnet_validator' && entry.text === 'Glossary: Validator'),
+    'generated linkgraph must recover the current delegation body link to subnet_validator when the prefixed glossary label is shorter than the local title',
+  );
+  assert.ok(
+    (linkGraph.hotkeys || []).some((entry) => entry.target === 'weight_vector' && entry.text === 'Glossary: Weights'),
+    'generated linkgraph must recover the current hotkeys body link to weight_vector when the prefixed glossary label is a shorter alias of the canonical concept',
+  );
+  assert.ok(
+    (backlinks.validator_take || []).some((entry) => entry.from === 'delegation'),
+    'generated backlinks must list delegation under validator_take when a prefixed glossary alias falls back to the canonical glossary anchor',
   );
   assert.ok(
     !(linkGraph.tempo || []).some((entry) => entry.target === 'tempo'),
