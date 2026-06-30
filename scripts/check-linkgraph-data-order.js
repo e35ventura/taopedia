@@ -16,7 +16,7 @@ assert.deepEqual(
 assert.deepEqual(normalizeArticleCategories(undefined), [], 'normalizeArticleCategories must normalize missing input to []');
 assert.deepEqual(
   extractCanonicalGlossaryLinks(
-    'See [tempo](https://docs.learnbittensor.org/resources/glossary#tempo), [Glossary: Validator Take %](https://docs.learnbittensor.org/resources/glossary#validator-take-), [Glossary: Drand/time-lock encryption](https://docs.learnbittensor.org/resources/glossary#drandtime-lock-encryption), and [Subnet Hyperparameters](https://docs.learnbittensor.org/subnets/subnet-hyperparameters).',
+    'See [tempo](https://docs.learnbittensor.org/resources/glossary#tempo), [Glossary: Validator Take %](https://docs.learnbittensor.org/resources/glossary#validator-take-), [Glossary: Drand/time-lock encryption](https://docs.learnbittensor.org/resources/glossary#drandtime-lock-encryption), [Glossary: ADR](https://docs.learnbittensor.org/resources/glossary#adr-alpha-distribution-ratio), and [Subnet Hyperparameters](https://docs.learnbittensor.org/subnets/subnet-hyperparameters).',
   ),
   [
     { target: 'tempo', canonicalTarget: '', text: 'tempo', requireExisting: true, skipSelf: true, allowSplitTargets: true },
@@ -36,8 +36,16 @@ assert.deepEqual(
       skipSelf: true,
       allowSplitTargets: false,
     },
+    {
+      target: 'ADR',
+      canonicalTarget: 'alpha distribution ratio',
+      text: 'Glossary: ADR',
+      requireExisting: true,
+      skipSelf: true,
+      allowSplitTargets: false,
+    },
   ],
-  'canonical Learn Bittensor glossary markdown links should preserve plain labels, keep prefixed-label anchor fallbacks, and treat slash-separated prefixed labels as exact-match word boundaries',
+  'canonical Learn Bittensor glossary markdown links should preserve plain labels, keep prefixed-label anchor fallbacks, normalize slash-separated labels, and strip redundant leading acronyms from exact-only fallback anchors',
 );
 
 const resolverSlugMap = {
@@ -53,6 +61,7 @@ const resolverSlugMap = {
   validator_take: { title: 'Validator Take' },
   subnet_validator: { title: 'Subnet Validator' },
   validator_weights: { title: 'Validator Weights' },
+  alpha_distribution_ratio: { title: 'Alpha Distribution Ratio' },
 };
 const resolverAliases = buildSlugAliases(resolverSlugMap);
 assert.deepEqual(
@@ -128,6 +137,17 @@ assert.deepEqual(
   }),
   ['drand_time_lock_encryption'],
   'exact-existing glossary recovery should match a slash-normalized visible glossary label to the local article',
+);
+assert.deepEqual(
+  resolveBuildLinkTargets({
+    target: 'alpha distribution ratio',
+    slugAliases: resolverAliases,
+    slugMap: resolverSlugMap,
+    requireExisting: true,
+    allowSplitTargets: false,
+  }),
+  ['alpha_distribution_ratio'],
+  'exact-existing glossary recovery should resolve a canonical glossary anchor after a redundant leading acronym has been stripped',
 );
 
 function assertSortedKeys(object, label) {
@@ -290,12 +310,24 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated linkgraph must recover the current weight_copying body link to drand_time_lock_encryption when the visible glossary label uses slash-separated punctuation',
   );
   assert.ok(
+    (linkGraph.alpha_outstanding || []).some((entry) => entry.target === 'alpha_distribution_ratio' && entry.text === 'Glossary: ADR'),
+    'generated linkgraph must recover the current alpha_outstanding body link to alpha_distribution_ratio when the visible glossary label is an acronym that is redundantly repeated at the start of the canonical anchor',
+  );
+  assert.ok(
+    (linkGraph.halving_mechanisms || []).some((entry) => entry.target === 'alpha_distribution_ratio' && entry.text === 'Glossary: ADR'),
+    'generated linkgraph must recover the current halving_mechanisms body link to alpha_distribution_ratio when the visible glossary label is an acronym that is redundantly repeated at the start of the canonical anchor',
+  );
+  assert.ok(
     (backlinks.validator_take || []).some((entry) => entry.from === 'delegation'),
     'generated backlinks must list delegation under validator_take when a prefixed glossary alias falls back to the canonical glossary anchor',
   );
   assert.ok(
     (backlinks.drand_time_lock_encryption || []).some((entry) => entry.from === 'commit_reveal'),
     'generated backlinks must list commit_reveal under drand_time_lock_encryption when the visible glossary label uses slash-separated punctuation',
+  );
+  assert.ok(
+    (backlinks.alpha_distribution_ratio || []).some((entry) => entry.from === 'alpha_outstanding'),
+    'generated backlinks must list alpha_outstanding under alpha_distribution_ratio when a prefixed glossary acronym falls back to the stripped canonical anchor',
   );
   assert.ok(
     !(linkGraph.tempo || []).some((entry) => entry.target === 'tempo'),
@@ -308,6 +340,10 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
   assert.ok(
     !(linkGraph.drand_time_lock_encryption || []).some((entry) => entry.target === 'drand_time_lock_encryption'),
     'generated linkgraph must not create a self-link when a slash-separated visible glossary label names the current article itself',
+  );
+  assert.ok(
+    !(linkGraph.alpha_distribution_ratio || []).some((entry) => entry.target === 'alpha_distribution_ratio'),
+    'generated linkgraph must not create a self-link when a prefixed glossary acronym names the current article itself',
   );
 }
 
