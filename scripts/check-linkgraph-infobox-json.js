@@ -31,6 +31,7 @@ try {
       {
         target: 'Dynamic TAO',
         text: 'Dynamic TAO',
+        preferResolvedTitle: true,
         requireExisting: true,
       },
       { target: 'staking', text: 'Staking' },
@@ -53,7 +54,7 @@ try {
   assert.deepEqual(
     extractInfoboxWikiLinks(visibleRows),
     [
-      { target: 'Delegate', text: 'Delegate', requireExisting: true },
+      { target: 'Delegate', text: 'Delegate', preferResolvedTitle: true, requireExisting: true },
       { target: 'staking', text: 'Staking' },
     ],
     'linkgraph should match the frontmatter rows that the article page renders, including plain-text Related rows',
