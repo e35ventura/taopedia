@@ -16,12 +16,13 @@ assert.deepEqual(
 assert.deepEqual(normalizeArticleCategories(undefined), [], 'normalizeArticleCategories must normalize missing input to []');
 assert.deepEqual(
   extractCanonicalGlossaryLinks(
-    'See [tempo](https://docs.learnbittensor.org/resources/glossary#tempo), [Glossary: Validator Take %](https://docs.learnbittensor.org/resources/glossary#validator-take-), [Glossary: Drand/time-lock encryption](https://docs.learnbittensor.org/resources/glossary#drandtime-lock-encryption), [Glossary: ADR](https://docs.learnbittensor.org/resources/glossary#adr-alpha-distribution-ratio), and [Subnet Hyperparameters](https://docs.learnbittensor.org/subnets/subnet-hyperparameters).',
+    'See [tempo](https://docs.learnbittensor.org/resources/glossary#tempo), [Glossary: Validator Take %](https://docs.learnbittensor.org/resources/glossary#validator-take-), [Glossary: Drand/time-lock encryption](https://docs.learnbittensor.org/resources/glossary#drandtime-lock-encryption), [Glossary: Root Subnet/Subnet Zero](https://docs.learnbittensor.org/resources/glossary#root-subnetsubnet-zero), [Glossary: ADR](https://docs.learnbittensor.org/resources/glossary#adr-alpha-distribution-ratio), and [Subnet Hyperparameters](https://docs.learnbittensor.org/subnets/subnet-hyperparameters).',
   ),
   [
-    { target: 'tempo', canonicalTarget: '', text: 'tempo', requireExisting: true, skipSelf: true, allowSplitTargets: true },
+    { target: 'tempo', alternateTarget: '', canonicalTarget: '', text: 'tempo', requireExisting: true, skipSelf: true, allowSplitTargets: true },
     {
       target: 'Validator Take %',
+      alternateTarget: '',
       canonicalTarget: 'validator take',
       text: 'Glossary: Validator Take %',
       requireExisting: true,
@@ -30,6 +31,7 @@ assert.deepEqual(
     },
     {
       target: 'Drand time-lock encryption',
+      alternateTarget: 'Drand',
       canonicalTarget: 'drandtime lock encryption',
       text: 'Glossary: Drand/time-lock encryption',
       requireExisting: true,
@@ -37,7 +39,17 @@ assert.deepEqual(
       allowSplitTargets: false,
     },
     {
+      target: 'Root Subnet Subnet Zero',
+      alternateTarget: 'Root Subnet',
+      canonicalTarget: 'root subnetsubnet zero',
+      text: 'Glossary: Root Subnet/Subnet Zero',
+      requireExisting: true,
+      skipSelf: true,
+      allowSplitTargets: false,
+    },
+    {
       target: 'ADR',
+      alternateTarget: '',
       canonicalTarget: 'alpha distribution ratio',
       text: 'Glossary: ADR',
       requireExisting: true,
@@ -45,7 +57,7 @@ assert.deepEqual(
       allowSplitTargets: false,
     },
   ],
-  'canonical Learn Bittensor glossary markdown links should preserve plain labels, keep prefixed-label anchor fallbacks, normalize slash-separated labels, and strip redundant leading acronyms from exact-only fallback anchors',
+  'canonical Learn Bittensor glossary markdown links should preserve plain labels, keep prefixed-label anchor fallbacks, normalize slash-separated labels, preserve a first visible slash alternative, and strip redundant leading acronyms from exact-only fallback anchors',
 );
 
 const resolverSlugMap = {
@@ -61,6 +73,7 @@ const resolverSlugMap = {
   validator_take: { title: 'Validator Take' },
   subnet_validator: { title: 'Subnet Validator' },
   validator_weights: { title: 'Validator Weights' },
+  root_subnet: { title: 'Root Subnet' },
   alpha_distribution_ratio: { title: 'Alpha Distribution Ratio' },
 };
 const resolverAliases = buildSlugAliases(resolverSlugMap);
@@ -137,6 +150,17 @@ assert.deepEqual(
   }),
   ['drand_time_lock_encryption'],
   'exact-existing glossary recovery should match a slash-normalized visible glossary label to the local article',
+);
+assert.deepEqual(
+  resolveBuildLinkTargets({
+    target: 'Root Subnet',
+    slugAliases: resolverAliases,
+    slugMap: resolverSlugMap,
+    requireExisting: true,
+    allowSplitTargets: false,
+  }),
+  ['root_subnet'],
+  'exact-existing glossary recovery should match the first visible slash alternative when the combined prefixed label misses',
 );
 assert.deepEqual(
   resolveBuildLinkTargets({
@@ -310,6 +334,14 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated linkgraph must recover the current weight_copying body link to drand_time_lock_encryption when the visible glossary label uses slash-separated punctuation',
   );
   assert.ok(
+    (linkGraph.netuid || []).some((entry) => entry.target === 'root_subnet' && entry.text === 'Glossary: Root Subnet/Subnet Zero'),
+    'generated linkgraph must recover the current netuid body link to root_subnet when the slash-normalized prefixed glossary label misses but its first visible alternative matches the local article',
+  );
+  assert.ok(
+    (linkGraph.alpha_staker || []).some((entry) => entry.target === 'root_subnet' && entry.text === 'Glossary: Root Subnet/Subnet Zero'),
+    'generated linkgraph must recover the current alpha_staker body link to root_subnet when the slash-normalized prefixed glossary label misses but its first visible alternative matches the local article',
+  );
+  assert.ok(
     (linkGraph.alpha_outstanding || []).some((entry) => entry.target === 'alpha_distribution_ratio' && entry.text === 'Glossary: ADR'),
     'generated linkgraph must recover the current alpha_outstanding body link to alpha_distribution_ratio when the visible glossary label is an acronym that is redundantly repeated at the start of the canonical anchor',
   );
@@ -326,6 +358,14 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated backlinks must list commit_reveal under drand_time_lock_encryption when the visible glossary label uses slash-separated punctuation',
   );
   assert.ok(
+    (backlinks.root_subnet || []).some((entry) => entry.from === 'netuid'),
+    'generated backlinks must list netuid under root_subnet when a prefixed glossary slash label falls back to its first visible local alternative',
+  );
+  assert.ok(
+    (backlinks.root_subnet || []).some((entry) => entry.from === 'alpha_staker'),
+    'generated backlinks must list alpha_staker under root_subnet when a prefixed glossary slash label falls back to its first visible local alternative',
+  );
+  assert.ok(
     (backlinks.alpha_distribution_ratio || []).some((entry) => entry.from === 'alpha_outstanding'),
     'generated backlinks must list alpha_outstanding under alpha_distribution_ratio when a prefixed glossary acronym falls back to the stripped canonical anchor',
   );
@@ -340,6 +380,10 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
   assert.ok(
     !(linkGraph.drand_time_lock_encryption || []).some((entry) => entry.target === 'drand_time_lock_encryption'),
     'generated linkgraph must not create a self-link when a slash-separated visible glossary label names the current article itself',
+  );
+  assert.ok(
+    !(linkGraph.root_subnet || []).some((entry) => entry.target === 'root_subnet'),
+    'generated linkgraph must not create a self-link when a slash-separated prefixed glossary label names the current article itself via its first visible local alternative',
   );
   assert.ok(
     !(linkGraph.alpha_distribution_ratio || []).some((entry) => entry.target === 'alpha_distribution_ratio'),

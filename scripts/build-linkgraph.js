@@ -100,6 +100,9 @@ export function extractCanonicalGlossaryLinks(content) {
     const target = hasGlossaryPrefix
       ? rawTarget.replace(/\/+/g, ' ').replace(/\s+/g, ' ').trim()
       : rawTarget;
+    const alternateTarget = hasGlossaryPrefix && rawTarget.includes('/')
+      ? rawTarget.split('/')[0].trim().replace(/\s+/g, ' ')
+      : '';
     if (!target) continue;
     let canonicalTarget = hasGlossaryPrefix
       ? decodeURIComponent(match[2].split('#')[1] || '').replace(/[-_]+/g, ' ').trim()
@@ -122,11 +125,15 @@ export function extractCanonicalGlossaryLinks(content) {
     // a fallback so the link graph can still recover the existing local concept.
     // Also treat slash-separated visible labels like "Drand/time-lock encryption"
     // as word boundaries for the exact-only local match without broadening other
-    // wiki-link resolution paths. Likewise, some glossary acronyms like "ADR"
-    // repeat themselves at the start of the canonical anchor ("adr alpha ...");
-    // strip that redundant acronym only in the prefixed exact-only fallback path.
+    // wiki-link resolution paths. If a slash-separated prefixed label still
+    // misses after that normalization, keep the first visible alternative as a
+    // second exact-only fallback before consulting the canonical glossary
+    // anchor. Likewise, some glossary acronyms like "ADR" repeat themselves at
+    // the start of the canonical anchor ("adr alpha ..."); strip that
+    // redundant acronym only in the prefixed exact-only fallback path.
     links.push({
       target,
+      alternateTarget,
       canonicalTarget,
       text,
       requireExisting: true,
@@ -252,6 +259,7 @@ function main() {
     ];
     linkGraph[slug] = links.map(link => ({
       target: link.target,
+      alternateTarget: link.alternateTarget || '',
       canonicalTarget: link.canonicalTarget || '',
       text: link.text,
       requireExisting: link.requireExisting === true,
@@ -271,6 +279,15 @@ function main() {
           requireExisting: link.requireExisting,
           allowSplitTargets: link.allowSplitTargets,
         });
+        const alternateTargets = labelTargets.length === 0 && link.alternateTarget
+          ? resolveBuildLinkTargets({
+              target: link.alternateTarget,
+              slugAliases,
+              slugMap,
+              requireExisting: true,
+              allowSplitTargets: false,
+            })
+          : [];
         const canonicalTargets = link.canonicalTarget
           ? resolveBuildLinkTargets({
               target: link.canonicalTarget,
@@ -280,10 +297,11 @@ function main() {
               allowSplitTargets: false,
             })
           : [];
-        const resolvedTargets = canonicalTargets.length > 0
-          && labelTargets.length === 0
-          ? canonicalTargets
-          : labelTargets;
+        const resolvedTargets = labelTargets.length > 0
+          ? labelTargets
+          : alternateTargets.length > 0
+            ? alternateTargets
+            : canonicalTargets;
 
         return resolvedTargets
           .filter((target) => !(link.skipSelf && target === fromSlug))
