@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { extractCanonicalGlossaryLinks, orderGeneratedData, dedupeOutgoingLinks, normalizeArticleCategories, resolveBuildLinkTargets } from './build-linkgraph.js';
+import { extractCanonicalGlossaryLinks, orderGeneratedData, dedupeOutgoingLinks, normalizeArticleCategories, resolveBuildLinkTargets, expandGlossaryAlphaConceptTarget } from './build-linkgraph.js';
 import { buildSlugAliases } from './wiki-link-resolver.js';
 
 const projectRoot = path.resolve(new URL('..', import.meta.url).pathname);
@@ -86,6 +86,7 @@ const resolverSlugMap = {
   alpha_distribution_ratio: { title: 'Alpha Distribution Ratio' },
   exponential_moving_averages: { title: 'Exponential Moving Averages', infoboxTitle: 'Exponential Moving Averages' },
   hotkey_coldkey_pair: { title: 'Hotkey-Coldkey Pair' },
+  alpha_tokens: { title: 'Alpha Tokens' },
 };
 const resolverAliases = buildSlugAliases(resolverSlugMap);
 assert.deepEqual(
@@ -212,6 +213,32 @@ assert.deepEqual(
   ['hotkey_coldkey_pair'],
   'exact-existing glossary recovery should match a hyphen-reversed first compound when the visible prefixed label misses',
 );
+assert.equal(
+  expandGlossaryAlphaConceptTarget('alpha', ''),
+  'alpha tokens',
+  'glossary alpha concept recovery should pluralize the local title when the visible label names only alpha',
+);
+assert.equal(
+  expandGlossaryAlphaConceptTarget('', 'alpha'),
+  'alpha tokens',
+  'glossary alpha concept recovery should pluralize the local title when the canonical glossary anchor names only alpha',
+);
+assert.equal(
+  expandGlossaryAlphaConceptTarget('Alpha Tokens', 'alpha tokens'),
+  '',
+  'glossary alpha concept recovery must not run when the visible label already names the local alpha concept article',
+);
+assert.deepEqual(
+  resolveBuildLinkTargets({
+    target: expandGlossaryAlphaConceptTarget('alpha', ''),
+    slugAliases: resolverAliases,
+    slugMap: resolverSlugMap,
+    requireExisting: true,
+    allowSplitTargets: false,
+  }),
+  ['alpha_tokens'],
+  'exact-existing glossary recovery should resolve alpha tokens when a glossary link names only alpha',
+);
 
 function assertSortedKeys(object, label) {
   const keys = Object.keys(object);
@@ -333,8 +360,8 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated linkgraph must keep the current sandwich_attack Related: MEV infobox edge when the local MEV article exists',
   );
   assert.ok(
-    (linkGraph.activity_cutoff || []).some((entry) => entry.target === 'tempo' && entry.text === 'Glossary: Tempo'),
-    'generated linkgraph must recover the current activity_cutoff body link to the local tempo article from a canonical glossary markdown link',
+    (linkGraph.activity_cutoff || []).some((entry) => entry.target === 'tempo' && entry.text === 'tempo'),
+    'generated linkgraph must recover the current activity_cutoff body link to the local tempo article from a plain glossary markdown link',
   );
   assert.ok(
     (linkGraph.address_poisoning_scams || []).some((entry) => entry.target === 'public_key' && entry.text === 'Glossary: Public Key'),
@@ -409,6 +436,18 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated linkgraph must recover the current coldkey_hotkey_workstation_security body link to hotkey_coldkey_pair when the prefixed glossary label hyphen compound is word-order-reversed from the local title',
   );
   assert.ok(
+    (linkGraph.staking || []).some((entry) => entry.target === 'alpha_tokens' && entry.text === 'alpha'),
+    'generated linkgraph must recover the current staking body link to alpha_tokens when a plain glossary label names only alpha',
+  );
+  assert.ok(
+    (linkGraph.arbitrage || []).some((entry) => entry.target === 'alpha_tokens' && entry.text === 'alpha'),
+    'generated linkgraph must recover the current arbitrage body link to alpha_tokens when a plain glossary label names only alpha',
+  );
+  assert.ok(
+    (linkGraph.wash_trading || []).some((entry) => entry.target === 'alpha_tokens' && entry.text === 'alpha'),
+    'generated linkgraph must recover the current wash_trading body link to alpha_tokens when a plain glossary label names only alpha',
+  );
+  assert.ok(
     (backlinks.validator_take || []).some((entry) => entry.from === 'delegation'),
     'generated backlinks must list delegation under validator_take when a prefixed glossary alias falls back to the canonical glossary anchor',
   );
@@ -449,6 +488,14 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated backlinks must list coldkey_hotkey_workstation_security under hotkey_coldkey_pair when a prefixed glossary hyphen label falls back to its word-order-reversed local alternative',
   );
   assert.ok(
+    (backlinks.alpha_tokens || []).some((entry) => entry.from === 'staking'),
+    'generated backlinks must list staking under alpha_tokens when a plain glossary label names only alpha',
+  );
+  assert.ok(
+    (backlinks.alpha_tokens || []).some((entry) => entry.from === 'arbitrage'),
+    'generated backlinks must list arbitrage under alpha_tokens when a plain glossary label names only alpha',
+  );
+  assert.ok(
     !(linkGraph.tempo || []).some((entry) => entry.target === 'tempo'),
     'generated linkgraph must not create a self-link when a glossary markdown link names the current article itself',
   );
@@ -467,6 +514,10 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
   assert.ok(
     !(linkGraph.alpha_distribution_ratio || []).some((entry) => entry.target === 'alpha_distribution_ratio'),
     'generated linkgraph must not create a self-link when a prefixed glossary acronym names the current article itself',
+  );
+  assert.ok(
+    !(linkGraph.alpha_tokens || []).some((entry) => entry.target === 'alpha_tokens' && entry.text === 'Glossary: Alpha'),
+    'generated linkgraph must not create a self-link when a prefixed glossary label names only alpha on the alpha_tokens article itself',
   );
 }
 
