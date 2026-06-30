@@ -452,6 +452,24 @@ assert.deepEqual(
   'canonical Learn Bittensor glossary markdown links should preserve plain homograph labels with canonical anchors that name a different local concept article',
 );
 assert.deepEqual(
+  extractCanonicalGlossaryLinks(
+    'See [validator dividends](https://docs.learnbittensor.org/resources/glossary#emission).',
+  ),
+  [
+    {
+      target: 'validator dividends',
+      alternateTarget: '',
+      slashSecondTarget: '',
+      canonicalTarget: 'emission',
+      text: 'validator dividends',
+      requireExisting: true,
+      skipSelf: true,
+      allowSplitTargets: true,
+    },
+  ],
+  'canonical Learn Bittensor glossary markdown links should preserve plain validator dividends labels with canonical anchors that name the emission concept article',
+);
+assert.deepEqual(
   expandGlossaryCompoundSuffixTargets('TAO', 'tao'),
   [
     'Tao Reserve',
@@ -833,6 +851,14 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated linkgraph must recover the current bonds_moving_average body link to weight_vector when the plain validator weights glossary label self-resolves but its canonical anchor names the weight vector concept article',
   );
   assert.ok(
+    (linkGraph.bonds_moving_average || []).some((entry) => entry.target === 'emission' && entry.text === 'validator dividends'),
+    'generated linkgraph must recover the current bonds_moving_average body link to emission when the plain validator dividends glossary label self-resolves but its canonical anchor names the emission concept article',
+  );
+  assert.ok(
+    !(linkGraph.bonds_moving_average || []).some((entry) => entry.target === 'validator_dividend' && entry.text === 'validator dividends'),
+    'generated linkgraph must not keep the current bonds_moving_average plain validator dividends glossary link pointed at validator_dividend once the canonical emission anchor is available',
+  );
+  assert.ok(
     (linkGraph.senate || []).some((entry) => entry.target === 'delegation' && entry.text === 'delegate'),
     'generated linkgraph must recover the current senate body link to delegation when the plain delegate glossary label self-resolves but its canonical anchor names the delegation concept article',
   );
@@ -931,6 +957,10 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
   assert.ok(
     (backlinks.weight_vector || []).some((entry) => entry.from === 'bonds_moving_average'),
     'generated backlinks must list bonds_moving_average under weight_vector when a plain validator weights glossary label falls back to its canonical weight vector anchor',
+  );
+  assert.ok(
+    (backlinks.emission || []).some((entry) => entry.from === 'bonds_moving_average'),
+    'generated backlinks must list bonds_moving_average under emission when a plain validator dividends glossary label falls back to its canonical emission anchor',
   );
   assert.ok(
     (backlinks.delegation || []).some((entry) => entry.from === 'senate'),
