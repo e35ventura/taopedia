@@ -152,7 +152,10 @@ export function extractCanonicalGlossaryLinks(content) {
     // allow one exact-only retry on the suffixed title. When a prefixed glossary
     // short label like "TAO" self-resolves but sibling compound concepts exist
     // ("TAO Reserve", "TAO Weight", "Halving Mechanisms", and similar), allow
-    // exact-only retries on those suffixes.
+    // exact-only retries on those suffixes. When the visible label is only the
+    // generic word "Glossary", keep the canonical glossary anchor as an
+    // exact-only fallback so the link graph can still recover the named local
+    // concept without treating the generic label as a plain-text alias.
     links.push({
       target,
       alternateTarget,
@@ -291,6 +294,13 @@ export function getVisibleInfoboxRows(articleDir, frontmatterRows) {
   return Array.isArray(infobox?.rows) ? infobox.rows : undefined;
 }
 
+export function glossaryVisibleLabelRank(text) {
+  const trimmed = String(text ?? '').trim();
+  if (/^glossary$/i.test(trimmed)) return 0;
+  if (/^Glossary:\s*/i.test(trimmed)) return 1;
+  return 2;
+}
+
 export function dedupeOutgoingLinks(links) {
   const deduped = [];
   const indexByTarget = new Map();
@@ -306,9 +316,7 @@ export function dedupeOutgoingLinks(links) {
     }
 
     const existing = deduped[existingIndex];
-    // Prefer a later non-prefixed visible label when a newly recovered
-    // "Glossary: Foo" edge points at the same target as an existing link.
-    if (/^Glossary:\s*/i.test(String(existing?.text ?? '')) && !/^Glossary:\s*/i.test(String(link?.text ?? ''))) {
+    if (glossaryVisibleLabelRank(link.text) > glossaryVisibleLabelRank(existing?.text)) {
       deduped[existingIndex] = link;
     }
   }
@@ -540,6 +548,17 @@ function main() {
               ),
             )]
           : [];
+        const genericGlossaryCanonicalTargets = isGenericGlossaryLabel
+          && nonSelfLabelTargets.length === 0
+          && alternateTargets.length === 0
+          && slashSecondTargets.length === 0
+          && glossaryAcronymPluralTargets.length === 0
+          && glossaryGerundTargets.length === 0
+          && glossaryPluralTargets.length === 0
+          && glossaryTokensTargets.length === 0
+          && glossaryCompoundSuffixTargets.length === 0
+          ? canonicalTargets
+          : [];
         const glossaryAcronymCanonicalTargets = isPlainAcronymGlossaryLabel
           && nonSelfLabelTargets.length === 1
           && fallbackCanonicalTargets.length === 1
@@ -564,7 +583,9 @@ function main() {
                       ? glossaryTokensTargets
                       : glossaryCompoundSuffixTargets.length > 0
                         ? glossaryCompoundSuffixTargets
-                        : fallbackCanonicalTargets;
+                        : genericGlossaryCanonicalTargets.length > 0
+                          ? genericGlossaryCanonicalTargets
+                          : fallbackCanonicalTargets;
 
       return {
         link,
