@@ -8,6 +8,7 @@ import { buildSlugAliases, parseWikiLinkTokens, resolveTargetSlug } from '../../
 import { getPageSlug } from '../../lib/article-history';
 import { publishedTitleBySlug } from '../../lib/article-metadata';
 import { getArticleToc } from '../../lib/article-toc.js';
+import { splitPlainTextRelatedTargets } from '../../lib/related-link-targets';
 import { getRelatedPages } from '../../lib/related-pages';
 
 export async function getStaticPaths() {
@@ -112,7 +113,7 @@ const validSlugs = Object.keys(slugMap);
 // passed via props, instead of re-reading the whole content collection on every
 // article page.
 
-function renderInfoboxValue(value: string) {
+function renderWikiLinkTokens(value: string) {
   return parseWikiLinkTokens(value).map((token) => {
     if (token.type !== 'link') return token;
 
@@ -123,6 +124,28 @@ function renderInfoboxValue(value: string) {
       exists: Object.prototype.hasOwnProperty.call(slugMap, targetSlug),
     };
   });
+}
+
+function renderInfoboxValue(label: string, value: string) {
+  const renderedTokens = renderWikiLinkTokens(value);
+  if (renderedTokens.some((token) => token.type === 'link')) return renderedTokens;
+  if (String(label ?? '').trim().toLowerCase() !== 'related') return renderedTokens;
+
+  const targets = splitPlainTextRelatedTargets(value);
+  if (!targets.length) return renderedTokens;
+
+  const plainTextRelatedTokens = targets.flatMap((target, index) => {
+    const targetSlug = resolveTargetSlug(target, slugAliases);
+    const exists = Object.prototype.hasOwnProperty.call(slugMap, targetSlug);
+    return [
+      ...(index > 0 ? [{ type: 'text', text: ', ' as const }] : []),
+      exists
+        ? { type: 'link', target, text: target, href: `/wiki/${targetSlug}/`, exists }
+        : { type: 'text', text: target },
+    ];
+  });
+
+  return plainTextRelatedTokens;
 }
 
 const historyUrl = `/wiki/${slug}/history/`;
@@ -265,7 +288,7 @@ const readingMinutes = Math.max(1, Math.ceil(wordCount / 200));
                   <tr>
                     <th scope="row">{row.label}</th>
                     <td>
-                      {renderInfoboxValue(row.value).map((part) =>
+                      {renderInfoboxValue(row.label, row.value).map((part) =>
                         part.type === 'link' ? (
                           <a class={part.exists ? 'internal' : 'internal new'} href={part.href}>{part.text}</a>
                         ) : (

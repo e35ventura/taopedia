@@ -77,13 +77,12 @@ export function extractInfoboxWikiLinks(rows) {
 
     if (!/\brelated\b/i.test(String(row?.label ?? ''))) return [];
 
-    const target = row.value.trim();
-    if (!target) return [];
-
-    // Current article content often uses a plain-text "Related" infobox row
-    // instead of [[wiki-links]]. Treat that visible related term as a local
-    // graph candidate only when it resolves to an existing article.
-    return [{ target, text: target, requireExisting: true }];
+    return splitPlainTextRelatedTargets(row.value).map((target) => ({
+      target,
+      text: target,
+      preferResolvedTitle: true,
+      requireExisting: true,
+    }));
   });
 }
 
@@ -239,6 +238,12 @@ export function resolveBuildLinkTargets({ target, slugAliases, slugMap, requireE
   )];
 }
 
+function shouldUseResolvedTitleText(text, resolvedTitle) {
+  const normalizedText = String(text || '').trim().toLowerCase().replace(/[^\w]+/g, ' ');
+  const normalizedResolvedTitle = String(resolvedTitle || '').trim().toLowerCase().replace(/[^\w]+/g, ' ');
+  return Boolean(normalizedText) && normalizedText === normalizedResolvedTitle;
+}
+
 function main() {
   console.log('Building link graph and backlinks...');
 
@@ -301,6 +306,7 @@ function main() {
       alternateTarget: link.alternateTarget || '',
       canonicalTarget: link.canonicalTarget || '',
       text: link.text,
+      preferResolvedTitle: link.preferResolvedTitle === true,
       requireExisting: link.requireExisting === true,
       skipSelf: link.skipSelf === true,
       allowSplitTargets: link.allowSplitTargets !== false,
@@ -388,7 +394,9 @@ function main() {
           .filter((target) => !(link.skipSelf && target === fromSlug))
           .map((target) => ({
             target,
-            text: link.text,
+            text: link.preferResolvedTitle && shouldUseResolvedTitleText(link.text, slugMap[target]?.title)
+              ? (slugMap[target]?.title || link.text)
+              : link.text,
           }));
       }),
     );
