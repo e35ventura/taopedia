@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { wikiArticleHref } from '../src/lib/wiki-article-path.js';
 import { buildWantedPages, collectWantedRequesters, isWantedTarget } from './wanted-pages.js';
 
 // titleBySlug = the published articles. linkGraph = each article's resolved
@@ -112,7 +113,7 @@ data.pages.forEach((row, i) => {
   for (const req of row.requestedBy) {
     assert.ok(realTitleBySlug[req.slug], `requester ${req.slug} for ${row.slug} must be a published article`);
     assert.equal(req.title, realTitleBySlug[req.slug], `requester ${req.slug} title must match the slug map`);
-    assert.equal(req.url, `${data.site}/wiki/${req.slug}/`, `requester ${req.slug} url must be the canonical article URL`);
+    assert.equal(req.url, wikiArticleHref(data.site, req.slug), `requester ${req.slug} url must use wikiArticleHref`);
   }
 });
 
