@@ -126,9 +126,32 @@ function renderWikiLinkTokens(value: string) {
   });
 }
 
+function resolveExactPlainTextInfoboxArticle(value: string) {
+  const targetSlug = resolveTargetSlug(value, slugAliases);
+  if (!targetSlug || !Object.prototype.hasOwnProperty.call(slugMap, targetSlug)) return null;
+
+  const normalizedValue = String(value ?? '').trim().toLowerCase();
+  const normalizedTitle = String(slugMap[targetSlug]?.title ?? '').trim().toLowerCase();
+  const normalizedSlug = targetSlug.replace(/_/g, ' ').toLowerCase();
+
+  if (normalizedValue !== normalizedTitle && normalizedValue !== normalizedSlug) return null;
+
+  return {
+    type: 'link' as const,
+    target: value,
+    text: value,
+    href: `/wiki/${targetSlug}/`,
+    exists: true,
+  };
+}
+
 function renderInfoboxValue(label: string, value: string) {
   const renderedTokens = renderWikiLinkTokens(value);
   if (renderedTokens.some((token) => token.type === 'link')) return renderedTokens;
+
+  const exactArticleLink = resolveExactPlainTextInfoboxArticle(value);
+  if (exactArticleLink) return [exactArticleLink];
+
   if (String(label ?? '').trim().toLowerCase() !== 'related') return renderedTokens;
 
   const targets = splitPlainTextRelatedTargets(value);

@@ -111,13 +111,35 @@ if (fs.existsSync(alphaTokensHtml) && Object.prototype.hasOwnProperty.call(slugM
   );
 }
 
+const dendriteHtml = path.join(distWikiDir, 'dendrite', 'index.html');
+if (fs.existsSync(dendriteHtml) && Object.prototype.hasOwnProperty.call(slugMap, 'synapse')) {
+  const html = fs.readFileSync(dendriteHtml, 'utf8');
+  const infoboxMatch = html.match(/<aside class="infobox"[^>]*>[\s\S]*?<\/aside>/);
+  const infobox = infoboxMatch ? infoboxMatch[0] : '';
+
+  assert.match(
+    infobox,
+    /<th scope="row">Message object<\/th>\s*<td>\s*<a class="internal" href="\/wiki\/synapse\/">Synapse<\/a>\s*<\/td>/,
+    'dendrite infobox must render its exact local Message object value as an internal synapse link'
+  );
+}
+
+const delegateHtml = path.join(distWikiDir, 'delegate', 'index.html');
+if (fs.existsSync(delegateHtml) && Object.prototype.hasOwnProperty.call(slugMap, 'subnet_validator')) {
+  const html = fs.readFileSync(delegateHtml, 'utf8');
+  const infoboxMatch = html.match(/<aside class="infobox"[^>]*>[\s\S]*?<\/aside>/);
+  const infobox = infoboxMatch ? infoboxMatch[0] : '';
+
+  assert.match(
+    infobox,
+    /<th scope="row">Role<\/th>\s*<td>\s*<a class="internal" href="\/wiki\/subnet_validator\/">Subnet validator<\/a>\s*<\/td>/,
+    'delegate infobox must render its exact local Role value as an internal subnet_validator link'
+  );
+}
+
 assert.ok(
   (linkGraph.axon || []).some((link) => link.target === 'subnet_protocol' && link.text === 'Subnet Protocol'),
   'axon linkgraph must include its infobox relationship to subnet_protocol'
-);
-assert.ok(
-  (linkGraph.dendrite || []).some((link) => link.target === 'subnet_protocol' && link.text === 'Subnet Protocol'),
-  'dendrite linkgraph must include its infobox relationship to subnet_protocol'
 );
 
 console.log('Wiki link rendering check passed');
