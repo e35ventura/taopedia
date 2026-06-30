@@ -264,6 +264,7 @@ export function expandGlossaryTokensConceptTarget(target, canonicalTarget) {
 
 const PLAIN_GLOSSARY_CANONICAL_OVERRIDE_SOURCE_SLUGS = new Set([
   'dividends',
+  'validator_dividend',
   'validator_dividends',
   'validator_weights',
   'weight_setting',
