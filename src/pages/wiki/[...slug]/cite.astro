@@ -4,6 +4,7 @@ import WikiLayout from '../../../layouts/WikiLayout.astro';
 import CiteCopyButtons from '../../../components/CiteCopyButtons.astro';
 import { getPageSlug, historyForSlug } from '../../../lib/article-history';
 import { publishedTitleBySlug } from '../../../lib/article-metadata';
+import { wikiArticleHref } from '../../../lib/wiki-article-path.js';
 import { buildCitations, CITATION_FORMATS, CITATION_META } from '../../../../scripts/citations.js';
 
 export async function getStaticPaths() {
@@ -15,7 +16,7 @@ export async function getStaticPaths() {
     const slug = getPageSlug(page);
     const title = titleBySlug[slug] ?? page.data.title;
     const lastRevision = historyForSlug(slug)[0]?.date ?? '';
-    const url = `${origin}/wiki/${slug}/`;
+    const url = wikiArticleHref(origin, slug);
     // Precomputed once per route in getStaticPaths — the page body used to call
     // historyForSlug again to derive the last-revision date for buildCitations().
     // Title comes from public/data/slugmap.json — same artifact cite.json reads.
