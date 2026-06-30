@@ -209,6 +209,47 @@ const linkgraphData = JSON.parse(fs.readFileSync(linkgraphFile, 'utf8'));
 const titleBySlug = Object.fromEntries(
   Object.entries(slugmap).map(([slug, meta]) => [slug, typeof meta?.title === 'string' ? meta.title : slug]),
 );
+
+assert.ok(
+  (linkgraphData.bt_logging_levels || []).some((entry) => entry.target === 'mining_and_validating' && entry.text === 'Mining and Validating'),
+  'generated linkgraph must recover the current bt_logging_levels Related row to mining_and_validating when the infobox value names the existing compound article',
+);
+assert.ok(
+  (linkgraphData.subnet_miner || []).some((entry) => entry.target === 'mining_and_validating' && entry.text === 'Mining and validating'),
+  'generated linkgraph must recover the current subnet_miner Related row to mining_and_validating when the infobox value names the existing compound article',
+);
+assert.ok(
+  (linkgraphData.subnet_validator || []).some((entry) => entry.target === 'mining_and_validating' && entry.text === 'Mining and Validating'),
+  'generated linkgraph must recover the current subnet_validator Related row to mining_and_validating when the infobox value names the existing compound article',
+);
+assert.ok(
+  (linkgraphData.price_protection || []).some((entry) => entry.target === 'staking_and_delegation' && entry.text === 'Staking and Delegation'),
+  'generated linkgraph must recover the current price_protection Related row to staking_and_delegation when the infobox value names the existing compound article',
+);
+assert.ok(
+  (linkgraphData.slippage || []).some((entry) => entry.target === 'staking_and_delegation' && entry.text === 'Staking and Delegation'),
+  'generated linkgraph must recover the current slippage Related row to staking_and_delegation when the infobox value names the existing compound article',
+);
+assert.ok(
+  (backlinksData.mining_and_validating || []).some((entry) => entry.from === 'bt_logging_levels'),
+  'generated backlinks must list bt_logging_levels under mining_and_validating when the Related infobox value names the existing compound article',
+);
+assert.ok(
+  (backlinksData.mining_and_validating || []).some((entry) => entry.from === 'subnet_miner'),
+  'generated backlinks must list subnet_miner under mining_and_validating when the Related infobox value names the existing compound article',
+);
+assert.ok(
+  (backlinksData.mining_and_validating || []).some((entry) => entry.from === 'subnet_validator'),
+  'generated backlinks must list subnet_validator under mining_and_validating when the Related infobox value names the existing compound article',
+);
+assert.ok(
+  (backlinksData.staking_and_delegation || []).some((entry) => entry.from === 'price_protection'),
+  'generated backlinks must list price_protection under staking_and_delegation when the Related infobox value names the existing compound article',
+);
+assert.ok(
+  (backlinksData.staking_and_delegation || []).some((entry) => entry.from === 'slippage'),
+  'generated backlinks must list slippage under staking_and_delegation when the Related infobox value names the existing compound article',
+);
 // referencesCount = the article's published outbound-reference count, re-derived
 // with the same getArticleReferences helper the endpoint uses (published-only join).
 const outboundCountFor = (slug) => getArticleReferences({ slug, linkGraph: linkgraphData, titleBySlug }).length;
