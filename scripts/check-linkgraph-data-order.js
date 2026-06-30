@@ -434,6 +434,24 @@ assert.deepEqual(
   'exact-existing glossary recovery should resolve a prefixed dividends label through its canonical emission anchor when the visible label article differs',
 );
 assert.deepEqual(
+  extractCanonicalGlossaryLinks(
+    'See [dividends](https://docs.learnbittensor.org/resources/glossary#emission).',
+  ),
+  [
+    {
+      target: 'dividends',
+      alternateTarget: '',
+      slashSecondTarget: '',
+      canonicalTarget: 'emission',
+      text: 'dividends',
+      requireExisting: true,
+      skipSelf: true,
+      allowSplitTargets: true,
+    },
+  ],
+  'canonical Learn Bittensor glossary markdown links should preserve plain homograph labels with canonical anchors that name a different local concept article',
+);
+assert.deepEqual(
   expandGlossaryCompoundSuffixTargets('TAO', 'tao'),
   [
     'Tao Reserve',
@@ -803,6 +821,22 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated linkgraph must not keep the current bonds_penalty validator weights glossary link pointed at validator_weights once the canonical weight vector anchor is available',
   );
   assert.ok(
+    (linkGraph.bittensor_evm_smart_contracts || []).some((entry) => entry.target === 'emission' && entry.text === 'dividends'),
+    'generated linkgraph must recover the current bittensor_evm_smart_contracts body link to emission when the plain dividends glossary label self-resolves but its canonical anchor names the emission concept article',
+  );
+  assert.ok(
+    !(linkGraph.bittensor_evm_smart_contracts || []).some((entry) => entry.target === 'dividends' && entry.text === 'dividends'),
+    'generated linkgraph must not keep the current bittensor_evm_smart_contracts plain dividends glossary link pointed at dividends once the canonical emission anchor is available',
+  );
+  assert.ok(
+    (linkGraph.bonds_moving_average || []).some((entry) => entry.target === 'weight_vector' && entry.text === 'validator weights'),
+    'generated linkgraph must recover the current bonds_moving_average body link to weight_vector when the plain validator weights glossary label self-resolves but its canonical anchor names the weight vector concept article',
+  );
+  assert.ok(
+    (linkGraph.senate || []).some((entry) => entry.target === 'delegation' && entry.text === 'delegate'),
+    'generated linkgraph must recover the current senate body link to delegation when the plain delegate glossary label self-resolves but its canonical anchor names the delegation concept article',
+  );
+  assert.ok(
     (backlinks.validator_take || []).some((entry) => entry.from === 'delegation'),
     'generated backlinks must list delegation under validator_take when a prefixed glossary alias falls back to the canonical glossary anchor',
   );
@@ -889,6 +923,18 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
   assert.ok(
     (backlinks.weight_vector || []).some((entry) => entry.from === 'bonds_penalty'),
     'generated backlinks must list bonds_penalty under weight_vector when a prefixed validator weights glossary label falls back to its canonical weight vector anchor',
+  );
+  assert.ok(
+    (backlinks.emission || []).some((entry) => entry.from === 'bittensor_evm_smart_contracts'),
+    'generated backlinks must list bittensor_evm_smart_contracts under emission when a plain dividends glossary label falls back to its canonical emission anchor',
+  );
+  assert.ok(
+    (backlinks.weight_vector || []).some((entry) => entry.from === 'bonds_moving_average'),
+    'generated backlinks must list bonds_moving_average under weight_vector when a plain validator weights glossary label falls back to its canonical weight vector anchor',
+  );
+  assert.ok(
+    (backlinks.delegation || []).some((entry) => entry.from === 'senate'),
+    'generated backlinks must list senate under delegation when a plain delegate glossary label falls back to its canonical delegation anchor',
   );
   assert.ok(
     (linkGraph.subnet_11 || []).some((entry) => entry.target === 'multiple_incentive_mechanisms' && entry.text === 'Glossary'),
