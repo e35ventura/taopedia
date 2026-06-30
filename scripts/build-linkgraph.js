@@ -155,7 +155,9 @@ export function extractCanonicalGlossaryLinks(content) {
     // exact-only retries on those suffixes. When the visible label is only the
     // generic word "Glossary", keep the canonical glossary anchor as an
     // exact-only fallback so the link graph can still recover the named local
-    // concept without treating the generic label as a plain-text alias.
+    // concept without treating the generic label as a plain-text alias. When a
+    // prefixed glossary label resolves to a different local article than its
+    // canonical hash anchor, keep the canonical anchor as the exact-only target.
     links.push({
       target,
       alternateTarget,
@@ -565,10 +567,19 @@ function main() {
           && nonSelfLabelTargets[0] !== fallbackCanonicalTargets[0]
           ? fallbackCanonicalTargets
           : [];
+        const glossaryCanonicalOverrideTargets = isPrefixedGlossaryLabel
+          && nonSelfLabelTargets.length === 1
+          && fallbackCanonicalTargets.length === 1
+          && nonSelfLabelTargets[0] !== fallbackCanonicalTargets[0]
+          && fallbackCanonicalTargets[0] !== 'protocol_alpha'
+          ? fallbackCanonicalTargets
+          : [];
         const resolvedTargets = nonSelfLabelTargets.length > 0
           ? glossaryAcronymCanonicalTargets.length > 0
             ? glossaryAcronymCanonicalTargets
-            : nonSelfLabelTargets
+            : glossaryCanonicalOverrideTargets.length > 0
+              ? glossaryCanonicalOverrideTargets
+              : nonSelfLabelTargets
           : alternateTargets.length > 0
             ? alternateTargets
             : slashSecondTargets.length > 0

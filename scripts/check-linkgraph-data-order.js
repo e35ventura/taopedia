@@ -94,6 +94,9 @@ const resolverSlugMap = {
     infoboxTitle: 'MEV',
   },
   tempo: { title: 'Tempo' },
+  emission: { title: 'Emission' },
+  dividends: { title: 'Dividends' },
+  weight_vector: { title: 'Weight Vector' },
   multiple_incentive_mechanisms: { title: 'Multiple Incentive Mechanisms' },
   subnet_scoring_model: { title: 'Subnet Scoring Model' },
   validator_take: { title: 'Validator Take' },
@@ -400,6 +403,35 @@ assert.deepEqual(
   }),
   ['multiple_incentive_mechanisms'],
   'exact-existing glossary recovery should resolve a generic glossary label through its canonical anchor when the visible label is only Glossary',
+);
+assert.deepEqual(
+  extractCanonicalGlossaryLinks(
+    'See [Glossary: Dividends](https://docs.learnbittensor.org/resources/glossary#emission).',
+  ),
+  [
+    {
+      target: 'Dividends',
+      alternateTarget: '',
+      slashSecondTarget: '',
+      canonicalTarget: 'emission',
+      text: 'Glossary: Dividends',
+      requireExisting: true,
+      skipSelf: true,
+      allowSplitTargets: false,
+    },
+  ],
+  'canonical Learn Bittensor glossary markdown links should preserve prefixed labels with canonical anchors that name a different local concept article',
+);
+assert.deepEqual(
+  resolveBuildLinkTargets({
+    target: 'emission',
+    slugAliases: resolverAliases,
+    slugMap: resolverSlugMap,
+    requireExisting: true,
+    allowSplitTargets: false,
+  }),
+  ['emission'],
+  'exact-existing glossary recovery should resolve a prefixed dividends label through its canonical emission anchor when the visible label article differs',
 );
 assert.deepEqual(
   expandGlossaryCompoundSuffixTargets('TAO', 'tao'),
@@ -755,6 +787,22 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated linkgraph must recover the current mempool body link to mempool_visibility when the prefixed glossary short label self-resolves but its visibility compound sibling concept article exists',
   );
   assert.ok(
+    (linkGraph.alpha_staker || []).some((entry) => entry.target === 'emission' && entry.text === 'Glossary: Dividends'),
+    'generated linkgraph must recover the current alpha_staker body link to emission when the prefixed dividends glossary label self-resolves but its canonical anchor names the emission concept article',
+  );
+  assert.ok(
+    !(linkGraph.alpha_staker || []).some((entry) => entry.target === 'dividends' && entry.text === 'Glossary: Dividends'),
+    'generated linkgraph must not keep the current alpha_staker dividends glossary link pointed at dividends once the canonical emission anchor is available',
+  );
+  assert.ok(
+    (linkGraph.bonds_penalty || []).some((entry) => entry.target === 'weight_vector' && entry.text === 'Glossary: Validator Weights'),
+    'generated linkgraph must recover the current bonds_penalty body link to weight_vector when the prefixed validator weights glossary label self-resolves but its canonical anchor names the weight vector concept article',
+  );
+  assert.ok(
+    !(linkGraph.bonds_penalty || []).some((entry) => entry.target === 'validator_weights' && entry.text === 'Glossary: Validator Weights'),
+    'generated linkgraph must not keep the current bonds_penalty validator weights glossary link pointed at validator_weights once the canonical weight vector anchor is available',
+  );
+  assert.ok(
     (backlinks.validator_take || []).some((entry) => entry.from === 'delegation'),
     'generated backlinks must list delegation under validator_take when a prefixed glossary alias falls back to the canonical glossary anchor',
   );
@@ -833,6 +881,14 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
   assert.ok(
     (backlinks.mempool_visibility || []).some((entry) => entry.from === 'mempool'),
     'generated backlinks must list mempool under mempool_visibility when a prefixed glossary short label falls back to its visibility compound sibling concept article',
+  );
+  assert.ok(
+    (backlinks.emission || []).some((entry) => entry.from === 'alpha_staker'),
+    'generated backlinks must list alpha_staker under emission when a prefixed dividends glossary label falls back to its canonical emission anchor',
+  );
+  assert.ok(
+    (backlinks.weight_vector || []).some((entry) => entry.from === 'bonds_penalty'),
+    'generated backlinks must list bonds_penalty under weight_vector when a prefixed validator weights glossary label falls back to its canonical weight vector anchor',
   );
   assert.ok(
     (linkGraph.subnet_11 || []).some((entry) => entry.target === 'multiple_incentive_mechanisms' && entry.text === 'Glossary'),
