@@ -102,7 +102,9 @@ export function extractCanonicalGlossaryLinks(content) {
       : rawTarget;
     const alternateTarget = hasGlossaryPrefix && rawTarget.includes('/')
       ? rawTarget.split('/')[0].trim().replace(/\s+/g, ' ')
-      : '';
+      : hasGlossaryPrefix && /^([A-Za-z]+)-([A-Za-z]+)/.test(rawTarget)
+        ? rawTarget.replace(/^([A-Za-z]+)-([A-Za-z]+)/, '$2-$1').trim()
+        : '';
     if (!target) continue;
     let canonicalTarget = hasGlossaryPrefix
       ? decodeURIComponent(match[2].split('#')[1] || '').replace(/[-_]+/g, ' ').trim()
@@ -134,7 +136,10 @@ export function extractCanonicalGlossaryLinks(content) {
     // prefixed label ends with a parenthetical acronym like "(EMA)", allow one
     // final exact-only retry that strips the acronym and pluralizes the last
     // word so glossary singular phrasing can still recover an existing local
-    // plural concept article.
+    // plural concept article. When a prefixed label's first hyphen compound is
+    // word-order-reversed from the local title (e.g. "Coldkey-hotkey pair" vs
+    // "Hotkey-Coldkey Pair"), keep a swapped hyphen fallback before consulting
+    // the canonical glossary anchor.
     links.push({
       target,
       alternateTarget,

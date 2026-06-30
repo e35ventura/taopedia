@@ -85,6 +85,7 @@ const resolverSlugMap = {
   root_subnet: { title: 'Root Subnet' },
   alpha_distribution_ratio: { title: 'Alpha Distribution Ratio' },
   exponential_moving_averages: { title: 'Exponential Moving Averages', infoboxTitle: 'Exponential Moving Averages' },
+  hotkey_coldkey_pair: { title: 'Hotkey-Coldkey Pair' },
 };
 const resolverAliases = buildSlugAliases(resolverSlugMap);
 assert.deepEqual(
@@ -182,6 +183,34 @@ assert.deepEqual(
   }),
   ['alpha_distribution_ratio'],
   'exact-existing glossary recovery should resolve a canonical glossary anchor after a redundant leading acronym has been stripped',
+);
+assert.deepEqual(
+  extractCanonicalGlossaryLinks(
+    'See [Glossary: Coldkey-hotkey pair](https://docs.learnbittensor.org/resources/glossary#coldkey-hotkey-pair).',
+  ),
+  [
+    {
+      target: 'Coldkey-hotkey pair',
+      alternateTarget: 'hotkey-Coldkey pair',
+      canonicalTarget: 'coldkey hotkey pair',
+      text: 'Glossary: Coldkey-hotkey pair',
+      requireExisting: true,
+      skipSelf: true,
+      allowSplitTargets: false,
+    },
+  ],
+  'canonical Learn Bittensor glossary markdown links should preserve a hyphen-reversed first compound as an alternate fallback',
+);
+assert.deepEqual(
+  resolveBuildLinkTargets({
+    target: 'hotkey-Coldkey pair',
+    slugAliases: resolverAliases,
+    slugMap: resolverSlugMap,
+    requireExisting: true,
+    allowSplitTargets: false,
+  }),
+  ['hotkey_coldkey_pair'],
+  'exact-existing glossary recovery should match a hyphen-reversed first compound when the visible prefixed label misses',
 );
 
 function assertSortedKeys(object, label) {
@@ -304,7 +333,7 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated linkgraph must keep the current sandwich_attack Related: MEV infobox edge when the local MEV article exists',
   );
   assert.ok(
-    (linkGraph.activity_cutoff || []).some((entry) => entry.target === 'tempo' && entry.text === 'tempo'),
+    (linkGraph.activity_cutoff || []).some((entry) => entry.target === 'tempo' && entry.text === 'Glossary: Tempo'),
     'generated linkgraph must recover the current activity_cutoff body link to the local tempo article from a canonical glossary markdown link',
   );
   assert.ok(
@@ -368,6 +397,18 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated linkgraph must recover the current halving_mechanisms body link to alpha_distribution_ratio when the visible glossary label is an acronym that is redundantly repeated at the start of the canonical anchor',
   );
   assert.ok(
+    (linkGraph.hotkey_swap || []).some((entry) => entry.target === 'hotkey_coldkey_pair' && entry.text === 'Glossary: Coldkey-hotkey pair'),
+    'generated linkgraph must recover the current hotkey_swap body link to hotkey_coldkey_pair when the prefixed glossary label hyphen compound is word-order-reversed from the local title',
+  );
+  assert.ok(
+    (linkGraph.wallets_coldkey_hotkey || []).some((entry) => entry.target === 'hotkey_coldkey_pair' && entry.text === 'Glossary: Coldkey-hotkey pair'),
+    'generated linkgraph must recover the current wallets_coldkey_hotkey body link to hotkey_coldkey_pair when the prefixed glossary label hyphen compound is word-order-reversed from the local title',
+  );
+  assert.ok(
+    (linkGraph.coldkey_hotkey_workstation_security || []).some((entry) => entry.target === 'hotkey_coldkey_pair' && entry.text === 'Glossary: Coldkey-hotkey Pair'),
+    'generated linkgraph must recover the current coldkey_hotkey_workstation_security body link to hotkey_coldkey_pair when the prefixed glossary label hyphen compound is word-order-reversed from the local title',
+  );
+  assert.ok(
     (backlinks.validator_take || []).some((entry) => entry.from === 'delegation'),
     'generated backlinks must list delegation under validator_take when a prefixed glossary alias falls back to the canonical glossary anchor',
   );
@@ -394,6 +435,18 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
   assert.ok(
     (backlinks.alpha_distribution_ratio || []).some((entry) => entry.from === 'alpha_outstanding'),
     'generated backlinks must list alpha_outstanding under alpha_distribution_ratio when a prefixed glossary acronym falls back to the stripped canonical anchor',
+  );
+  assert.ok(
+    (backlinks.hotkey_coldkey_pair || []).some((entry) => entry.from === 'hotkey_swap'),
+    'generated backlinks must list hotkey_swap under hotkey_coldkey_pair when a prefixed glossary hyphen label falls back to its word-order-reversed local alternative',
+  );
+  assert.ok(
+    (backlinks.hotkey_coldkey_pair || []).some((entry) => entry.from === 'wallets_coldkey_hotkey'),
+    'generated backlinks must list wallets_coldkey_hotkey under hotkey_coldkey_pair when a prefixed glossary hyphen label falls back to its word-order-reversed local alternative',
+  );
+  assert.ok(
+    (backlinks.hotkey_coldkey_pair || []).some((entry) => entry.from === 'coldkey_hotkey_workstation_security'),
+    'generated backlinks must list coldkey_hotkey_workstation_security under hotkey_coldkey_pair when a prefixed glossary hyphen label falls back to its word-order-reversed local alternative',
   );
   assert.ok(
     !(linkGraph.tempo || []).some((entry) => entry.target === 'tempo'),
