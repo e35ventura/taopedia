@@ -636,6 +636,22 @@ infoboxRowAccepts('Cassandra and Neo4j are described as prose', 'benign data-sto
 infoboxRowAccepts('ZooKeeper, HDFS, Hazelcast, Riak, MinIO, and Solr are described as prose', 'benign data-store prose allowed in an infobox row value');
 accepts('A bolt of lightning, the Cassandra prophecy, and a Neo4j graph are described here only as prose.', 'benign bolt/cassandra/neo4j prose (no // authority)');
 accepts('ZooKeeper coordination, HDFS storage, Hazelcast caching, Riak KV, MinIO object storage, and Solr search are described here only as prose.', 'benign zookeeper/hdfs/hazelcast/riak/minio/solr prose (no // authority)');
+// s3://gs://gcs://wasb(s)://abfs(s)://oss://cos:// are cloud object-storage connection schemes
+// — the cloud-bucket sibling of the already-blocked, S3-compatible minio:// — addressing a
+// bucket/endpoint at a cloud (or attacker-overridable) host, an SSRF / data-exfiltration target.
+rejects('See [x](s3://internal-bucket/payload).', 'plain s3:// AWS object-storage URL');
+rejects('See [x](gs://internal-bucket/object).', 'plain gs:// Google Cloud Storage URL');
+rejects('See [x](gcs://internal-bucket/object).', 'plain gcs:// Google Cloud Storage URL');
+rejects('See [x](wasb://container@acct.blob.core.windows.net/path).', 'plain wasb:// Azure Blob URL');
+rejects('See [x](wasbs://container@acct.blob.core.windows.net/path).', 'plain wasbs:// Azure Blob URL');
+rejects('See [x](abfs://fs@acct.dfs.core.windows.net/path).', 'plain abfs:// Azure Data Lake URL');
+rejects('See [x](abfss://fs@acct.dfs.core.windows.net/path).', 'plain abfss:// Azure Data Lake URL');
+rejects('See [x](oss://internal-bucket/object).', 'plain oss:// Alibaba OSS URL');
+rejects('See [x](cos://internal-bucket/object).', 'plain cos:// Tencent COS URL');
+rejects('See [x](s&#51;://internal-bucket/payload).', 'entity-obfuscated s3:// (obfuscated scan path)');
+infoboxRowRejects('s3://internal-bucket/payload', 's3:// rejected in an infobox row value');
+infoboxRowRejects('abfss://fs@acct.dfs.core.windows.net/path', 'abfss:// rejected in an infobox row value');
+accepts('Amazon S3, Google Cloud Storage, Azure Blob, Alibaba OSS, and Tencent COS object storage are described here only as prose.', 'benign cloud object-storage prose (no // authority)');
 // coap://coaps:// (Constrained Application Protocol, IoT) address a non-http device at a
 // host:port — an SSRF target. Covered across plain, entity-decoded, and infobox scans.
 rejects('See [x](coap://internal-device:5683/sensor).', 'plain coap:// IoT URL');

@@ -821,6 +821,16 @@ const unsafeContentPatterns = [
   // these are never a valid article link. The // authority form is required so prose
   // ("a bolt of lightning", "the Cassandra prophecy", "DynamoDB: a key-value store") is unaffected.
   { pattern: /\b(?:clickhouse|cassandra|couchbase|couchdb|neo4j|bolt|dynamodb|elasticsearch|arangodb|zookeeper|hdfs|hazelcast|riak|minio|solr)\s*:\/\//i, reason: 'data-store connection URL schemes are not allowed in article content' },
+  // s3:// gs:// gcs:// wasb://wasbs:// abfs://abfss:// oss:// cos:// are cloud object-storage
+  // connection URL schemes — the cloud-bucket sibling of the self-hosted, S3-compatible
+  // minio:// scheme already blocked directly above. Each addresses a storage bucket / endpoint
+  // at a cloud (or attacker-overridable) host, not an http(s) resource: s3:// (AWS S3, also the
+  // boto/s3cmd scheme), gs://gcs:// (Google Cloud Storage / gsutil), wasb://wasbs:// (Azure Blob),
+  // abfs://abfss:// (Azure Data Lake Gen2), oss:// (Alibaba OSS), and cos:// (Tencent COS). They
+  // are recognized SSRF / data-exfiltration targets and, like the redis:/minio:/clickhouse:
+  // schemes, are never a valid http(s) article link. The // authority form is required so prose
+  // about "S3", "Cloud Storage", or "OSS" is unaffected.
+  { pattern: /\b(?:s3|gs|gcs|wasbs|wasb|abfss|abfs|oss|cos)\s*:\/\//i, reason: 'cloud object-storage connection URL schemes are not allowed in article content' },
   // coap:// coaps:// are the Constrained Application Protocol (IoT) schemes: like the
   // message-broker/database schemes above they address a non-http service at a host:port
   // (an IoT device or gateway), not an http(s) resource — never a valid article link and a
@@ -1161,6 +1171,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:git|svn|cvs)\s*:\/\//i, reason: 'version-control protocol URL schemes are not allowed in article content' },
   { pattern: /(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats|rabbitmq|pulsar)\s*:\/\//i, reason: 'message-broker connection URL schemes are not allowed in article content' },
   { pattern: /(?:clickhouse|cassandra|couchbase|couchdb|neo4j|bolt|dynamodb|elasticsearch|arangodb|zookeeper|hdfs|hazelcast|riak|minio|solr)\s*:\/\//i, reason: 'data-store connection URL schemes are not allowed in article content' },
+  { pattern: /(?:s3|gs|gcs|wasbs|wasb|abfss|abfs|oss|cos)\s*:\/\//i, reason: 'cloud object-storage connection URL schemes are not allowed in article content' },
   { pattern: /(?:coaps|coap)\s*:\/\//i, reason: 'CoAP IoT connection URL schemes are not allowed in article content' },
   { pattern: /(?:wss|ws|gemini|snmp)\s*:\/\//i, reason: 'non-http network-protocol URL schemes are not allowed in article content' },
   { pattern: /(?:ftp|rdp|vnc|spice|teamviewer|anydesk|rustdesk|logmein|parsec|nomachine|ultraviewer|splashtop|chrome-remote-desktop|googlechromeremotedesktop|telnet|ssh|sftp|fish|rlogin|rsh|tn3270)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
@@ -1233,6 +1244,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:git|svn|cvs)\s*:\/\//i,
   /(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats|rabbitmq|pulsar)\s*:\/\//i,
   /(?:clickhouse|cassandra|couchbase|couchdb|neo4j|bolt|dynamodb|elasticsearch|arangodb|zookeeper|hdfs|hazelcast|riak|minio|solr)\s*:\/\//i,
+  /(?:s3|gs|gcs|wasbs|wasb|abfss|abfs|oss|cos)\s*:\/\//i,
   /(?:coaps|coap)\s*:\/\//i,
   /(?:wss|ws|gemini|snmp)\s*:\/\//i,
   /(?:ftp|rdp|vnc|spice|teamviewer|anydesk|rustdesk|logmein|parsec|nomachine|ultraviewer|splashtop|chrome-remote-desktop|googlechromeremotedesktop|telnet|ssh|sftp|fish|rlogin|rsh|tn3270)\s*:\/\//i,
