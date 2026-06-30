@@ -101,9 +101,16 @@ export function extractCanonicalGlossaryLinks(content) {
       ? rawTarget.replace(/\/+/g, ' ').replace(/\s+/g, ' ').trim()
       : rawTarget;
     if (!target) continue;
-    const canonicalTarget = hasGlossaryPrefix
+    let canonicalTarget = hasGlossaryPrefix
       ? decodeURIComponent(match[2].split('#')[1] || '').replace(/[-_]+/g, ' ').trim()
       : '';
+    if (
+      hasGlossaryPrefix &&
+      /^[A-Z0-9-]+$/.test(target) &&
+      canonicalTarget.toLowerCase().startsWith(`${target.toLowerCase()} `)
+    ) {
+      canonicalTarget = canonicalTarget.slice(target.length).trim();
+    }
 
     // Current article prose often references Learn Bittensor glossary anchors
     // whose visible label already names an existing local Taopedia concept,
@@ -115,7 +122,9 @@ export function extractCanonicalGlossaryLinks(content) {
     // a fallback so the link graph can still recover the existing local concept.
     // Also treat slash-separated visible labels like "Drand/time-lock encryption"
     // as word boundaries for the exact-only local match without broadening other
-    // wiki-link resolution paths.
+    // wiki-link resolution paths. Likewise, some glossary acronyms like "ADR"
+    // repeat themselves at the start of the canonical anchor ("adr alpha ...");
+    // strip that redundant acronym only in the prefixed exact-only fallback path.
     links.push({
       target,
       canonicalTarget,
