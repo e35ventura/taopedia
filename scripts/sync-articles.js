@@ -1108,6 +1108,18 @@ const unsafeContentPatterns = [
   // The (?=non-space) lookahead requires a real target after the colon, and the hyphenated
   // "microsoft-edge" token never occurs in glossary prose.
   { pattern: /\bmicrosoft-edge\s*:(?=[^\s"'<>)])/i, reason: 'microsoft-edge: protocol-handler URLs are not allowed in article content' },
+  // hcp: and help: are OS help-viewer protocol handlers the system — not the browser —
+  // resolves when a link is clicked. hcp: is the Windows Help and Support Center handler
+  // whose URL parsing was the documented remote-code-execution vector CVE-2010-1885 (the
+  // hcp://system/... escape), and help: is the macOS Help Viewer handler whose help:runscript=
+  // / help:topic= forms have a documented history of arbitrary AppleScript/command execution
+  // (CVE-2004-0486 and later Help Viewer abuses). A clicked link drives a native help app
+  // outside the page sandbox with no script — the same native protocol-handler class as the
+  // blocked ms-msdt:/onenote:/shell: handlers, and article links are limited to http(s) so
+  // neither is ever a valid article link. The (?=non-space) lookahead requires a real target
+  // after the colon, so prose like "Help: a function" or "self-help: a guide" (a word followed
+  // by a colon and a space) is never affected.
+  { pattern: /\b(?:hcp|help)\s*:(?=[^\s"'<>)])/i, reason: 'OS help-viewer protocol-handler URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*image\/svg\+xml/i, reason: 'SVG data URLs are not allowed in article content' },
   { pattern: /\bdata\s*:\s*application\/xhtml\+xml/i, reason: 'XHTML data URLs are not allowed in article content' },
@@ -1196,6 +1208,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /\bshell\s*:(?=[^\s"'<>)])/i, reason: 'shell: protocol-handler URLs are not allowed in article content' },
   { pattern: /\bms-cxh(?:-full)?\s*:/i, reason: 'Windows CloudExperienceHost protocol-handler URLs are not allowed in article content' },
   { pattern: /\bmicrosoft-edge\s*:(?=[^\s"'<>)])/i, reason: 'microsoft-edge: protocol-handler URLs are not allowed in article content' },
+  { pattern: /\b(?:hcp|help)\s*:(?=[^\s"'<>)])/i, reason: 'OS help-viewer protocol-handler URLs are not allowed in article content' },
   { pattern: /data\s*:\s*text\/html/i, reason: 'HTML data URLs are not allowed in article content' },
   { pattern: /data\s*:\s*image\/svg\+xml/i, reason: 'SVG data URLs are not allowed in article content' },
   { pattern: /data\s*:\s*application\/xhtml\+xml/i, reason: 'XHTML data URLs are not allowed in article content' },
@@ -1261,6 +1274,7 @@ const infoboxRowValueSchemePatterns = [
   /\bshell\s*:(?=[^\s"'<>)])/i,
   /\bms-cxh(?:-full)?\s*:/i,
   /\bmicrosoft-edge\s*:(?=[^\s"'<>)])/i,
+  /\b(?:hcp|help)\s*:(?=[^\s"'<>)])/i,
   /data\s*:\s*text\/html/i,
   /data\s*:\s*image\/svg\+xml/i,
   /data\s*:\s*application\/xhtml\+xml/i,

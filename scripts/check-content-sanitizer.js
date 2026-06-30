@@ -1152,6 +1152,20 @@ rejects('See [x](microsoft-e&#100;ge:https://attacker.example).', 'entity-obfusc
 infoboxRowRejects('microsoft-edge:https://attacker.example/phish', 'microsoft-edge: rejected in an infobox row value');
 accepts('Microsoft Edge: a Chromium-based web browser is described here only as prose.', 'benign "Microsoft Edge:" prose (colon then space)');
 
+// hcp: (Windows Help and Support Center, the CVE-2010-1885 RCE vector) and help: (macOS
+// Help Viewer, with a documented history of help:runscript= AppleScript execution) are OS
+// help-viewer protocol handlers the system resolves outside the browser - blocked like the
+// ms-msdt:/onenote:/shell: native handlers. The non-space lookahead keeps prose like
+// "Help: a function" or "self-help: a guide" (colon then space) passing.
+rejects('See [x](hcp://system/DFS/uplddrvinfo.htm?foo).', 'plain hcp:// Windows Help Center URL');
+rejects('See [x](help:runscript=evil).', 'plain help: macOS Help Viewer URL');
+rejects('See [x](help:topic=attacker).', 'plain help: topic URL');
+rejects('See [x](h&#99;p://system/x).', 'entity-obfuscated hcp:// (obfuscated scan path)');
+rejects('See [x](he&#108;p:runscript=evil).', 'entity-obfuscated help: (obfuscated scan path)');
+infoboxRowRejects('hcp://system/DFS/uplddrvinfo.htm', 'hcp:// rejected in an infobox row value');
+infoboxRowRejects('help:runscript=evil', 'help: rejected in an infobox row value');
+accepts('Online Help: a documentation system, and self-help: a genre, are described here only as prose.', 'benign "Help:" / "self-help:" prose (colon then space)');
+
 // MDX expression braces execute at build time in article bodies. They are only
 // allowed when escaped as literal prose or inside Markdown code examples.
 rejects('Do not evaluate {process.env.SECRET_TOKEN}.', 'plain MDX expression brace');
