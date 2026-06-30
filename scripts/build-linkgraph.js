@@ -96,7 +96,10 @@ export function extractCanonicalGlossaryLinks(content) {
   while ((match = glossaryLinkRegex.exec(value)) !== null) {
     const text = match[1].trim();
     const hasGlossaryPrefix = /^Glossary:\s*/i.test(text);
-    const target = text.replace(/^Glossary:\s*/i, '').trim();
+    const rawTarget = text.replace(/^Glossary:\s*/i, '').trim();
+    const target = hasGlossaryPrefix
+      ? rawTarget.replace(/\/+/g, ' ').replace(/\s+/g, ' ').trim()
+      : rawTarget;
     if (!target) continue;
     const canonicalTarget = hasGlossaryPrefix
       ? decodeURIComponent(match[2].split('#')[1] || '').replace(/[-_]+/g, ' ').trim()
@@ -110,6 +113,9 @@ export function extractCanonicalGlossaryLinks(content) {
     // recovery keeps working for plain labels. When a prefixed visible alias
     // like "Glossary: Validator" misses, keep the canonical glossary anchor as
     // a fallback so the link graph can still recover the existing local concept.
+    // Also treat slash-separated visible labels like "Drand/time-lock encryption"
+    // as word boundaries for the exact-only local match without broadening other
+    // wiki-link resolution paths.
     links.push({
       target,
       canonicalTarget,
