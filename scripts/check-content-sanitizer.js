@@ -642,6 +642,13 @@ rejects('See [x](coap://internal-device:5683/sensor).', 'plain coap:// IoT URL')
 rejects('See [x](coaps://internal-device:5684/sensor).', 'plain coaps:// IoT URL');
 rejects('See [x](co&#97;p://internal-device:5683/sensor).', 'entity-obfuscated coap:// (obfuscated scan path)');
 infoboxRowRejects('coap://internal-device:5683/sensor', 'coap:// rejected in an infobox row value');
+// ipp://ipps:// (Internet Printing Protocol) address a printer/print service at a host:port
+// — the same non-http SSRF class as coap://, and the 2024 CUPS RCE chain (CVE-2024-47176).
+rejects('See [x](ipp://internal-host:631/printers/x).', 'plain ipp:// printing URL');
+rejects('See [x](ipps://internal-host:631/printers/x).', 'plain ipps:// printing URL');
+rejects('See [x](i&#112;p://internal-host:631/printers/x).', 'entity-obfuscated ipp:// (obfuscated scan path)');
+infoboxRowRejects('ipp://internal-host:631/printers/x', 'ipp:// rejected in an infobox row value');
+accepts('The IPP protocol for network printing is described here only as prose.', 'benign "IPP" prose (no // authority)');
 // ws:// wss:// gemini:// snmp:// are non-http network-protocol schemes (WebSocket SSRF,
 // Gemini client launch, SNMP manager launch). The // authority form keeps prose safe.
 rejects('See [x](ws://internal-host:8080/socket).', 'plain ws:// WebSocket URL');

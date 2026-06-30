@@ -827,6 +827,15 @@ const unsafeContentPatterns = [
   // canonical SSRF target for reaching internal devices. The // authority form keeps prose
   // about "CoAP" unaffected.
   { pattern: /\b(?:coaps|coap)\s*:\/\//i, reason: 'CoAP IoT connection URL schemes are not allowed in article content' },
+  // ipp:// ipps:// are the Internet Printing Protocol schemes: each addresses a printer /
+  // print service at a host:port, not an http(s) resource — the same non-http host:port
+  // class as the coap://, ws://, and snmp:// schemes above, and a canonical SSRF target.
+  // A crafted ipp:// URL is exactly the 2024 CUPS chain (CVE-2024-47176 and friends): it
+  // drives cups-browsed to fetch attacker-controlled IPP attributes, leading to SSRF and
+  // ultimately remote command execution. Article links are limited to http(s), so these are
+  // never a valid article link. The // authority form is required so prose about "the IPP
+  // protocol" is unaffected.
+  { pattern: /\b(?:ipps|ipp)\s*:\/\//i, reason: 'Internet Printing Protocol URL schemes are not allowed in article content' },
   // ws:// wss:// gemini:// snmp:// are non-http network-protocol schemes: a clicked
   // ws(s):// URL opens a raw WebSocket to the host (SSRF / internal-service reach),
   // gemini:// hands off to a Gemini client, and snmp:// to an SNMP manager — all
@@ -1162,6 +1171,7 @@ const obfuscatedSchemePatterns = [
   { pattern: /(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats|rabbitmq|pulsar)\s*:\/\//i, reason: 'message-broker connection URL schemes are not allowed in article content' },
   { pattern: /(?:clickhouse|cassandra|couchbase|couchdb|neo4j|bolt|dynamodb|elasticsearch|arangodb|zookeeper|hdfs|hazelcast|riak|minio|solr)\s*:\/\//i, reason: 'data-store connection URL schemes are not allowed in article content' },
   { pattern: /(?:coaps|coap)\s*:\/\//i, reason: 'CoAP IoT connection URL schemes are not allowed in article content' },
+  { pattern: /(?:ipps|ipp)\s*:\/\//i, reason: 'Internet Printing Protocol URL schemes are not allowed in article content' },
   { pattern: /(?:wss|ws|gemini|snmp)\s*:\/\//i, reason: 'non-http network-protocol URL schemes are not allowed in article content' },
   { pattern: /(?:ftp|rdp|vnc|spice|teamviewer|anydesk|rustdesk|logmein|parsec|nomachine|ultraviewer|splashtop|chrome-remote-desktop|googlechromeremotedesktop|telnet|ssh|sftp|fish|rlogin|rsh|tn3270)\s*:\/\//i, reason: 'remote-session client-launch URL schemes are not allowed in article content' },
   { pattern: /(?:rtsps?|rtspu|mms)\s*:\/\//i, reason: 'media-streaming client-launch URL schemes are not allowed in article content' },
@@ -1234,6 +1244,7 @@ const infoboxRowValueSchemePatterns = [
   /(?:amqps|amqp|mqtts|mqtt|stomp|kafka|nats|rabbitmq|pulsar)\s*:\/\//i,
   /(?:clickhouse|cassandra|couchbase|couchdb|neo4j|bolt|dynamodb|elasticsearch|arangodb|zookeeper|hdfs|hazelcast|riak|minio|solr)\s*:\/\//i,
   /(?:coaps|coap)\s*:\/\//i,
+  /(?:ipps|ipp)\s*:\/\//i,
   /(?:wss|ws|gemini|snmp)\s*:\/\//i,
   /(?:ftp|rdp|vnc|spice|teamviewer|anydesk|rustdesk|logmein|parsec|nomachine|ultraviewer|splashtop|chrome-remote-desktop|googlechromeremotedesktop|telnet|ssh|sftp|fish|rlogin|rsh|tn3270)\s*:\/\//i,
   /(?:rtsps?|rtspu|mms)\s*:\/\//i,
