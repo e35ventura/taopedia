@@ -108,6 +108,7 @@ export function buildSlugAliases(slugMap) {
       slugify(slug),
       slugify(slug.replaceAll('_', ' ')),
       slugify(meta?.title || ''),
+      slugify(meta?.infoboxTitle || ''),
     ]);
     for (const key of keys) {
       // Never overwrite an existing alias: a seeded identity mapping and the
@@ -169,6 +170,7 @@ export function loadSlugMapFromContent(contentDir) {
 
     slugMap[slug] = {
       title: data.title || slug,
+      infoboxTitle: data.infoboxTitle || '',
       categories: data.categories || [],
       summary: data.summary || '',
     };

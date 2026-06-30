@@ -60,6 +60,9 @@ try {
   );
 
   const slugMap = {
+    coldkeys: { title: 'Coldkeys (Bittensor)', infoboxTitle: 'Coldkey' },
+    hotkeys: { title: 'Hotkeys (Bittensor)', infoboxTitle: 'Hotkey' },
+    mev_maximal_extractable_value: { title: 'MEV (Maximal Extractable Value)', infoboxTitle: 'MEV' },
     subnet: { title: 'Subnet' },
     network_min_lock_cost: { title: 'Network Min Lock Cost' },
     weight_vector: { title: 'Weight Vector' },
@@ -88,6 +91,26 @@ try {
     }),
     ['research_and_development'],
     'linkgraph should keep a directly resolvable Related title intact instead of splitting it',
+  );
+  assert.deepEqual(
+    resolveBuildLinkTargets({
+      target: 'MEV',
+      slugAliases,
+      slugMap,
+      requireExisting: true,
+    }),
+    ['mev_maximal_extractable_value'],
+    'linkgraph should recover existing articles from infobox-title aliases used in plain-text Related rows',
+  );
+  assert.deepEqual(
+    resolveBuildLinkTargets({
+      target: 'Coldkey and hotkey',
+      slugAliases,
+      slugMap,
+      requireExisting: true,
+    }),
+    ['coldkeys', 'hotkeys'],
+    'linkgraph should split plain-text Related rows into infobox-title aliases for existing articles',
   );
   assert.deepEqual(
     resolveBuildLinkTargets({

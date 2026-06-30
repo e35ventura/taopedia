@@ -155,6 +155,7 @@ function main() {
 
     slugMap[slug] = {
       title: data.title || slug,
+      infoboxTitle: data.infoboxTitle || '',
       categories: articleCategories,
       summary: data.summary || '',
     };
