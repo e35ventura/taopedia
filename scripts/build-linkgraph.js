@@ -77,7 +77,19 @@ export function extractInfoboxWikiLinks(rows) {
 
     if (!/\brelated\b/i.test(String(row?.label ?? ''))) return [];
 
-    return splitPlainTextRelatedTargets(row.value).map((target) => ({
+    const splitTargets = splitPlainTextRelatedTargets(row.value);
+    // When the splitter actually fragments the visible value (e.g. on a
+    // conjunction like "and"), also emit the un-split whole so a single
+    // existing article whose title spans the conjunction ("Staking and
+    // Delegation" -> staking_and_delegation) still resolves. Without this,
+    // requireExisting discards both halves because "Staking" and "Delegation"
+    // alone point at sibling articles.
+    const whole = String(row.value || '').trim();
+    const fragmentCount = splitTargets.length;
+    const emitWhole = whole && fragmentCount > 1 && splitTargets.join(' ').toLowerCase() !== whole.toLowerCase();
+    const targets = emitWhole ? [whole, ...splitTargets] : splitTargets;
+
+    return targets.map((target) => ({
       target,
       text: target,
       preferResolvedTitle: true,

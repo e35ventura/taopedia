@@ -146,6 +146,35 @@ try {
     ['weight_vector'],
     'linkgraph should recover singularized title aliases from unresolved plain-text Related rows',
   );
+
+  // When the splitter fragments a Related value on a conjunction word, the
+  // un-split whole must still be emitted as a target so an existing article
+  // whose title spans the conjunction ("Staking and Delegation" ->
+  // staking_and_delegation) is recovered. Otherwise the per-half targets each
+  // point at sibling articles and the conjunction-spanning article is lost.
+  assert.deepEqual(
+    extractInfoboxWikiLinks([
+      { label: 'Related', value: 'Staking and Delegation' },
+    ]),
+    [
+      { target: 'Staking and Delegation', text: 'Staking and Delegation', preferResolvedTitle: true, requireExisting: true },
+      { target: 'Staking', text: 'Staking', preferResolvedTitle: true, requireExisting: true },
+      { target: 'Delegation', text: 'Delegation', preferResolvedTitle: true, requireExisting: true },
+    ],
+    'linkgraph should emit the un-split whole before split halves when a Related row is fragmented on a conjunction word',
+  );
+
+  // A single-token Related value (no conjunction to split on) should NOT
+  // duplicate the whole — only the single split target is emitted.
+  assert.deepEqual(
+    extractInfoboxWikiLinks([
+      { label: 'Related', value: 'Dynamic TAO' },
+    ]),
+    [
+      { target: 'Dynamic TAO', text: 'Dynamic TAO', preferResolvedTitle: true, requireExisting: true },
+    ],
+    'linkgraph should not duplicate a single-token Related value as whole + parts',
+  );
 } finally {
   fs.rmSync(tempRoot, { recursive: true, force: true });
 }
