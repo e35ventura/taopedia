@@ -196,6 +196,11 @@ function pluralizeFinalWord(target) {
   return words.join(' ');
 }
 
+function isPlainGlossaryAcronym(text) {
+  const value = String(text || '').trim();
+  return value !== '' && !/^Glossary:\s*/i.test(value) && /^[A-Z0-9-]+$/.test(value);
+}
+
 function gerundFinalWord(target) {
   const words = String(target || '').trim().split(/\s+/).filter(Boolean);
   if (words.length === 0) return '';
@@ -384,6 +389,7 @@ function main() {
     const resolvedLinks = links.map((link) => {
       const isPrefixedGlossaryLabel = /^Glossary:\s*/i.test(String(link.text || ''));
       const isGenericGlossaryLabel = /^glossary$/i.test(String(link.text || '').trim());
+      const isPlainAcronymGlossaryLabel = isPlainGlossaryAcronym(link.text);
       const filterSelfTargets = (targets) => targets.filter(
         (target) => !(link.skipSelf && target === fromSlug),
       );
@@ -485,8 +491,16 @@ function main() {
               allowSplitTargets: false,
             }))
           : [];
+        const glossaryAcronymCanonicalTargets = isPlainAcronymGlossaryLabel
+          && nonSelfLabelTargets.length === 1
+          && fallbackCanonicalTargets.length === 1
+          && nonSelfLabelTargets[0] !== fallbackCanonicalTargets[0]
+          ? fallbackCanonicalTargets
+          : [];
         const resolvedTargets = nonSelfLabelTargets.length > 0
-          ? nonSelfLabelTargets
+          ? glossaryAcronymCanonicalTargets.length > 0
+            ? glossaryAcronymCanonicalTargets
+            : nonSelfLabelTargets
           : alternateTargets.length > 0
             ? alternateTargets
             : slashSecondTargets.length > 0

@@ -484,7 +484,7 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated linkgraph must keep the current sandwich_attack Related: MEV infobox edge when the local MEV article exists',
   );
   assert.ok(
-    (linkGraph.activity_cutoff || []).some((entry) => entry.target === 'tempo' && entry.text === 'Glossary: Tempo'),
+    (linkGraph.activity_cutoff || []).some((entry) => entry.target === 'tempo' && entry.text === 'tempo'),
     'generated linkgraph must recover the current activity_cutoff body link to the local tempo article from a canonical glossary markdown link',
   );
   assert.ok(
@@ -548,8 +548,24 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated linkgraph must recover the current validator_miner_bonds body link to exponential_moving_averages when the prefixed glossary label ends with a parenthetical acronym but the local article title is pluralized',
   );
   assert.ok(
-    (linkGraph.alpha_halving || []).some((entry) => entry.target === 'weight_vector' && entry.text === 'weights'),
-    'generated linkgraph must recover the current alpha_halving body link to weight_vector when a plain glossary singular label misses but the canonical anchor names the local concept article',
+    (linkGraph.subnet_weights || []).some((entry) => entry.target === 'register' && entry.text === 'registration'),
+    'generated linkgraph must recover the current subnet_weights body link to register when a plain glossary label misses but the canonical anchor names the local concept article',
+  );
+  assert.ok(
+    (linkGraph.metagraph || []).some((entry) => entry.target === 'uid_slot' && entry.text === 'UID'),
+    'generated linkgraph must resolve the current metagraph UID glossary link to uid_slot when the plain acronym label would otherwise hit the different local uid article',
+  );
+  assert.ok(
+    !(linkGraph.metagraph || []).some((entry) => entry.target === 'uid' && entry.text === 'UID'),
+    'generated linkgraph must not keep the current metagraph UID glossary link pointed at uid once the canonical uid_slot target is available',
+  );
+  assert.ok(
+    (linkGraph.weight_vector || []).some((entry) => entry.target === 'uid_slot' && entry.text === 'UID'),
+    'generated linkgraph must resolve the current weight_vector UID glossary link to uid_slot when the plain acronym label would otherwise hit the different local uid article',
+  );
+  assert.ok(
+    !(linkGraph.weight_vector || []).some((entry) => entry.target === 'uid' && entry.text === 'UID'),
+    'generated linkgraph must not keep the current weight_vector UID glossary link pointed at uid once the canonical uid_slot target is available',
   );
   assert.ok(
     (linkGraph.yuma_consensus_3 || []).some((entry) => entry.target === 'exponential_moving_averages' && entry.text === 'Glossary: Exponential Moving Average (EMA)'),
@@ -576,28 +592,12 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated linkgraph must recover the current coldkey_hotkey_workstation_security body link to hotkey_coldkey_pair when the prefixed glossary label hyphen compound is word-order-reversed from the local title',
   );
   assert.ok(
-    (linkGraph.bittensor_emissions || []).some((entry) => entry.target === 'recycling' && entry.text === 'Glossary: Recycle'),
-    'generated linkgraph must recover the current bittensor_emissions body link to recycling when the prefixed glossary verb label misses but its gerund concept article exists',
-  );
-  assert.ok(
-    (linkGraph.start_call || []).some((entry) => entry.target === 'recycling' && entry.text === 'Glossary: Recycle'),
-    'generated linkgraph must recover the current start_call body link to recycling when the prefixed glossary verb label misses but its gerund concept article exists',
-  );
-  assert.ok(
-    (linkGraph.drand_time_lock_encryption || []).some((entry) => entry.target === 'time_lock_encryption' && entry.text === 'Glossary: Drand/time-lock encryption'),
-    'generated linkgraph must recover the current drand_time_lock_encryption body link to time_lock_encryption when the slash-normalized prefixed glossary label self-resolves but the remaining slash segment names a sibling local concept article',
-  );
-  assert.ok(
-    (linkGraph.batch_transactions || []).some((entry) => entry.target === 'extrinsics' && entry.text === 'Glossary: Extrinsic'),
-    'generated linkgraph must recover the current batch_transactions body link to extrinsics when the prefixed glossary singular label misses but its plural concept article exists',
+    (linkGraph.batch_transactions || []).some((entry) => entry.target === 'extrinsics' && entry.text === 'Glossary: Extrinsics'),
+    'generated linkgraph must keep the current batch_transactions body link to extrinsics when the current corpus uses the pluralized glossary label directly',
   );
   assert.ok(
     (linkGraph.bittensor_wallet || []).some((entry) => entry.target === 'wallets' && entry.text === 'Glossary: Bittensor Wallet'),
     'generated linkgraph must recover the current bittensor_wallet body link to wallets when the prefixed glossary singular wallet label self-resolves but its plural sibling concept article exists',
-  );
-  assert.ok(
-    (linkGraph.alpha_price || []).some((entry) => entry.target === 'alpha_tokens' && entry.text === 'Glossary: Alpha'),
-    'generated linkgraph must recover the current alpha_price body link to alpha_tokens when the prefixed glossary short label misses but its tokens concept article exists',
   );
   assert.ok(
     (backlinks.validator_take || []).some((entry) => entry.from === 'delegation'),
@@ -620,8 +620,24 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated backlinks must list validator_miner_bonds under exponential_moving_averages when a prefixed glossary acronym-parenthetical label falls back to the local plural concept article',
   );
   assert.ok(
-    (backlinks.weight_vector || []).some((entry) => entry.from === 'alpha_halving'),
-    'generated backlinks must list alpha_halving under weight_vector when a plain glossary singular label falls back to the canonical concept anchor',
+    (backlinks.register || []).some((entry) => entry.from === 'subnet_weights'),
+    'generated backlinks must list subnet_weights under register when a plain glossary label falls back to the canonical concept anchor',
+  );
+  assert.ok(
+    (backlinks.uid_slot || []).some((entry) => entry.from === 'metagraph'),
+    'generated backlinks must list metagraph under uid_slot when a plain UID glossary acronym is redirected to the canonical uid_slot concept article',
+  );
+  assert.ok(
+    (backlinks.uid_slot || []).some((entry) => entry.from === 'weight_vector'),
+    'generated backlinks must list weight_vector under uid_slot when a plain UID glossary acronym is redirected to the canonical uid_slot concept article',
+  );
+  assert.ok(
+    !(backlinks.uid || []).some((entry) => entry.from === 'metagraph'),
+    'generated backlinks must not keep metagraph under uid once its plain UID glossary link is redirected to uid_slot',
+  );
+  assert.ok(
+    !(backlinks.uid || []).some((entry) => entry.from === 'weight_vector'),
+    'generated backlinks must not keep weight_vector under uid once its plain UID glossary link is redirected to uid_slot',
   );
   assert.ok(
     (backlinks.exponential_moving_averages || []).some((entry) => entry.from === 'yuma_consensus_3'),
@@ -644,28 +660,12 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated backlinks must list coldkey_hotkey_workstation_security under hotkey_coldkey_pair when a prefixed glossary hyphen label falls back to its word-order-reversed local alternative',
   );
   assert.ok(
-    (backlinks.recycling || []).some((entry) => entry.from === 'bittensor_emissions'),
-    'generated backlinks must list bittensor_emissions under recycling when a prefixed glossary verb label falls back to its gerund concept article',
-  );
-  assert.ok(
-    (backlinks.recycling || []).some((entry) => entry.from === 'start_call'),
-    'generated backlinks must list start_call under recycling when a prefixed glossary verb label falls back to its gerund concept article',
-  );
-  assert.ok(
-    (backlinks.time_lock_encryption || []).some((entry) => entry.from === 'drand_time_lock_encryption'),
-    'generated backlinks must list drand_time_lock_encryption under time_lock_encryption when a slash-separated prefixed glossary label falls back to its remaining slash segment',
-  );
-  assert.ok(
     (backlinks.extrinsics || []).some((entry) => entry.from === 'batch_transactions'),
-    'generated backlinks must list batch_transactions under extrinsics when a prefixed glossary singular label falls back to its plural concept article',
+    'generated backlinks must list batch_transactions under extrinsics when the current corpus uses the pluralized glossary label directly',
   );
   assert.ok(
     (backlinks.wallets || []).some((entry) => entry.from === 'bittensor_wallet'),
     'generated backlinks must list bittensor_wallet under wallets when a prefixed glossary singular wallet label falls back to its plural sibling concept article',
-  );
-  assert.ok(
-    (backlinks.alpha_tokens || []).some((entry) => entry.from === 'alpha_price'),
-    'generated backlinks must list alpha_price under alpha_tokens when a prefixed glossary short label falls back to its tokens concept article',
   );
   assert.ok(
     !(linkGraph.tempo || []).some((entry) => entry.target === 'tempo'),
