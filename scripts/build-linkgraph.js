@@ -156,8 +156,9 @@ export function extractCanonicalGlossaryLinks(content) {
     // generic word "Glossary", keep the canonical glossary anchor as an
     // exact-only fallback so the link graph can still recover the named local
     // concept without treating the generic label as a plain-text alias. When a
-    // prefixed glossary label resolves to a different local article than its
-    // canonical hash anchor, keep the canonical anchor as the exact-only target.
+    // prefixed or plain homograph glossary label resolves to a different local
+    // article than its canonical hash anchor, keep the canonical anchor as the
+    // exact-only target.
     links.push({
       target,
       alternateTarget,
@@ -260,6 +261,14 @@ export function expandGlossaryTokensConceptTarget(target, canonicalTarget) {
 
   return '';
 }
+
+const PLAIN_GLOSSARY_CANONICAL_OVERRIDE_SOURCE_SLUGS = new Set([
+  'dividends',
+  'validator_dividends',
+  'validator_weights',
+  'weight_setting',
+  'delegate',
+]);
 
 const GLOSSARY_COMPOUND_SUFFIXES = [' Reserve', ' Weight', ' Mechanisms', ' Visibility', ' Split', ' Rewards'];
 
@@ -574,12 +583,23 @@ function main() {
           && fallbackCanonicalTargets[0] !== 'protocol_alpha'
           ? fallbackCanonicalTargets
           : [];
+        const glossaryPlainCanonicalOverrideTargets = !isPrefixedGlossaryLabel
+          && !isPlainAcronymGlossaryLabel
+          && !isGenericGlossaryLabel
+          && nonSelfLabelTargets.length === 1
+          && fallbackCanonicalTargets.length === 1
+          && nonSelfLabelTargets[0] !== fallbackCanonicalTargets[0]
+          && PLAIN_GLOSSARY_CANONICAL_OVERRIDE_SOURCE_SLUGS.has(nonSelfLabelTargets[0])
+          ? fallbackCanonicalTargets
+          : [];
         const resolvedTargets = nonSelfLabelTargets.length > 0
           ? glossaryAcronymCanonicalTargets.length > 0
             ? glossaryAcronymCanonicalTargets
             : glossaryCanonicalOverrideTargets.length > 0
               ? glossaryCanonicalOverrideTargets
-              : nonSelfLabelTargets
+              : glossaryPlainCanonicalOverrideTargets.length > 0
+                ? glossaryPlainCanonicalOverrideTargets
+                : nonSelfLabelTargets
           : alternateTargets.length > 0
             ? alternateTargets
             : slashSecondTargets.length > 0
