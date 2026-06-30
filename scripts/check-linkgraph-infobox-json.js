@@ -60,6 +60,9 @@ try {
   );
 
   const slugMap = {
+    subnet: { title: 'Subnet' },
+    network_min_lock_cost: { title: 'Network Min Lock Cost' },
+    weight_vector: { title: 'Weight Vector' },
     slippage: { title: 'Slippage' },
     staking: { title: 'Staking' },
     delegation: { title: 'Delegation' },
@@ -85,6 +88,36 @@ try {
     }),
     ['research_and_development'],
     'linkgraph should keep a directly resolvable Related title intact instead of splitting it',
+  );
+  assert.deepEqual(
+    resolveBuildLinkTargets({
+      target: 'Subnets',
+      slugAliases,
+      slugMap,
+      requireExisting: true,
+    }),
+    ['subnet'],
+    'linkgraph should recover singular article aliases from unresolved plain-text Related rows',
+  );
+  assert.deepEqual(
+    resolveBuildLinkTargets({
+      target: 'NetworkMinLockCost',
+      slugAliases,
+      slugMap,
+      requireExisting: true,
+    }),
+    ['network_min_lock_cost'],
+    'linkgraph should recover camel-cased article aliases from unresolved plain-text Related rows',
+  );
+  assert.deepEqual(
+    resolveBuildLinkTargets({
+      target: 'Weight vectors',
+      slugAliases,
+      slugMap,
+      requireExisting: true,
+    }),
+    ['weight_vector'],
+    'linkgraph should recover singularized title aliases from unresolved plain-text Related rows',
   );
 } finally {
   fs.rmSync(tempRoot, { recursive: true, force: true });
