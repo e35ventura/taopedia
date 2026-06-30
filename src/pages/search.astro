@@ -9,9 +9,25 @@ import WikiLayout from '../layouts/WikiLayout.astro';
 >
   <div class="mw-body-content">
     <h1 class="firstHeading" id="search-heading">Search</h1>
+    <p class="search-page-intro">Search by article title, summary, or topic.</p>
+
+    <form class="search-page-form" action="/search/" method="get">
+      <svg class="search-page-icon" viewBox="0 0 20 20" aria-hidden="true">
+        <path d="M8.5 14.5a6 6 0 1 1 4.24-1.76l3.26 3.26-1.41 1.41-3.26-3.26A5.97 5.97 0 0 1 8.5 14.5Zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" fill="currentColor" />
+      </svg>
+      <input
+        id="search-page-query"
+        type="search"
+        name="q"
+        placeholder="Search Taopedia"
+        aria-label="Search Taopedia"
+        autocomplete="off"
+      />
+      <button type="submit">Search</button>
+    </form>
 
     <div id="search-results" class="search-results" aria-live="polite">
-      <p class="search-status">Use the search field in the header to find an article.</p>
+      <p class="search-status">Enter a title, concept, topic, or subnet to search Taopedia.</p>
     </div>
   </div>
 
@@ -23,7 +39,12 @@ import WikiLayout from '../layouts/WikiLayout.astro';
     const searchQuery = (new URLSearchParams(window.location.search).get('q') || '').trim();
     const resultsContainer = document.getElementById('search-results');
     const headingEl = document.getElementById('search-heading');
+    const searchPageInput = document.getElementById('search-page-query');
     let metadataEntriesPromise;
+
+    if (searchQuery && searchPageInput instanceof HTMLInputElement) {
+      searchPageInput.value = searchQuery;
+    }
 
     // Topics the reader has toggled on to filter the results (empty = show all).
     const selectedTopics = new Set();
@@ -378,6 +399,61 @@ import WikiLayout from '../layouts/WikiLayout.astro';
   </script>
 
   <style>
+    :global(.search-page-intro) {
+      margin: 0;
+      color: var(--color-base-subtle);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    :global(.search-page-form) {
+      position: relative;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+      max-width: 720px;
+      margin-top: 16px;
+      border: 1px solid var(--border-color-base);
+      background: var(--background-color-base);
+    }
+
+    :global(.search-page-icon) {
+      width: 18px;
+      height: 18px;
+      margin-left: 14px;
+      color: var(--color-base-subtle);
+      pointer-events: none;
+    }
+
+    :global(.search-page-form input) {
+      min-width: 0;
+      width: 100%;
+      padding: 14px 12px;
+      border: 0;
+      color: var(--color-base);
+      background: transparent;
+      font: inherit;
+      font-size: 15px;
+      outline: none;
+    }
+
+    :global(.search-page-form:focus-within) {
+      border-color: var(--color-link);
+      box-shadow: inset 0 0 0 1px var(--color-link);
+    }
+
+    :global(.search-page-form button) {
+      align-self: stretch;
+      padding: 0 22px;
+      border: 0;
+      border-left: 1px solid var(--border-color-base);
+      background: var(--color-progressive);
+      color: white;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
     :global(.search-results) {
       margin-top: 20px;
     }
@@ -503,6 +579,19 @@ import WikiLayout from '../layouts/WikiLayout.astro';
     :global(.search-load-more:disabled) {
       color: var(--color-base-subtle);
       cursor: default;
+    }
+
+    @media (max-width: 720px) {
+      :global(.search-page-form) {
+        grid-template-columns: auto minmax(0, 1fr);
+      }
+
+      :global(.search-page-form button) {
+        grid-column: 1 / -1;
+        padding: 12px;
+        border-top: 1px solid var(--border-color-base);
+        border-left: 0;
+      }
     }
   </style>
 </WikiLayout>

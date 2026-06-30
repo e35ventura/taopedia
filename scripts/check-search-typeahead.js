@@ -28,8 +28,9 @@ for (const entry of entries) {
   );
 }
 
-// 2) The combobox script must ship on both an article (layout) page and the
-//    homepage, with its data source, ARIA wiring, and form selector intact.
+// 2) The combobox script must ship on an article (layout) page, the homepage,
+//    and the dedicated /search/ page, with its data source, ARIA wiring, and
+//    form selector intact.
 const wikiDir = path.join(distDir, 'wiki');
 const articleFile = fs
   .readdirSync(wikiDir, { withFileTypes: true })
@@ -38,7 +39,11 @@ const articleFile = fs
   .find((f) => fs.existsSync(f));
 assert.ok(articleFile, 'no built article page found');
 
-for (const [label, file] of [['article', articleFile], ['homepage', path.join(distDir, 'index.html')]]) {
+for (const [label, file] of [
+  ['article', articleFile],
+  ['homepage', path.join(distDir, 'index.html')],
+  ['search page', path.join(distDir, 'search', 'index.html')],
+]) {
   const html = fs.readFileSync(file, 'utf8');
   assert.ok(html.includes('__taopediaSearchSuggest'), `${label} must include the search-suggest script`);
   assert.ok(html.includes("fetch('/search-data.json')"), `${label} typeahead must load the search-data source`);
@@ -71,4 +76,4 @@ const shipped = fs.existsSync(astroDir)
     .some((f) => fs.readFileSync(path.join(astroDir, f), 'utf8').includes('.search-suggest-list'));
 assert.ok(shipped, 'the .search-suggest styles must be bundled into a shipped stylesheet');
 
-console.log(`Search typeahead check passed (${entries.length} suggestion entries; combobox wired on article + homepage; dropdown token-themed + shipped)`);
+console.log(`Search typeahead check passed (${entries.length} suggestion entries; combobox wired on article + homepage + search page; dropdown token-themed + shipped)`);
