@@ -71,7 +71,18 @@ export function extractInfoboxWikiLinks(rows) {
 
   return rows.flatMap((row) => {
     if (typeof row?.value !== 'string') return [];
-    return extractWikiLinks(row.value);
+    const wikiLinks = extractWikiLinks(row.value);
+    if (wikiLinks.length > 0) return wikiLinks;
+
+    if (!/\brelated\b/i.test(String(row?.label ?? ''))) return [];
+
+    const target = row.value.trim();
+    if (!target) return [];
+
+    // Current article content often uses a plain-text "Related" infobox row
+    // instead of [[wiki-links]]. Treat that visible related term as a local
+    // graph candidate only when it resolves to an existing article.
+    return [{ target, text: target, requireExisting: true }];
   });
 }
 
@@ -92,6 +103,12 @@ export function dedupeOutgoingLinks(links) {
     seen.add(link.target);
     return true;
   });
+}
+
+export function resolveBuildLinkTarget({ target, slugAliases, slugMap, requireExisting = false }) {
+  const resolvedTarget = resolveTargetSlug(target, slugAliases);
+  if (slugMap[resolvedTarget]) return resolvedTarget;
+  return requireExisting ? '' : resolvedTarget;
 }
 
 function main() {
@@ -144,6 +161,7 @@ function main() {
     linkGraph[slug] = links.map(link => ({
       target: link.target,
       text: link.text,
+      requireExisting: link.requireExisting === true,
     }));
   });
 
@@ -151,7 +169,7 @@ function main() {
   for (const [fromSlug, links] of Object.entries(linkGraph)) {
     linkGraph[fromSlug] = dedupeOutgoingLinks(
       links.map(link => ({
-        target: resolveTargetSlug(link.target, slugAliases),
+        target: resolveBuildLinkTarget({ target: link.target, slugAliases, slugMap, requireExisting: link.requireExisting }),
         text: link.text,
       })).filter(link => link.target),
     );

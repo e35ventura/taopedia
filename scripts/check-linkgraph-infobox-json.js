@@ -13,8 +13,11 @@ try {
     path.join(articleDir, 'infobox.json'),
     JSON.stringify({
       rows: [
-        { label: 'Related', value: 'See [[dynamic_tao|Dynamic TAO]]' },
-        { label: 'Plain', value: 'No wiki link here' },
+        {
+          label: 'Related',
+          value: 'Dynamic TAO',
+        },
+        { label: 'Plain', value: 'See [[staking|Staking]]' },
       ],
     }),
   );
@@ -23,17 +26,36 @@ try {
   assert.ok(Array.isArray(jsonRows), 'infobox.json rows should be used when frontmatter rows are absent');
   assert.deepEqual(
     extractInfoboxWikiLinks(jsonRows),
-    [{ target: 'dynamic_tao', text: 'Dynamic TAO' }],
-    'linkgraph should extract wiki links from visible infobox.json rows',
+    [
+      {
+        target: 'Dynamic TAO',
+        text: 'Dynamic TAO',
+        requireExisting: true,
+      },
+      { target: 'staking', text: 'Staking' },
+    ],
+    'linkgraph should extract visible plain-text Related rows and explicit wiki links from infobox JSON',
   );
 
-  const frontmatterRows = [{ label: 'Frontmatter', value: 'See [[staking|Staking]]' }];
+  const frontmatterRows = [
+    {
+      label: 'Related role',
+      value: 'Delegate',
+    },
+    {
+      label: 'Frontmatter',
+      value: 'See [[staking|Staking]]',
+    },
+  ];
   const visibleRows = getVisibleInfoboxRows(articleDir, frontmatterRows);
   assert.equal(visibleRows, frontmatterRows, 'frontmatter infobox rows should keep renderer precedence');
   assert.deepEqual(
     extractInfoboxWikiLinks(visibleRows),
-    [{ target: 'staking', text: 'Staking' }],
-    'linkgraph should match the frontmatter rows that the article page renders',
+    [
+      { target: 'Delegate', text: 'Delegate', requireExisting: true },
+      { target: 'staking', text: 'Staking' },
+    ],
+    'linkgraph should match the frontmatter rows that the article page renders, including plain-text Related rows',
   );
 } finally {
   fs.rmSync(tempRoot, { recursive: true, force: true });
