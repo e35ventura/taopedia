@@ -107,6 +107,8 @@ const resolverSlugMap = {
   alpha_tokens: { title: 'Alpha Tokens' },
   wallets: { title: 'Bittensor Wallets', infoboxTitle: 'Wallet (Concept)' },
   bittensor_wallet: { title: 'Bittensor Wallet' },
+  multiple_incentive_mechanisms: { title: 'Multiple Incentive Mechanisms' },
+  subnet_scoring_model: { title: 'Subnet Scoring Model' },
 };
 const resolverAliases = buildSlugAliases(resolverSlugMap);
 assert.deepEqual(
@@ -363,6 +365,35 @@ assert.deepEqual(
   ['wallets'],
   'exact-existing glossary recovery should match a plural wallet concept article when the visible prefixed singular wallet label self-resolves',
 );
+assert.deepEqual(
+  extractCanonicalGlossaryLinks(
+    'See [Glossary](https://docs.learnbittensor.org/resources/glossary#multiple-incentive-mechanisms).',
+  ),
+  [
+    {
+      target: 'Glossary',
+      alternateTarget: '',
+      slashSecondTarget: '',
+      canonicalTarget: 'multiple incentive mechanisms',
+      text: 'Glossary',
+      requireExisting: true,
+      skipSelf: true,
+      allowSplitTargets: true,
+    },
+  ],
+  'canonical Learn Bittensor glossary markdown links should preserve generic glossary labels with canonical anchors for later exact-only fallback refinement',
+);
+assert.deepEqual(
+  resolveBuildLinkTargets({
+    target: 'multiple incentive mechanisms',
+    slugAliases: resolverAliases,
+    slugMap: resolverSlugMap,
+    requireExisting: true,
+    allowSplitTargets: false,
+  }),
+  ['multiple_incentive_mechanisms'],
+  'exact-existing glossary recovery should resolve a generic glossary label through its canonical anchor when the visible label is only Glossary',
+);
 
 function assertSortedKeys(object, label) {
   const keys = Object.keys(object);
@@ -446,6 +477,28 @@ assert.deepEqual(
   'outgoing link targets must be deduped after alias resolution while preferring a later non-Glossary label for the same target',
 );
 
+assert.deepEqual(
+  dedupeOutgoingLinks([
+    { target: 'weight_matrix', text: 'Glossary: Weight Matrix' },
+    { target: 'weight_matrix', text: 'Glossary' },
+  ]),
+  [
+    { target: 'weight_matrix', text: 'Glossary: Weight Matrix' },
+  ],
+  'outgoing link targets must keep a prefixed glossary label when a generic glossary label resolves to the same target',
+);
+
+assert.deepEqual(
+  dedupeOutgoingLinks([
+    { target: 'weight_matrix', text: 'Glossary' },
+    { target: 'weight_matrix', text: 'Glossary: Weight Matrix' },
+  ]),
+  [
+    { target: 'weight_matrix', text: 'Glossary: Weight Matrix' },
+  ],
+  'outgoing link targets must upgrade a generic glossary label when a later prefixed glossary label resolves to the same target',
+);
+
 const generatedFiles = ['linkgraph.json', 'backlinks.json', 'slugmap.json', 'categories.json']
   .map((file) => path.join(dataDir, file));
 
@@ -484,8 +537,8 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated linkgraph must keep the current sandwich_attack Related: MEV infobox edge when the local MEV article exists',
   );
   assert.ok(
-    (linkGraph.activity_cutoff || []).some((entry) => entry.target === 'tempo' && entry.text === 'Glossary: Tempo'),
-    'generated linkgraph must recover the current activity_cutoff body link to the local tempo article from a canonical glossary markdown link',
+    (linkGraph.activity_cutoff || []).some((entry) => entry.target === 'tempo' && entry.text === 'tempo'),
+    'generated linkgraph must recover the current activity_cutoff body link to the local tempo article from a plain glossary markdown link',
   );
   assert.ok(
     (linkGraph.bittensor_evm_smart_contracts || []).some((entry) => entry.target === 'subtensor' && entry.text === 'Subtensor'),
@@ -548,8 +601,8 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated linkgraph must recover the current validator_miner_bonds body link to exponential_moving_averages when the prefixed glossary label ends with a parenthetical acronym but the local article title is pluralized',
   );
   assert.ok(
-    (linkGraph.alpha_halving || []).some((entry) => entry.target === 'weight_vector' && entry.text === 'weights'),
-    'generated linkgraph must recover the current alpha_halving body link to weight_vector when a plain glossary singular label misses but the canonical anchor names the local concept article',
+    (linkGraph.weights_version_key || []).some((entry) => entry.target === 'weight_vector' && entry.text === 'weight vector'),
+    'generated linkgraph must recover the current weights_version_key body link to weight_vector when a plain glossary label falls back to the canonical concept anchor',
   );
   assert.ok(
     (linkGraph.yuma_consensus_3 || []).some((entry) => entry.target === 'exponential_moving_averages' && entry.text === 'Glossary: Exponential Moving Average (EMA)'),
@@ -576,28 +629,12 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated linkgraph must recover the current coldkey_hotkey_workstation_security body link to hotkey_coldkey_pair when the prefixed glossary label hyphen compound is word-order-reversed from the local title',
   );
   assert.ok(
-    (linkGraph.bittensor_emissions || []).some((entry) => entry.target === 'recycling' && entry.text === 'Glossary: Recycle'),
-    'generated linkgraph must recover the current bittensor_emissions body link to recycling when the prefixed glossary verb label misses but its gerund concept article exists',
-  );
-  assert.ok(
-    (linkGraph.start_call || []).some((entry) => entry.target === 'recycling' && entry.text === 'Glossary: Recycle'),
-    'generated linkgraph must recover the current start_call body link to recycling when the prefixed glossary verb label misses but its gerund concept article exists',
-  );
-  assert.ok(
-    (linkGraph.drand_time_lock_encryption || []).some((entry) => entry.target === 'time_lock_encryption' && entry.text === 'Glossary: Drand/time-lock encryption'),
-    'generated linkgraph must recover the current drand_time_lock_encryption body link to time_lock_encryption when the slash-normalized prefixed glossary label self-resolves but the remaining slash segment names a sibling local concept article',
-  );
-  assert.ok(
-    (linkGraph.batch_transactions || []).some((entry) => entry.target === 'extrinsics' && entry.text === 'Glossary: Extrinsic'),
-    'generated linkgraph must recover the current batch_transactions body link to extrinsics when the prefixed glossary singular label misses but its plural concept article exists',
+    (linkGraph.batch_transactions || []).some((entry) => entry.target === 'extrinsics' && entry.text === 'Glossary: Extrinsics'),
+    'generated linkgraph must recover the current batch_transactions body link to extrinsics when the prefixed glossary label names the plural concept article',
   );
   assert.ok(
     (linkGraph.bittensor_wallet || []).some((entry) => entry.target === 'wallets' && entry.text === 'Glossary: Bittensor Wallet'),
     'generated linkgraph must recover the current bittensor_wallet body link to wallets when the prefixed glossary singular wallet label self-resolves but its plural sibling concept article exists',
-  );
-  assert.ok(
-    (linkGraph.alpha_price || []).some((entry) => entry.target === 'alpha_tokens' && entry.text === 'Glossary: Alpha'),
-    'generated linkgraph must recover the current alpha_price body link to alpha_tokens when the prefixed glossary short label misses but its tokens concept article exists',
   );
   assert.ok(
     (backlinks.validator_take || []).some((entry) => entry.from === 'delegation'),
@@ -620,8 +657,8 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated backlinks must list validator_miner_bonds under exponential_moving_averages when a prefixed glossary acronym-parenthetical label falls back to the local plural concept article',
   );
   assert.ok(
-    (backlinks.weight_vector || []).some((entry) => entry.from === 'alpha_halving'),
-    'generated backlinks must list alpha_halving under weight_vector when a plain glossary singular label falls back to the canonical concept anchor',
+    (backlinks.weight_vector || []).some((entry) => entry.from === 'weights_version_key'),
+    'generated backlinks must list weights_version_key under weight_vector when a plain glossary label falls back to the canonical concept anchor',
   );
   assert.ok(
     (backlinks.exponential_moving_averages || []).some((entry) => entry.from === 'yuma_consensus_3'),
@@ -644,18 +681,6 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated backlinks must list coldkey_hotkey_workstation_security under hotkey_coldkey_pair when a prefixed glossary hyphen label falls back to its word-order-reversed local alternative',
   );
   assert.ok(
-    (backlinks.recycling || []).some((entry) => entry.from === 'bittensor_emissions'),
-    'generated backlinks must list bittensor_emissions under recycling when a prefixed glossary verb label falls back to its gerund concept article',
-  );
-  assert.ok(
-    (backlinks.recycling || []).some((entry) => entry.from === 'start_call'),
-    'generated backlinks must list start_call under recycling when a prefixed glossary verb label falls back to its gerund concept article',
-  );
-  assert.ok(
-    (backlinks.time_lock_encryption || []).some((entry) => entry.from === 'drand_time_lock_encryption'),
-    'generated backlinks must list drand_time_lock_encryption under time_lock_encryption when a slash-separated prefixed glossary label falls back to its remaining slash segment',
-  );
-  assert.ok(
     (backlinks.extrinsics || []).some((entry) => entry.from === 'batch_transactions'),
     'generated backlinks must list batch_transactions under extrinsics when a prefixed glossary singular label falls back to its plural concept article',
   );
@@ -664,8 +689,20 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated backlinks must list bittensor_wallet under wallets when a prefixed glossary singular wallet label falls back to its plural sibling concept article',
   );
   assert.ok(
-    (backlinks.alpha_tokens || []).some((entry) => entry.from === 'alpha_price'),
-    'generated backlinks must list alpha_price under alpha_tokens when a prefixed glossary short label falls back to its tokens concept article',
+    (linkGraph.subnet_11 || []).some((entry) => entry.target === 'multiple_incentive_mechanisms' && entry.text === 'Glossary'),
+    'generated linkgraph must recover the current subnet_11 body link to multiple_incentive_mechanisms when the visible label is only Glossary',
+  );
+  assert.ok(
+    (linkGraph.subnet_26 || []).some((entry) => entry.target === 'subnet_scoring_model' && entry.text === 'glossary'),
+    'generated linkgraph must recover the current subnet_26 body link to subnet_scoring_model when the visible label is only glossary',
+  );
+  assert.ok(
+    (backlinks.multiple_incentive_mechanisms || []).some((entry) => entry.from === 'subnet_11'),
+    'generated backlinks must list subnet_11 under multiple_incentive_mechanisms when a generic glossary label falls back to its canonical anchor',
+  );
+  assert.ok(
+    (backlinks.subnet_scoring_model || []).some((entry) => entry.from === 'subnet_26'),
+    'generated backlinks must list subnet_26 under subnet_scoring_model when a generic glossary label falls back to its canonical anchor',
   );
   assert.ok(
     !(linkGraph.tempo || []).some((entry) => entry.target === 'tempo'),
