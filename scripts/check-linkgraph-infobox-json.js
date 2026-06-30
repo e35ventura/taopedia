@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { extractInfoboxWikiLinks, getVisibleInfoboxRows } from './build-linkgraph.js';
+import { buildSlugAliases } from './wiki-link-resolver.js';
+import { extractInfoboxWikiLinks, getVisibleInfoboxRows, resolveBuildLinkTargets } from './build-linkgraph.js';
 
 const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'taopedia-linkgraph-infobox-'));
 
@@ -56,6 +57,34 @@ try {
       { target: 'staking', text: 'Staking' },
     ],
     'linkgraph should match the frontmatter rows that the article page renders, including plain-text Related rows',
+  );
+
+  const slugMap = {
+    slippage: { title: 'Slippage' },
+    staking: { title: 'Staking' },
+    delegation: { title: 'Delegation' },
+    research_and_development: { title: 'Research and Development' },
+  };
+  const slugAliases = buildSlugAliases(slugMap);
+  assert.deepEqual(
+    resolveBuildLinkTargets({
+      target: 'Staking and Delegation',
+      slugAliases,
+      slugMap,
+      requireExisting: true,
+    }),
+    ['staking', 'delegation'],
+    'linkgraph should split unresolved plain-text Related rows into multiple existing article targets',
+  );
+  assert.deepEqual(
+    resolveBuildLinkTargets({
+      target: 'Research and Development',
+      slugAliases,
+      slugMap,
+      requireExisting: true,
+    }),
+    ['research_and_development'],
+    'linkgraph should keep a directly resolvable Related title intact instead of splitting it',
   );
 } finally {
   fs.rmSync(tempRoot, { recursive: true, force: true });

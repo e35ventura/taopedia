@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { orderGeneratedData, dedupeOutgoingLinks, normalizeArticleCategories, resolveBuildLinkTarget } from './build-linkgraph.js';
+import { orderGeneratedData, dedupeOutgoingLinks, normalizeArticleCategories, resolveBuildLinkTargets } from './build-linkgraph.js';
 import { buildSlugAliases } from './wiki-link-resolver.js';
 
 const projectRoot = path.resolve(new URL('..', import.meta.url).pathname);
@@ -20,24 +20,24 @@ const resolverSlugMap = {
   delegate: { title: 'Delegate' },
 };
 const resolverAliases = buildSlugAliases(resolverSlugMap);
-assert.equal(
-  resolveBuildLinkTarget({
+assert.deepEqual(
+  resolveBuildLinkTargets({
     target: 'Delegate',
     slugAliases: resolverAliases,
     slugMap: resolverSlugMap,
     requireExisting: true,
   }),
-  'delegate',
+  ['delegate'],
   'plain-text Related infobox rows must resolve to an existing local Taopedia article slug',
 );
-assert.equal(
-  resolveBuildLinkTarget({
+assert.deepEqual(
+  resolveBuildLinkTargets({
     target: 'Introduction to Bittensor',
     slugAliases: resolverAliases,
     slugMap: resolverSlugMap,
     requireExisting: true,
   }),
-  '',
+  [],
   'plain-text Related infobox rows without a local article match must stay out of the link graph',
 );
 
