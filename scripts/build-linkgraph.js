@@ -98,14 +98,26 @@ export function extractCanonicalGlossaryLinks(content) {
     const hasGlossaryPrefix = /^Glossary:\s*/i.test(text);
     const target = text.replace(/^Glossary:\s*/i, '').trim();
     if (!target) continue;
+    const canonicalTarget = hasGlossaryPrefix
+      ? decodeURIComponent(match[2].split('#')[1] || '').replace(/[-_]+/g, ' ').trim()
+      : '';
 
     // Current article prose often references Learn Bittensor glossary anchors
     // whose visible label already names an existing local Taopedia concept,
     // including labels written as "Glossary: Foo". Strip only that prefix,
     // preserve the visible label as link text, and keep the stricter exact-only
     // resolver path only for prefixed labels so existing plural/split glossary
-    // recovery keeps working for plain labels.
-    links.push({ target, text, requireExisting: true, skipSelf: true, allowSplitTargets: !hasGlossaryPrefix });
+    // recovery keeps working for plain labels. When a prefixed visible alias
+    // like "Glossary: Validator" misses, keep the canonical glossary anchor as
+    // a fallback so the link graph can still recover the existing local concept.
+    links.push({
+      target,
+      canonicalTarget,
+      text,
+      requireExisting: true,
+      skipSelf: true,
+      allowSplitTargets: !hasGlossaryPrefix,
+    });
   }
 
   return links;
@@ -225,6 +237,7 @@ function main() {
     ];
     linkGraph[slug] = links.map(link => ({
       target: link.target,
+      canonicalTarget: link.canonicalTarget || '',
       text: link.text,
       requireExisting: link.requireExisting === true,
       skipSelf: link.skipSelf === true,
@@ -235,20 +248,35 @@ function main() {
   const slugAliases = buildSlugAliases(slugAliasMap);
   for (const [fromSlug, links] of Object.entries(linkGraph)) {
     linkGraph[fromSlug] = dedupeOutgoingLinks(
-      links.flatMap((link) =>
-        resolveBuildLinkTargets({
+      links.flatMap((link) => {
+        const labelTargets = resolveBuildLinkTargets({
           target: link.target,
           slugAliases,
           slugMap,
           requireExisting: link.requireExisting,
           allowSplitTargets: link.allowSplitTargets,
-        })
+        });
+        const canonicalTargets = link.canonicalTarget
+          ? resolveBuildLinkTargets({
+              target: link.canonicalTarget,
+              slugAliases,
+              slugMap,
+              requireExisting: true,
+              allowSplitTargets: false,
+            })
+          : [];
+        const resolvedTargets = canonicalTargets.length > 0
+          && (labelTargets.length === 0 || (labelTargets.length === 1 && labelTargets[0] !== canonicalTargets[0]))
+          ? canonicalTargets
+          : labelTargets;
+
+        return resolvedTargets
           .filter((target) => !(link.skipSelf && target === fromSlug))
           .map((target) => ({
-          target,
-          text: link.text,
-          })),
-      ),
+            target,
+            text: link.text,
+          }));
+      }),
     );
   }
 
