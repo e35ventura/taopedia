@@ -114,6 +114,21 @@ const resolverSlugMap = {
   mempool_visibility: { title: 'Mempool Visibility' },
   emission_split: { title: 'Emission Split' },
   delegation_rewards: { title: 'Delegation Rewards' },
+  subnet: { title: 'Subnet' },
+  subnet_protocol: { title: 'Subnet Protocol' },
+  subnet_miner: { title: 'Subnet Miner' },
+  subnet_weights: { title: 'Subnet Weights' },
+  subnet_task: { title: 'Subnet Task' },
+  subnet_hyperparameters: { title: 'Subnet Hyperparameters' },
+  subnet_registration: { title: 'Subnet Registration' },
+  subnet_symbol: { title: 'Subnet Symbol' },
+  subnet_markets: { title: 'Subnet Markets' },
+  subnet_lease: { title: 'Subnet Lease' },
+  subtensor: { title: 'Subtensor' },
+  subtensor_constants: { title: 'Subtensor Constants' },
+  subtensor_events: { title: 'Subtensor Events' },
+  subtensor_storage: { title: 'Subtensor Storage' },
+  subtensor_error_codes: { title: 'Subtensor Error Codes' },
 };
 const resolverAliases = buildSlugAliases(resolverSlugMap);
 assert.deepEqual(
@@ -379,6 +394,20 @@ assert.deepEqual(
     'Tao Visibility',
     'Tao Split',
     'Tao Rewards',
+    'Tao Protocol',
+    'Tao Validator',
+    'Tao Miner',
+    'Tao Weights',
+    'Tao Task',
+    'Tao Hyperparameters',
+    'Tao Registration',
+    'Tao Symbol',
+    'Tao Markets',
+    'Tao Lease',
+    'Tao Constants',
+    'Tao Events',
+    'Tao Storage',
+    'Tao Error Codes',
   ],
   'expandGlossaryCompoundSuffixTargets must derive local compound sibling concepts from a glossary short label',
 );
@@ -452,6 +481,38 @@ assert.deepEqual(
   }),
   ['mempool_visibility'],
   'exact-existing glossary recovery should match a visibility compound concept article when the visible prefixed short label self-resolves',
+);
+assert.equal(
+  expandGlossaryCompoundSuffixTargets('Subnet', 'subnet').includes('Subnet Validator'),
+  true,
+  'expandGlossaryCompoundSuffixTargets must include subnet validator compound siblings from a subnet glossary label',
+);
+assert.deepEqual(
+  resolveBuildLinkTargets({
+    target: 'Subnet Validator',
+    slugAliases: resolverAliases,
+    slugMap: resolverSlugMap,
+    requireExisting: true,
+    allowSplitTargets: false,
+  }),
+  ['subnet_validator'],
+  'exact-existing glossary recovery should match a subnet validator compound concept article when the visible prefixed short label self-resolves',
+);
+assert.equal(
+  expandGlossaryCompoundSuffixTargets('Subtensor', 'subtensor').includes('Subtensor Constants'),
+  true,
+  'expandGlossaryCompoundSuffixTargets must include subtensor constants compound siblings from a subtensor glossary label',
+);
+assert.deepEqual(
+  resolveBuildLinkTargets({
+    target: 'Subtensor Constants',
+    slugAliases: resolverAliases,
+    slugMap: resolverSlugMap,
+    requireExisting: true,
+    allowSplitTargets: false,
+  }),
+  ['subtensor_constants'],
+  'exact-existing glossary recovery should match a subtensor constants compound concept article when the visible prefixed short label self-resolves',
 );
 
 function assertSortedKeys(object, label) {
@@ -702,6 +763,62 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated linkgraph must recover the current mempool body link to mempool_visibility when the prefixed glossary short label self-resolves but its visibility compound sibling concept article exists',
   );
   assert.ok(
+    (linkGraph.subnet || []).some((entry) => entry.target === 'subnet_protocol' && entry.text === 'Glossary: Subnet'),
+    'generated linkgraph must recover the current subnet body link to subnet_protocol when the prefixed glossary short label self-resolves but its protocol compound sibling concept article exists',
+  );
+  assert.ok(
+    (linkGraph.subnet || []).some((entry) => entry.target === 'subnet_validator' && entry.text === 'Glossary: Subnet'),
+    'generated linkgraph must recover the current subnet body link to subnet_validator when the prefixed glossary short label self-resolves but its validator compound sibling concept article exists',
+  );
+  assert.ok(
+    (linkGraph.subnet || []).some((entry) => entry.target === 'subnet_miner' && entry.text === 'Glossary: Subnet'),
+    'generated linkgraph must recover the current subnet body link to subnet_miner when the prefixed glossary short label self-resolves but its miner compound sibling concept article exists',
+  );
+  assert.ok(
+    (linkGraph.subnet || []).some((entry) => entry.target === 'subnet_weights' && entry.text === 'Glossary: Subnet'),
+    'generated linkgraph must recover the current subnet body link to subnet_weights when the prefixed glossary short label self-resolves but its weights compound sibling concept article exists',
+  );
+  assert.ok(
+    (linkGraph.subnet || []).some((entry) => entry.target === 'subnet_task' && entry.text === 'Glossary: Subnet'),
+    'generated linkgraph must recover the current subnet body link to subnet_task when the prefixed glossary short label self-resolves but its task compound sibling concept article exists',
+  );
+  assert.ok(
+    (linkGraph.subnet || []).some((entry) => entry.target === 'subnet_hyperparameters' && entry.text === 'Glossary: Subnet'),
+    'generated linkgraph must recover the current subnet body link to subnet_hyperparameters when the prefixed glossary short label self-resolves but its hyperparameters compound sibling concept article exists',
+  );
+  assert.ok(
+    (linkGraph.subnet || []).some((entry) => entry.target === 'subnet_registration' && entry.text === 'Glossary: Subnet'),
+    'generated linkgraph must recover the current subnet body link to subnet_registration when the prefixed glossary short label self-resolves but its registration compound sibling concept article exists',
+  );
+  assert.ok(
+    (linkGraph.subnet || []).some((entry) => entry.target === 'subnet_symbol' && entry.text === 'Glossary: Subnet'),
+    'generated linkgraph must recover the current subnet body link to subnet_symbol when the prefixed glossary short label self-resolves but its symbol compound sibling concept article exists',
+  );
+  assert.ok(
+    (linkGraph.subnet || []).some((entry) => entry.target === 'subnet_markets' && entry.text === 'Glossary: Subnet'),
+    'generated linkgraph must recover the current subnet body link to subnet_markets when the prefixed glossary short label self-resolves but its markets compound sibling concept article exists',
+  );
+  assert.ok(
+    (linkGraph.subnet || []).some((entry) => entry.target === 'subnet_lease' && entry.text === 'Glossary: Subnet'),
+    'generated linkgraph must recover the current subnet body link to subnet_lease when the prefixed glossary short label self-resolves but its lease compound sibling concept article exists',
+  );
+  assert.ok(
+    (linkGraph.subtensor || []).some((entry) => entry.target === 'subtensor_constants' && entry.text === 'Glossary: Subtensor'),
+    'generated linkgraph must recover the current subtensor body link to subtensor_constants when the prefixed glossary short label self-resolves but its constants compound sibling concept article exists',
+  );
+  assert.ok(
+    (linkGraph.subtensor || []).some((entry) => entry.target === 'subtensor_events' && entry.text === 'Glossary: Subtensor'),
+    'generated linkgraph must recover the current subtensor body link to subtensor_events when the prefixed glossary short label self-resolves but its events compound sibling concept article exists',
+  );
+  assert.ok(
+    (linkGraph.subtensor || []).some((entry) => entry.target === 'subtensor_storage' && entry.text === 'Glossary: Subtensor'),
+    'generated linkgraph must recover the current subtensor body link to subtensor_storage when the prefixed glossary short label self-resolves but its storage compound sibling concept article exists',
+  );
+  assert.ok(
+    (linkGraph.subtensor || []).some((entry) => entry.target === 'subtensor_error_codes' && entry.text === 'Glossary: Subtensor'),
+    'generated linkgraph must recover the current subtensor body link to subtensor_error_codes when the prefixed glossary short label self-resolves but its error codes compound sibling concept article exists',
+  );
+  assert.ok(
     (backlinks.validator_take || []).some((entry) => entry.from === 'delegation'),
     'generated backlinks must list delegation under validator_take when a prefixed glossary alias falls back to the canonical glossary anchor',
   );
@@ -780,6 +897,62 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
   assert.ok(
     (backlinks.mempool_visibility || []).some((entry) => entry.from === 'mempool'),
     'generated backlinks must list mempool under mempool_visibility when a prefixed glossary short label falls back to its visibility compound sibling concept article',
+  );
+  assert.ok(
+    (backlinks.subnet_protocol || []).some((entry) => entry.from === 'subnet'),
+    'generated backlinks must list subnet under subnet_protocol when a prefixed glossary short label falls back to its protocol compound sibling concept article',
+  );
+  assert.ok(
+    (backlinks.subnet_validator || []).some((entry) => entry.from === 'subnet'),
+    'generated backlinks must list subnet under subnet_validator when a prefixed glossary short label falls back to its validator compound sibling concept article',
+  );
+  assert.ok(
+    (backlinks.subnet_miner || []).some((entry) => entry.from === 'subnet'),
+    'generated backlinks must list subnet under subnet_miner when a prefixed glossary short label falls back to its miner compound sibling concept article',
+  );
+  assert.ok(
+    (backlinks.subnet_weights || []).some((entry) => entry.from === 'subnet'),
+    'generated backlinks must list subnet under subnet_weights when a prefixed glossary short label falls back to its weights compound sibling concept article',
+  );
+  assert.ok(
+    (backlinks.subnet_task || []).some((entry) => entry.from === 'subnet'),
+    'generated backlinks must list subnet under subnet_task when a prefixed glossary short label falls back to its task compound sibling concept article',
+  );
+  assert.ok(
+    (backlinks.subnet_hyperparameters || []).some((entry) => entry.from === 'subnet'),
+    'generated backlinks must list subnet under subnet_hyperparameters when a prefixed glossary short label falls back to its hyperparameters compound sibling concept article',
+  );
+  assert.ok(
+    (backlinks.subnet_registration || []).some((entry) => entry.from === 'subnet'),
+    'generated backlinks must list subnet under subnet_registration when a prefixed glossary short label falls back to its registration compound sibling concept article',
+  );
+  assert.ok(
+    (backlinks.subnet_symbol || []).some((entry) => entry.from === 'subnet'),
+    'generated backlinks must list subnet under subnet_symbol when a prefixed glossary short label falls back to its symbol compound sibling concept article',
+  );
+  assert.ok(
+    (backlinks.subnet_markets || []).some((entry) => entry.from === 'subnet'),
+    'generated backlinks must list subnet under subnet_markets when a prefixed glossary short label falls back to its markets compound sibling concept article',
+  );
+  assert.ok(
+    (backlinks.subnet_lease || []).some((entry) => entry.from === 'subnet'),
+    'generated backlinks must list subnet under subnet_lease when a prefixed glossary short label falls back to its lease compound sibling concept article',
+  );
+  assert.ok(
+    (backlinks.subtensor_constants || []).some((entry) => entry.from === 'subtensor'),
+    'generated backlinks must list subtensor under subtensor_constants when a prefixed glossary short label falls back to its constants compound sibling concept article',
+  );
+  assert.ok(
+    (backlinks.subtensor_events || []).some((entry) => entry.from === 'subtensor'),
+    'generated backlinks must list subtensor under subtensor_events when a prefixed glossary short label falls back to its events compound sibling concept article',
+  );
+  assert.ok(
+    (backlinks.subtensor_storage || []).some((entry) => entry.from === 'subtensor'),
+    'generated backlinks must list subtensor under subtensor_storage when a prefixed glossary short label falls back to its storage compound sibling concept article',
+  );
+  assert.ok(
+    (backlinks.subtensor_error_codes || []).some((entry) => entry.from === 'subtensor'),
+    'generated backlinks must list subtensor under subtensor_error_codes when a prefixed glossary short label falls back to its error codes compound sibling concept article',
   );
   assert.ok(
     !(linkGraph.tempo || []).some((entry) => entry.target === 'tempo'),

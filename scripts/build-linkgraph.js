@@ -151,8 +151,8 @@ export function extractCanonicalGlossaryLinks(content) {
     // label like "Alpha" names a local compound concept article ("Alpha Tokens"),
     // allow one exact-only retry on the suffixed title. When a prefixed glossary
     // short label like "TAO" self-resolves but sibling compound concepts exist
-    // ("TAO Reserve", "TAO Weight", "Halving Mechanisms", and similar), allow
-    // exact-only retries on those suffixes.
+    // ("TAO Reserve", "TAO Weight", "Subnet Validator", "Subtensor Events", and
+    // similar), allow exact-only retries on those suffixes.
     links.push({
       target,
       alternateTarget,
@@ -256,7 +256,12 @@ export function expandGlossaryTokensConceptTarget(target, canonicalTarget) {
   return '';
 }
 
-const GLOSSARY_COMPOUND_SUFFIXES = [' Reserve', ' Weight', ' Mechanisms', ' Visibility', ' Split', ' Rewards'];
+const GLOSSARY_COMPOUND_SUFFIXES = [
+  ' Reserve', ' Weight', ' Mechanisms', ' Visibility', ' Split', ' Rewards',
+  ' Protocol', ' Validator', ' Miner', ' Weights', ' Task', ' Hyperparameters',
+  ' Registration', ' Symbol', ' Markets', ' Lease', ' Constants', ' Events',
+  ' Storage', ' Error Codes',
+];
 
 function expandGlossaryCompoundSuffixTarget(target, canonicalTarget, suffix) {
   for (const base of [target, canonicalTarget]) {
