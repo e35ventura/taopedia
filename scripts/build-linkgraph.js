@@ -149,7 +149,9 @@ export function extractCanonicalGlossaryLinks(content) {
     // like "Extrinsic" names a local plural concept article ("Extrinsics"), allow
     // one exact-only retry on the pluralized label. When a prefixed glossary short
     // label like "Alpha" names a local compound concept article ("Alpha Tokens"),
-    // allow one exact-only retry on the suffixed title.
+    // allow one exact-only retry on the suffixed title. When a prefixed glossary
+    // short label like "TAO" self-resolves but sibling compound concepts exist
+    // ("TAO Reserve", "TAO Weight"), allow exact-only retries on those suffixes.
     links.push({
       target,
       alternateTarget,
@@ -251,6 +253,31 @@ export function expandGlossaryTokensConceptTarget(target, canonicalTarget) {
   }
 
   return '';
+}
+
+const GLOSSARY_COMPOUND_SUFFIXES = [' Reserve', ' Weight'];
+
+function expandGlossaryCompoundSuffixTarget(target, canonicalTarget, suffix) {
+  for (const base of [target, canonicalTarget]) {
+    const word = String(base || '').trim();
+    if (!word || /\s/.test(word)) continue;
+    const compoundTarget = `${titleCaseWord(word)}${suffix}`;
+    if (compoundTarget.toLowerCase() === word.toLowerCase()) continue;
+    return compoundTarget;
+  }
+
+  return '';
+}
+
+export function expandGlossaryCompoundSuffixTargets(target, canonicalTarget) {
+  const candidates = [];
+  for (const suffix of GLOSSARY_COMPOUND_SUFFIXES) {
+    const compoundTarget = expandGlossaryCompoundSuffixTarget(target, canonicalTarget, suffix);
+    if (!compoundTarget || candidates.includes(compoundTarget)) continue;
+    candidates.push(compoundTarget);
+  }
+
+  return candidates;
 }
 
 export function getVisibleInfoboxRows(articleDir, frontmatterRows) {
@@ -491,6 +518,27 @@ function main() {
               allowSplitTargets: false,
             }))
           : [];
+        const glossaryCompoundSuffixTargets = nonSelfLabelTargets.length === 0
+          && alternateTargets.length === 0
+          && slashSecondTargets.length === 0
+          && glossaryAcronymPluralTargets.length === 0
+          && glossaryGerundTargets.length === 0
+          && glossaryPluralTargets.length === 0
+          && glossaryTokensTargets.length === 0
+          && fallbackCanonicalTargets.length === 0
+          && isPrefixedGlossaryLabel
+          ? [...new Set(
+              expandGlossaryCompoundSuffixTargets(link.target, link.canonicalTarget).flatMap((suffixTarget) =>
+                filterSelfTargets(resolveBuildLinkTargets({
+                  target: suffixTarget,
+                  slugAliases,
+                  slugMap,
+                  requireExisting: true,
+                  allowSplitTargets: false,
+                }))
+              ),
+            )]
+          : [];
         const glossaryAcronymCanonicalTargets = isPlainAcronymGlossaryLabel
           && nonSelfLabelTargets.length === 1
           && fallbackCanonicalTargets.length === 1
@@ -513,7 +561,9 @@ function main() {
                     ? glossaryPluralTargets
                     : glossaryTokensTargets.length > 0
                       ? glossaryTokensTargets
-                      : fallbackCanonicalTargets;
+                      : glossaryCompoundSuffixTargets.length > 0
+                        ? glossaryCompoundSuffixTargets
+                        : fallbackCanonicalTargets;
 
       return {
         link,
@@ -528,6 +578,7 @@ function main() {
           && glossaryGerundTargets.length === 0
           && glossaryPluralTargets.length === 0
           && glossaryTokensTargets.length === 0
+          && glossaryCompoundSuffixTargets.length === 0
           && fallbackCanonicalTargets.length > 0,
       };
     });
