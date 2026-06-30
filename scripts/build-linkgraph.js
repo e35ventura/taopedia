@@ -71,7 +71,7 @@ export function extractInfoboxWikiLinks(rows) {
 
   return rows.flatMap((row) => {
     if (typeof row?.value !== 'string') return [];
-    return extractWikiLinks(row.value);
+    return extractArticleLinks(row.value);
   });
 }
 
@@ -92,6 +92,71 @@ export function dedupeOutgoingLinks(links) {
     seen.add(link.target);
     return true;
   });
+}
+
+function isCanonicalTaopediaWikiTarget(rawTarget) {
+  const target = String(rawTarget ?? '').trim();
+  if (/^\/?wiki\//i.test(target)) return true;
+
+  try {
+    const url = target.startsWith('//') ? new URL(`https:${target}`) : new URL(target);
+    const host = url.hostname.toLowerCase();
+    return (host === 'taopedia.org' || host === 'www.taopedia.org') && url.pathname.toLowerCase().startsWith('/wiki/');
+  } catch {
+    return false;
+  }
+}
+
+function isCanonicalLearnBittensorTarget(rawTarget) {
+  try {
+    const url = String(rawTarget ?? '').trim().startsWith('//')
+      ? new URL(`https:${String(rawTarget).trim()}`)
+      : new URL(String(rawTarget ?? '').trim());
+    return ['docs.learnbittensor.org', 'learnbittensor.org'].includes(url.hostname.toLowerCase());
+  } catch {
+    return false;
+  }
+}
+
+export function extractMarkdownArticleLinks(content) {
+  const value = String(content ?? '');
+  const markdownLinkRegex = /(?<!!)\[([^\]]+)\]\(([^)\s]+(?:\s+"[^"]*")?)\)/g;
+  const links = [];
+  let match;
+
+  while ((match = markdownLinkRegex.exec(value)) !== null) {
+    const text = match[1].trim();
+    const target = match[2].trim().replace(/\s+"[^"]*"$/, '');
+    if (!text || !target) continue;
+    if (!isCanonicalTaopediaWikiTarget(target) && !isCanonicalLearnBittensorTarget(target)) continue;
+    links.push({ target, text });
+  }
+
+  return links;
+}
+
+export function extractArticleLinks(content) {
+  return [
+    ...extractWikiLinks(content),
+    ...extractMarkdownArticleLinks(content),
+  ];
+}
+
+export function resolveBuildLinkTarget({ target, text, slugAliases, slugMap }) {
+  const resolvedTarget = resolveTargetSlug(target, slugAliases);
+  if (slugMap[resolvedTarget]) return resolvedTarget;
+
+  // The current taopedia-articles:test corpus references Taopedia concepts via
+  // canonical docs.learnbittensor.org Markdown links instead of [[wiki-links]].
+  // When those labels match a local article, count them as article-to-article
+  // references so backlinks/related pages stay populated on real content.
+  if (isCanonicalLearnBittensorTarget(target)) {
+    const resolvedLabel = resolveTargetSlug(text, slugAliases);
+    if (slugMap[resolvedLabel]) return resolvedLabel;
+    return '';
+  }
+
+  return resolvedTarget;
 }
 
 function main() {
@@ -138,7 +203,7 @@ function main() {
 
     // Extract wiki links from both rendered article body and visible infobox metadata.
     const links = [
-      ...extractWikiLinks(body),
+      ...extractArticleLinks(body),
       ...extractInfoboxWikiLinks(getVisibleInfoboxRows(path.dirname(filePath), data.infoboxRows)),
     ];
     linkGraph[slug] = links.map(link => ({
@@ -151,7 +216,7 @@ function main() {
   for (const [fromSlug, links] of Object.entries(linkGraph)) {
     linkGraph[fromSlug] = dedupeOutgoingLinks(
       links.map(link => ({
-        target: resolveTargetSlug(link.target, slugAliases),
+        target: resolveBuildLinkTarget({ target: link.target, text: link.text, slugAliases, slugMap }),
         text: link.text,
       })).filter(link => link.target),
     );

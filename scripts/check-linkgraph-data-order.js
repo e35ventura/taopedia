@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { orderGeneratedData, dedupeOutgoingLinks, normalizeArticleCategories } from './build-linkgraph.js';
+import { orderGeneratedData, dedupeOutgoingLinks, normalizeArticleCategories, resolveBuildLinkTarget } from './build-linkgraph.js';
+import { buildSlugAliases } from './wiki-link-resolver.js';
 
 const projectRoot = path.resolve(new URL('..', import.meta.url).pathname);
 const dataDir = path.join(projectRoot, 'public', 'data');
@@ -13,6 +14,32 @@ assert.deepEqual(
   'normalizeArticleCategories must dedupe while preserving first-seen order',
 );
 assert.deepEqual(normalizeArticleCategories(undefined), [], 'normalizeArticleCategories must normalize missing input to []');
+
+const resolverSlugMap = {
+  dynamic_tao: { title: 'Dynamic TAO' },
+  emission: { title: 'Emission' },
+};
+const resolverAliases = buildSlugAliases(resolverSlugMap);
+assert.equal(
+  resolveBuildLinkTarget({
+    target: 'https://docs.learnbittensor.org/learn/emissions',
+    text: 'Emission',
+    slugAliases: resolverAliases,
+    slugMap: resolverSlugMap,
+  }),
+  'emission',
+  'canonical Learn Bittensor markdown links must resolve by label to the local Taopedia article slug',
+);
+assert.equal(
+  resolveBuildLinkTarget({
+    target: 'https://docs.learnbittensor.org/learn/introduction',
+    text: 'Introduction to Bittensor',
+    slugAliases: resolverAliases,
+    slugMap: resolverSlugMap,
+  }),
+  '',
+  'canonical Learn Bittensor markdown links without a local article match must stay out of the link graph',
+);
 
 function assertSortedKeys(object, label) {
   const keys = Object.keys(object);
