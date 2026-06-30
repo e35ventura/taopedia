@@ -136,6 +136,7 @@ function main() {
   const linkGraph = {};
   const backlinks = {};
   const slugMap = {};
+  const slugAliasMap = {};
   const categoryIndex = {};
   const slugSources = new Map();
 
@@ -158,6 +159,14 @@ function main() {
       categories: articleCategories,
       summary: data.summary || '',
     };
+    // Plain-text Related rows often use the article's visible infobox label
+    // (for example "MEV") rather than its full title or slug. Feed that
+    // short on-page label into the alias resolver without widening the
+    // published slugmap.json contract.
+    slugAliasMap[slug] = {
+      title: data.title || slug,
+      infoboxTitle: data.infoboxTitle || '',
+    };
 
     // Build category index — one membership per topic even when frontmatter repeats it.
     for (const cat of articleCategories) {
@@ -179,7 +188,7 @@ function main() {
     }));
   });
 
-  const slugAliases = buildSlugAliases(slugMap);
+  const slugAliases = buildSlugAliases(slugAliasMap);
   for (const [fromSlug, links] of Object.entries(linkGraph)) {
     linkGraph[fromSlug] = dedupeOutgoingLinks(
       links.flatMap((link) =>

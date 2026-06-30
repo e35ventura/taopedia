@@ -18,6 +18,10 @@ assert.deepEqual(normalizeArticleCategories(undefined), [], 'normalizeArticleCat
 const resolverSlugMap = {
   dynamic_tao: { title: 'Dynamic TAO' },
   delegate: { title: 'Delegate' },
+  mev_maximal_extractable_value: {
+    title: 'MEV (Maximal Extractable Value)',
+    infoboxTitle: 'MEV',
+  },
 };
 const resolverAliases = buildSlugAliases(resolverSlugMap);
 assert.deepEqual(
@@ -29,6 +33,16 @@ assert.deepEqual(
   }),
   ['delegate'],
   'plain-text Related infobox rows must resolve to an existing local Taopedia article slug',
+);
+assert.deepEqual(
+  resolveBuildLinkTargets({
+    target: 'MEV',
+    slugAliases: resolverAliases,
+    slugMap: resolverSlugMap,
+    requireExisting: true,
+  }),
+  ['mev_maximal_extractable_value'],
+  'plain-text Related infobox rows must resolve short infoboxTitle aliases like MEV to an existing local slug',
 );
 assert.deepEqual(
   resolveBuildLinkTargets({
@@ -156,6 +170,14 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
       `generated slugmap entry for ${slug} must not repeat a category tag`,
     );
   }
+  assert.ok(
+    (linkGraph.sandwich_attack || []).some((entry) => entry.target === 'mev_maximal_extractable_value' && entry.text === 'MEV'),
+    'generated linkgraph must keep the current sandwich_attack Related: MEV infobox edge when the local MEV article exists',
+  );
+  assert.ok(
+    (backlinks.mev_maximal_extractable_value || []).some((entry) => entry.from === 'sandwich_attack'),
+    'generated backlinks must list sandwich_attack under the current local MEV article when its Related infobox row points there',
+  );
 }
 
 console.log('Linkgraph generated-data order check passed');

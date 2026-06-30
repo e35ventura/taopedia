@@ -60,8 +60,14 @@ try {
   );
 
   const slugMap = {
+    coldkeys: { title: 'Coldkeys', infoboxTitle: 'Coldkey' },
     subnet: { title: 'Subnet' },
     network_min_lock_cost: { title: 'Network Min Lock Cost' },
+    hotkeys: { title: 'Hotkeys', infoboxTitle: 'Hotkey' },
+    mev_maximal_extractable_value: {
+      title: 'MEV (Maximal Extractable Value)',
+      infoboxTitle: 'MEV',
+    },
     weight_vector: { title: 'Weight Vector' },
     slippage: { title: 'Slippage' },
     staking: { title: 'Staking' },
@@ -108,6 +114,26 @@ try {
     }),
     ['network_min_lock_cost'],
     'linkgraph should recover camel-cased article aliases from unresolved plain-text Related rows',
+  );
+  assert.deepEqual(
+    resolveBuildLinkTargets({
+      target: 'Coldkey and hotkey',
+      slugAliases,
+      slugMap,
+      requireExisting: true,
+    }),
+    ['coldkeys', 'hotkeys'],
+    'linkgraph should recover split plain-text Related parts through infoboxTitle aliases like Coldkey and hotkey',
+  );
+  assert.deepEqual(
+    resolveBuildLinkTargets({
+      target: 'MEV',
+      slugAliases,
+      slugMap,
+      requireExisting: true,
+    }),
+    ['mev_maximal_extractable_value'],
+    'linkgraph should recover short infoboxTitle aliases like MEV from plain-text Related rows',
   );
   assert.deepEqual(
     resolveBuildLinkTargets({
