@@ -138,7 +138,10 @@ export function extractCanonicalGlossaryLinks(content) {
     // plural concept article. When a prefixed label's first hyphen compound is
     // word-order-reversed from the local title (e.g. "Coldkey-hotkey pair" vs
     // "Hotkey-Coldkey Pair"), keep a swapped hyphen fallback before consulting
-    // the canonical glossary anchor.
+    // the canonical glossary anchor. When a glossary anchor names only "alpha"
+    // but the local concept article is titled "Alpha Tokens", keep one final
+    // exact-only retry on the pluralized local title without broadening other
+    // wiki-link resolution paths.
     links.push({
       target,
       alternateTarget,
@@ -182,6 +185,14 @@ function pluralizeFinalWord(target) {
 
   words[words.length - 1] = `${lastWord}s`;
   return words.join(' ');
+}
+
+export function expandGlossaryAlphaConceptTarget(target, canonicalTarget) {
+  const normalizedTarget = String(target || '').trim().toLowerCase();
+  const normalizedCanonicalTarget = String(canonicalTarget || '').trim().toLowerCase();
+  if (normalizedTarget !== 'alpha' && normalizedCanonicalTarget !== 'alpha') return '';
+
+  return 'alpha tokens';
 }
 
 export function getVisibleInfoboxRows(articleDir, frontmatterRows) {
@@ -352,13 +363,26 @@ function main() {
             allowSplitTargets: false,
           })
         : [];
+      const glossaryAlphaConceptTargets = labelTargets.length === 0
+        && alternateTargets.length === 0
+        && glossaryAcronymPluralTargets.length === 0
+        ? resolveBuildLinkTargets({
+            target: expandGlossaryAlphaConceptTarget(link.target, link.canonicalTarget),
+            slugAliases,
+            slugMap,
+            requireExisting: true,
+            allowSplitTargets: false,
+          })
+        : [];
       const resolvedTargets = labelTargets.length > 0
         ? labelTargets
         : alternateTargets.length > 0
           ? alternateTargets
           : glossaryAcronymPluralTargets.length > 0
             ? glossaryAcronymPluralTargets
-            : fallbackCanonicalTargets;
+            : glossaryAlphaConceptTargets.length > 0
+              ? glossaryAlphaConceptTargets
+              : fallbackCanonicalTargets;
 
       return {
         link,
