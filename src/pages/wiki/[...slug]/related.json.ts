@@ -11,6 +11,7 @@ import {
 import { buildArticleRelatedPages, getRelatedPages } from '../../../lib/related-pages';
 import { gatherLinkStatsBySlug } from '../../../lib/article-link-stats';
 import { getArticleToc } from '../../../lib/article-toc.js';
+import { globbedDefault, publishedSlugsFromSlugMap } from '../../../lib/wiki-route-data';
 
 const slugmapModules = import.meta.glob('../../../../public/data/slugmap.json', { eager: true }) as Record<
   string,
@@ -29,17 +30,17 @@ const linkgraphModules = import.meta.glob('../../../../public/data/linkgraph.jso
   { default?: Record<string, Array<{ target: string }>> }
 >;
 
-const slugMap = Object.values(slugmapModules)[0]?.default ?? {};
-const categoriesIndex = Object.values(categoriesModules)[0]?.default ?? {};
-const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
-const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
+const slugMap = globbedDefault(slugmapModules, {});
+const categoriesIndex = globbedDefault(categoriesModules, {});
+const backlinksData = globbedDefault(backlinksModules, {});
+const linkgraphData = globbedDefault(linkgraphModules, {});
 
 export async function getStaticPaths() {
   const titleBySlug = publishedTitleBySlug();
   const summaryBySlug = publishedSummaryBySlug();
   const categoriesBySlug = publishedCategoriesBySlug();
   const publishedSlugs = new Set(Object.keys(titleBySlug));
-  const publishedSlugList = Object.keys(slugMap).filter((slug) => slugMap[slug]?.title);
+  const publishedSlugList = publishedSlugsFromSlugMap(slugMap);
   const pageBySlug = await contentPagesBySlug(publishedSlugList);
   // Body word count, revision history, and table-of-contents section count —
   // scoped to published slugmap members (routes already enumerate via slugmap

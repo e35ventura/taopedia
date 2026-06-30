@@ -11,6 +11,7 @@ import {
 import { getArticleToc } from '../../../lib/article-toc.js';
 import { buildArticleHistory } from '../../../../scripts/article-history-json.js';
 import { gatherLinkStatsBySlug } from '../../../lib/article-link-stats';
+import { globbedDefault, publishedSlugsFromSlugMap } from '../../../lib/wiki-route-data';
 import slugMap from '../../../../public/data/slugmap.json';
 
 type RawRevision = { sha: string; date: string; authorName: string; message?: string };
@@ -19,20 +20,20 @@ const backlinksModules = import.meta.glob('../../../../public/data/backlinks.jso
   string,
   { default?: Record<string, Array<{ from: string }>> }
 >;
-const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
+const backlinksData = globbedDefault(backlinksModules, {});
 
 const linkgraphModules = import.meta.glob('../../../../public/data/linkgraph.json', { eager: true }) as Record<
   string,
   { default?: Record<string, Array<{ target?: string }>> }
 >;
-const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
+const linkgraphData = globbedDefault(linkgraphModules, {});
 
 export async function getStaticPaths() {
   const titleBySlug = publishedTitleBySlug();
   const summaryBySlug = publishedSummaryBySlug();
   const categoriesBySlug = publishedCategoriesBySlug();
 
-  const publishedSlugList = Object.keys(slugMap).filter((slug) => slugMap[slug]?.title);
+  const publishedSlugList = publishedSlugsFromSlugMap(slugMap);
   const pageBySlug = await contentPagesBySlug(publishedSlugList);
   const wordCountBySlug: Record<string, number> = {};
   const sectionCountBySlug: Record<string, number> = {};
