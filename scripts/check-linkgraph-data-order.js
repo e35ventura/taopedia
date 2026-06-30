@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { extractCanonicalGlossaryLinks, orderGeneratedData, dedupeOutgoingLinks, normalizeArticleCategories, resolveBuildLinkTargets } from './build-linkgraph.js';
+import { extractCanonicalGlossaryLinks, orderGeneratedData, dedupeOutgoingLinks, normalizeArticleCategories, resolveBuildLinkTargets, expandGlossaryGerundConceptTarget } from './build-linkgraph.js';
 import { buildSlugAliases } from './wiki-link-resolver.js';
 
 const projectRoot = path.resolve(new URL('..', import.meta.url).pathname);
@@ -19,10 +19,11 @@ assert.deepEqual(
     'See [tempo](https://docs.learnbittensor.org/resources/glossary#tempo), [validator](https://docs.learnbittensor.org/resources/glossary#subnet-validator), [Glossary: Validator Take %](https://docs.learnbittensor.org/resources/glossary#validator-take-), [Glossary: Drand/time-lock encryption](https://docs.learnbittensor.org/resources/glossary#drandtime-lock-encryption), [Glossary: Root Subnet/Subnet Zero](https://docs.learnbittensor.org/resources/glossary#root-subnetsubnet-zero), [Glossary: Exponential Moving Average (EMA)](https://docs.learnbittensor.org/resources/glossary#exponential-moving-average-ema), [Glossary: ADR](https://docs.learnbittensor.org/resources/glossary#adr-alpha-distribution-ratio), and [Subnet Hyperparameters](https://docs.learnbittensor.org/subnets/subnet-hyperparameters).',
   ),
   [
-    { target: 'tempo', alternateTarget: '', canonicalTarget: 'tempo', text: 'tempo', requireExisting: true, skipSelf: true, allowSplitTargets: true },
+    { target: 'tempo', alternateTarget: '', slashSecondTarget: '', canonicalTarget: 'tempo', text: 'tempo', requireExisting: true, skipSelf: true, allowSplitTargets: true },
     {
       target: 'validator',
       alternateTarget: '',
+      slashSecondTarget: '',
       canonicalTarget: 'subnet validator',
       text: 'validator',
       requireExisting: true,
@@ -32,6 +33,7 @@ assert.deepEqual(
     {
       target: 'Validator Take %',
       alternateTarget: '',
+      slashSecondTarget: '',
       canonicalTarget: 'validator take',
       text: 'Glossary: Validator Take %',
       requireExisting: true,
@@ -41,6 +43,7 @@ assert.deepEqual(
     {
       target: 'Drand time-lock encryption',
       alternateTarget: 'Drand',
+      slashSecondTarget: 'time-lock encryption',
       canonicalTarget: 'drandtime lock encryption',
       text: 'Glossary: Drand/time-lock encryption',
       requireExisting: true,
@@ -50,6 +53,7 @@ assert.deepEqual(
     {
       target: 'Root Subnet Subnet Zero',
       alternateTarget: 'Root Subnet',
+      slashSecondTarget: 'Subnet Zero',
       canonicalTarget: 'root subnetsubnet zero',
       text: 'Glossary: Root Subnet/Subnet Zero',
       requireExisting: true,
@@ -59,6 +63,7 @@ assert.deepEqual(
     {
       target: 'Exponential Moving Average (EMA)',
       alternateTarget: '',
+      slashSecondTarget: '',
       canonicalTarget: 'exponential moving average ema',
       text: 'Glossary: Exponential Moving Average (EMA)',
       requireExisting: true,
@@ -68,6 +73,7 @@ assert.deepEqual(
     {
       target: 'ADR',
       alternateTarget: '',
+      slashSecondTarget: '',
       canonicalTarget: 'alpha distribution ratio',
       text: 'Glossary: ADR',
       requireExisting: true,
@@ -75,7 +81,7 @@ assert.deepEqual(
       allowSplitTargets: false,
     },
   ],
-  'canonical Learn Bittensor glossary markdown links should preserve plain labels, keep canonical anchor fallbacks for plain and prefixed labels, normalize slash-separated labels, preserve a first visible slash alternative, and keep acronym-bearing prefixed labels available for later exact-only fallback refinement',
+  'canonical Learn Bittensor glossary markdown links should preserve plain labels, keep canonical anchor fallbacks for plain and prefixed labels, normalize slash-separated labels, preserve slash alternatives, and keep acronym-bearing prefixed labels available for later exact-only fallback refinement',
 );
 
 const resolverSlugMap = {
@@ -95,6 +101,8 @@ const resolverSlugMap = {
   alpha_distribution_ratio: { title: 'Alpha Distribution Ratio' },
   exponential_moving_averages: { title: 'Exponential Moving Averages', infoboxTitle: 'Exponential Moving Averages' },
   hotkey_coldkey_pair: { title: 'Hotkey-Coldkey Pair' },
+  recycling: { title: 'Recycling' },
+  time_lock_encryption: { title: 'Time-Lock Encryption' },
 };
 const resolverAliases = buildSlugAliases(resolverSlugMap);
 assert.deepEqual(
@@ -201,6 +209,7 @@ assert.deepEqual(
     {
       target: 'Coldkey-hotkey pair',
       alternateTarget: 'hotkey-Coldkey pair',
+      slashSecondTarget: '',
       canonicalTarget: 'coldkey hotkey pair',
       text: 'Glossary: Coldkey-hotkey pair',
       requireExisting: true,
@@ -220,6 +229,51 @@ assert.deepEqual(
   }),
   ['hotkey_coldkey_pair'],
   'exact-existing glossary recovery should match a hyphen-reversed first compound when the visible prefixed label misses',
+);
+assert.deepEqual(
+  extractCanonicalGlossaryLinks(
+    'See [Glossary: Recycle](https://docs.learnbittensor.org/resources/glossary#recycle).',
+  ),
+  [
+    {
+      target: 'Recycle',
+      alternateTarget: '',
+      slashSecondTarget: '',
+      canonicalTarget: 'recycle',
+      text: 'Glossary: Recycle',
+      requireExisting: true,
+      skipSelf: true,
+      allowSplitTargets: false,
+    },
+  ],
+  'canonical Learn Bittensor glossary markdown links should preserve gerund-recoverable verb labels for later exact-only fallback refinement',
+);
+assert.equal(
+  expandGlossaryGerundConceptTarget('Recycle', 'recycle'),
+  'Recycling',
+  'expandGlossaryGerundConceptTarget must derive the local gerund concept from a glossary verb label',
+);
+assert.deepEqual(
+  resolveBuildLinkTargets({
+    target: 'Recycling',
+    slugAliases: resolverAliases,
+    slugMap: resolverSlugMap,
+    requireExisting: true,
+    allowSplitTargets: false,
+  }),
+  ['recycling'],
+  'exact-existing glossary recovery should match a gerund concept article when the visible prefixed verb label misses',
+);
+assert.deepEqual(
+  resolveBuildLinkTargets({
+    target: 'time-lock encryption',
+    slugAliases: resolverAliases,
+    slugMap: resolverSlugMap,
+    requireExisting: true,
+    allowSplitTargets: false,
+  }),
+  ['time_lock_encryption'],
+  'exact-existing glossary recovery should match a slash-separated second segment when earlier slash fallbacks miss',
 );
 
 function assertSortedKeys(object, label) {
@@ -350,8 +404,8 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated linkgraph must keep an existing bittensor_evm_smart_contracts edge text when a different plain glossary label would otherwise resolve to the same target via the canonical anchor fallback',
   );
   assert.ok(
-    (linkGraph.activity_cutoff || []).some((entry) => entry.target === 'subnet_validator' && entry.text === 'validator'),
-    'generated linkgraph must recover the current activity_cutoff body link to subnet_validator when a plain glossary label misses but its canonical anchor matches the local article',
+    (linkGraph.min_allowed_weights || []).some((entry) => entry.target === 'subnet_validator' && entry.text === 'validator'),
+    'generated linkgraph must recover the current min_allowed_weights body link to subnet_validator when a plain glossary label misses but its canonical anchor matches the local article',
   );
   assert.ok(
     (linkGraph.address_poisoning_scams || []).some((entry) => entry.target === 'public_key' && entry.text === 'Glossary: Public Key'),
@@ -366,8 +420,8 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated backlinks must list activity_cutoff under tempo when the body uses a canonical glossary markdown link to the local tempo concept',
   );
   assert.ok(
-    (backlinks.subnet_validator || []).some((entry) => entry.from === 'activity_cutoff'),
-    'generated backlinks must list activity_cutoff under subnet_validator when a plain glossary label falls back to the canonical glossary anchor',
+    (backlinks.subnet_validator || []).some((entry) => entry.from === 'min_allowed_weights'),
+    'generated backlinks must list min_allowed_weights under subnet_validator when a plain glossary label falls back to the canonical glossary anchor',
   );
   assert.ok(
     (backlinks.public_key || []).some((entry) => entry.from === 'address_poisoning_scams'),
@@ -406,12 +460,8 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated linkgraph must recover the current validator_miner_bonds body link to exponential_moving_averages when the prefixed glossary label ends with a parenthetical acronym but the local article title is pluralized',
   );
   assert.ok(
-    (linkGraph.weight_vector || []).some((entry) => entry.target === 'extrinsics' && entry.text === 'extrinsic'),
-    'generated linkgraph must recover the current weight_vector body link to extrinsics when a plain glossary singular label misses but the canonical anchor names the local plural concept article',
-  );
-  assert.ok(
-    (linkGraph.weights_version_key || []).some((entry) => entry.target === 'extrinsics' && entry.text === 'extrinsic'),
-    'generated linkgraph must recover the current weights_version_key body link to extrinsics when a plain glossary singular label misses but the canonical anchor names the local plural concept article',
+    (linkGraph.alpha_halving || []).some((entry) => entry.target === 'weight_vector' && entry.text === 'weights'),
+    'generated linkgraph must recover the current alpha_halving body link to weight_vector when a plain glossary singular label misses but the canonical anchor names the local concept article',
   );
   assert.ok(
     (linkGraph.yuma_consensus_3 || []).some((entry) => entry.target === 'exponential_moving_averages' && entry.text === 'Glossary: Exponential Moving Average (EMA)'),
@@ -438,6 +488,18 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated linkgraph must recover the current coldkey_hotkey_workstation_security body link to hotkey_coldkey_pair when the prefixed glossary label hyphen compound is word-order-reversed from the local title',
   );
   assert.ok(
+    (linkGraph.bittensor_emissions || []).some((entry) => entry.target === 'recycling' && entry.text === 'Glossary: Recycle'),
+    'generated linkgraph must recover the current bittensor_emissions body link to recycling when the prefixed glossary verb label misses but its gerund concept article exists',
+  );
+  assert.ok(
+    (linkGraph.start_call || []).some((entry) => entry.target === 'recycling' && entry.text === 'Glossary: Recycle'),
+    'generated linkgraph must recover the current start_call body link to recycling when the prefixed glossary verb label misses but its gerund concept article exists',
+  );
+  assert.ok(
+    (linkGraph.drand_time_lock_encryption || []).some((entry) => entry.target === 'time_lock_encryption' && entry.text === 'Glossary: Drand/time-lock encryption'),
+    'generated linkgraph must recover the current drand_time_lock_encryption body link to time_lock_encryption when the slash-normalized prefixed glossary label self-resolves but the remaining slash segment names a sibling local concept article',
+  );
+  assert.ok(
     (backlinks.validator_take || []).some((entry) => entry.from === 'delegation'),
     'generated backlinks must list delegation under validator_take when a prefixed glossary alias falls back to the canonical glossary anchor',
   );
@@ -458,12 +520,8 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated backlinks must list validator_miner_bonds under exponential_moving_averages when a prefixed glossary acronym-parenthetical label falls back to the local plural concept article',
   );
   assert.ok(
-    (backlinks.extrinsics || []).some((entry) => entry.from === 'weight_vector'),
-    'generated backlinks must list weight_vector under extrinsics when a plain glossary singular label falls back to the local plural concept article',
-  );
-  assert.ok(
-    (backlinks.extrinsics || []).some((entry) => entry.from === 'weights_version_key'),
-    'generated backlinks must list weights_version_key under extrinsics when a plain glossary singular label falls back to the local plural concept article',
+    (backlinks.weight_vector || []).some((entry) => entry.from === 'alpha_halving'),
+    'generated backlinks must list alpha_halving under weight_vector when a plain glossary singular label falls back to the canonical concept anchor',
   );
   assert.ok(
     (backlinks.exponential_moving_averages || []).some((entry) => entry.from === 'yuma_consensus_3'),
@@ -484,6 +542,18 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
   assert.ok(
     (backlinks.hotkey_coldkey_pair || []).some((entry) => entry.from === 'coldkey_hotkey_workstation_security'),
     'generated backlinks must list coldkey_hotkey_workstation_security under hotkey_coldkey_pair when a prefixed glossary hyphen label falls back to its word-order-reversed local alternative',
+  );
+  assert.ok(
+    (backlinks.recycling || []).some((entry) => entry.from === 'bittensor_emissions'),
+    'generated backlinks must list bittensor_emissions under recycling when a prefixed glossary verb label falls back to its gerund concept article',
+  );
+  assert.ok(
+    (backlinks.recycling || []).some((entry) => entry.from === 'start_call'),
+    'generated backlinks must list start_call under recycling when a prefixed glossary verb label falls back to its gerund concept article',
+  );
+  assert.ok(
+    (backlinks.time_lock_encryption || []).some((entry) => entry.from === 'drand_time_lock_encryption'),
+    'generated backlinks must list drand_time_lock_encryption under time_lock_encryption when a slash-separated prefixed glossary label falls back to its remaining slash segment',
   );
   assert.ok(
     !(linkGraph.tempo || []).some((entry) => entry.target === 'tempo'),

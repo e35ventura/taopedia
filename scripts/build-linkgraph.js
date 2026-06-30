@@ -96,14 +96,20 @@ export function extractCanonicalGlossaryLinks(content) {
     const text = match[1].trim();
     const hasGlossaryPrefix = /^Glossary:\s*/i.test(text);
     const rawTarget = text.replace(/^Glossary:\s*/i, '').trim();
+    const slashParts = hasGlossaryPrefix && rawTarget.includes('/')
+      ? rawTarget.split('/').map((part) => part.trim()).filter(Boolean)
+      : [];
     const target = hasGlossaryPrefix
       ? rawTarget.replace(/\/+/g, ' ').replace(/\s+/g, ' ').trim()
       : rawTarget;
-    const alternateTarget = hasGlossaryPrefix && rawTarget.includes('/')
-      ? rawTarget.split('/')[0].trim().replace(/\s+/g, ' ')
+    const alternateTarget = slashParts.length > 0
+      ? slashParts[0].replace(/\s+/g, ' ')
       : hasGlossaryPrefix && /^([A-Za-z]+)-([A-Za-z]+)/.test(rawTarget)
         ? rawTarget.replace(/^([A-Za-z]+)-([A-Za-z]+)/, '$2-$1').trim()
         : '';
+    const slashSecondTarget = slashParts.length > 1
+      ? slashParts.slice(1).join(' ').replace(/\s+/g, ' ').trim()
+      : '';
     if (!target) continue;
     let canonicalTarget = decodeURIComponent(match[2].split('#')[1] || '').replace(/[-_]+/g, ' ').trim();
     if (
@@ -127,8 +133,8 @@ export function extractCanonicalGlossaryLinks(content) {
     // as word boundaries for the exact-only local match without broadening other
     // wiki-link resolution paths. If a slash-separated prefixed label still
     // misses after that normalization, keep the first visible alternative as a
-    // second exact-only fallback before consulting the canonical glossary
-    // anchor. Likewise, some glossary acronyms like "ADR" repeat themselves at
+    // second exact-only fallback, then the remaining slash-separated segment(s),
+    // before consulting the canonical glossary anchor. Likewise, some glossary
     // the start of the canonical anchor ("adr alpha ..."); strip that
     // redundant acronym only in the prefixed exact-only fallback path. When a
     // prefixed label ends with a parenthetical acronym like "(EMA)", allow one
@@ -137,10 +143,13 @@ export function extractCanonicalGlossaryLinks(content) {
     // plural concept article. When a prefixed label's first hyphen compound is
     // word-order-reversed from the local title (e.g. "Coldkey-hotkey pair" vs
     // "Hotkey-Coldkey Pair"), keep a swapped hyphen fallback before consulting
-    // the canonical glossary anchor.
+    // the canonical glossary anchor. When a prefixed glossary verb like
+    // "Recycle" names a local gerund concept article ("Recycling"), allow one
+    // final exact-only retry on the -ing form.
     links.push({
       target,
       alternateTarget,
+      slashSecondTarget,
       canonicalTarget,
       text,
       requireExisting: true,
@@ -181,6 +190,30 @@ function pluralizeFinalWord(target) {
 
   words[words.length - 1] = `${lastWord}s`;
   return words.join(' ');
+}
+
+function gerundFinalWord(target) {
+  const words = String(target || '').trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return '';
+
+  const lastWord = words.at(-1);
+  if (!/^[A-Za-z][A-Za-z-]*$/.test(lastWord) || /ing$/i.test(lastWord)) return '';
+
+  const gerundWord = /e$/i.test(lastWord) && lastWord.length > 2
+    ? `${lastWord.slice(0, -1)}ing`
+    : `${lastWord}ing`;
+  words[words.length - 1] = gerundWord;
+  return words.join(' ');
+}
+
+export function expandGlossaryGerundConceptTarget(target, canonicalTarget) {
+  for (const base of [target, canonicalTarget]) {
+    const gerundTarget = gerundFinalWord(String(base || '').trim());
+    if (!gerundTarget || gerundTarget.toLowerCase() === String(base || '').trim().toLowerCase()) continue;
+    return gerundTarget;
+  }
+
+  return '';
 }
 
 export function getVisibleInfoboxRows(articleDir, frontmatterRows) {
@@ -304,6 +337,7 @@ function main() {
     linkGraph[slug] = links.map(link => ({
       target: link.target,
       alternateTarget: link.alternateTarget || '',
+      slashSecondTarget: link.slashSecondTarget || '',
       canonicalTarget: link.canonicalTarget || '',
       text: link.text,
       preferResolvedTitle: link.preferResolvedTitle === true,
@@ -318,6 +352,9 @@ function main() {
     const resolvedLinks = links.map((link) => {
       const isPrefixedGlossaryLabel = /^Glossary:\s*/i.test(String(link.text || ''));
       const isGenericGlossaryLabel = /^glossary$/i.test(String(link.text || '').trim());
+      const filterSelfTargets = (targets) => targets.filter(
+        (target) => !(link.skipSelf && target === fromSlug),
+      );
       const labelTargets = resolveBuildLinkTargets({
         target: link.target,
         slugAliases,
@@ -325,46 +362,77 @@ function main() {
         requireExisting: link.requireExisting,
         allowSplitTargets: link.allowSplitTargets,
       });
-      const alternateTargets = labelTargets.length === 0 && link.alternateTarget
-        ? resolveBuildLinkTargets({
+      const nonSelfLabelTargets = filterSelfTargets(labelTargets);
+      const alternateTargets = nonSelfLabelTargets.length === 0 && link.alternateTarget
+        ? filterSelfTargets(resolveBuildLinkTargets({
             target: link.alternateTarget,
             slugAliases,
             slugMap,
             requireExisting: true,
             allowSplitTargets: false,
-          })
+          }))
+        : [];
+      const slashSecondTargets = nonSelfLabelTargets.length === 0
+        && alternateTargets.length === 0
+        && link.slashSecondTarget
+        ? filterSelfTargets(resolveBuildLinkTargets({
+            target: link.slashSecondTarget,
+            slugAliases,
+            slugMap,
+            requireExisting: true,
+            allowSplitTargets: false,
+          }))
         : [];
       const canonicalTargets = link.canonicalTarget
-        ? resolveBuildLinkTargets({
+        ? filterSelfTargets(resolveBuildLinkTargets({
             target: link.canonicalTarget,
             slugAliases,
             slugMap,
             requireExisting: true,
             allowSplitTargets: false,
-          })
+          }))
         : [];
       const fallbackCanonicalTargets = isPrefixedGlossaryLabel || !isGenericGlossaryLabel
         ? canonicalTargets
         : [];
-      const glossaryAcronymPluralTargets = labelTargets.length === 0
+      const glossaryAcronymPluralTargets = nonSelfLabelTargets.length === 0
         && alternateTargets.length === 0
+        && slashSecondTargets.length === 0
         && fallbackCanonicalTargets.length === 0
         && isPrefixedGlossaryLabel
-        ? resolveBuildLinkTargets({
+        ? filterSelfTargets(resolveBuildLinkTargets({
             target: expandGlossaryAcronymPluralTarget(link.target, link.canonicalTarget),
             slugAliases,
             slugMap,
             requireExisting: true,
             allowSplitTargets: false,
-          })
+          }))
         : [];
-      const resolvedTargets = labelTargets.length > 0
-        ? labelTargets
+      const glossaryGerundTargets = nonSelfLabelTargets.length === 0
+        && alternateTargets.length === 0
+        && slashSecondTargets.length === 0
+        && glossaryAcronymPluralTargets.length === 0
+        && fallbackCanonicalTargets.length === 0
+        && isPrefixedGlossaryLabel
+        ? filterSelfTargets(resolveBuildLinkTargets({
+            target: expandGlossaryGerundConceptTarget(link.target, link.canonicalTarget),
+            slugAliases,
+            slugMap,
+            requireExisting: true,
+            allowSplitTargets: false,
+          }))
+        : [];
+      const resolvedTargets = nonSelfLabelTargets.length > 0
+        ? nonSelfLabelTargets
         : alternateTargets.length > 0
           ? alternateTargets
-          : glossaryAcronymPluralTargets.length > 0
-            ? glossaryAcronymPluralTargets
-            : fallbackCanonicalTargets;
+          : slashSecondTargets.length > 0
+            ? slashSecondTargets
+            : glossaryAcronymPluralTargets.length > 0
+              ? glossaryAcronymPluralTargets
+              : glossaryGerundTargets.length > 0
+                ? glossaryGerundTargets
+                : fallbackCanonicalTargets;
 
       return {
         link,
@@ -372,9 +440,11 @@ function main() {
         isPlainGlossaryCanonicalFallback:
           !isPrefixedGlossaryLabel
           && !isGenericGlossaryLabel
-          && labelTargets.length === 0
+          && nonSelfLabelTargets.length === 0
           && alternateTargets.length === 0
+          && slashSecondTargets.length === 0
           && glossaryAcronymPluralTargets.length === 0
+          && glossaryGerundTargets.length === 0
           && fallbackCanonicalTargets.length > 0,
       };
     });
@@ -391,7 +461,6 @@ function main() {
           : resolvedTargets;
 
         return effectiveTargets
-          .filter((target) => !(link.skipSelf && target === fromSlug))
           .map((target) => ({
             target,
             text: link.preferResolvedTitle && shouldUseResolvedTitleText(link.text, slugMap[target]?.title)
