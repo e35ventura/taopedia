@@ -16,10 +16,19 @@ assert.deepEqual(
 assert.deepEqual(normalizeArticleCategories(undefined), [], 'normalizeArticleCategories must normalize missing input to []');
 assert.deepEqual(
   extractCanonicalGlossaryLinks(
-    'See [tempo](https://docs.learnbittensor.org/resources/glossary#tempo), [Glossary: Validator Take %](https://docs.learnbittensor.org/resources/glossary#validator-take-), [Glossary: Drand/time-lock encryption](https://docs.learnbittensor.org/resources/glossary#drandtime-lock-encryption), [Glossary: Root Subnet/Subnet Zero](https://docs.learnbittensor.org/resources/glossary#root-subnetsubnet-zero), [Glossary: Exponential Moving Average (EMA)](https://docs.learnbittensor.org/resources/glossary#exponential-moving-average-ema), [Glossary: ADR](https://docs.learnbittensor.org/resources/glossary#adr-alpha-distribution-ratio), and [Subnet Hyperparameters](https://docs.learnbittensor.org/subnets/subnet-hyperparameters).',
+    'See [tempo](https://docs.learnbittensor.org/resources/glossary#tempo), [validator](https://docs.learnbittensor.org/resources/glossary#subnet-validator), [Glossary: Validator Take %](https://docs.learnbittensor.org/resources/glossary#validator-take-), [Glossary: Drand/time-lock encryption](https://docs.learnbittensor.org/resources/glossary#drandtime-lock-encryption), [Glossary: Root Subnet/Subnet Zero](https://docs.learnbittensor.org/resources/glossary#root-subnetsubnet-zero), [Glossary: Exponential Moving Average (EMA)](https://docs.learnbittensor.org/resources/glossary#exponential-moving-average-ema), [Glossary: ADR](https://docs.learnbittensor.org/resources/glossary#adr-alpha-distribution-ratio), and [Subnet Hyperparameters](https://docs.learnbittensor.org/subnets/subnet-hyperparameters).',
   ),
   [
-    { target: 'tempo', alternateTarget: '', canonicalTarget: '', text: 'tempo', requireExisting: true, skipSelf: true, allowSplitTargets: true },
+    { target: 'tempo', alternateTarget: '', canonicalTarget: 'tempo', text: 'tempo', requireExisting: true, skipSelf: true, allowSplitTargets: true },
+    {
+      target: 'validator',
+      alternateTarget: '',
+      canonicalTarget: 'subnet validator',
+      text: 'validator',
+      requireExisting: true,
+      skipSelf: true,
+      allowSplitTargets: true,
+    },
     {
       target: 'Validator Take %',
       alternateTarget: '',
@@ -66,7 +75,7 @@ assert.deepEqual(
       allowSplitTargets: false,
     },
   ],
-  'canonical Learn Bittensor glossary markdown links should preserve plain labels, keep prefixed-label anchor fallbacks, normalize slash-separated labels, preserve a first visible slash alternative, and keep acronym-bearing prefixed labels available for later exact-only fallback refinement',
+  'canonical Learn Bittensor glossary markdown links should preserve plain labels, keep canonical anchor fallbacks for plain and prefixed labels, normalize slash-separated labels, preserve a first visible slash alternative, and keep acronym-bearing prefixed labels available for later exact-only fallback refinement',
 );
 
 const resolverSlugMap = {
@@ -308,6 +317,14 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated linkgraph must recover the current activity_cutoff body link to the local tempo article from a canonical glossary markdown link',
   );
   assert.ok(
+    (linkGraph.bittensor_evm_smart_contracts || []).some((entry) => entry.target === 'subtensor' && entry.text === 'Subtensor'),
+    'generated linkgraph must keep an existing bittensor_evm_smart_contracts edge text when a different plain glossary label would otherwise resolve to the same target via the canonical anchor fallback',
+  );
+  assert.ok(
+    (linkGraph.activity_cutoff || []).some((entry) => entry.target === 'subnet_validator' && entry.text === 'validator'),
+    'generated linkgraph must recover the current activity_cutoff body link to subnet_validator when a plain glossary label misses but its canonical anchor matches the local article',
+  );
+  assert.ok(
     (linkGraph.address_poisoning_scams || []).some((entry) => entry.target === 'public_key' && entry.text === 'Glossary: Public Key'),
     'generated linkgraph must recover the current address_poisoning_scams body link to the local public_key article from a canonical glossary label with a visible Glossary: prefix',
   );
@@ -318,6 +335,10 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
   assert.ok(
     (backlinks.tempo || []).some((entry) => entry.from === 'activity_cutoff'),
     'generated backlinks must list activity_cutoff under tempo when the body uses a canonical glossary markdown link to the local tempo concept',
+  );
+  assert.ok(
+    (backlinks.subnet_validator || []).some((entry) => entry.from === 'activity_cutoff'),
+    'generated backlinks must list activity_cutoff under subnet_validator when a plain glossary label falls back to the canonical glossary anchor',
   );
   assert.ok(
     (backlinks.public_key || []).some((entry) => entry.from === 'address_poisoning_scams'),
@@ -356,6 +377,14 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated linkgraph must recover the current validator_miner_bonds body link to exponential_moving_averages when the prefixed glossary label ends with a parenthetical acronym but the local article title is pluralized',
   );
   assert.ok(
+    (linkGraph.weight_vector || []).some((entry) => entry.target === 'extrinsics' && entry.text === 'extrinsic'),
+    'generated linkgraph must recover the current weight_vector body link to extrinsics when a plain glossary singular label misses but the canonical anchor names the local plural concept article',
+  );
+  assert.ok(
+    (linkGraph.weights_version_key || []).some((entry) => entry.target === 'extrinsics' && entry.text === 'extrinsic'),
+    'generated linkgraph must recover the current weights_version_key body link to extrinsics when a plain glossary singular label misses but the canonical anchor names the local plural concept article',
+  );
+  assert.ok(
     (linkGraph.yuma_consensus_3 || []).some((entry) => entry.target === 'exponential_moving_averages' && entry.text === 'Glossary: Exponential Moving Average (EMA)'),
     'generated linkgraph must recover the current yuma_consensus_3 body link to exponential_moving_averages when the prefixed glossary label ends with a parenthetical acronym but the local article title is pluralized',
   );
@@ -386,6 +415,14 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
   assert.ok(
     (backlinks.exponential_moving_averages || []).some((entry) => entry.from === 'validator_miner_bonds'),
     'generated backlinks must list validator_miner_bonds under exponential_moving_averages when a prefixed glossary acronym-parenthetical label falls back to the local plural concept article',
+  );
+  assert.ok(
+    (backlinks.extrinsics || []).some((entry) => entry.from === 'weight_vector'),
+    'generated backlinks must list weight_vector under extrinsics when a plain glossary singular label falls back to the local plural concept article',
+  );
+  assert.ok(
+    (backlinks.extrinsics || []).some((entry) => entry.from === 'weights_version_key'),
+    'generated backlinks must list weights_version_key under extrinsics when a plain glossary singular label falls back to the local plural concept article',
   );
   assert.ok(
     (backlinks.exponential_moving_averages || []).some((entry) => entry.from === 'yuma_consensus_3'),

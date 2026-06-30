@@ -104,9 +104,7 @@ export function extractCanonicalGlossaryLinks(content) {
       ? rawTarget.split('/')[0].trim().replace(/\s+/g, ' ')
       : '';
     if (!target) continue;
-    let canonicalTarget = hasGlossaryPrefix
-      ? decodeURIComponent(match[2].split('#')[1] || '').replace(/[-_]+/g, ' ').trim()
-      : '';
+    let canonicalTarget = decodeURIComponent(match[2].split('#')[1] || '').replace(/[-_]+/g, ' ').trim();
     if (
       hasGlossaryPrefix &&
       /^[A-Z0-9-]+$/.test(target) &&
@@ -120,9 +118,10 @@ export function extractCanonicalGlossaryLinks(content) {
     // including labels written as "Glossary: Foo". Strip only that prefix,
     // preserve the visible label as link text, and keep the stricter exact-only
     // resolver path only for prefixed labels so existing plural/split glossary
-    // recovery keeps working for plain labels. When a prefixed visible alias
-    // like "Glossary: Validator" misses, keep the canonical glossary anchor as
-    // a fallback so the link graph can still recover the existing local concept.
+    // recovery keeps working for plain labels. When a glossary label misses,
+    // keep the canonical glossary anchor as an exact-only fallback so the link
+    // graph can still recover the existing local concept without rewriting any
+    // label that already resolves locally.
     // Also treat slash-separated visible labels like "Drand/time-lock encryption"
     // as word boundaries for the exact-only local match without broadening other
     // wiki-link resolution paths. If a slash-separated prefixed label still
@@ -305,54 +304,82 @@ function main() {
 
   const slugAliases = buildSlugAliases(slugAliasMap);
   for (const [fromSlug, links] of Object.entries(linkGraph)) {
-    linkGraph[fromSlug] = dedupeOutgoingLinks(
-      links.flatMap((link) => {
-        const labelTargets = resolveBuildLinkTargets({
-          target: link.target,
-          slugAliases,
-          slugMap,
-          requireExisting: link.requireExisting,
-          allowSplitTargets: link.allowSplitTargets,
-        });
-        const alternateTargets = labelTargets.length === 0 && link.alternateTarget
-          ? resolveBuildLinkTargets({
-              target: link.alternateTarget,
-              slugAliases,
-              slugMap,
-              requireExisting: true,
-              allowSplitTargets: false,
-            })
-          : [];
-        const canonicalTargets = link.canonicalTarget
-          ? resolveBuildLinkTargets({
-              target: link.canonicalTarget,
-              slugAliases,
-              slugMap,
-              requireExisting: true,
-              allowSplitTargets: false,
-            })
-          : [];
-        const glossaryAcronymPluralTargets = labelTargets.length === 0
-          && alternateTargets.length === 0
-          && canonicalTargets.length === 0
-          && /^Glossary:\s*/i.test(String(link.text || ''))
-          ? resolveBuildLinkTargets({
-              target: expandGlossaryAcronymPluralTarget(link.target, link.canonicalTarget),
-              slugAliases,
-              slugMap,
-              requireExisting: true,
-              allowSplitTargets: false,
-            })
-          : [];
-        const resolvedTargets = labelTargets.length > 0
-          ? labelTargets
-          : alternateTargets.length > 0
-            ? alternateTargets
-            : glossaryAcronymPluralTargets.length > 0
-              ? glossaryAcronymPluralTargets
-            : canonicalTargets;
+    const resolvedLinks = links.map((link) => {
+      const isPrefixedGlossaryLabel = /^Glossary:\s*/i.test(String(link.text || ''));
+      const isGenericGlossaryLabel = /^glossary$/i.test(String(link.text || '').trim());
+      const labelTargets = resolveBuildLinkTargets({
+        target: link.target,
+        slugAliases,
+        slugMap,
+        requireExisting: link.requireExisting,
+        allowSplitTargets: link.allowSplitTargets,
+      });
+      const alternateTargets = labelTargets.length === 0 && link.alternateTarget
+        ? resolveBuildLinkTargets({
+            target: link.alternateTarget,
+            slugAliases,
+            slugMap,
+            requireExisting: true,
+            allowSplitTargets: false,
+          })
+        : [];
+      const canonicalTargets = link.canonicalTarget
+        ? resolveBuildLinkTargets({
+            target: link.canonicalTarget,
+            slugAliases,
+            slugMap,
+            requireExisting: true,
+            allowSplitTargets: false,
+          })
+        : [];
+      const fallbackCanonicalTargets = isPrefixedGlossaryLabel || !isGenericGlossaryLabel
+        ? canonicalTargets
+        : [];
+      const glossaryAcronymPluralTargets = labelTargets.length === 0
+        && alternateTargets.length === 0
+        && fallbackCanonicalTargets.length === 0
+        && isPrefixedGlossaryLabel
+        ? resolveBuildLinkTargets({
+            target: expandGlossaryAcronymPluralTarget(link.target, link.canonicalTarget),
+            slugAliases,
+            slugMap,
+            requireExisting: true,
+            allowSplitTargets: false,
+          })
+        : [];
+      const resolvedTargets = labelTargets.length > 0
+        ? labelTargets
+        : alternateTargets.length > 0
+          ? alternateTargets
+          : glossaryAcronymPluralTargets.length > 0
+            ? glossaryAcronymPluralTargets
+            : fallbackCanonicalTargets;
 
-        return resolvedTargets
+      return {
+        link,
+        resolvedTargets,
+        isPlainGlossaryCanonicalFallback:
+          !isPrefixedGlossaryLabel
+          && !isGenericGlossaryLabel
+          && labelTargets.length === 0
+          && alternateTargets.length === 0
+          && glossaryAcronymPluralTargets.length === 0
+          && fallbackCanonicalTargets.length > 0,
+      };
+    });
+    const nonPlainCanonicalTargets = new Set(
+      resolvedLinks.flatMap(({ resolvedTargets, isPlainGlossaryCanonicalFallback }) =>
+        isPlainGlossaryCanonicalFallback ? [] : resolvedTargets
+      ),
+    );
+
+    linkGraph[fromSlug] = dedupeOutgoingLinks(
+      resolvedLinks.flatMap(({ link, resolvedTargets, isPlainGlossaryCanonicalFallback }) => {
+        const effectiveTargets = isPlainGlossaryCanonicalFallback
+          ? resolvedTargets.filter((target) => !nonPlainCanonicalTargets.has(target))
+          : resolvedTargets;
+
+        return effectiveTargets
           .filter((target) => !(link.skipSelf && target === fromSlug))
           .map((target) => ({
             target,
