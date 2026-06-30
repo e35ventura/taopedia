@@ -130,7 +130,11 @@ export function extractCanonicalGlossaryLinks(content) {
     // second exact-only fallback before consulting the canonical glossary
     // anchor. Likewise, some glossary acronyms like "ADR" repeat themselves at
     // the start of the canonical anchor ("adr alpha ..."); strip that
-    // redundant acronym only in the prefixed exact-only fallback path.
+    // redundant acronym only in the prefixed exact-only fallback path. When a
+    // prefixed label ends with a parenthetical acronym like "(EMA)", allow one
+    // final exact-only retry that strips the acronym and pluralizes the last
+    // word so glossary singular phrasing can still recover an existing local
+    // plural concept article.
     links.push({
       target,
       alternateTarget,
@@ -143,6 +147,37 @@ export function extractCanonicalGlossaryLinks(content) {
   }
 
   return links;
+}
+
+function expandGlossaryAcronymPluralTarget(target, canonicalTarget) {
+  const match = String(target || '').trim().match(/^(.*)\(([A-Z0-9-]+)\)\s*$/);
+  if (!match) return '';
+
+  const baseTarget = match[1].trim();
+  if (!baseTarget) return '';
+
+  const pluralizedBaseTarget = pluralizeFinalWord(baseTarget);
+  if (pluralizedBaseTarget) return pluralizedBaseTarget;
+
+  const acronym = match[2].trim().toLowerCase();
+  const normalizedCanonicalTarget = String(canonicalTarget || '').trim();
+  const canonicalSuffix = ` ${acronym}`;
+  if (!normalizedCanonicalTarget.toLowerCase().endsWith(canonicalSuffix)) return '';
+
+  return pluralizeFinalWord(
+    normalizedCanonicalTarget.slice(0, normalizedCanonicalTarget.length - canonicalSuffix.length).trim(),
+  );
+}
+
+function pluralizeFinalWord(target) {
+  const words = String(target || '').trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return '';
+
+  const lastWord = words.at(-1);
+  if (!/^[A-Za-z][A-Za-z-]*$/.test(lastWord) || /s$/i.test(lastWord)) return '';
+
+  words[words.length - 1] = `${lastWord}s`;
+  return words.join(' ');
 }
 
 export function getVisibleInfoboxRows(articleDir, frontmatterRows) {
@@ -297,10 +332,24 @@ function main() {
               allowSplitTargets: false,
             })
           : [];
+        const glossaryAcronymPluralTargets = labelTargets.length === 0
+          && alternateTargets.length === 0
+          && canonicalTargets.length === 0
+          && /^Glossary:\s*/i.test(String(link.text || ''))
+          ? resolveBuildLinkTargets({
+              target: expandGlossaryAcronymPluralTarget(link.target, link.canonicalTarget),
+              slugAliases,
+              slugMap,
+              requireExisting: true,
+              allowSplitTargets: false,
+            })
+          : [];
         const resolvedTargets = labelTargets.length > 0
           ? labelTargets
           : alternateTargets.length > 0
             ? alternateTargets
+            : glossaryAcronymPluralTargets.length > 0
+              ? glossaryAcronymPluralTargets
             : canonicalTargets;
 
         return resolvedTargets
