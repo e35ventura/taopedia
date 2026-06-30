@@ -16,7 +16,7 @@ assert.deepEqual(
 assert.deepEqual(normalizeArticleCategories(undefined), [], 'normalizeArticleCategories must normalize missing input to []');
 assert.deepEqual(
   extractCanonicalGlossaryLinks(
-    'See [tempo](https://docs.learnbittensor.org/resources/glossary#tempo), [Glossary: Validator Take %](https://docs.learnbittensor.org/resources/glossary#validator-take-), and [Subnet Hyperparameters](https://docs.learnbittensor.org/subnets/subnet-hyperparameters).',
+    'See [tempo](https://docs.learnbittensor.org/resources/glossary#tempo), [Glossary: Validator Take %](https://docs.learnbittensor.org/resources/glossary#validator-take-), [Glossary: Drand/time-lock encryption](https://docs.learnbittensor.org/resources/glossary#drandtime-lock-encryption), and [Subnet Hyperparameters](https://docs.learnbittensor.org/subnets/subnet-hyperparameters).',
   ),
   [
     { target: 'tempo', canonicalTarget: '', text: 'tempo', requireExisting: true, skipSelf: true, allowSplitTargets: true },
@@ -28,13 +28,22 @@ assert.deepEqual(
       skipSelf: true,
       allowSplitTargets: false,
     },
+    {
+      target: 'Drand time-lock encryption',
+      canonicalTarget: 'drandtime lock encryption',
+      text: 'Glossary: Drand/time-lock encryption',
+      requireExisting: true,
+      skipSelf: true,
+      allowSplitTargets: false,
+    },
   ],
-  'canonical Learn Bittensor glossary markdown links should preserve plain labels and keep the glossary anchor text as a prefixed-label fallback candidate',
+  'canonical Learn Bittensor glossary markdown links should preserve plain labels, keep prefixed-label anchor fallbacks, and treat slash-separated prefixed labels as exact-match word boundaries',
 );
 
 const resolverSlugMap = {
   dynamic_tao: { title: 'Dynamic TAO' },
   delegate: { title: 'Delegate' },
+  drand_time_lock_encryption: { title: 'Drand Time-Lock Encryption' },
   epoch: { title: 'Epoch' },
   mev_maximal_extractable_value: {
     title: 'MEV (Maximal Extractable Value)',
@@ -108,6 +117,17 @@ assert.deepEqual(
   }),
   [],
   'exact-existing glossary recovery must not fall back to the plain-text Related splitter when no local alias exists',
+);
+assert.deepEqual(
+  resolveBuildLinkTargets({
+    target: 'Drand time-lock encryption',
+    slugAliases: resolverAliases,
+    slugMap: resolverSlugMap,
+    requireExisting: true,
+    allowSplitTargets: false,
+  }),
+  ['drand_time_lock_encryption'],
+  'exact-existing glossary recovery should match a slash-normalized visible glossary label to the local article',
 );
 
 function assertSortedKeys(object, label) {
@@ -262,8 +282,20 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated linkgraph must recover the current hotkeys body link to weight_vector when the prefixed glossary label is a shorter alias of the canonical concept',
   );
   assert.ok(
+    (linkGraph.commit_reveal || []).some((entry) => entry.target === 'drand_time_lock_encryption' && entry.text === 'Glossary: Drand/time-lock encryption'),
+    'generated linkgraph must recover the current commit_reveal body link to drand_time_lock_encryption when the visible glossary label uses slash-separated punctuation',
+  );
+  assert.ok(
+    (linkGraph.weight_copying || []).some((entry) => entry.target === 'drand_time_lock_encryption' && entry.text === 'Glossary: Drand/time-lock encryption'),
+    'generated linkgraph must recover the current weight_copying body link to drand_time_lock_encryption when the visible glossary label uses slash-separated punctuation',
+  );
+  assert.ok(
     (backlinks.validator_take || []).some((entry) => entry.from === 'delegation'),
     'generated backlinks must list delegation under validator_take when a prefixed glossary alias falls back to the canonical glossary anchor',
+  );
+  assert.ok(
+    (backlinks.drand_time_lock_encryption || []).some((entry) => entry.from === 'commit_reveal'),
+    'generated backlinks must list commit_reveal under drand_time_lock_encryption when the visible glossary label uses slash-separated punctuation',
   );
   assert.ok(
     !(linkGraph.tempo || []).some((entry) => entry.target === 'tempo'),
@@ -272,6 +304,10 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
   assert.ok(
     !(linkGraph.mainchain || []).some((entry) => entry.target === 'mainchain'),
     'generated linkgraph must not create a self-link when a visible Glossary: label names the current article itself',
+  );
+  assert.ok(
+    !(linkGraph.drand_time_lock_encryption || []).some((entry) => entry.target === 'drand_time_lock_encryption'),
+    'generated linkgraph must not create a self-link when a slash-separated visible glossary label names the current article itself',
   );
 }
 
