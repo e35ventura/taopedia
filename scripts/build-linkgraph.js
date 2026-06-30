@@ -87,6 +87,27 @@ export function extractInfoboxWikiLinks(rows) {
   });
 }
 
+export function extractCanonicalGlossaryLinks(content) {
+  const value = String(content ?? '');
+  const glossaryLinkRegex = /(?<!!)\[([^\]]+)\]\((https:\/\/docs\.learnbittensor\.org\/resources\/glossary#[^)]+)\)/g;
+  const links = [];
+  let match;
+
+  while ((match = glossaryLinkRegex.exec(value)) !== null) {
+    const target = match[1].trim();
+    if (!target || /^Glossary:\s*/i.test(target)) continue;
+
+    // Current article prose often references Learn Bittensor glossary anchors
+    // whose visible label already names an existing local Taopedia concept.
+    // Feed only those visible glossary labels into the local link graph, skip
+    // glossary-prefixed resource labels, and let the later resolver keep
+    // unmatched labels plus same-page targets out of the graph.
+    links.push({ target, text: target, requireExisting: true, skipSelf: true });
+  }
+
+  return links;
+}
+
 export function getVisibleInfoboxRows(articleDir, frontmatterRows) {
   if (Array.isArray(frontmatterRows)) return frontmatterRows;
 
@@ -179,12 +200,14 @@ function main() {
     // Extract wiki links from both rendered article body and visible infobox metadata.
     const links = [
       ...extractWikiLinks(body),
+      ...extractCanonicalGlossaryLinks(body),
       ...extractInfoboxWikiLinks(getVisibleInfoboxRows(path.dirname(filePath), data.infoboxRows)),
     ];
     linkGraph[slug] = links.map(link => ({
       target: link.target,
       text: link.text,
       requireExisting: link.requireExisting === true,
+      skipSelf: link.skipSelf === true,
     }));
   });
 
@@ -197,10 +220,12 @@ function main() {
           slugAliases,
           slugMap,
           requireExisting: link.requireExisting,
-        }).map((target) => ({
+        })
+          .filter((target) => !(link.skipSelf && target === fromSlug))
+          .map((target) => ({
           target,
           text: link.text,
-        })),
+          })),
       ),
     );
   }

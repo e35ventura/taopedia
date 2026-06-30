@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { orderGeneratedData, dedupeOutgoingLinks, normalizeArticleCategories, resolveBuildLinkTargets } from './build-linkgraph.js';
+import { extractCanonicalGlossaryLinks, orderGeneratedData, dedupeOutgoingLinks, normalizeArticleCategories, resolveBuildLinkTargets } from './build-linkgraph.js';
 import { buildSlugAliases } from './wiki-link-resolver.js';
 
 const projectRoot = path.resolve(new URL('..', import.meta.url).pathname);
@@ -14,14 +14,26 @@ assert.deepEqual(
   'normalizeArticleCategories must dedupe while preserving first-seen order',
 );
 assert.deepEqual(normalizeArticleCategories(undefined), [], 'normalizeArticleCategories must normalize missing input to []');
+assert.deepEqual(
+  extractCanonicalGlossaryLinks(
+    'See [tempo](https://docs.learnbittensor.org/resources/glossary#tempo), [Glossary: Tempo](https://docs.learnbittensor.org/resources/glossary#tempo), and [Subnet Hyperparameters](https://docs.learnbittensor.org/subnets/subnet-hyperparameters).',
+  ),
+  [
+    { target: 'tempo', text: 'tempo', requireExisting: true, skipSelf: true },
+  ],
+  'canonical Learn Bittensor glossary markdown links should keep plain visible labels as existing-only local graph candidates and ignore glossary-prefixed resource labels',
+);
 
 const resolverSlugMap = {
   dynamic_tao: { title: 'Dynamic TAO' },
   delegate: { title: 'Delegate' },
+  epoch: { title: 'Epoch' },
   mev_maximal_extractable_value: {
     title: 'MEV (Maximal Extractable Value)',
     infoboxTitle: 'MEV',
   },
+  tempo: { title: 'Tempo' },
+  validator_weights: { title: 'Validator Weights' },
 };
 const resolverAliases = buildSlugAliases(resolverSlugMap);
 assert.deepEqual(
@@ -175,8 +187,20 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated linkgraph must keep the current sandwich_attack Related: MEV infobox edge when the local MEV article exists',
   );
   assert.ok(
+    (linkGraph.activity_cutoff || []).some((entry) => entry.target === 'tempo' && entry.text === 'tempo'),
+    'generated linkgraph must recover the current activity_cutoff body link to the local tempo article from a canonical glossary markdown link',
+  );
+  assert.ok(
     (backlinks.mev_maximal_extractable_value || []).some((entry) => entry.from === 'sandwich_attack'),
     'generated backlinks must list sandwich_attack under the current local MEV article when its Related infobox row points there',
+  );
+  assert.ok(
+    (backlinks.tempo || []).some((entry) => entry.from === 'activity_cutoff'),
+    'generated backlinks must list activity_cutoff under tempo when the body uses a canonical glossary markdown link to the local tempo concept',
+  );
+  assert.ok(
+    !(linkGraph.tempo || []).some((entry) => entry.target === 'tempo'),
+    'generated linkgraph must not create a self-link when a glossary markdown link names the current article itself',
   );
 }
 
