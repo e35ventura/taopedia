@@ -15,9 +15,9 @@ try {
       rows: [
         {
           label: 'Related',
-          value: 'See [[dynamic_tao|Dynamic TAO]] and [Emission](https://docs.learnbittensor.org/learn/emissions)',
+          value: 'Dynamic TAO',
         },
-        { label: 'Plain', value: 'No wiki link here' },
+        { label: 'Plain', value: 'See [[staking|Staking]]' },
       ],
     }),
   );
@@ -27,19 +27,24 @@ try {
   assert.deepEqual(
     extractInfoboxWikiLinks(jsonRows),
     [
-      { target: 'dynamic_tao', text: 'Dynamic TAO' },
       {
-        target: 'https://docs.learnbittensor.org/learn/emissions',
-        text: 'Emission',
+        target: 'Dynamic TAO',
+        text: 'Dynamic TAO',
+        requireExisting: true,
       },
+      { target: 'staking', text: 'Staking' },
     ],
-    'linkgraph should extract wiki links and canonical Learn Bittensor markdown links from visible infobox.json rows',
+    'linkgraph should extract visible plain-text Related rows and explicit wiki links from infobox JSON',
   );
 
   const frontmatterRows = [
     {
+      label: 'Related role',
+      value: 'Delegate',
+    },
+    {
       label: 'Frontmatter',
-      value: 'See [[staking|Staking]] and [Staking and Delegation](https://docs.learnbittensor.org/staking-and-delegation/delegation)',
+      value: 'See [[staking|Staking]]',
     },
   ];
   const visibleRows = getVisibleInfoboxRows(articleDir, frontmatterRows);
@@ -47,13 +52,10 @@ try {
   assert.deepEqual(
     extractInfoboxWikiLinks(visibleRows),
     [
+      { target: 'Delegate', text: 'Delegate', requireExisting: true },
       { target: 'staking', text: 'Staking' },
-      {
-        target: 'https://docs.learnbittensor.org/staking-and-delegation/delegation',
-        text: 'Staking and Delegation',
-      },
     ],
-    'linkgraph should match the frontmatter rows that the article page renders, including canonical Learn Bittensor markdown links',
+    'linkgraph should match the frontmatter rows that the article page renders, including plain-text Related rows',
   );
 } finally {
   fs.rmSync(tempRoot, { recursive: true, force: true });

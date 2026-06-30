@@ -71,7 +71,18 @@ export function extractInfoboxWikiLinks(rows) {
 
   return rows.flatMap((row) => {
     if (typeof row?.value !== 'string') return [];
-    return extractArticleLinks(row.value);
+    const wikiLinks = extractWikiLinks(row.value);
+    if (wikiLinks.length > 0) return wikiLinks;
+
+    if (!/\brelated\b/i.test(String(row?.label ?? ''))) return [];
+
+    const target = row.value.trim();
+    if (!target) return [];
+
+    // Current article content often uses a plain-text "Related" infobox row
+    // instead of [[wiki-links]]. Treat that visible related term as a local
+    // graph candidate only when it resolves to an existing article.
+    return [{ target, text: target, requireExisting: true }];
   });
 }
 
@@ -94,69 +105,10 @@ export function dedupeOutgoingLinks(links) {
   });
 }
 
-function isCanonicalTaopediaWikiTarget(rawTarget) {
-  const target = String(rawTarget ?? '').trim();
-  if (/^\/?wiki\//i.test(target)) return true;
-
-  try {
-    const url = target.startsWith('//') ? new URL(`https:${target}`) : new URL(target);
-    const host = url.hostname.toLowerCase();
-    return (host === 'taopedia.org' || host === 'www.taopedia.org') && url.pathname.toLowerCase().startsWith('/wiki/');
-  } catch {
-    return false;
-  }
-}
-
-function isCanonicalLearnBittensorTarget(rawTarget) {
-  try {
-    const url = String(rawTarget ?? '').trim().startsWith('//')
-      ? new URL(`https:${String(rawTarget).trim()}`)
-      : new URL(String(rawTarget ?? '').trim());
-    return ['docs.learnbittensor.org', 'learnbittensor.org'].includes(url.hostname.toLowerCase());
-  } catch {
-    return false;
-  }
-}
-
-export function extractMarkdownArticleLinks(content) {
-  const value = String(content ?? '');
-  const markdownLinkRegex = /(?<!!)\[([^\]]+)\]\(([^)\s]+(?:\s+"[^"]*")?)\)/g;
-  const links = [];
-  let match;
-
-  while ((match = markdownLinkRegex.exec(value)) !== null) {
-    const text = match[1].trim();
-    const target = match[2].trim().replace(/\s+"[^"]*"$/, '');
-    if (!text || !target) continue;
-    if (!isCanonicalTaopediaWikiTarget(target) && !isCanonicalLearnBittensorTarget(target)) continue;
-    links.push({ target, text });
-  }
-
-  return links;
-}
-
-export function extractArticleLinks(content) {
-  return [
-    ...extractWikiLinks(content),
-    ...extractMarkdownArticleLinks(content),
-  ];
-}
-
-export function resolveBuildLinkTarget({ target, text, slugAliases, slugMap }) {
+export function resolveBuildLinkTarget({ target, slugAliases, slugMap, requireExisting = false }) {
   const resolvedTarget = resolveTargetSlug(target, slugAliases);
   if (slugMap[resolvedTarget]) return resolvedTarget;
-
-  // The current taopedia-articles:test corpus references Taopedia concepts via
-  // canonical docs.learnbittensor.org Markdown links instead of [[wiki-links]].
-  // When those labels match a local article, count them as article-to-article
-  // references so backlinks/related pages stay populated on real content.
-  if (isCanonicalLearnBittensorTarget(target)) {
-    const resolvedLabel = resolveTargetSlug(text, slugAliases);
-    if (slugMap[resolvedLabel]) return resolvedLabel;
-    return '';
-  }
-
-  return resolvedTarget;
+  return requireExisting ? '' : resolvedTarget;
 }
 
 function main() {
@@ -203,12 +155,13 @@ function main() {
 
     // Extract wiki links from both rendered article body and visible infobox metadata.
     const links = [
-      ...extractArticleLinks(body),
+      ...extractWikiLinks(body),
       ...extractInfoboxWikiLinks(getVisibleInfoboxRows(path.dirname(filePath), data.infoboxRows)),
     ];
     linkGraph[slug] = links.map(link => ({
       target: link.target,
       text: link.text,
+      requireExisting: link.requireExisting === true,
     }));
   });
 
@@ -216,7 +169,7 @@ function main() {
   for (const [fromSlug, links] of Object.entries(linkGraph)) {
     linkGraph[fromSlug] = dedupeOutgoingLinks(
       links.map(link => ({
-        target: resolveBuildLinkTarget({ target: link.target, text: link.text, slugAliases, slugMap }),
+        target: resolveBuildLinkTarget({ target: link.target, slugAliases, slugMap, requireExisting: link.requireExisting }),
         text: link.text,
       })).filter(link => link.target),
     );

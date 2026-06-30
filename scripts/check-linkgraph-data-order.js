@@ -17,28 +17,28 @@ assert.deepEqual(normalizeArticleCategories(undefined), [], 'normalizeArticleCat
 
 const resolverSlugMap = {
   dynamic_tao: { title: 'Dynamic TAO' },
-  emission: { title: 'Emission' },
+  delegate: { title: 'Delegate' },
 };
 const resolverAliases = buildSlugAliases(resolverSlugMap);
 assert.equal(
   resolveBuildLinkTarget({
-    target: 'https://docs.learnbittensor.org/learn/emissions',
-    text: 'Emission',
+    target: 'Delegate',
     slugAliases: resolverAliases,
     slugMap: resolverSlugMap,
+    requireExisting: true,
   }),
-  'emission',
-  'canonical Learn Bittensor markdown links must resolve by label to the local Taopedia article slug',
+  'delegate',
+  'plain-text Related infobox rows must resolve to an existing local Taopedia article slug',
 );
 assert.equal(
   resolveBuildLinkTarget({
-    target: 'https://docs.learnbittensor.org/learn/introduction',
-    text: 'Introduction to Bittensor',
+    target: 'Introduction to Bittensor',
     slugAliases: resolverAliases,
     slugMap: resolverSlugMap,
+    requireExisting: true,
   }),
   '',
-  'canonical Learn Bittensor markdown links without a local article match must stay out of the link graph',
+  'plain-text Related infobox rows without a local article match must stay out of the link graph',
 );
 
 function assertSortedKeys(object, label) {
