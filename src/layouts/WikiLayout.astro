@@ -394,10 +394,8 @@ const { title, description, image, type = 'website', path, feeds, robots } = Ast
         if (appearanceHideBtn && appearancePanel) {
           appearanceHideBtn.addEventListener('click', () => {
             appearanceManuallyHidden = true;
-            appearancePanel.hidden = true;
             document.body.classList.remove('appearance-overlay-active');
-            appearanceToggle?.classList.add('visible');
-            appearanceToggle?.setAttribute('aria-expanded', 'false');
+            syncAppearanceState();
           });
         }
 
@@ -406,15 +404,10 @@ const { title, description, image, type = 'website', path, feeds, robots } = Ast
             appearanceManuallyHidden = false;
             if (appearanceRailFits()) {
               document.body.classList.remove('appearance-overlay-active');
-              appearancePanel.hidden = false;
-              appearanceToggle.classList.remove('visible');
-              appearanceToggle.setAttribute('aria-expanded', 'true');
             } else {
               document.body.classList.toggle('appearance-overlay-active');
-              appearancePanel.hidden = !document.body.classList.contains('appearance-overlay-active');
-              appearanceToggle.classList.add('visible');
-              appearanceToggle.setAttribute('aria-expanded', appearancePanel.hidden ? 'false' : 'true');
             }
+            syncAppearanceState();
           });
         }
         

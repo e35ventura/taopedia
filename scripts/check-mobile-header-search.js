@@ -76,6 +76,19 @@ assert.ok(
   'wiki layout must update navigation toggle aria-expanded for assistive tech',
 );
 assert.match(
+  wikiLayout,
+  /function syncAppearanceState\(\)/,
+  'wiki layout must sync appearance toggle aria-expanded when the panel opens or closes',
+);
+assert.ok(
+  wikiLayout.includes("appearanceToggle.setAttribute('aria-expanded'"),
+  'wiki layout must update appearance toggle aria-expanded for assistive tech',
+);
+assert.ok(
+  wikiLayout.includes('syncAppearanceState()'),
+  'wiki layout appearance open and close handlers must route through the shared appearance sync',
+);
+assert.match(
   articlePage,
   /class="toc-toggle"[^>]*aria-expanded="true"/,
   'article contents subsection toggles must default to expanded so screen readers match the initially visible subsection list',
