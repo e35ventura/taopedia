@@ -43,6 +43,7 @@ for (const [label, file] of [['article', articleFile], ['homepage', path.join(di
   assert.ok(html.includes('__taopediaSearchSuggest'), `${label} must include the search-suggest script`);
   assert.ok(html.includes("fetch('/search-data.json')"), `${label} typeahead must load the search-data source`);
   assert.ok(html.includes("'combobox'"), `${label} typeahead must wire the input as an ARIA combobox`);
+  assert.ok(html.includes('aria-haspopup'), `${label} typeahead must declare the listbox popup for assistive tech`);
   assert.ok(html.includes('aria-activedescendant'), `${label} typeahead must track the active option for screen readers`);
   assert.ok(html.includes("'aria-selected'"), `${label} typeahead must set aria-selected on the active option (listbox contract)`);
   // The enhancement target must actually exist on the page, not just be named
@@ -70,5 +71,22 @@ const shipped = fs.existsSync(astroDir)
   && fs.readdirSync(astroDir).filter((f) => f.endsWith('.css'))
     .some((f) => fs.readFileSync(path.join(astroDir, f), 'utf8').includes('.search-suggest-list'));
 assert.ok(shipped, 'the .search-suggest styles must be bundled into a shipped stylesheet');
+
+const suggestSource = fs.readFileSync(
+  path.join(projectRoot, 'src', 'components', 'SearchSuggest.astro'),
+  'utf8',
+);
+assert.ok(
+  suggestSource.includes("input.setAttribute('aria-haspopup', 'listbox')"),
+  'search suggest must wire aria-haspopup=listbox on the combobox input',
+);
+assert.ok(
+  suggestSource.includes("input.setAttribute('aria-expanded', 'true')"),
+  'search suggest must sync combobox aria-expanded when the suggestion list opens',
+);
+assert.ok(
+  suggestSource.includes('function closeList()') && suggestSource.includes("input.setAttribute('aria-expanded', 'false')"),
+  'search suggest must sync combobox aria-expanded when the suggestion list closes',
+);
 
 console.log(`Search typeahead check passed (${entries.length} suggestion entries; combobox wired on article + homepage; dropdown token-themed + shipped)`);
