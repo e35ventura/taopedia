@@ -1,75 +1,243 @@
 ---
 import WikiLayout from '../../../layouts/WikiLayout.astro';
-import { getCategoryArticles } from '../../../lib/category-articles.js';
-import { compareTitles } from '../../../lib/title-sort.js';
-import categoriesIndex from '../../../../public/data/categories.json';
-import slugMap from '../../../../public/data/slugmap.json';
+import { getStaticPaths as getCategoryArticleStaticPaths } from './[category]/articles.json.ts';
 
-export async function getStaticPaths() {
-  // Read public/data/categories.json for membership and slugmap.json for
-  // title/summary — the same artifacts category articles.json (#1243) and
-  // categories.json (#1403) use — instead of calling getCollection('pages') and
-  // re-scanning every article's frontmatter in getStaticPaths.
-  return Object.keys(categoriesIndex)
-    .sort(compareTitles)
-    .map((categoryName) => ({
-      params: { category: categoryName.replace(/ /g, '_') },
-      props: {
-        categoryName,
-        articles: getCategoryArticles({ categoryName, categoriesIndex, slugMap }),
-      },
-    }));
-}
+export const getStaticPaths = getCategoryArticleStaticPaths;
 
 const { category } = Astro.params;
-const { categoryName, articles: categoryPages } = Astro.props;
+const { categoryName, articles: categoryPages } = Astro.props as {
+  categoryName: string;
+  articles: Array<{
+    slug: string;
+    title: string;
+    summary: string;
+    categories: string[];
+    backlinks: number;
+    referencesCount: number;
+    revisionCount: number;
+    lastEdited: string | null;
+    wordCount: number;
+    sectionCount: number;
+    readingMinutes: number;
+  }>;
+};
 
 const pageTitle = `Category: ${categoryName}`;
 const pageDescription = `Taopedia articles about ${categoryName} in the Bittensor knowledge base.`;
-
-// Advertise this category's own RSS, Atom, and JSON feeds from the page <head>
-// so feed readers can auto-discover the scoped per-category feed (not just the
-// site-wide feeds). `category` is the underscore URL param; the feed routes
-// mirror the category hub membership.
 const feedTitle = `Taopedia - ${categoryName} articles`;
 const feeds = [
   { type: 'application/rss+xml', title: feedTitle, href: `/wiki/category/${category}/rss.xml` },
   { type: 'application/atom+xml', title: feedTitle, href: `/wiki/category/${category}/atom.xml` },
   { type: 'application/feed+json', title: feedTitle, href: `/wiki/category/${category}/feed.json` },
 ];
+
+const formatNumber = (value: number) => value.toLocaleString('en-US');
+const formatDate = (value: string | null) =>
+  value
+    ? new Date(value).toLocaleDateString('en-US', {
+        timeZone: 'UTC',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      })
+    : '';
 ---
 
 <WikiLayout title={pageTitle} description={pageDescription} feeds={feeds}>
   <div class="mw-body-content">
     <h1 class="firstHeading">{categoryName}</h1>
-    
+
     <div class="mw-parser-output">
-      <p>{categoryPages.length} article{categoryPages.length !== 1 ? 's' : ''} in this topic.</p>
-      
       {categoryPages.length > 0 ? (
-        <div class="category-pages">
-          <ul>
-            {categoryPages.map(article => (
-              <li>
-                <a href={`/wiki/${article.slug}/`} class="card-link">
-                  <h3 class="card-title">{article.title}</h3>
-                  {article.summary && (
-                    <p class="category-page-summary">{article.summary}</p>
-                  )}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <>
+          <div class="category-tools">
+            <label class="category-tool">
+              <span>Filter articles</span>
+              <input
+                type="search"
+                id="category-filter"
+                placeholder={`Search ${categoryName} by title, summary, or topic...`}
+              />
+            </label>
+
+            <label class="category-tool">
+              <span>Sort articles</span>
+              <select id="category-sort">
+                <option value="title">Title (A-Z)</option>
+                <option value="updated">Recently updated</option>
+                <option value="backlinks">Most backlinks</option>
+                <option value="references">Most references</option>
+                <option value="revisions">Most revisions</option>
+                <option value="words">Longest articles</option>
+                <option value="reading">Longest read time</option>
+                <option value="sections">Most sections</option>
+              </select>
+            </label>
+          </div>
+
+          <p class="category-results-count" aria-live="polite">
+            Showing <strong data-visible-count>{formatNumber(categoryPages.length)}</strong> of{' '}
+            <strong>{formatNumber(categoryPages.length)}</strong> articles in this topic.
+          </p>
+
+          <p class="category-empty-search" data-category-empty hidden>
+            No articles match the current filter.
+          </p>
+
+          <div class="category-pages">
+            <ul id="category-pages-list">
+              {categoryPages.map((article) => (
+                <li
+                  data-category-article
+                  data-title={article.title}
+                  data-slug={article.slug}
+                  data-search={[article.title, article.summary, article.categories.join(' ')].filter(Boolean).join(' ').toLowerCase()}
+                  data-last-edited-rank={article.lastEdited ? Date.parse(article.lastEdited) : 0}
+                  data-backlinks={article.backlinks}
+                  data-references={article.referencesCount}
+                  data-revisions={article.revisionCount}
+                  data-words={article.wordCount}
+                  data-reading={article.readingMinutes}
+                  data-sections={article.sectionCount}
+                >
+                  <a href={`/wiki/${article.slug}/`} class="card-link">
+                    <div class="category-card-header">
+                      <h3 class="card-title">{article.title}</h3>
+                      {article.lastEdited && (
+                        <time class="category-card-date" datetime={article.lastEdited}>
+                          Updated {formatDate(article.lastEdited)}
+                        </time>
+                      )}
+                    </div>
+
+                    {article.summary && <p class="category-page-summary">{article.summary}</p>}
+
+                    <ul class="category-card-stats" aria-label={`${article.title} statistics`}>
+                      <li><strong>{formatNumber(article.backlinks)}</strong> Backlinks</li>
+                      <li><strong>{formatNumber(article.referencesCount)}</strong> References</li>
+                      <li><strong>{formatNumber(article.revisionCount)}</strong> Revisions</li>
+                      <li><strong>{formatNumber(article.wordCount)}</strong> Words</li>
+                      <li><strong>{formatNumber(article.sectionCount)}</strong> Sections</li>
+                      <li><strong>{formatNumber(article.readingMinutes)}</strong> min read</li>
+                    </ul>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </>
       ) : (
         <p>This topic is currently empty.</p>
       )}
     </div>
   </div>
+
+  <script is:inline>
+    const filterInput = document.getElementById('category-filter');
+    const sortSelect = document.getElementById('category-sort');
+    const categoryList = document.getElementById('category-pages-list');
+    const visibleCount = document.querySelector('[data-visible-count]');
+    const emptyState = document.querySelector('[data-category-empty]');
+    const items = Array.from(document.querySelectorAll('[data-category-article]'));
+    const collator = new Intl.Collator('en', { numeric: true });
+
+    function normalize(value) {
+      return (value || '').trim().toLowerCase();
+    }
+
+    function datasetNumber(item, key) {
+      return Number(item.dataset[key] || 0);
+    }
+
+    function compareTitleAndSlug(a, b) {
+      const titleResult = collator.compare(a.dataset.title || '', b.dataset.title || '');
+      if (titleResult !== 0) return titleResult;
+      const aSlug = a.dataset.slug || '';
+      const bSlug = b.dataset.slug || '';
+      return aSlug < bSlug ? -1 : aSlug > bSlug ? 1 : 0;
+    }
+
+    function sortItems(a, b) {
+      switch (sortSelect?.value) {
+        case 'updated':
+          return datasetNumber(b, 'lastEditedRank') - datasetNumber(a, 'lastEditedRank') || compareTitleAndSlug(a, b);
+        case 'backlinks':
+          return datasetNumber(b, 'backlinks') - datasetNumber(a, 'backlinks') || compareTitleAndSlug(a, b);
+        case 'references':
+          return datasetNumber(b, 'references') - datasetNumber(a, 'references') || compareTitleAndSlug(a, b);
+        case 'revisions':
+          return datasetNumber(b, 'revisions') - datasetNumber(a, 'revisions') || compareTitleAndSlug(a, b);
+        case 'words':
+          return datasetNumber(b, 'words') - datasetNumber(a, 'words') || compareTitleAndSlug(a, b);
+        case 'reading':
+          return datasetNumber(b, 'reading') - datasetNumber(a, 'reading') || compareTitleAndSlug(a, b);
+        case 'sections':
+          return datasetNumber(b, 'sections') - datasetNumber(a, 'sections') || compareTitleAndSlug(a, b);
+        default:
+          return compareTitleAndSlug(a, b);
+      }
+    }
+
+    function applyControls() {
+      const query = normalize(filterInput?.value);
+      let visibleItems = 0;
+
+      [...items]
+        .sort(sortItems)
+        .forEach((item) => {
+          const matches = !query || normalize(item.dataset.search).includes(query);
+          item.hidden = !matches;
+          if (matches) visibleItems += 1;
+          categoryList?.appendChild(item);
+        });
+
+      if (visibleCount) visibleCount.textContent = visibleItems.toLocaleString('en-US');
+      if (emptyState) emptyState.hidden = visibleItems !== 0;
+    }
+
+    filterInput?.addEventListener('input', applyControls);
+    sortSelect?.addEventListener('change', applyControls);
+    applyControls();
+  </script>
 </WikiLayout>
 
 <style>
-  .category-pages ul {
+  .category-tools {
+    display: grid;
+    grid-template-columns: minmax(0, 1.75fr) minmax(220px, 1fr);
+    gap: 12px;
+    margin-bottom: 12px;
+    padding: 16px;
+    border: 1px solid var(--border-color-subtle);
+    background: var(--background-color-interactive);
+  }
+
+  .category-tool span {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--color-base-subtle);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .category-tool input,
+  .category-tool select {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid var(--border-color-base);
+    background: var(--background-color-base);
+    color: var(--color-base);
+    font: inherit;
+  }
+
+  .category-results-count,
+  .category-empty-search {
+    margin: 0 0 12px;
+    color: var(--color-base-subtle);
+    font-size: 13px;
+  }
+
+  .category-pages > ul {
     list-style: none;
     margin: 0;
     padding: 0;
@@ -77,118 +245,110 @@ const feeds = [
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 16px;
   }
-  
-  .category-pages li {
+
+  .category-pages > ul > li {
     background: var(--background-color-interactive);
     border: 1px solid var(--border-color-subtle);
-    border-radius: 0; /* Sharp edges for Wikipedia style */
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    transition: box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
     overflow: hidden;
   }
-  
-  .category-pages li:hover {
+
+  .category-pages > ul > li:hover {
     border-color: var(--color-link);
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-    background: var(--background-color-interactive);
   }
-  
+
   .card-link {
     display: flex;
     flex-direction: column;
-    min-height: 120px;
+    gap: 12px;
+    min-height: 100%;
     padding: 16px;
     text-decoration: none;
     color: inherit;
-    width: 100%;
     box-sizing: border-box;
   }
-  
+
   .card-link:hover {
     text-decoration: none;
   }
-  
-  .card-title {
-    font-weight: 600;
-    color: var(--color-link);
-    font-size: 16px;
-    line-height: 1.3;
-    margin: 0 0 8px 0;
-    flex-shrink: 0;
+
+  .category-card-header {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
   }
-  
+
+  .card-title {
+    margin: 0;
+    color: var(--color-link);
+    font-size: 17px;
+    line-height: 1.3;
+  }
+
+  .category-card-date {
+    color: var(--color-base-subtle);
+    font-size: 12px;
+  }
+
   .category-page-summary {
+    margin: 0;
     color: var(--color-base-subtle);
     font-size: 13px;
-    line-height: 1.4;
-    /* Let content size naturally and wrap as needed */
-    flex: 0 0 auto;
-    margin: 0;
-    overflow-wrap: anywhere; /* allows breaking long words/URLs */
-    word-break: break-word;  /* fallback for other engines */
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+    word-break: break-word;
     hyphens: auto;
   }
-  
-  /* When text size is large, let it continue to wrap without truncation */
-  
-  /* Responsive breakpoints */
-  @media (max-width: 900px) {
-    .category-pages ul {
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 12px;
-    }
-    
-    .card-link {
-      min-height: 110px;
-      padding: 14px;
-    }
-    
-    .card-title {
-      font-size: 15px;
-    }
-    
-    .category-page-summary {
-      font-size: 12px;
+
+  .category-card-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .category-card-stats li {
+    padding: 4px 8px;
+    border: 1px solid var(--border-color-subtle);
+    background: var(--background-color-base);
+    color: var(--color-base-subtle);
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .category-card-stats strong {
+    color: var(--color-base);
+    font-weight: 700;
+  }
+
+  @media (max-width: 820px) {
+    .category-tools {
+      grid-template-columns: 1fr;
     }
   }
-  
+
   @media (max-width: 600px) {
-    .category-pages ul {
+    .category-pages > ul {
       grid-template-columns: 1fr;
       gap: 12px;
     }
-    
+
     .card-link {
-      min-height: 100px;
-      padding: 12px;
-    }
-    
-    .card-title {
-      font-size: 14px;
-    }
-    
-    .category-page-summary {
-      font-size: 12px;
+      padding: 14px;
     }
   }
-  
-  @media (max-width: 400px) {
-    .category-pages ul {
-      gap: 8px;
-    }
-    
+
+  @media (max-width: 420px) {
     .card-link {
-      min-height: 90px;
-      padding: 10px;
+      padding: 12px;
     }
-    
+
     .card-title {
-      font-size: 13px;
-      margin-bottom: 6px;
-    }
-    
-    .category-page-summary {
-      font-size: 11px;
+      font-size: 15px;
     }
   }
 </style>
