@@ -58,8 +58,18 @@ assert.match(
 );
 assert.match(
   articlePage,
+  /class="appearance-toggle toolbar-toggle"[^>]*aria-controls="wiki-appearance"/,
+  'article appearance toolbar toggle must declare the panel it controls',
+);
+assert.match(
+  articlePage,
   /class="sidebar-toggle toolbar-toggle"[^>]*aria-expanded="false"/,
   'article navigation toolbar toggle must default to collapsed so screen readers do not report a hidden sidebar as expanded on narrow viewports',
+);
+assert.match(
+  articlePage,
+  /class="sidebar-toggle toolbar-toggle"[^>]*aria-controls="wiki-sidebar"/,
+  'article navigation toolbar toggle must declare the panel it controls',
 );
 
 const wikiLayout = fs.readFileSync(
@@ -74,6 +84,24 @@ assert.match(
 assert.ok(
   wikiLayout.includes("sidebarToggle.setAttribute('aria-expanded'"),
   'wiki layout must update navigation toggle aria-expanded for assistive tech',
+);
+assert.match(
+  wikiLayout,
+  /<aside id="wiki-sidebar" class="mw-sidebar" aria-modal="false">/,
+  'wiki sidebar must default aria-modal to false until it opens as an overlay panel',
+);
+assert.ok(
+  wikiLayout.includes("sidebar.setAttribute('aria-modal'"),
+  'wiki layout must toggle sidebar aria-modal with the overlay state',
+);
+assert.match(
+  wikiLayout,
+  /<aside id="wiki-appearance" class="mw-appearance" aria-labelledby="appearance-title" aria-modal="false">/,
+  'appearance rail must default aria-modal to false until it opens as an overlay panel',
+);
+assert.ok(
+  wikiLayout.includes("appearancePanel.setAttribute(\n              'aria-modal'"),
+  'wiki layout must toggle appearance aria-modal with the overlay state',
 );
 assert.match(
   articlePage,

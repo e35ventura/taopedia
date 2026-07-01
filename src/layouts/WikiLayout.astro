@@ -78,7 +78,7 @@ const { title, description, image, type = 'website', path, feeds, robots } = Ast
 
     <div class="mw-page-container">
       <div class="mw-content-container">
-        <aside class="mw-sidebar">
+        <aside id="wiki-sidebar" class="mw-sidebar" aria-modal="false">
           <slot name="sidebar" />
         </aside>
 
@@ -86,7 +86,7 @@ const { title, description, image, type = 'website', path, feeds, robots } = Ast
           <slot />
         </main>
 
-        <aside class="mw-appearance" aria-labelledby="appearance-title">
+        <aside id="wiki-appearance" class="mw-appearance" aria-labelledby="appearance-title" aria-modal="false">
           <div class="appearance-header">
             <h2 id="appearance-title">Appearance</h2>
             <button class="appearance-hide" type="button" aria-label="Hide appearance controls">hide</button>
@@ -360,6 +360,10 @@ const { title, description, image, type = 'website', path, feeds, robots } = Ast
 
           if (constrained) {
             appearancePanel.hidden = !document.body.classList.contains('appearance-overlay-active');
+            appearancePanel.setAttribute(
+              'aria-modal',
+              document.body.classList.contains('appearance-overlay-active') ? 'true' : 'false',
+            );
             appearanceToggle.classList.add('visible');
             appearanceToggle.setAttribute('aria-expanded', appearancePanel.hidden ? 'false' : 'true');
             return;
@@ -367,6 +371,7 @@ const { title, description, image, type = 'website', path, feeds, robots } = Ast
 
           document.body.classList.remove('appearance-overlay-active');
           appearancePanel.hidden = appearanceManuallyHidden;
+          appearancePanel.setAttribute('aria-modal', 'false');
           appearanceToggle.classList.toggle('visible', appearanceManuallyHidden);
           appearanceToggle.setAttribute('aria-expanded', appearanceManuallyHidden ? 'false' : 'true');
         }
@@ -433,6 +438,7 @@ const { title, description, image, type = 'website', path, feeds, robots } = Ast
           const expanded = (isMobile() || isMidSize())
             ? sidebar.classList.contains('mobile-active')
             : !document.body.classList.contains('sidebar-collapsed');
+          sidebar.setAttribute('aria-modal', expanded && (isMobile() || isMidSize()) ? 'true' : 'false');
           sidebarToggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
         }
 
