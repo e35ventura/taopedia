@@ -131,6 +131,11 @@ function renderInfoboxValue(label: string, value: string) {
   if (renderedTokens.some((token) => token.type === 'link')) return renderedTokens;
   if (String(label ?? '').trim().toLowerCase() !== 'related') return renderedTokens;
 
+  const exactTargetSlug = resolveTargetSlug(value, slugAliases);
+  if (exactTargetSlug && exactTargetSlug !== slug && Object.prototype.hasOwnProperty.call(slugMap, exactTargetSlug)) {
+    return [{ type: 'link', target: value, text: value, href: `/wiki/${exactTargetSlug}/`, exists: true }];
+  }
+
   const targets = splitPlainTextRelatedTargets(value);
   if (!targets.length) return renderedTokens;
 

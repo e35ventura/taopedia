@@ -111,6 +111,42 @@ if (fs.existsSync(alphaTokensHtml) && Object.prototype.hasOwnProperty.call(slugM
   );
 }
 
+const btLoggingLevelsHtml = path.join(distWikiDir, 'bt_logging_levels', 'index.html');
+if (fs.existsSync(btLoggingLevelsHtml) && Object.prototype.hasOwnProperty.call(slugMap, 'mining_and_validating')) {
+  const html = fs.readFileSync(btLoggingLevelsHtml, 'utf8');
+  const infoboxMatch = html.match(/<aside class="infobox"[^>]*>[\s\S]*?<\/aside>/);
+  const infobox = infoboxMatch ? infoboxMatch[0] : '';
+
+  assert.match(
+    infobox,
+    /href="\/wiki\/mining_and_validating\/"/,
+    'bt_logging_levels infobox must link the whole Related title to mining_and_validating'
+  );
+  assert.doesNotMatch(
+    infobox,
+    />\s*Mining,\s*Validating\s*</,
+    'bt_logging_levels infobox must not split the whole Related title into plain text fragments'
+  );
+}
+
+const slippageHtml = path.join(distWikiDir, 'slippage', 'index.html');
+if (fs.existsSync(slippageHtml) && Object.prototype.hasOwnProperty.call(slugMap, 'staking_and_delegation')) {
+  const html = fs.readFileSync(slippageHtml, 'utf8');
+  const infoboxMatch = html.match(/<aside class="infobox"[^>]*>[\s\S]*?<\/aside>/);
+  const infobox = infoboxMatch ? infoboxMatch[0] : '';
+
+  assert.match(
+    infobox,
+    /href="\/wiki\/staking_and_delegation\/"/,
+    'slippage infobox must link the whole Related title to staking_and_delegation'
+  );
+  assert.doesNotMatch(
+    infobox,
+    /href="\/wiki\/staking\/".*href="\/wiki\/delegation\/"/,
+    'slippage infobox must not split the whole Related title into separate staking and delegation links'
+  );
+}
+
 assert.ok(
   (linkGraph.axon || []).some((link) => link.target === 'subnet_protocol' && link.text === 'Subnet Protocol'),
   'axon linkgraph must include its infobox relationship to subnet_protocol'
