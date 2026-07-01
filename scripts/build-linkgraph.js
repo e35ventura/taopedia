@@ -277,6 +277,9 @@ const GLOSSARY_CANONICAL_OVERRIDE_LABEL_SLUGS = new Set([
 ]);
 
 const GLOSSARY_COMPOUND_SUFFIXES = [' Reserve', ' Weight', ' Mechanisms', ' Visibility', ' Split', ' Rewards'];
+const GLOSSARY_EXACT_OVERRIDE_TARGETS = new Map([
+  ['hyperparameters', 'Subnet Hyperparameters'],
+]);
 
 function expandGlossaryCompoundSuffixTarget(target, canonicalTarget, suffix) {
   for (const base of [target, canonicalTarget]) {
@@ -299,6 +302,15 @@ export function expandGlossaryCompoundSuffixTargets(target, canonicalTarget) {
   }
 
   return candidates;
+}
+
+export function expandGlossaryExactOverrideTarget(target, canonicalTarget) {
+  for (const base of [target, canonicalTarget]) {
+    const overrideTarget = GLOSSARY_EXACT_OVERRIDE_TARGETS.get(String(base || '').trim().toLowerCase());
+    if (overrideTarget) return overrideTarget;
+  }
+
+  return '';
 }
 
 export function getVisibleInfoboxRows(articleDir, frontmatterRows) {
@@ -528,16 +540,33 @@ function main() {
               allowSplitTargets: false,
             }))
           : [];
-        const glossaryTokensTargets = nonSelfLabelTargets.length === 0
+      const glossaryTokensTargets = nonSelfLabelTargets.length === 0
+        && alternateTargets.length === 0
+        && slashSecondTargets.length === 0
+        && glossaryAcronymPluralTargets.length === 0
+        && glossaryGerundTargets.length === 0
+        && glossaryPluralTargets.length === 0
+        && fallbackCanonicalTargets.length === 0
+        && isPrefixedGlossaryLabel
+        ? filterSelfTargets(resolveBuildLinkTargets({
+            target: expandGlossaryTokensConceptTarget(link.target, link.canonicalTarget),
+            slugAliases,
+            slugMap,
+            requireExisting: true,
+            allowSplitTargets: false,
+          }))
+        : [];
+        const glossaryExactOverrideTargets = nonSelfLabelTargets.length === 0
           && alternateTargets.length === 0
           && slashSecondTargets.length === 0
           && glossaryAcronymPluralTargets.length === 0
           && glossaryGerundTargets.length === 0
           && glossaryPluralTargets.length === 0
+          && glossaryTokensTargets.length === 0
           && fallbackCanonicalTargets.length === 0
           && isPrefixedGlossaryLabel
           ? filterSelfTargets(resolveBuildLinkTargets({
-              target: expandGlossaryTokensConceptTarget(link.target, link.canonicalTarget),
+              target: expandGlossaryExactOverrideTarget(link.target, link.canonicalTarget),
               slugAliases,
               slugMap,
               requireExisting: true,
@@ -551,6 +580,7 @@ function main() {
           && glossaryGerundTargets.length === 0
           && glossaryPluralTargets.length === 0
           && glossaryTokensTargets.length === 0
+          && glossaryExactOverrideTargets.length === 0
           && fallbackCanonicalTargets.length === 0
           && isPrefixedGlossaryLabel
           ? [...new Set(
@@ -615,13 +645,15 @@ function main() {
                 ? glossaryAcronymPluralTargets
                 : glossaryGerundTargets.length > 0
                   ? glossaryGerundTargets
-                  : glossaryPluralTargets.length > 0
-                    ? glossaryPluralTargets
-                    : glossaryTokensTargets.length > 0
-                      ? glossaryTokensTargets
-                      : glossaryCompoundSuffixTargets.length > 0
-                        ? glossaryCompoundSuffixTargets
-                        : genericGlossaryCanonicalTargets.length > 0
+                    : glossaryPluralTargets.length > 0
+                      ? glossaryPluralTargets
+                      : glossaryTokensTargets.length > 0
+                        ? glossaryTokensTargets
+                        : glossaryExactOverrideTargets.length > 0
+                          ? glossaryExactOverrideTargets
+                        : glossaryCompoundSuffixTargets.length > 0
+                          ? glossaryCompoundSuffixTargets
+                          : genericGlossaryCanonicalTargets.length > 0
                           ? genericGlossaryCanonicalTargets
                           : fallbackCanonicalTargets;
 
@@ -638,6 +670,7 @@ function main() {
           && glossaryGerundTargets.length === 0
           && glossaryPluralTargets.length === 0
           && glossaryTokensTargets.length === 0
+          && glossaryExactOverrideTargets.length === 0
           && glossaryCompoundSuffixTargets.length === 0
           && fallbackCanonicalTargets.length > 0,
       };
