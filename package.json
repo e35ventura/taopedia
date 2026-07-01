@@ -33,6 +33,7 @@
     "test:wiki-article-path": "node scripts/check-wiki-article-path.js",
     "test:article-script-placement": "node scripts/check-article-script-placement.js",
     "test:skip-link": "node scripts/check-skip-link.js",
+    "test:toc-back-to-top": "node scripts/check-toc-back-to-top.js",
     "test:robots": "node scripts/check-robots.js",
     "test:robots-meta": "node scripts/check-robots-meta.js",
     "test:mobile-header-search": "node scripts/check-mobile-header-search.js",
