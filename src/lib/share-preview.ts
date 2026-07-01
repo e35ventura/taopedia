@@ -7,6 +7,12 @@ export interface SpecialPageMeta {
 
 const specialPages: SpecialPageMeta[] = [
   {
+    name: 'ancientpages',
+    title: 'Ancient pages',
+    description: 'Published Taopedia articles ranked by oldest page-creation date.',
+    label: 'Oldest-article report',
+  },
+  {
     name: 'allpages',
     title: 'Articles',
     description: 'Browse the full directory of Taopedia articles in the Bittensor knowledge base.',

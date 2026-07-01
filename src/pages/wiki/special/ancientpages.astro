@@ -1,0 +1,85 @@
+---
+import WikiLayout from '../../../layouts/WikiLayout.astro';
+import { listAncientPages } from '../../../lib/ancient-pages-context';
+import { formatRevisionDate } from '../../../lib/format-date.js';
+
+const ancientPages = listAncientPages();
+---
+
+<WikiLayout
+  title="Ancient pages"
+  description="Published Taopedia articles ranked by oldest page-creation date."
+>
+  <div class="mw-body-content">
+    <h1 class="firstHeading">Ancient pages</h1>
+
+    <div class="mw-parser-output">
+      <p>
+        Published Taopedia articles ranked by oldest page-creation date, using the first recorded
+        revision in each article's build-time history.
+      </p>
+
+      {ancientPages.length === 0 ? (
+        <p>No ancient pages available yet.</p>
+      ) : (
+        <ol class="mw-ancientpages">
+          {ancientPages.map((entry) => (
+            <li class="mw-ancientpages-row">
+              <div class="mw-ancientpages-main">
+                <a class="mw-ancientpages-title" href={`/wiki/${entry.slug}/`}>{entry.title}</a>
+                <span class="mw-ancientpages-slug">{entry.slug}</span>
+              </div>
+              <div class="mw-ancientpages-meta">
+                <span>Created <time datetime={entry.firstEdited}>{formatRevisionDate(entry.firstEdited)}</time></span>
+                {entry.lastEdited && (
+                  <span>Last edited <time datetime={entry.lastEdited}>{formatRevisionDate(entry.lastEdited)}</time></span>
+                )}
+                <span>
+                  <a href={`/wiki/${entry.slug}/history/`}>
+                    {entry.revisionCount} {entry.revisionCount === 1 ? 'revision' : 'revisions'}
+                  </a>
+                </span>
+              </div>
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
+  </div>
+</WikiLayout>
+
+<style>
+  .mw-ancientpages {
+    margin: 16px 0;
+    padding-left: 32px;
+  }
+
+  .mw-ancientpages-row {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color-subtle);
+  }
+
+  .mw-ancientpages-main {
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    flex-wrap: wrap;
+  }
+
+  .mw-ancientpages-title {
+    font-weight: 600;
+  }
+
+  .mw-ancientpages-slug,
+  .mw-ancientpages-meta {
+    color: var(--color-base-subtle);
+    font-size: 13px;
+  }
+
+  .mw-ancientpages-meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+</style>
