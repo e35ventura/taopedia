@@ -1,7 +1,7 @@
 import { Resvg } from '@resvg/resvg-js';
 import fs from 'fs';
 import path from 'path';
-import { escapeHtml, wrapText, parseSubnet } from './og-text.js';
+import { escapeHtml, wrapText, parseSubnet, buildCardBadges } from './og-text.js';
 
 const width = 1200;
 const height = 630;
@@ -55,6 +55,7 @@ interface OgImageOptions {
   title: string;
   description?: string;
   label?: string;
+  kind?: 'article' | 'category' | 'special';
   home?: boolean;
 }
 
@@ -109,15 +110,33 @@ function layoutDescription(titleLineCount: number) {
   return { descriptionStart, lineBudget };
 }
 
-export function renderOgImage({ title, description, label = TAGLINE, home = false }: OgImageOptions) {
+function renderChipRow(
+  badges: Array<{ text: string; accent: boolean }>,
+  x: number,
+  y: number,
+) {
+  let currentX = x;
+  return badges
+    .map((badge) => {
+      const svg = renderChip(badge.text, currentX, y, badge.accent);
+      currentX += measureChipWidth(badge.text) + CHIP_PAD_X * 2 + 12;
+      return svg;
+    })
+    .join('');
+}
+
+export function renderOgImage({
+  title,
+  description,
+  label = TAGLINE,
+  kind = 'article',
+  home = false,
+}: OgImageOptions) {
   // "Subnet 12: Compute Horde" reads as a long, easily-clipped title. Surface the
   // netuid as a badge and use the subnet name as the title instead.
   const subnet = parseSubnet(title);
   const displayTitle = subnet ? subnet.name : title;
-  // Eyebrow chip: a subnet netuid badge, else the article's topic. Suppressed on
-  // the homepage card, and whenever it would merely repeat the title.
-  const chipText = subnet ? `Subnet ${subnet.netuid}` : label;
-  const showChip = !home && !!chipText && chipText !== displayTitle;
+  const badges = buildCardBadges({ kind, title, label, home });
 
   const titleLines = wrapText(displayTitle, TITLE_MAX_CHARS, TITLE_MAX_LINES);
   const { descriptionStart, lineBudget } = layoutDescription(titleLines.length);
@@ -137,7 +156,7 @@ export function renderOgImage({ title, description, label = TAGLINE, home = fals
     )
     .join('');
 
-  const chipSvg = showChip ? renderChip(chipText, 192, 132, !!subnet) : '';
+  const chipSvg = badges.length > 0 ? renderChipRow(badges, 192, 132) : '';
   // The footer tagline is a brand element on article/subnet cards; suppressed on
   // the homepage card, where the title is already the tagline.
   const taglineSvg = home

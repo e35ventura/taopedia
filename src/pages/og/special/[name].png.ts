@@ -9,6 +9,7 @@ export async function getStaticPaths() {
       title: page.title,
       description: page.description,
       label: page.label,
+      kind: 'special',
     },
   }));
 }
@@ -19,6 +20,7 @@ export const GET: APIRoute = ({ props }) =>
       title: props.title,
       description: props.description,
       label: props.label,
+      kind: props.kind,
       home: false,
     }),
     {

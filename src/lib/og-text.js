@@ -16,6 +16,54 @@ export function parseSubnet(title) {
   return null;
 }
 
+export function buildCardBadges({ kind, title, label, home }) {
+  if (home) return [];
+
+  const subnet = parseSubnet(title);
+  if (subnet) {
+    return [
+      { text: `Subnet ${subnet.netuid}`, accent: true },
+      { text: 'Article', accent: false },
+    ];
+  }
+
+  if (kind === 'category') {
+    const countLabel = String(label ?? '')
+      .split('·')
+      .map((part) => part.trim())
+      .find((part) => /\barticle/.test(part));
+    return compactBadges([
+      { text: 'Category', accent: false },
+      countLabel ? { text: countLabel, accent: false } : null,
+    ]);
+  }
+
+  if (kind === 'special') {
+    return compactBadges([
+      { text: 'Special page', accent: false },
+      label ? { text: label, accent: false } : null,
+    ]);
+  }
+
+  return compactBadges([
+    { text: 'Article', accent: false },
+    label && label !== 'Bittensor Knowledge Base' ? { text: label, accent: false } : null,
+  ]);
+}
+
+function compactBadges(badges) {
+  const seen = new Set();
+  return badges
+    .filter(Boolean)
+    .filter((badge) => {
+      const normalized = badge.text.trim().toLowerCase();
+      if (!normalized || seen.has(normalized)) return false;
+      seen.add(normalized);
+      return true;
+    })
+    .slice(0, 2);
+}
+
 export function escapeHtml(value) {
   return value
     .replace(/&/g, '&amp;')

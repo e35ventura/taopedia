@@ -1,0 +1,248 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><script>
+  try {
+    if (localStorage.getItem('taopedia-color') === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  } catch (e) {}
+</script><title>Page not found - Taopedia</title><meta name="description" content="The requested page does not exist in the Taopedia Bittensor knowledge base."><meta name="robots" content="noindex"><link rel="canonical" href="https://taopedia.org/404/"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="icon" sizes="32x32" type="image/png" href="/favicon-32x32.png"><link rel="icon" sizes="16x16" type="image/png" href="/favicon-16x16.png"><link rel="shortcut icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/site.webmanifest"><link rel="search" type="application/opensearchdescription+xml" title="Taopedia" href="/opensearch.xml"><link rel="alternate" type="application/rss+xml" title="Taopedia" href="/rss.xml"><link rel="alternate" type="application/atom+xml" title="Taopedia" href="/atom.xml"><link rel="alternate" type="application/feed+json" title="Taopedia" href="/feed.json"><link rel="alternate" type="text/x-opml" title="Taopedia feeds" href="/feeds.opml"><meta property="og:title" content="Page not found - Taopedia"><meta property="og:description" content="The requested page does not exist in the Taopedia Bittensor knowledge base."><meta property="og:type" content="website"><meta property="og:site_name" content="Taopedia"><meta property="og:url" content="https://taopedia.org/404/"><meta property="og:image" content="https://taopedia.org/og/home.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Page not found — Taopedia, a Bittensor knowledge base"><meta property="og:locale" content="en_US"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Page not found - Taopedia"><meta name="twitter:description" content="The requested page does not exist in the Taopedia Bittensor knowledge base."><meta name="twitter:image" content="https://taopedia.org/og/home.png"><meta name="twitter:image:alt" content="Page not found — Taopedia, a Bittensor knowledge base"><script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://taopedia.org/#organization","name":"Taopedia","url":"https://taopedia.org/","logo":{"@type":"ImageObject","url":"https://taopedia.org/logo.svg"}},{"@type":"WebSite","@id":"https://taopedia.org/#website","url":"https://taopedia.org/","name":"Taopedia","description":"A Bittensor-focused knowledge base for TAO, subnets, wallets, staking, mining, validation, and consensus.","publisher":{"@id":"https://taopedia.org/#organization"},"inLanguage":"en","potentialAction":{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https://taopedia.org/search/?q={search_term_string}"},"query-input":"required name=search_term_string"}}]}</script><link rel="stylesheet" href="/_astro/SearchSuggest.CBvTAhVf.css"><style>@media print{.skip-link,.mw-header,.mw-sidebar,.toc-sidebar,.mw-appearance,.mw-article-toolbar,.mw-footer,.sidebar-overlay,.sidebar-toggle,.appearance-toggle,.toolbar-toggle,.mw-cite-copy{display:none!important}.mw-page-container{margin-top:0;min-height:0}.mw-content-container{max-width:none;min-height:0;padding:0}.mw-body{max-width:none;width:100%;margin:0}body{color:#000;background:#fff}.mw-parser-output a{color:#000;text-decoration:underline}.firstHeading,h2,h3,h4{break-after:avoid}.infobox,figure,img{break-inside:avoid}}
+</style></head> <body> <a href="#content" class="skip-link">Skip to content</a> <!-- Sidebar toggle is placed within article toolbars on narrow screens. --> <!-- Overlays --> <div class="sidebar-overlay"></div> <header class="mw-header"> <div class="mw-header-content"> <div class="mw-header-left"> <a href="/" class="mw-logo"> <div class="header-logo-container"> <div class="header-globe"> <img src="/logo.svg" alt="Taopedia logo" class="header-logo-img"> </div> </div> <span class="header-logo-text"> <span class="logo-letter-large">T</span>AOPEDI<span class="logo-letter-large">A</span> </span> </a> </div> <div class="mw-header-center"> <div class="mw-header-center-inner"> <div class="mw-search-container"> <form action="/search/" method="get" style="position: relative;"> <svg class="search-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; opacity: 0.5;"> <path d="M7 12C9.76142 12 12 9.76142 12 7C12 4.23858 9.76142 2 7 2C4.23858 2 2 4.23858 2 7C2 9.76142 4.23858 12 7 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </svg> <input type="search" name="q" class="mw-search-input" placeholder="Search Taopedia" aria-label="Search" style="padding-left: 36px;"> </form> </div> </div> </div> <nav class="mw-header-right" aria-label="Primary"> <a href="/wiki/special/allpages">Articles</a> <a href="/wiki/special/categories">Topics</a> </nav> </div> </header> <div class="mw-page-container"> <div class="mw-content-container"> <aside class="mw-sidebar">  </aside> <main id="content" class="mw-body" tabindex="-1">  <div class="mw-body-content"> <h1 class="firstHeading">Page not found</h1> <div class="mw-parser-output"> <p>
+The page you requested does not exist in Taopedia. The article may have
+        been renamed or removed, or the address may be mistyped.
+</p> <ul> <li><a href="/search/">Search Taopedia</a> for the topic you were looking for.</li> <li>Browse the full <a href="/wiki/special/allpages/">article directory</a>.</li> <li>Explore articles grouped by <a href="/wiki/special/categories/">topic</a>.</li> <li>Return to the <a href="/">main page</a>.</li> </ul> </div> </div>  </main> <aside class="mw-appearance" aria-labelledby="appearance-title"> <div class="appearance-header"> <h2 id="appearance-title">Appearance</h2> <button class="appearance-hide" type="button" aria-label="Hide appearance controls">hide</button> </div> <form class="appearance-form"> <fieldset> <legend>Text</legend> <label> <input type="radio" name="text-size" value="small"> <span>Small</span> </label> <label> <input type="radio" name="text-size" value="standard"> <span>Standard</span> </label> <label> <input type="radio" name="text-size" value="large"> <span>Large</span> </label> </fieldset> <fieldset> <legend>Width</legend> <label> <input type="radio" name="content-width" value="narrow"> <span>Narrow</span> </label> <label> <input type="radio" name="content-width" value="standard"> <span>Standard</span> </label> <label> <input type="radio" name="content-width" value="wide"> <span>Wide</span> </label> </fieldset> <fieldset> <legend>Color</legend> <label> <input type="radio" name="color-theme" value="light"> <span>Light</span> </label> <label> <input type="radio" name="color-theme" value="dark"> <span>Dark</span> </label> </fieldset> </form> </aside> </div> </div> <footer class="mw-footer"> <div class="mw-footer-links"> <a href="/wiki/special/allpages">Articles</a> <a href="/wiki/special/categories">Topics</a> <a href="/wiki/special/recentchanges">Recent changes</a> <a href="/wiki/special/mostlinkedpages">Most linked</a> <a href="/wiki/special/subnets">Subnets</a> <span style="margin-left: auto;">Content available under <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a></span> </div> </footer> <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        const query = new URLSearchParams(window.location.search).get('q')?.trim();
+        if (!query) return;
+        const searchInput = document.querySelector('.mw-search-input');
+        if (searchInput) searchInput.value = query;
+      });
+    </script> <script type="module" src="/_astro/WikiLayout.astro_astro_type_script_index_0_lang.CxSVygZo.js"></script> <script>
+  (function () {
+    if (window.__taopediaSearchSuggest) return;
+    window.__taopediaSearchSuggest = true;
+
+    var MAX = 8; // suggestions shown before the "Search for …" row
+    var DEBOUNCE = 120;
+    var data = null;
+    var dataFetch = null;
+    var uid = 0;
+
+    function loadData() {
+      if (dataFetch) return dataFetch;
+      dataFetch = fetch('/search-data.json')
+        .then(function (r) { return r.ok ? r.json() : []; })
+        .then(function (d) { data = Array.isArray(d) ? d : []; return data; })
+        .catch(function () { data = []; return data; });
+      return dataFetch;
+    }
+
+    function clear(node) {
+      while (node.firstChild) node.removeChild(node.firstChild);
+    }
+
+    // Rank by where the query hits: title prefix > title word-start > title
+    // substring > summary substring. Entries are already title-sorted, so a
+    // stable sort keeps each tier alphabetical.
+    function rank(entries, q) {
+      var nq = q.toLowerCase();
+      var scored = [];
+      for (var i = 0; i < entries.length; i++) {
+        var e = entries[i];
+        var t = (e.title || '').toLowerCase();
+        var s;
+        if (t.indexOf(nq) === 0) s = 0;
+        else if (t.indexOf(' ' + nq) > -1) s = 1;
+        else if (t.indexOf(nq) > -1) s = 2;
+        else if ((e.summary || '').toLowerCase().indexOf(nq) > -1) s = 3;
+        else continue;
+        scored.push({ e: e, s: s, i: i });
+      }
+      scored.sort(function (a, b) { return a.s - b.s || a.i - b.i; });
+      return scored.slice(0, MAX).map(function (x) { return x.e; });
+    }
+
+    // Bold the matched span of the title without using innerHTML.
+    function highlightInto(el, text, q) {
+      var idx = text.toLowerCase().indexOf(q.toLowerCase());
+      if (idx < 0 || !q) { el.textContent = text; return; }
+      el.appendChild(document.createTextNode(text.slice(0, idx)));
+      var m = document.createElement('strong');
+      m.textContent = text.slice(idx, idx + q.length);
+      el.appendChild(m);
+      el.appendChild(document.createTextNode(text.slice(idx + q.length)));
+    }
+
+    function enhance(input) {
+      var form = input.closest('form');
+      if (!form) return;
+      if (getComputedStyle(form).position === 'static') form.style.position = 'relative';
+
+      var listId = 'search-suggest-' + (++uid);
+      var list = document.createElement('ul');
+      list.className = 'search-suggest-list';
+      list.id = listId;
+      list.setAttribute('role', 'listbox');
+      list.setAttribute('aria-label', 'Search suggestions');
+      list.hidden = true;
+      form.appendChild(list);
+
+      // Visually-hidden live region: announces the suggestion count to screen
+      // readers as the list updates (WAI-ARIA combobox guidance).
+      var status = document.createElement('div');
+      status.className = 'search-suggest-status';
+      status.setAttribute('aria-live', 'polite');
+      status.setAttribute('role', 'status');
+      form.appendChild(status);
+
+      input.setAttribute('role', 'combobox');
+      input.setAttribute('aria-autocomplete', 'list');
+      input.setAttribute('aria-expanded', 'false');
+      input.setAttribute('aria-controls', listId);
+      input.setAttribute('autocomplete', 'off');
+
+      var options = []; // { el, entry, isAll }
+      var activeIndex = -1;
+      var debounceTimer = 0;
+      var seq = 0; // invalidates in-flight renders when the list is closed/refined
+
+      function closeList() {
+        seq++; // any in-flight render is now stale and must not re-open the list
+        list.hidden = true;
+        clear(list);
+        options = [];
+        activeIndex = -1;
+        input.setAttribute('aria-expanded', 'false');
+        input.removeAttribute('aria-activedescendant');
+      }
+
+      function setActive(i) {
+        if (activeIndex > -1 && options[activeIndex]) {
+          options[activeIndex].el.classList.remove('is-active');
+          options[activeIndex].el.setAttribute('aria-selected', 'false');
+        }
+        activeIndex = i;
+        if (i > -1 && options[i]) {
+          options[i].el.classList.add('is-active');
+          options[i].el.setAttribute('aria-selected', 'true');
+          input.setAttribute('aria-activedescendant', options[i].el.id);
+          options[i].el.scrollIntoView({ block: 'nearest' });
+        } else {
+          input.removeAttribute('aria-activedescendant');
+        }
+      }
+
+      function go(url) { window.location.assign(url); }
+
+      function submitForm() {
+        if (form.requestSubmit) form.requestSubmit();
+        else form.submit();
+      }
+
+      function render(q) {
+        clear(list);
+        options = [];
+        activeIndex = -1;
+
+        var matches = rank(data || [], q);
+        matches.forEach(function (entry, i) {
+          var li = document.createElement('li');
+          li.className = 'search-suggest-option';
+          li.id = listId + '-opt-' + i;
+          li.setAttribute('role', 'option');
+          li.setAttribute('aria-selected', 'false');
+
+          var title = document.createElement('span');
+          title.className = 'search-suggest-title';
+          highlightInto(title, entry.title || entry.url, q);
+          li.appendChild(title);
+
+          var cats = Array.isArray(entry.categories) ? entry.categories : [];
+          if (cats.length) {
+            var hint = document.createElement('span');
+            hint.className = 'search-suggest-cat';
+            hint.textContent = cats[0];
+            li.appendChild(hint);
+          }
+
+          // pointerdown (not click) fires for mouse and touch alike and, with
+          // preventDefault, keeps focus on the input so there's no blur race
+          // before we navigate.
+          li.addEventListener('pointerdown', function (ev) { ev.preventDefault(); go(entry.url); });
+          li.addEventListener('mouseenter', function () { setActive(i); });
+          list.appendChild(li);
+          options.push({ el: li, entry: entry, isAll: false });
+        });
+
+        var all = document.createElement('li');
+        all.className = 'search-suggest-option search-suggest-all';
+        all.id = listId + '-opt-all';
+        all.setAttribute('role', 'option');
+        all.setAttribute('aria-selected', 'false');
+        all.textContent = 'Search for “' + q + '”';
+        all.addEventListener('pointerdown', function (ev) { ev.preventDefault(); submitForm(); });
+        all.addEventListener('mouseenter', function () { setActive(options.length); });
+        list.appendChild(all);
+        options.push({ el: all, entry: null, isAll: true });
+
+        list.hidden = false;
+        input.setAttribute('aria-expanded', 'true');
+        status.textContent = matches.length
+          ? matches.length + ' suggestion' + (matches.length === 1 ? '' : 's') + ' available. Use up and down arrows to review, Enter to select.'
+          : 'No article matches. Press Enter to search.';
+      }
+
+      function update() {
+        var q = input.value.trim();
+        if (!q) { closeList(); return; }
+        var my = ++seq;
+        loadData().then(function () {
+          // Bail if the list was closed (Escape/blur) or refined to another
+          // query while the data was loading — never re-open a dismissed list.
+          if (my !== seq || input.value.trim() !== q) return;
+          render(q);
+        });
+      }
+
+      input.addEventListener('input', function () {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(update, DEBOUNCE);
+      });
+      input.addEventListener('focus', function () {
+        if (input.value.trim() && list.hidden) update();
+      });
+      input.addEventListener('keydown', function (e) {
+        if (list.hidden) {
+          if (e.key === 'ArrowDown' && input.value.trim()) update();
+          return;
+        }
+        var n = options.length;
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          setActive(activeIndex < 0 ? 0 : (activeIndex + 1) % n);
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          setActive(activeIndex < 0 ? n - 1 : (activeIndex - 1 + n) % n);
+        } else if (e.key === 'Enter') {
+          if (activeIndex > -1 && options[activeIndex] && !options[activeIndex].isAll) {
+            e.preventDefault();
+            go(options[activeIndex].entry.url);
+          }
+          // no real option active (or the "Search for …" row) → let the form submit
+        } else if (e.key === 'Escape') {
+          if (!list.hidden) { e.preventDefault(); closeList(); }
+        }
+      });
+      input.addEventListener('blur', function () {
+        // Delay so a mousedown on an option resolves before we tear the list down.
+        setTimeout(closeList, 120);
+      });
+    }
+
+    function init() {
+      var inputs = document.querySelectorAll('form[action="/search/"] input[name="q"]');
+      Array.prototype.forEach.call(inputs, enhance);
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
+  })();
+</script> </body></html>

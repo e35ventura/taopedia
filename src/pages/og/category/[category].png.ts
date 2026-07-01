@@ -13,6 +13,7 @@ export async function getStaticPaths() {
         title: categoryName,
         description: categoryPageDescription(categoryName),
         label: categoryShareLabel(Array.isArray(slugs) ? slugs.length : 0),
+        kind: 'category',
       },
     }));
 }
@@ -23,6 +24,7 @@ export const GET: APIRoute = ({ props }) =>
       title: props.title,
       description: props.description,
       label: props.label,
+      kind: props.kind,
       home: false,
     }),
     {

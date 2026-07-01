@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { escapeHtml, splitLongWords, wrapText, parseSubnet } from '../src/lib/og-text.js';
+import { escapeHtml, splitLongWords, wrapText, parseSubnet, buildCardBadges } from '../src/lib/og-text.js';
 
 // --- parseSubnet: split "Subnet N: Name" so the card shows an "N" badge + name ---
 assert.deepEqual(parseSubnet('Subnet 12: Compute Horde'), { netuid: 12, name: 'Compute Horde' });
@@ -17,6 +17,38 @@ assert.equal(parseSubnet('Yuma Consensus'), null);
 assert.equal(parseSubnet('Subnetting Basics'), null); // must match "Subnet <number>", not any "Subnet…"
 assert.equal(parseSubnet(''), null);
 assert.equal(parseSubnet(undefined), null);
+
+// --- buildCardBadges: compact card badges vary by page kind without duplication ---
+assert.deepEqual(buildCardBadges({ kind: 'article', title: 'Yuma Consensus', label: 'Consensus', home: false }), [
+  { text: 'Article', accent: false },
+  { text: 'Consensus', accent: false },
+]);
+assert.deepEqual(
+  buildCardBadges({ kind: 'article', title: 'Wallets', label: 'Bittensor Knowledge Base', home: false }),
+  [{ text: 'Article', accent: false }],
+);
+assert.deepEqual(
+  buildCardBadges({ kind: 'article', title: 'Subnet 72: StreetVision by NATIX', label: 'Subnets', home: false }),
+  [
+    { text: 'Subnet 72', accent: true },
+    { text: 'Article', accent: false },
+  ],
+);
+assert.deepEqual(buildCardBadges({ kind: 'category', title: 'Wallets', label: 'Topic directory · 9 articles', home: false }), [
+  { text: 'Category', accent: false },
+  { text: '9 articles', accent: false },
+]);
+assert.deepEqual(
+  buildCardBadges({ kind: 'special', title: 'Recent changes', label: 'Recent activity', home: false }),
+  [
+    { text: 'Special page', accent: false },
+    { text: 'Recent activity', accent: false },
+  ],
+);
+assert.deepEqual(
+  buildCardBadges({ kind: 'article', title: 'Home', label: 'Bittensor Knowledge Base', home: true }),
+  [],
+);
 
 // --- escapeHtml: neutralizes the characters that would break SVG <text> markup ---
 assert.equal(escapeHtml('a & b < c > d "e"'), 'a &amp; b &lt; c &gt; d &quot;e&quot;');

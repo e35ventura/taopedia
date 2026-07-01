@@ -13,6 +13,7 @@ export async function getStaticPaths() {
       title: entry?.title ?? slug,
       description: entry?.summary ?? '',
       label: entry?.categories?.[0] ?? 'Bittensor Knowledge Base',
+      kind: 'article',
       home: false,
     },
   }));
@@ -25,6 +26,7 @@ export async function getStaticPaths() {
         description:
           'A Bittensor-focused knowledge base for TAO, subnets, wallets, staking, mining, validation, and consensus.',
         label: 'Bittensor Knowledge Base',
+        kind: 'article',
         home: true,
       },
     },
@@ -38,6 +40,7 @@ export const GET: APIRoute = ({ props }) =>
       title: props.title,
       description: props.description,
       label: props.label,
+      kind: props.kind,
       home: props.home,
     }),
     {
