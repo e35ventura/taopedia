@@ -79,15 +79,18 @@ assert.deepEqual(
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
 const distFile = path.join(projectRoot, 'dist', 'wiki', 'special', 'wantedpages.json');
+const distHtml = path.join(projectRoot, 'dist', 'wiki', 'special', 'wantedpages', 'index.html');
 const linkgraphFile = path.join(projectRoot, 'public', 'data', 'linkgraph.json');
 const slugmapFile = path.join(projectRoot, 'public', 'data', 'slugmap.json');
 assert.ok(fs.existsSync(distFile), 'dist/wiki/special/wantedpages.json not found; run the build first');
+assert.ok(fs.existsSync(distHtml), 'dist/wiki/special/wantedpages/index.html not found; run the build first');
 assert.ok(fs.existsSync(linkgraphFile), 'public/data/linkgraph.json not found; run the build first');
 assert.ok(fs.existsSync(slugmapFile), 'public/data/slugmap.json not found; run the build first');
 
 const data = JSON.parse(fs.readFileSync(distFile, 'utf8'));
 const linkgraphData = JSON.parse(fs.readFileSync(linkgraphFile, 'utf8'));
 const slugmap = JSON.parse(fs.readFileSync(slugmapFile, 'utf8'));
+const html = fs.readFileSync(distHtml, 'utf8');
 
 assert.ok(typeof data.site === 'string' && /^https?:\/\//.test(data.site), `site must be a URL string (got ${JSON.stringify(data.site)})`);
 assert.equal(data.wantedpagesJsonUrl, `${data.site}/wiki/special/wantedpages.json`, 'wantedpagesJsonUrl must be the canonical self-link');
@@ -115,5 +118,31 @@ data.pages.forEach((row, i) => {
     assert.equal(req.url, `${data.site}/wiki/${req.slug}/`, `requester ${req.slug} url must be the canonical article URL`);
   }
 });
+
+// The human-readable Special:WantedPages route is the canonical browsable
+// partner to wantedpages.json. Keep the built page aligned with the JSON route:
+// same count, same empty state, and the expected article links for each requester.
+assert.match(
+  html,
+  /<h1[^>]*class="firstHeading"[^>]*>Wanted pages<\/h1>/,
+  'wantedpages HTML page must render the Wanted pages heading',
+);
+if (expected.length === 0) {
+  assert.match(
+    html,
+    /No wanted pages right now\./,
+    'wantedpages HTML page must render the empty-state copy when the report is empty',
+  );
+} else {
+  for (const entry of expected) {
+    assert.ok(html.includes(`>${entry.slug}<`), `wantedpages HTML page must render slug ${entry.slug}`);
+    for (const requester of entry.requestedBy) {
+      assert.ok(
+        html.includes(`/wiki/${requester}/`),
+        `wantedpages HTML page must link to requester article /wiki/${requester}/`,
+      );
+    }
+  }
+}
 
 console.log(`Wanted pages check passed (${data.pages.length} wanted pages from the built endpoint match the link graph)`);
