@@ -49,14 +49,14 @@ const mostLinked = buildMostLinkedPages({ backlinks: backlinksData, titleBySlug 
       {mostLinked.length === 0 ? (
         <p>No linked pages available yet.</p>
       ) : (
-        <ol class="mw-mostlinked">
+        <ul class="mw-mostlinked">
           {mostLinked.map((entry) => (
             <li class="mw-ml-row">
               <a class="mw-ml-title" href={`/wiki/${entry.slug}/`}>{entry.title}</a>
               <a class="mw-ml-count" href={`/wiki/${entry.slug}/backlinks/`}>{entry.count} {entry.count === 1 ? 'link' : 'links'}</a>
             </li>
           ))}
-        </ol>
+        </ul>
       )}
     </div>
   </div>
@@ -64,8 +64,9 @@ const mostLinked = buildMostLinkedPages({ backlinks: backlinksData, titleBySlug 
 
 <style>
   .mw-mostlinked {
-    margin: 16px 0;
-    padding-left: 32px;
+    list-style: none;
+    margin: 16px 0 0;
+    padding: 0;
   }
   .mw-ml-row {
     display: flex;
