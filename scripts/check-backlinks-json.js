@@ -231,6 +231,10 @@ assert.ok(
   'generated linkgraph must recover the current slippage Related row to staking_and_delegation when the infobox value names the existing compound article',
 );
 assert.ok(
+  (linkgraphData.staking_proxy_attacks || []).some((entry) => entry.target === 'slippage' && entry.text === 'Slippage exposure'),
+  'generated linkgraph must recover the current staking_proxy_attacks Related row to slippage when the infobox value names the leading article plus a descriptor',
+);
+assert.ok(
   (backlinksData.mining_and_validating || []).some((entry) => entry.from === 'bt_logging_levels'),
   'generated backlinks must list bt_logging_levels under mining_and_validating when the Related infobox value names the existing compound article',
 );
@@ -249,6 +253,10 @@ assert.ok(
 assert.ok(
   (backlinksData.staking_and_delegation || []).some((entry) => entry.from === 'slippage'),
   'generated backlinks must list slippage under staking_and_delegation when the Related infobox value names the existing compound article',
+);
+assert.ok(
+  (backlinksData.slippage || []).some((entry) => entry.from === 'staking_proxy_attacks'),
+  'generated backlinks must list staking_proxy_attacks under slippage when the Related infobox value names the leading article plus a descriptor',
 );
 // referencesCount = the article's published outbound-reference count, re-derived
 // with the same getArticleReferences helper the endpoint uses (published-only join).

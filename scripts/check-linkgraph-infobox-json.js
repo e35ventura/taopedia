@@ -179,6 +179,32 @@ try {
     ['weight_vector'],
     'linkgraph should recover singularized title aliases from unresolved plain-text Related rows',
   );
+  assert.deepEqual(
+    resolveBuildLinkTargets({
+      target: 'Slippage exposure',
+      slugAliases,
+      slugMap,
+      requireExisting: true,
+    }),
+    ['slippage'],
+    'linkgraph should recover the leading article from unresolved plain-text Related descriptor phrases',
+  );
+  assert.deepEqual(
+    resolveBuildLinkTargets({
+      target: 'Emission distribution',
+      slugAliases: buildSlugAliases({
+        ...slugMap,
+        emission: { title: 'Emission' },
+      }),
+      slugMap: {
+        ...slugMap,
+        emission: { title: 'Emission' },
+      },
+      requireExisting: true,
+    }),
+    ['emission'],
+    'linkgraph should recover the leading article from unresolved plain-text Related distribution phrases',
+  );
 } finally {
   fs.rmSync(tempRoot, { recursive: true, force: true });
 }

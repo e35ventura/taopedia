@@ -354,11 +354,23 @@ export function resolveBuildLinkTargets({ target, slugAliases, slugMap, requireE
     }
   }
 
-  return [...new Set(
+  const splitTargets = [...new Set(
     splitPlainTextRelatedTargets(target)
       .map((part) => resolveTargetSlug(part, slugAliases))
       .filter((part) => slugMap[part]),
   )];
+  if (splitTargets.length > 0) return splitTargets;
+
+  // Plain-text Related rows sometimes name an existing article plus a short
+  // descriptor, such as "Slippage exposure" or "Emission distribution".
+  // Prefer the leading article word only after compound and split fallbacks miss.
+  const leadingWord = String(target).trim().split(/\s+/).filter(Boolean)[0];
+  if (leadingWord) {
+    const leadingSlug = resolveTargetSlug(leadingWord, slugAliases);
+    if (slugMap[leadingSlug]) return [leadingSlug];
+  }
+
+  return [];
 }
 
 function shouldUseResolvedTitleText(text, resolvedTitle) {
