@@ -85,4 +85,49 @@ assert.ok(
   'wiki layout must sync contents subsection toggle aria-expanded when a section is collapsed or expanded',
 );
 
+assert.match(
+  wikiLayout,
+  /<aside class="mw-sidebar" id="wiki-sidebar">/,
+  'wiki layout sidebar must expose a stable id for disclosure controls',
+);
+assert.match(
+  wikiLayout,
+  /<aside class="mw-appearance" id="wiki-appearance" aria-labelledby="appearance-title">/,
+  'wiki layout appearance panel must expose a stable id for disclosure controls',
+);
+assert.match(
+  wikiLayout,
+  /function syncSidebarOverlayModal\(\)/,
+  'wiki layout must sync navigation sidebar aria-modal when the mobile overlay opens or closes',
+);
+assert.match(
+  wikiLayout,
+  /function syncAppearanceOverlayModal\(\)/,
+  'wiki layout must sync appearance panel aria-modal when the overlay opens or closes',
+);
+assert.ok(
+  wikiLayout.includes("sidebarToggle.setAttribute('aria-controls', 'wiki-sidebar')"),
+  'wiki layout must wire the navigation toolbar toggle to the sidebar panel it controls',
+);
+assert.ok(
+  wikiLayout.includes("appearanceToggle.setAttribute('aria-controls', 'wiki-appearance')"),
+  'wiki layout must wire the appearance toolbar toggle to the appearance panel it controls',
+);
+assert.ok(
+  wikiLayout.includes("sidebar.setAttribute('aria-modal', 'true')"),
+  'wiki layout must mark the navigation sidebar overlay as aria-modal while it is open',
+);
+assert.ok(
+  wikiLayout.includes("appearancePanel.setAttribute('aria-modal', 'true')"),
+  'wiki layout must mark the appearance overlay as aria-modal while it is open',
+);
+assert.ok(
+  wikiLayout.includes("sidebar.removeAttribute('aria-modal')"),
+  'wiki layout must clear navigation sidebar aria-modal when the overlay closes',
+);
+assert.ok(
+  wikiLayout.includes("appearancePanel.removeAttribute('aria-modal')"),
+  'wiki layout must clear appearance aria-modal when the overlay closes',
+);
+
 console.log('Mobile header search check passed');
