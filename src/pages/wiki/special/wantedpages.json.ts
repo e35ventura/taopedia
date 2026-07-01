@@ -1,6 +1,5 @@
 import type { APIRoute } from 'astro';
-import { publishedTitleBySlug } from '../../../lib/article-metadata';
-import { buildWantedPages } from '../../../../scripts/wanted-pages.js';
+import { listWantedPages, wantedPageTitleBySlug } from '../../../lib/wanted-pages-context';
 
 // Machine-readable Special:WantedPages report at /wiki/special/wantedpages.json:
 // link targets that no published article satisfies (red links), ranked by how many
@@ -8,18 +7,13 @@ import { buildWantedPages } from '../../../../scripts/wanted-pages.js';
 // articles for editors — the one core MediaWiki special page this wiki lacked next
 // to MostLinkedPages / AllPages / RecentChanges. The ranking is shared through
 // scripts/wanted-pages.js (pure function) so the endpoint and the regression check
-// derive from one source of truth, over the same public/data/linkgraph.json the
-// other special pages read.
-const linkgraphModules = import.meta.glob('../../../../public/data/linkgraph.json', { eager: true }) as Record<
-  string,
-  { default?: Record<string, Array<{ target: string }>> }
->;
-const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
+// derive from one source of truth, cached once for both the HTML special page
+// and this JSON companion.
 
 export const GET: APIRoute = async ({ site }) => {
   const origin = (site ?? new URL('https://taopedia.org')).origin;
-  const titleBySlug = publishedTitleBySlug();
-  const wanted = buildWantedPages({ linkGraph: linkgraphData, titleBySlug });
+  const titleBySlug = wantedPageTitleBySlug();
+  const wanted = listWantedPages();
 
   const body = JSON.stringify(
     {

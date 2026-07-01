@@ -1,21 +1,9 @@
 ---
 import WikiLayout from '../../../layouts/WikiLayout.astro';
-import { publishedTitleBySlug } from '../../../lib/article-metadata';
-import { buildWantedPages } from '../../../../scripts/wanted-pages.js';
+import { listWantedPages, wantedPageTitleBySlug } from '../../../lib/wanted-pages-context';
 
-// Human-readable Special:WantedPages report: the existing JSON endpoint at
-// /wiki/special/wantedpages.json already publishes the red-link ranking, but the
-// canonical browsable Special: route currently 404s. Reuse the same shared
-// builder + linkgraph artifact as the JSON sibling so the page and endpoint can
-// never disagree on membership, order, or requester counts.
-const linkgraphModules = import.meta.glob('../../../../public/data/linkgraph.json', { eager: true }) as Record<
-  string,
-  { default?: Record<string, Array<{ target: string }>> }
->;
-const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
-
-const titleBySlug = publishedTitleBySlug();
-const wantedPages = buildWantedPages({ linkGraph: linkgraphData, titleBySlug });
+const titleBySlug = wantedPageTitleBySlug();
+const wantedPages = listWantedPages();
 ---
 
 <WikiLayout
