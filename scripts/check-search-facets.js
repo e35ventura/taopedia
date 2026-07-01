@@ -13,6 +13,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
 const distDir = path.join(projectRoot, 'dist');
+const searchSource = fs.readFileSync(path.join(projectRoot, 'src', 'pages', 'search.astro'), 'utf8');
 
 const searchFile = path.join(distDir, 'search', 'index.html');
 assert.ok(fs.existsSync(searchFile), 'dist/search/index.html not found; run the build first');
@@ -28,6 +29,24 @@ assert.match(
   /filters:\s*\{\s*category:/,
   'the search page must query Pagefind with the { filters: { category } } selection',
 );
+assert.match(
+  searchSource,
+  /\.getAll\('topic'\)/,
+  'the search page must read repeated ?topic= params so filtered searches can be shared and reloaded',
+);
+assert.match(
+  searchSource,
+  /history\.replaceState|window\.history\.replaceState/,
+  'the search page must sync facet state back into the URL as topics are toggled',
+);
+assert.match(
+  searchSource,
+  /\.append\('topic',\s*topic\)/,
+  'the search page must write every active topic back to repeated ?topic= params',
+);
+assert.ok(html.includes("getAll('topic')"), 'the built search page must ship the topic URL-state parsing');
+assert.ok(html.includes("append('topic', topic)"), 'the built search page must ship the topic URL-state writer');
+assert.ok(html.includes('replaceState'), 'the built search page must ship the URL-state sync');
 
 // The facet styles must ship (theme-token based, light + dark).
 assert.match(html, /\.search-facet\b[^{]*\{/, 'the search page must ship the .search-facet styles');
@@ -56,4 +75,4 @@ assert.ok(
 // The Pagefind index (which serves the filter at runtime) must be built.
 assert.ok(fs.existsSync(path.join(distDir, 'pagefind')), 'dist/pagefind/ not found; the Pagefind index must be built');
 
-console.log('Search facets check passed (facet script + styles ship; articles expose the category filter; Pagefind index built)');
+console.log('Search facets check passed (facet UI ships, URL state survives reload/share, articles expose the category filter, and Pagefind index is built)');
