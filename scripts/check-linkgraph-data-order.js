@@ -472,6 +472,60 @@ assert.deepEqual(
 );
 assert.deepEqual(
   extractCanonicalGlossaryLinks(
+    'See [sandwich attacks](https://docs.learnbittensor.org/resources/glossary#mev-maximal-extractable-value).',
+  ),
+  [
+    {
+      target: 'sandwich attacks',
+      alternateTarget: '',
+      slashSecondTarget: '',
+      canonicalTarget: 'mev maximal extractable value',
+      text: 'sandwich attacks',
+      requireExisting: true,
+      skipSelf: true,
+      allowSplitTargets: true,
+    },
+  ],
+  'canonical Learn Bittensor glossary markdown links should preserve plain sandwich attack labels with canonical anchors that name the MEV concept article',
+);
+assert.deepEqual(
+  extractCanonicalGlossaryLinks(
+    'See [Glossary: Sandwich Attack](https://docs.learnbittensor.org/resources/glossary#mev-maximal-extractable-value).',
+  ),
+  [
+    {
+      target: 'Sandwich Attack',
+      alternateTarget: '',
+      slashSecondTarget: '',
+      canonicalTarget: 'mev maximal extractable value',
+      text: 'Glossary: Sandwich Attack',
+      requireExisting: true,
+      skipSelf: true,
+      allowSplitTargets: false,
+    },
+  ],
+  'canonical Learn Bittensor glossary markdown links should preserve prefixed sandwich attack labels with canonical anchors that name the MEV concept article',
+);
+assert.deepEqual(
+  extractCanonicalGlossaryLinks(
+    'See [UIDs](https://docs.learnbittensor.org/resources/glossary#uid-slot).',
+  ),
+  [
+    {
+      target: 'UIDs',
+      alternateTarget: '',
+      slashSecondTarget: '',
+      canonicalTarget: 'uid slot',
+      text: 'UIDs',
+      requireExisting: true,
+      skipSelf: true,
+      allowSplitTargets: true,
+    },
+  ],
+  'canonical Learn Bittensor glossary markdown links should preserve plain UIDs labels with canonical anchors that name the uid slot concept article',
+);
+assert.deepEqual(
+  extractCanonicalGlossaryLinks(
     'See [alpha tokens](https://docs.learnbittensor.org/resources/glossary#protocol-alpha).',
   ),
   [
@@ -919,6 +973,26 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated linkgraph must recover the current senate body link to delegation when the plain delegate glossary label self-resolves but its canonical anchor names the delegation concept article',
   );
   assert.ok(
+    (linkGraph.price_protection || []).some((entry) => entry.target === 'mev_maximal_extractable_value' && entry.text === 'sandwich attacks'),
+    'generated linkgraph must recover the current price_protection body link to mev_maximal_extractable_value when the plain sandwich attacks glossary label self-resolves but its canonical anchor names the MEV concept article',
+  );
+  assert.ok(
+    !(linkGraph.price_protection || []).some((entry) => entry.target === 'sandwich_attack' && entry.text === 'sandwich attacks'),
+    'generated linkgraph must not keep the current price_protection plain sandwich attacks glossary link pointed at sandwich_attack once the canonical MEV anchor is available',
+  );
+  assert.ok(
+    (linkGraph.child_hotkey || []).some((entry) => entry.target === 'validator_take' && entry.text === 'Glossary: Validator Take %'),
+    'generated linkgraph must recover the current child_hotkey body link to validator_take when the prefixed validator take glossary label misses locally but its canonical anchor names the validator take concept article',
+  );
+  assert.ok(
+    !(linkGraph.max_allowed_uids || []).some((entry) => entry.target === 'uid' && entry.text === 'UIDs'),
+    'generated linkgraph must not keep the current max_allowed_uids plain UIDs glossary link pointed at uid once the canonical uid slot anchor is available',
+  );
+  assert.ok(
+    !(linkGraph.min_allowed_uids || []).some((entry) => entry.target === 'uid' && entry.text === 'UIDs'),
+    'generated linkgraph must not keep the current min_allowed_uids plain UIDs glossary link pointed at uid once the canonical uid slot anchor is available',
+  );
+  assert.ok(
     (linkGraph.delegation || []).some((entry) => entry.target === 'protocol_alpha' && entry.text === 'Glossary: Alpha Tokens'),
     'generated linkgraph must recover the current delegation body link to protocol_alpha when the prefixed alpha tokens glossary label self-resolves but its canonical anchor names the protocol alpha concept article',
   );
@@ -1045,6 +1119,18 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
   assert.ok(
     (backlinks.delegation || []).some((entry) => entry.from === 'senate'),
     'generated backlinks must list senate under delegation when a plain delegate glossary label falls back to its canonical delegation anchor',
+  );
+  assert.ok(
+    (backlinks.mev_maximal_extractable_value || []).some((entry) => entry.from === 'price_protection'),
+    'generated backlinks must list price_protection under mev_maximal_extractable_value when a plain sandwich attacks glossary label falls back to its canonical MEV anchor',
+  );
+  assert.ok(
+    (backlinks.validator_take || []).some((entry) => entry.from === 'child_hotkey'),
+    'generated backlinks must list child_hotkey under validator_take when a prefixed validator take glossary label falls back to its canonical validator take anchor',
+  );
+  assert.ok(
+    (backlinks.uid_slot || []).some((entry) => entry.from === 'max_allowed_uids'),
+    'generated backlinks must list max_allowed_uids under uid_slot when a plain UIDs glossary label falls back to its canonical uid slot anchor',
   );
   assert.ok(
     (backlinks.protocol_alpha || []).some((entry) => entry.from === 'delegation'),

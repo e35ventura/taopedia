@@ -270,10 +270,14 @@ const PLAIN_GLOSSARY_CANONICAL_OVERRIDE_SOURCE_SLUGS = new Set([
   'weight_setting',
   'delegate',
   'alpha_tokens',
+  'sandwich_attack',
+  'uid',
 ]);
 
 const GLOSSARY_CANONICAL_OVERRIDE_LABEL_SLUGS = new Set([
   'alpha_tokens',
+  'sandwich_attack',
+  'validator_take_',
 ]);
 
 const GLOSSARY_COMPOUND_SUFFIXES = [' Reserve', ' Weight', ' Mechanisms', ' Visibility', ' Split', ' Rewards'];
