@@ -20,17 +20,69 @@ import WikiLayout from '../layouts/WikiLayout.astro';
     // Show only the most relevant topics (highest result counts) as facets, not
     // every topic that appears — too many options is noise.
     const MAX_FACETS = 8;
-    const searchQuery = (new URLSearchParams(window.location.search).get('q') || '').trim();
+    const searchParams = new URLSearchParams(window.location.search);
+    const searchQuery = (searchParams.get('q') || '').trim();
     const resultsContainer = document.getElementById('search-results');
     const headingEl = document.getElementById('search-heading');
     let metadataEntriesPromise;
 
     // Topics the reader has toggled on to filter the results (empty = show all).
-    const selectedTopics = new Set();
+    // Repeated ?topic=... params make the filtered view shareable + reload-safe.
+    const selectedTopics = new Set(
+      searchParams
+        .getAll('topic')
+        .map((topic) => topic.trim())
+        .filter(Boolean),
+    );
     // After a toggle rebuilds the facet buttons, restore keyboard focus to the
     // control the reader just used: the topic's button, or (after Clear) the
     // first facet. '' means "focus the first facet"; null means "no restore".
     let pendingFacetFocus = null;
+
+    function sortedSelectedTopics() {
+      return Array.from(selectedTopics).sort((a, b) => a.localeCompare(b, 'en', { numeric: true }));
+    }
+
+    function syncSearchUrl() {
+      const url = new URL(window.location.href);
+      if (searchQuery) url.searchParams.set('q', searchQuery);
+      else url.searchParams.delete('q');
+
+      url.searchParams.delete('topic');
+      if (searchQuery) {
+        sortedSelectedTopics().forEach((topic) => url.searchParams.append('topic', topic));
+      }
+
+      const nextUrl = `${url.pathname}${url.search}${url.hash}`;
+      const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+      if (nextUrl !== currentUrl) {
+        window.history.replaceState(null, '', nextUrl);
+      }
+    }
+
+    function reconcileSelectedTopics(topicCounts) {
+      const availableTopics = Object.keys(topicCounts).filter((topic) => topicCounts[topic] > 0);
+      const availableTopicSet = new Set(availableTopics);
+      let changed = false;
+
+      Array.from(selectedTopics).forEach((topic) => {
+        if (!availableTopicSet.has(topic)) {
+          selectedTopics.delete(topic);
+          changed = true;
+        }
+      });
+
+      // Facets stay hidden when the query only exposes 0-1 topics, so any
+      // active filter would become invisible and impossible to clear.
+      if (availableTopics.length < 2 && selectedTopics.size) {
+        selectedTopics.clear();
+        changed = true;
+      }
+
+      if (changed) syncSearchUrl();
+    }
+
+    syncSearchUrl();
 
     // Render the topic facets: one toggle button per topic present in the full
     // result set (with its count), plus a Clear button when any are active. The
@@ -73,6 +125,7 @@ import WikiLayout from '../layouts/WikiLayout.astro';
           if (selectedTopics.has(topic)) selectedTopics.delete(topic);
           else selectedTopics.add(topic);
           pendingFacetFocus = topic;
+          syncSearchUrl();
           onChange();
         });
         group.appendChild(btn);
@@ -87,6 +140,7 @@ import WikiLayout from '../layouts/WikiLayout.astro';
         clear.addEventListener('click', () => {
           selectedTopics.clear();
           pendingFacetFocus = '';
+          syncSearchUrl();
           onChange();
         });
         group.appendChild(clear);
@@ -221,6 +275,7 @@ import WikiLayout from '../layouts/WikiLayout.astro';
           topicCounts[category] = (topicCounts[category] || 0) + 1;
         });
       });
+      reconcileSelectedTopics(topicCounts);
 
       resultsContainer.textContent = '';
       const statusEl = document.createElement('p');
@@ -265,6 +320,7 @@ import WikiLayout from '../layouts/WikiLayout.astro';
       // counts stay stable while the reader toggles topics.
       const baseSearch = await pagefind.search(query);
       const topicCounts = (baseSearch.filters && baseSearch.filters.category) || {};
+      reconcileSelectedTopics(topicCounts);
 
       resultsContainer.textContent = '';
       const statusEl = document.createElement('p');
