@@ -119,6 +119,20 @@ export function buildSlugAliases(slugMap) {
       if (key && !aliases.has(key)) aliases.set(key, slug);
     }
   }
+  // Infobox "Related concept" values are free text, not always the exact article
+  // title: an author can write a hyphenated compound like "Commit-reveal" where
+  // the target article's title is the space-separated "Commit Reveal" (slug
+  // commit_reveal). slugify() only turns spaces into underscores, so the
+  // hyphenated form never matches any key generated above, and the edge is
+  // silently dropped. For every alias key that contains a hyphen or an
+  // underscore, also register the opposite form (first key registered for a
+  // given variant wins, matching the never-overwrite rule above), so either
+  // spelling of a compound term resolves to the same article.
+  for (const [key, slug] of [...aliases]) {
+    if (!key.includes('-') && !key.includes('_')) continue;
+    const swapped = key.includes('-') ? key.replace(/-/g, '_') : key.replace(/_/g, '-');
+    if (swapped !== key && !aliases.has(swapped)) aliases.set(swapped, slug);
+  }
   return aliases;
 }
 
