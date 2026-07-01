@@ -205,7 +205,7 @@ const readingMinutes = Math.max(1, Math.ceil(wordCount / 200));
               >
                 <div class="toc-item-wrapper">
                   {heading.hasSubsections ? (
-                    <button class="toc-toggle" aria-label="Toggle subsections" data-slug={heading.slug}>
+                    <button class="toc-toggle" type="button" aria-label="Toggle subsections" aria-expanded="true" data-slug={heading.slug}>
                       <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                         <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                       </svg>

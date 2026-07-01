@@ -166,6 +166,11 @@ const { title, description, image, type = 'website', path, feeds, robots } = Ast
         // TOC collapse/expand functionality
         const tocToggles = document.querySelectorAll('.toc-toggle');
         tocToggles.forEach(toggle => {
+          const parentLi = toggle.closest('li');
+          toggle.setAttribute(
+            'aria-expanded',
+            parentLi?.classList.contains('collapsed') ? 'false' : 'true',
+          );
           toggle.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
@@ -175,6 +180,10 @@ const { title, description, image, type = 'website', path, feeds, robots } = Ast
             
             // Toggle collapsed state
             parentLi.classList.toggle('collapsed');
+            this.setAttribute(
+              'aria-expanded',
+              parentLi.classList.contains('collapsed') ? 'false' : 'true',
+            );
             
             // Find all subsections
             let nextLi = parentLi.nextElementSibling;
