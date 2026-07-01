@@ -1,5 +1,6 @@
 ---
 import StructuredData from './StructuredData.astro';
+import { defaultShareImageHref } from '../lib/share-preview';
 
 interface Props {
   title?: string;
@@ -18,12 +19,14 @@ const defaultTitle = 'Taopedia';
 const defaultDescription =
   'A Bittensor-focused knowledge base for TAO, subnets, wallets, staking, mining, validation, and consensus.';
 
-const { title, description = defaultDescription, image = '/og/home.png', type = 'website', path, feeds, robots } =
+const { title, description = defaultDescription, image, type = 'website', path, feeds, robots } =
   Astro.props;
 
 const pageTitle = title ? `${title} - Taopedia` : defaultTitle;
-const canonicalUrl = new URL(path ?? Astro.url.pathname, Astro.site).toString();
-const imageUrl = new URL(image, Astro.site).toString();
+const resolvedPath = path ?? Astro.url.pathname;
+const canonicalUrl = new URL(resolvedPath, Astro.site).toString();
+const resolvedImage = image ?? defaultShareImageHref(resolvedPath);
+const imageUrl = new URL(resolvedImage, Astro.site).toString();
 // Describe what the share card actually shows, rather than a generic
 // "<title> share image", so it's useful to screen readers and link previews.
 const imageAlt = title
@@ -87,7 +90,7 @@ const imageAlt = title
 <StructuredData
   title={title}
   description={description}
-  image={image}
+  image={resolvedImage}
   type={type}
   canonicalUrl={canonicalUrl}
   siteDescription={defaultDescription}
