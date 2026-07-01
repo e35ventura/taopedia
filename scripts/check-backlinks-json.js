@@ -215,7 +215,7 @@ assert.ok(
   'generated linkgraph must recover the current bt_logging_levels Related row to mining_and_validating when the infobox value names the existing compound article',
 );
 assert.ok(
-  (linkgraphData.subnet_miner || []).some((entry) => entry.target === 'mining_and_validating' && entry.text === 'Mining and validating'),
+  (linkgraphData.subnet_miner || []).some((entry) => entry.target === 'mining_and_validating' && entry.text === 'Mining and Validating'),
   'generated linkgraph must recover the current subnet_miner Related row to mining_and_validating when the infobox value names the existing compound article',
 );
 assert.ok(
