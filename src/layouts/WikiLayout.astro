@@ -419,6 +419,14 @@ const { title, description, image, type = 'website', path, feeds, robots } = Ast
         function isMobile() { return window.matchMedia('(max-width: 900px)').matches; }
         function isMidSize() { return window.matchMedia('(min-width: 901px) and (max-width: 1500px)').matches; }
 
+        function syncSidebarToggleExpanded() {
+          if (!sidebarToggle || !sidebar) return;
+          const expanded = (isMobile() || isMidSize())
+            ? sidebar.classList.contains('mobile-active')
+            : !document.body.classList.contains('sidebar-collapsed');
+          sidebarToggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        }
+
         // Toggle sidebar
         if (sidebarToggle && sidebar && sidebarOverlay) {
           sidebarToggle.addEventListener('click', function() {
@@ -434,11 +442,13 @@ const { title, description, image, type = 'website', path, feeds, robots } = Ast
               // Large desktop: collapse behavior
               document.body.classList.toggle('sidebar-collapsed');
             }
+            syncSidebarToggleExpanded();
           });
           
           sidebarOverlay.addEventListener('click', function() {
             sidebar.classList.remove('mobile-active');
             sidebarOverlay.classList.remove('active');
+            syncSidebarToggleExpanded();
           });
         }
         
@@ -451,6 +461,7 @@ const { title, description, image, type = 'website', path, feeds, robots } = Ast
             } else {
               document.body.classList.add('sidebar-collapsed');
             }
+            syncSidebarToggleExpanded();
           });
         }
 
@@ -467,11 +478,13 @@ const { title, description, image, type = 'website', path, feeds, robots } = Ast
           if (isMobile() || mq1500.matches) {
             document.body.classList.remove('sidebar-collapsed');
           }
+          syncSidebarToggleExpanded();
         }
         
         mq900.addEventListener('change', handleResponsiveChange);
         mq1500.addEventListener('change', handleResponsiveChange);
         window.addEventListener('resize', syncAppearanceState);
+        syncSidebarToggleExpanded();
         
       });
     </script>

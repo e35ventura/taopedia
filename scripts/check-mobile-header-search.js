@@ -56,5 +56,24 @@ assert.match(
   /class="appearance-toggle toolbar-toggle"[^>]*aria-expanded="false"/,
   'article appearance toolbar toggle must default to collapsed so screen readers do not report a hidden panel as expanded on narrow viewports',
 );
+assert.match(
+  articlePage,
+  /class="sidebar-toggle toolbar-toggle"[^>]*aria-expanded="false"/,
+  'article navigation toolbar toggle must default to collapsed so screen readers do not report a hidden sidebar as expanded on narrow viewports',
+);
+
+const wikiLayout = fs.readFileSync(
+  path.join(projectRoot, 'src', 'layouts', 'WikiLayout.astro'),
+  'utf8',
+);
+assert.match(
+  wikiLayout,
+  /function syncSidebarToggleExpanded\(\)/,
+  'wiki layout must sync navigation toggle aria-expanded when the sidebar opens or closes',
+);
+assert.ok(
+  wikiLayout.includes("sidebarToggle.setAttribute('aria-expanded'"),
+  'wiki layout must update navigation toggle aria-expanded for assistive tech',
+);
 
 console.log('Mobile header search check passed');
