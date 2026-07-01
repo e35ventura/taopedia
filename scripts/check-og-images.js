@@ -81,6 +81,7 @@ assert.ok(specialOgSlugs.size > 0, 'no special-page OG images found in dist/og/s
 // because the homepage and any utility page without a dedicated override still
 // reference /og/home.png.
 assert.ok(ogSlugs.has('home'), 'dist/og/home.png must exist (referenced by Seo.astro default image and by the homepage <meta property="og:image">)');
+assert.ok(ogSlugs.has('search'), 'dist/og/search.png must exist (referenced by the search page <meta property="og:image">)');
 
 // Direction 1 — every article has a corresponding OG image. A regression that
 // silently dropped an article's PNG would 404 the sitemap image entry and the
@@ -116,12 +117,12 @@ assert.deepEqual(
 // article. A stale PNG left behind by a deleted article would waste crawl
 // budget and confuse image search.
 const staleImages = [...ogSlugs]
-  .filter((slug) => slug !== 'home' && !articleSlugs.has(slug))
+  .filter((slug) => slug !== 'home' && slug !== 'search' && !articleSlugs.has(slug))
   .sort();
 assert.deepEqual(
   staleImages,
   [],
-  `every dist/og/<slug>.png (other than home.png) must correspond to a built article; stale: ${staleImages.join(', ') || '(none)'}`,
+  `every dist/og/<slug>.png (other than home.png and search.png) must correspond to a built article; stale: ${staleImages.join(', ') || '(none)'}`,
 );
 
 const staleCategoryImages = [...categoryOgSlugs]
