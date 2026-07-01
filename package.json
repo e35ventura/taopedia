@@ -36,6 +36,7 @@
     "test:robots": "node scripts/check-robots.js",
     "test:robots-meta": "node scripts/check-robots-meta.js",
     "test:mobile-header-search": "node scripts/check-mobile-header-search.js",
+    "test:overlay-a11y": "node scripts/check-overlay-a11y.js",
     "test:structured-data": "node scripts/check-structured-data.js",
     "test:breadcrumbs": "node scripts/check-breadcrumbs.js",
     "test:opensearch": "node scripts/check-opensearch.js",

@@ -78,7 +78,7 @@ const { title, description, image, type = 'website', path, feeds, robots } = Ast
 
     <div class="mw-page-container">
       <div class="mw-content-container">
-        <aside class="mw-sidebar">
+        <aside class="mw-sidebar" id="wiki-sidebar">
           <slot name="sidebar" />
         </aside>
 
@@ -86,7 +86,7 @@ const { title, description, image, type = 'website', path, feeds, robots } = Ast
           <slot />
         </main>
 
-        <aside class="mw-appearance" aria-labelledby="appearance-title">
+        <aside class="mw-appearance" id="wiki-appearance" aria-labelledby="appearance-title">
           <div class="appearance-header">
             <h2 id="appearance-title">Appearance</h2>
             <button class="appearance-hide" type="button" aria-label="Hide appearance controls">hide</button>
@@ -345,6 +345,17 @@ const { title, description, image, type = 'website', path, feeds, robots } = Ast
           return rect.left >= 16 && rect.right <= window.innerWidth - 16;
         }
 
+        function syncAppearanceOverlayModal() {
+          if (!appearancePanel) return;
+          const isModal = !appearancePanel.hidden
+            && document.body.classList.contains('appearance-overlay-active');
+          if (isModal) {
+            appearancePanel.setAttribute('aria-modal', 'true');
+          } else {
+            appearancePanel.removeAttribute('aria-modal');
+          }
+        }
+
         function syncAppearanceState() {
           if (!appearancePanel || !appearanceToggle) return;
           const constrained = !appearanceRailFits();
@@ -353,13 +364,13 @@ const { title, description, image, type = 'website', path, feeds, robots } = Ast
             appearancePanel.hidden = !document.body.classList.contains('appearance-overlay-active');
             appearanceToggle.classList.add('visible');
             appearanceToggle.setAttribute('aria-expanded', appearancePanel.hidden ? 'false' : 'true');
-            return;
+          } else {
+            document.body.classList.remove('appearance-overlay-active');
+            appearancePanel.hidden = appearanceManuallyHidden;
+            appearanceToggle.classList.toggle('visible', appearanceManuallyHidden);
+            appearanceToggle.setAttribute('aria-expanded', appearanceManuallyHidden ? 'false' : 'true');
           }
-
-          document.body.classList.remove('appearance-overlay-active');
-          appearancePanel.hidden = appearanceManuallyHidden;
-          appearanceToggle.classList.toggle('visible', appearanceManuallyHidden);
-          appearanceToggle.setAttribute('aria-expanded', appearanceManuallyHidden ? 'false' : 'true');
+          syncAppearanceOverlayModal();
         }
 
         const savedTextSize = normalizePreference(readStoredPreference('taopedia-text-size'), textSizes, 'standard');
@@ -389,10 +400,12 @@ const { title, description, image, type = 'website', path, feeds, robots } = Ast
             document.body.classList.remove('appearance-overlay-active');
             appearanceToggle?.classList.add('visible');
             appearanceToggle?.setAttribute('aria-expanded', 'false');
+            syncAppearanceOverlayModal();
           });
         }
 
         if (appearanceToggle && appearancePanel) {
+          appearanceToggle.setAttribute('aria-controls', 'wiki-appearance');
           appearanceToggle.addEventListener('click', () => {
             appearanceManuallyHidden = false;
             if (appearanceRailFits()) {
@@ -406,6 +419,7 @@ const { title, description, image, type = 'website', path, feeds, robots } = Ast
               appearanceToggle.classList.add('visible');
               appearanceToggle.setAttribute('aria-expanded', appearancePanel.hidden ? 'false' : 'true');
             }
+            syncAppearanceOverlayModal();
           });
         }
         
@@ -419,16 +433,27 @@ const { title, description, image, type = 'website', path, feeds, robots } = Ast
         function isMobile() { return window.matchMedia('(max-width: 900px)').matches; }
         function isMidSize() { return window.matchMedia('(min-width: 901px) and (max-width: 1500px)').matches; }
 
+        function syncSidebarOverlayModal() {
+          if (!sidebar) return;
+          if (sidebar.classList.contains('mobile-active') && (isMobile() || isMidSize())) {
+            sidebar.setAttribute('aria-modal', 'true');
+          } else {
+            sidebar.removeAttribute('aria-modal');
+          }
+        }
+
         function syncSidebarToggleExpanded() {
           if (!sidebarToggle || !sidebar) return;
           const expanded = (isMobile() || isMidSize())
             ? sidebar.classList.contains('mobile-active')
             : !document.body.classList.contains('sidebar-collapsed');
           sidebarToggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+          syncSidebarOverlayModal();
         }
 
         // Toggle sidebar
         if (sidebarToggle && sidebar && sidebarOverlay) {
+          sidebarToggle.setAttribute('aria-controls', 'wiki-sidebar');
           sidebarToggle.addEventListener('click', function() {
             if (isMobile()) {
               // Mobile panel behavior
