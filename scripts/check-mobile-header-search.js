@@ -75,5 +75,14 @@ assert.ok(
   wikiLayout.includes("sidebarToggle.setAttribute('aria-expanded'"),
   'wiki layout must update navigation toggle aria-expanded for assistive tech',
 );
+assert.match(
+  articlePage,
+  /class="toc-toggle"[^>]*aria-expanded="true"/,
+  'article contents subsection toggles must default to expanded so screen readers match the initially visible subsection list',
+);
+assert.ok(
+  wikiLayout.includes("this.setAttribute(\n              'aria-expanded'"),
+  'wiki layout must sync contents subsection toggle aria-expanded when a section is collapsed or expanded',
+);
 
 console.log('Mobile header search check passed');
