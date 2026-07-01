@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const projectRoot = path.resolve(new URL('..', import.meta.url).pathname);
+const projectRoot = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 const styles = fs.readFileSync(path.join(projectRoot, 'src', 'styles', 'wikipedia.css'), 'utf8');
 
 const assertMobileRuleAfter = (afterMarker, rulePattern, message) => {
@@ -53,18 +54,28 @@ const articlePage = fs.readFileSync(
 );
 assert.match(
   articlePage,
-  /class="appearance-toggle toolbar-toggle"[^>]*aria-expanded="false"/,
-  'article appearance toolbar toggle must default to collapsed so screen readers do not report a hidden panel as expanded on narrow viewports',
+  /class="appearance-toggle toolbar-toggle"[^>]*aria-expanded="false"[^>]*aria-controls="wiki-appearance"/,
+  'article appearance toolbar toggle must default to collapsed and identify the appearance panel for screen readers',
 );
 assert.match(
   articlePage,
-  /class="sidebar-toggle toolbar-toggle"[^>]*aria-expanded="false"/,
-  'article navigation toolbar toggle must default to collapsed so screen readers do not report a hidden sidebar as expanded on narrow viewports',
+  /class="sidebar-toggle toolbar-toggle"[^>]*aria-expanded="false"[^>]*aria-controls="wiki-sidebar"/,
+  'article navigation toolbar toggle must default to collapsed and identify the contents sidebar for screen readers',
 );
 
 const wikiLayout = fs.readFileSync(
   path.join(projectRoot, 'src', 'layouts', 'WikiLayout.astro'),
   'utf8',
+);
+assert.match(
+  wikiLayout,
+  /<aside class="mw-sidebar" id="wiki-sidebar">/,
+  'wiki layout must expose a stable id on the contents sidebar for disclosure aria-controls',
+);
+assert.match(
+  wikiLayout,
+  /<aside class="mw-appearance" id="wiki-appearance"/,
+  'wiki layout must expose a stable id on the appearance panel for disclosure aria-controls',
 );
 assert.match(
   wikiLayout,

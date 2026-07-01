@@ -78,7 +78,7 @@ const { title, description, image, type = 'website', path, feeds, robots } = Ast
 
     <div class="mw-page-container">
       <div class="mw-content-container">
-        <aside class="mw-sidebar">
+        <aside class="mw-sidebar" id="wiki-sidebar">
           <slot name="sidebar" />
         </aside>
 
@@ -86,7 +86,7 @@ const { title, description, image, type = 'website', path, feeds, robots } = Ast
           <slot />
         </main>
 
-        <aside class="mw-appearance" aria-labelledby="appearance-title">
+        <aside class="mw-appearance" id="wiki-appearance" aria-labelledby="appearance-title">
           <div class="appearance-header">
             <h2 id="appearance-title">Appearance</h2>
             <button class="appearance-hide" type="button" aria-label="Hide appearance controls">hide</button>
