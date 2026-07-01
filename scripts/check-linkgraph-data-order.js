@@ -863,6 +863,14 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated linkgraph must recover the current emission body link to emission_split when the prefixed glossary short label self-resolves but its split compound sibling concept article exists',
   );
   assert.ok(
+    !(linkGraph.emission || []).some((entry) => entry.target === 'dividends' && entry.text === 'dividends'),
+    'generated linkgraph must not route the current emission plain dividends glossary label to dividends when its canonical anchor names the emission concept article',
+  );
+  assert.ok(
+    (linkGraph.emission || []).some((entry) => entry.target === 'dividends' && entry.text === 'Glossary: Dividends'),
+    'generated linkgraph must still route the current emission prefixed dividends glossary label to dividends when its canonical anchor names the dividends concept article',
+  );
+  assert.ok(
     (linkGraph.halving || []).some((entry) => entry.target === 'halving_mechanisms' && entry.text === 'Glossary: Halving'),
     'generated linkgraph must recover the current halving body link to halving_mechanisms when the prefixed glossary short label self-resolves but its mechanisms compound sibling concept article exists',
   );

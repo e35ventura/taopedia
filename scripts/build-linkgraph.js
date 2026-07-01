@@ -454,7 +454,16 @@ function main() {
         allowSplitTargets: link.allowSplitTargets,
       });
       const nonSelfLabelTargets = filterSelfTargets(labelTargets);
-      const alternateTargets = nonSelfLabelTargets.length === 0 && link.alternateTarget
+      const canonicalSlug = link.canonicalTarget
+        ? resolveTargetSlug(link.canonicalTarget, slugAliases)
+        : '';
+      const suppressLabelHomographTarget = Boolean(
+        canonicalSlug
+        && canonicalSlug === fromSlug
+        && nonSelfLabelTargets.length === 1,
+      );
+      const routedLabelTargets = suppressLabelHomographTarget ? [] : nonSelfLabelTargets;
+      const alternateTargets = routedLabelTargets.length === 0 && link.alternateTarget
         ? filterSelfTargets(resolveBuildLinkTargets({
             target: link.alternateTarget,
             slugAliases,
@@ -463,7 +472,7 @@ function main() {
             allowSplitTargets: false,
           }))
         : [];
-      const slashSecondTargets = nonSelfLabelTargets.length === 0
+      const slashSecondTargets = routedLabelTargets.length === 0
         && alternateTargets.length === 0
         && link.slashSecondTarget
         ? filterSelfTargets(resolveBuildLinkTargets({
@@ -486,7 +495,7 @@ function main() {
       const fallbackCanonicalTargets = isPrefixedGlossaryLabel || !isGenericGlossaryLabel
         ? canonicalTargets
         : [];
-      const glossaryAcronymPluralTargets = nonSelfLabelTargets.length === 0
+      const glossaryAcronymPluralTargets = routedLabelTargets.length === 0
         && alternateTargets.length === 0
         && slashSecondTargets.length === 0
         && fallbackCanonicalTargets.length === 0
@@ -499,7 +508,7 @@ function main() {
             allowSplitTargets: false,
           }))
         : [];
-        const glossaryGerundTargets = nonSelfLabelTargets.length === 0
+        const glossaryGerundTargets = routedLabelTargets.length === 0
           && alternateTargets.length === 0
           && slashSecondTargets.length === 0
           && glossaryAcronymPluralTargets.length === 0
@@ -513,7 +522,7 @@ function main() {
               allowSplitTargets: false,
             }))
           : [];
-        const glossaryPluralTargets = nonSelfLabelTargets.length === 0
+        const glossaryPluralTargets = routedLabelTargets.length === 0
           && alternateTargets.length === 0
           && slashSecondTargets.length === 0
           && glossaryAcronymPluralTargets.length === 0
@@ -528,7 +537,7 @@ function main() {
               allowSplitTargets: false,
             }))
           : [];
-        const glossaryTokensTargets = nonSelfLabelTargets.length === 0
+        const glossaryTokensTargets = routedLabelTargets.length === 0
           && alternateTargets.length === 0
           && slashSecondTargets.length === 0
           && glossaryAcronymPluralTargets.length === 0
@@ -544,7 +553,7 @@ function main() {
               allowSplitTargets: false,
             }))
           : [];
-        const glossaryCompoundSuffixTargets = nonSelfLabelTargets.length === 0
+        const glossaryCompoundSuffixTargets = routedLabelTargets.length === 0
           && alternateTargets.length === 0
           && slashSecondTargets.length === 0
           && glossaryAcronymPluralTargets.length === 0
@@ -566,7 +575,7 @@ function main() {
             )]
           : [];
         const genericGlossaryCanonicalTargets = isGenericGlossaryLabel
-          && nonSelfLabelTargets.length === 0
+          && routedLabelTargets.length === 0
           && alternateTargets.length === 0
           && slashSecondTargets.length === 0
           && glossaryAcronymPluralTargets.length === 0
@@ -599,14 +608,14 @@ function main() {
           && PLAIN_GLOSSARY_CANONICAL_OVERRIDE_SOURCE_SLUGS.has(nonSelfLabelTargets[0])
           ? fallbackCanonicalTargets
           : [];
-        const resolvedTargets = nonSelfLabelTargets.length > 0
+        const resolvedTargets = routedLabelTargets.length > 0
           ? glossaryAcronymCanonicalTargets.length > 0
             ? glossaryAcronymCanonicalTargets
             : glossaryCanonicalOverrideTargets.length > 0
               ? glossaryCanonicalOverrideTargets
               : glossaryPlainCanonicalOverrideTargets.length > 0
                 ? glossaryPlainCanonicalOverrideTargets
-                : nonSelfLabelTargets
+                : routedLabelTargets
           : alternateTargets.length > 0
             ? alternateTargets
             : slashSecondTargets.length > 0
@@ -631,7 +640,7 @@ function main() {
         isPlainGlossaryCanonicalFallback:
           !isPrefixedGlossaryLabel
           && !isGenericGlossaryLabel
-          && nonSelfLabelTargets.length === 0
+          && routedLabelTargets.length === 0
           && alternateTargets.length === 0
           && slashSecondTargets.length === 0
           && glossaryAcronymPluralTargets.length === 0
