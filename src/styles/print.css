@@ -6,7 +6,9 @@
 @media print {
   /* Hide non-content, interactive chrome: the fixed header, both sidebars, the
      table-of-contents rail, the appearance panel, the per-article toolbar, the
-     footer nav, overlays, the skip link, and the floating toggle buttons. */
+     footer nav, overlays, the skip link, the floating toggle buttons, and the
+     reading-progress bar (a fixed, colored element on <body> that would
+     otherwise print as a stray strip across the top of the page). */
   .skip-link,
   .mw-header,
   .mw-sidebar,
@@ -18,7 +20,8 @@
   .sidebar-toggle,
   .appearance-toggle,
   .toolbar-toggle,
-  .mw-cite-copy {
+  .mw-cite-copy,
+  .reading-progress {
     display: none !important;
   }
 

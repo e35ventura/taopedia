@@ -37,8 +37,10 @@ const hiddenSelectors = [...printBlock.matchAll(/([^{}]+)\{[^{}]*display\s*:\s*n
   .map((match) => match[1])
   .join(' ');
 
-// The interactive UI chrome must be hidden so it does not print.
-for (const selector of ['.mw-header', '.mw-sidebar', '.mw-appearance', '.mw-article-toolbar', '.mw-footer']) {
+// The interactive UI chrome must be hidden so it does not print. This includes
+// the reading-progress bar — a fixed, colored element on <body> that would
+// otherwise print as a stray strip across the top of the page.
+for (const selector of ['.mw-header', '.mw-sidebar', '.mw-appearance', '.mw-article-toolbar', '.mw-footer', '.reading-progress']) {
   assert.ok(
     hiddenSelectors.includes(selector),
     `@media print must hide ${selector} (display: none) so the UI chrome does not print`,
