@@ -39,6 +39,8 @@
     var pendingHide = false; // a hide is scheduled — don't let a late fetch flash the card
     var activeLink = null;
     var currentSlug = articleSlug(location.pathname);
+    var CARD_ID = 'taopedia-hovercard';
+    var CARD_TITLE_ID = 'taopedia-hovercard-title';
 
     // The slug of an article page is the single path segment in /wiki/<slug>/.
     // Sub-pages (/wiki/<slug>/history/), category and special pages, and
@@ -69,9 +71,13 @@
       if (card) return;
       card = document.createElement('div');
       card.className = 'hovercard';
+      card.id = CARD_ID;
+      card.setAttribute('role', 'tooltip');
       card.setAttribute('aria-hidden', 'true');
+      card.setAttribute('aria-labelledby', CARD_TITLE_ID);
       titleEl = document.createElement('p');
       titleEl.className = 'hovercard-title';
+      titleEl.id = CARD_TITLE_ID;
       tagsEl = document.createElement('div');
       tagsEl.className = 'hovercard-tags';
       summaryEl = document.createElement('p');
@@ -158,6 +164,10 @@
         fill(entry);
         position(link);
         card.setAttribute('aria-hidden', 'false');
+        document.querySelectorAll('[aria-describedby="' + CARD_ID + '"]').forEach(function (el) {
+          el.removeAttribute('aria-describedby');
+        });
+        link.setAttribute('aria-describedby', CARD_ID);
         card.classList.add('is-visible');
       });
     }
@@ -176,6 +186,9 @@
     function hide() {
       clearTimeout(showTimer);
       pendingHide = false;
+      if (activeLink) {
+        activeLink.removeAttribute('aria-describedby');
+      }
       if (card) {
         card.classList.remove('is-visible');
         card.setAttribute('aria-hidden', 'true');

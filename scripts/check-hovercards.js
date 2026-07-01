@@ -54,6 +54,18 @@ assert.ok(
   articleHtml.includes("setAttribute('aria-hidden', 'true')"),
   'hovercards must hide the preview from assistive tech when dismissed',
 );
+assert.ok(
+  articleHtml.includes("setAttribute('role', 'tooltip')"),
+  'hovercards must expose the preview with tooltip semantics',
+);
+assert.ok(
+  articleHtml.includes("setAttribute('aria-describedby', CARD_ID)"),
+  'hovercards must associate the visible preview with the active link for assistive tech',
+);
+assert.ok(
+  articleHtml.includes("removeAttribute('aria-describedby')"),
+  'hovercards must clear the preview association when dismissed',
+);
 assert.ok(/\\\/wiki\\\/\(\[\^\/#\?\]\+\)/.test(articleHtml), 'hovercards must match only /wiki/<slug>/ links');
 // Previews are scoped to the article reading content so they never repeat a
 // summary already shown on cards/lists/search results.
