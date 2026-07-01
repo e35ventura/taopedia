@@ -110,6 +110,7 @@ const resolverSlugMap = {
   time_lock_encryption: { title: 'Time-Lock Encryption' },
   extrinsics: { title: 'Extrinsics' },
   alpha_tokens: { title: 'Alpha Tokens' },
+  protocol_alpha: { title: 'Protocol Alpha' },
   wallets: { title: 'Bittensor Wallets', infoboxTitle: 'Wallet (Concept)' },
   bittensor_wallet: { title: 'Bittensor Wallet' },
   tao: { title: 'TAO' },
@@ -468,6 +469,53 @@ assert.deepEqual(
     },
   ],
   'canonical Learn Bittensor glossary markdown links should preserve plain validator dividends labels with canonical anchors that name the emission concept article',
+);
+assert.deepEqual(
+  extractCanonicalGlossaryLinks(
+    'See [alpha tokens](https://docs.learnbittensor.org/resources/glossary#protocol-alpha).',
+  ),
+  [
+    {
+      target: 'alpha tokens',
+      alternateTarget: '',
+      slashSecondTarget: '',
+      canonicalTarget: 'protocol alpha',
+      text: 'alpha tokens',
+      requireExisting: true,
+      skipSelf: true,
+      allowSplitTargets: true,
+    },
+  ],
+  'canonical Learn Bittensor glossary markdown links should preserve plain alpha tokens labels with canonical anchors that name the protocol alpha concept article',
+);
+assert.deepEqual(
+  extractCanonicalGlossaryLinks(
+    'See [Glossary: Alpha Tokens](https://docs.learnbittensor.org/resources/glossary#protocol-alpha).',
+  ),
+  [
+    {
+      target: 'Alpha Tokens',
+      alternateTarget: '',
+      slashSecondTarget: '',
+      canonicalTarget: 'protocol alpha',
+      text: 'Glossary: Alpha Tokens',
+      requireExisting: true,
+      skipSelf: true,
+      allowSplitTargets: false,
+    },
+  ],
+  'canonical Learn Bittensor glossary markdown links should preserve prefixed alpha tokens labels with canonical anchors that name the protocol alpha concept article',
+);
+assert.deepEqual(
+  resolveBuildLinkTargets({
+    target: 'protocol alpha',
+    slugAliases: resolverAliases,
+    slugMap: resolverSlugMap,
+    requireExisting: true,
+    allowSplitTargets: false,
+  }),
+  ['protocol_alpha'],
+  'exact-existing glossary recovery should resolve a prefixed alpha tokens label through its canonical protocol alpha anchor when the visible label article differs',
 );
 assert.deepEqual(
   expandGlossaryCompoundSuffixTargets('TAO', 'tao'),
@@ -863,6 +911,30 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated linkgraph must recover the current senate body link to delegation when the plain delegate glossary label self-resolves but its canonical anchor names the delegation concept article',
   );
   assert.ok(
+    (linkGraph.delegation || []).some((entry) => entry.target === 'protocol_alpha' && entry.text === 'Glossary: Alpha Tokens'),
+    'generated linkgraph must recover the current delegation body link to protocol_alpha when the prefixed alpha tokens glossary label self-resolves but its canonical anchor names the protocol alpha concept article',
+  );
+  assert.ok(
+    !(linkGraph.delegation || []).some((entry) => entry.target === 'alpha_tokens' && entry.text === 'Glossary: Alpha Tokens'),
+    'generated linkgraph must not keep the current delegation alpha tokens glossary link pointed at alpha_tokens once the canonical protocol alpha anchor is available',
+  );
+  assert.ok(
+    (linkGraph.exponential_moving_averages || []).some((entry) => entry.target === 'protocol_alpha' && entry.text === 'alpha tokens'),
+    'generated linkgraph must recover the current exponential_moving_averages body link to protocol_alpha when the plain alpha tokens glossary label self-resolves but its canonical anchor names the protocol alpha concept article',
+  );
+  assert.ok(
+    !(linkGraph.exponential_moving_averages || []).some((entry) => entry.target === 'alpha_tokens' && entry.text === 'alpha tokens'),
+    'generated linkgraph must not keep the current exponential_moving_averages plain alpha tokens glossary link pointed at alpha_tokens once the canonical protocol alpha anchor is available',
+  );
+  assert.ok(
+    (linkGraph.subnet_weights || []).some((entry) => entry.target === 'protocol_alpha' && entry.text === 'Glossary: Alpha Tokens'),
+    'generated linkgraph must recover the current subnet_weights body link to protocol_alpha when the prefixed alpha tokens glossary label self-resolves but its canonical anchor names the protocol alpha concept article',
+  );
+  assert.ok(
+    !(linkGraph.subnet_weights || []).some((entry) => entry.target === 'alpha_tokens' && entry.text === 'Glossary: Alpha Tokens'),
+    'generated linkgraph must not keep the current subnet_weights alpha tokens glossary link pointed at alpha_tokens once the canonical protocol alpha anchor is available',
+  );
+  assert.ok(
     (backlinks.validator_take || []).some((entry) => entry.from === 'delegation'),
     'generated backlinks must list delegation under validator_take when a prefixed glossary alias falls back to the canonical glossary anchor',
   );
@@ -967,20 +1039,32 @@ if (generatedFiles.every((file) => fs.existsSync(file))) {
     'generated backlinks must list senate under delegation when a plain delegate glossary label falls back to its canonical delegation anchor',
   );
   assert.ok(
-    (linkGraph.subnet_11 || []).some((entry) => entry.target === 'multiple_incentive_mechanisms' && entry.text === 'Glossary'),
-    'generated linkgraph must recover the current subnet_11 body link to multiple_incentive_mechanisms when the visible label is only Glossary',
+    (backlinks.protocol_alpha || []).some((entry) => entry.from === 'delegation'),
+    'generated backlinks must list delegation under protocol_alpha when a prefixed alpha tokens glossary label falls back to its canonical protocol alpha anchor',
   );
   assert.ok(
-    (linkGraph.subnet_26 || []).some((entry) => entry.target === 'subnet_scoring_model' && entry.text === 'glossary'),
-    'generated linkgraph must recover the current subnet_26 body link to subnet_scoring_model when the visible label is only glossary',
+    (backlinks.protocol_alpha || []).some((entry) => entry.from === 'exponential_moving_averages'),
+    'generated backlinks must list exponential_moving_averages under protocol_alpha when a plain alpha tokens glossary label falls back to its canonical protocol alpha anchor',
+  );
+  assert.ok(
+    (backlinks.protocol_alpha || []).some((entry) => entry.from === 'subnet_weights'),
+    'generated backlinks must list subnet_weights under protocol_alpha when a prefixed alpha tokens glossary label falls back to its canonical protocol alpha anchor',
+  );
+  assert.ok(
+    (linkGraph.subnet_11 || []).some((entry) => entry.target === 'multiple_incentive_mechanisms' && entry.text === 'Glossary: Multiple Incentive Mechanisms'),
+    'generated linkgraph must recover the current subnet_11 body link to multiple_incentive_mechanisms from its prefixed glossary label',
+  );
+  assert.ok(
+    (linkGraph.subnet_26 || []).some((entry) => entry.target === 'subnet_scoring_model' && entry.text === 'Glossary: Subnet Scoring Model'),
+    'generated linkgraph must recover the current subnet_26 body link to subnet_scoring_model from its prefixed glossary label',
   );
   assert.ok(
     (backlinks.multiple_incentive_mechanisms || []).some((entry) => entry.from === 'subnet_11'),
-    'generated backlinks must list subnet_11 under multiple_incentive_mechanisms when a generic glossary label falls back to its canonical anchor',
+    'generated backlinks must list subnet_11 under multiple_incentive_mechanisms when the body glossary link names the multiple incentive mechanisms concept article',
   );
   assert.ok(
     (backlinks.subnet_scoring_model || []).some((entry) => entry.from === 'subnet_26'),
-    'generated backlinks must list subnet_26 under subnet_scoring_model when a generic glossary label falls back to its canonical anchor',
+    'generated backlinks must list subnet_26 under subnet_scoring_model when the body glossary link names the subnet scoring model concept article',
   );
   assert.ok(
     !(linkGraph.tempo || []).some((entry) => entry.target === 'tempo'),

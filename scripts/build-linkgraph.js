@@ -269,6 +269,11 @@ const PLAIN_GLOSSARY_CANONICAL_OVERRIDE_SOURCE_SLUGS = new Set([
   'validator_weights',
   'weight_setting',
   'delegate',
+  'alpha_tokens',
+]);
+
+const GLOSSARY_CANONICAL_OVERRIDE_LABEL_SLUGS = new Set([
+  'alpha_tokens',
 ]);
 
 const GLOSSARY_COMPOUND_SUFFIXES = [' Reserve', ' Weight', ' Mechanisms', ' Visibility', ' Split', ' Rewards'];
@@ -581,7 +586,8 @@ function main() {
           && nonSelfLabelTargets.length === 1
           && fallbackCanonicalTargets.length === 1
           && nonSelfLabelTargets[0] !== fallbackCanonicalTargets[0]
-          && fallbackCanonicalTargets[0] !== 'protocol_alpha'
+          && (fallbackCanonicalTargets[0] !== 'protocol_alpha'
+            || GLOSSARY_CANONICAL_OVERRIDE_LABEL_SLUGS.has(nonSelfLabelTargets[0]))
           ? fallbackCanonicalTargets
           : [];
         const glossaryPlainCanonicalOverrideTargets = !isPrefixedGlossaryLabel
