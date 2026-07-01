@@ -231,6 +231,10 @@ assert.ok(
   'generated linkgraph must recover the current slippage Related row to staking_and_delegation when the infobox value names the existing compound article',
 );
 assert.ok(
+  (linkgraphData.subtensor_constants || []).some((entry) => entry.target === 'subnet_hyperparameters' && entry.text === 'Glossary: Hyperparameters'),
+  'generated linkgraph must recover the current subtensor_constants body link to subnet_hyperparameters when the prefixed glossary label names the existing subnet concept article',
+);
+assert.ok(
   (backlinksData.mining_and_validating || []).some((entry) => entry.from === 'bt_logging_levels'),
   'generated backlinks must list bt_logging_levels under mining_and_validating when the Related infobox value names the existing compound article',
 );
@@ -249,6 +253,10 @@ assert.ok(
 assert.ok(
   (backlinksData.staking_and_delegation || []).some((entry) => entry.from === 'slippage'),
   'generated backlinks must list slippage under staking_and_delegation when the Related infobox value names the existing compound article',
+);
+assert.ok(
+  (backlinksData.subnet_hyperparameters || []).some((entry) => entry.from === 'subtensor_constants'),
+  'generated backlinks must list subtensor_constants under subnet_hyperparameters when the prefixed glossary label names the existing subnet concept article',
 );
 // referencesCount = the article's published outbound-reference count, re-derived
 // with the same getArticleReferences helper the endpoint uses (published-only join).
