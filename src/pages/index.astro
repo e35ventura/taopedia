@@ -11,7 +11,7 @@ import {
   sortedPagesFromSlugMap,
 } from '../lib/article-metadata';
 import { formatRevisionDate } from '../lib/format-date.js';
-import { buildSubnets } from '../../scripts/subnets.js';
+import { buildSubnets, buildSubnetsFromSlugMap } from '../../scripts/subnets.js';
 import slugMap from '../../public/data/slugmap.json';
 import categoriesIndex from '../../public/data/categories.json';
 
@@ -79,6 +79,16 @@ for (const change of allRecentChanges(titleBySlug, 0)) {
   recentlyUpdated.push(change);
   if (recentlyUpdated.length >= 6) break;
 }
+
+// Complete subnet directory: every subnet in netuid order, the on-page
+// counterpart to the six-subnet "Explore Subnets" teaser above — exactly the
+// teaser→full-index pairing the Articles (Core Articles → A–Z index) and Topics
+// (Start With A Topic → All Topics) sections already use. Built from the same
+// buildSubnets* helper that powers Special:Subnets and subnets.json, so the
+// homepage can never disagree with them on netuid, name, or slug; unlike the
+// curated teaser this lists the full registry (including any Deprecated slot),
+// matching Special:Subnets exactly. Refs #521.
+const allSubnets = buildSubnetsFromSlugMap(slugMap);
 
 const alphaGroups = new Map<string, PageEntry[]>();
 for (const page of sortedPages) {
@@ -643,6 +653,24 @@ const initialLetter = alphabet[0] ?? '#';
           </div>
         </div>
       </section>
+
+      {allSubnets.length > 0 && (
+        <section class="home-section" id="subnet-index">
+          <div class="section-heading">
+            <h2>All Subnets</h2>
+            <a href="/wiki/special/subnets">Subnet directory</a>
+          </div>
+          <div class="term-panel">
+            <section class="term-group">
+              <ul>
+                {allSubnets.map((subnet) => (
+                  <li><a href={`/wiki/${subnet.slug}/`}>Subnet {subnet.netuid}: {subnet.name}</a></li>
+                ))}
+              </ul>
+            </section>
+          </div>
+        </section>
+      )}
 
       <footer class="home-footer">
         Content is maintained in the Taopedia articles repository and published as a static wiki.
