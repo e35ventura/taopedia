@@ -67,6 +67,14 @@ export function homeShareImageHref() {
   return '/og/home.png';
 }
 
+export function searchShareImageHref() {
+  return '/og/search.png';
+}
+
+export function notFoundShareImageHref() {
+  return '/og/not-found.png';
+}
+
 export function articleShareImageHref(slug: string) {
   return `/og/${slug}.png`;
 }
@@ -83,6 +91,10 @@ export function defaultShareImageHref(pathname: string) {
   const normalizedPath = pathname.endsWith('/') ? pathname : `${pathname}/`;
 
   if (normalizedPath === '/') return homeShareImageHref();
+
+  if (normalizedPath === '/search/') return searchShareImageHref();
+
+  if (normalizedPath === '/404/' || normalizedPath === '/404') return notFoundShareImageHref();
 
   const specialMatch = normalizedPath.match(/^\/wiki\/special\/([^/]+)\/$/);
   if (specialMatch) return specialShareImageHref(specialMatch[1]);

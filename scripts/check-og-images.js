@@ -77,10 +77,12 @@ assert.ok(categoryOgSlugs.size > 0, 'no category OG images found in dist/og/cate
 const specialOgSlugs = builtOgSlugs(distSpecialOgDir);
 assert.ok(specialOgSlugs.size > 0, 'no special-page OG images found in dist/og/special/');
 
-// The homepage card is the root-level non-article default card. It must exist
-// because the homepage and any utility page without a dedicated override still
-// reference /og/home.png.
+// Root-level utility cards are non-article defaults. They must exist because
+// utility pages without a dedicated override still reference /og/home.png.
+const utilityOgSlugs = new Set(['home', 'search', 'not-found']);
 assert.ok(ogSlugs.has('home'), 'dist/og/home.png must exist (referenced by Seo.astro default image and by the homepage <meta property="og:image">)');
+assert.ok(ogSlugs.has('search'), 'dist/og/search.png must exist (referenced by the search page <meta property="og:image">)');
+assert.ok(ogSlugs.has('not-found'), 'dist/og/not-found.png must exist (referenced by the not-found page <meta property="og:image">)');
 
 // Direction 1 — every article has a corresponding OG image. A regression that
 // silently dropped an article's PNG would 404 the sitemap image entry and the
@@ -116,12 +118,12 @@ assert.deepEqual(
 // article. A stale PNG left behind by a deleted article would waste crawl
 // budget and confuse image search.
 const staleImages = [...ogSlugs]
-  .filter((slug) => slug !== 'home' && !articleSlugs.has(slug))
+  .filter((slug) => !utilityOgSlugs.has(slug) && !articleSlugs.has(slug))
   .sort();
 assert.deepEqual(
   staleImages,
   [],
-  `every dist/og/<slug>.png (other than home.png) must correspond to a built article; stale: ${staleImages.join(', ') || '(none)'}`,
+  `every dist/og/<slug>.png (other than utility cards) must correspond to a built article; stale: ${staleImages.join(', ') || '(none)'}`,
 );
 
 const staleCategoryImages = [...categoryOgSlugs]

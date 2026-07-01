@@ -89,6 +89,20 @@ function assertBuiltMeta(html, expectedPath, message) {
 const homeHtml = readBuiltPage('index.html');
 assertBuiltMeta(homeHtml, '/og/home.png', 'Homepage must keep the homepage OG image');
 
+const searchHtml = readBuiltPage('search/index.html');
+assertBuiltMeta(
+  searchHtml,
+  '/og/search.png',
+  'Search page must advertise its search-specific OG image instead of home.png',
+);
+
+const notFoundHtml = readBuiltPage('404.html');
+assertBuiltMeta(
+  notFoundHtml,
+  '/og/not-found.png',
+  'Not-found page must advertise its error-specific OG image instead of home.png',
+);
+
 const articleHtml = readBuiltPage('wiki/tao/index.html');
 assertBuiltMeta(articleHtml, '/og/tao.png', 'Article pages must keep their article OG image');
 
