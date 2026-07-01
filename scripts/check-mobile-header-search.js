@@ -47,4 +47,14 @@ assertMobileRuleAfter(
   'mobile search container must not keep the desktop max-width constraint after the base rule',
 );
 
+const articlePage = fs.readFileSync(
+  path.join(projectRoot, 'src', 'pages', 'wiki', '[...slug].astro'),
+  'utf8',
+);
+assert.match(
+  articlePage,
+  /class="appearance-toggle toolbar-toggle"[^>]*aria-expanded="false"/,
+  'article appearance toolbar toggle must default to collapsed so screen readers do not report a hidden panel as expanded on narrow viewports',
+);
+
 console.log('Mobile header search check passed');
