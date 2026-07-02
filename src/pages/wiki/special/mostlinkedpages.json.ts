@@ -43,28 +43,19 @@ export const GET: APIRoute = async ({ site }) => {
   const summaryBySlug = publishedSummaryBySlug();
   const pageBySlug = await contentPagesBySlug(rankedSlugs);
 
-  // sectionCount is the article's table-of-contents section count — the same
-  // figure toc.json exposes as `count` and info.json / history.json expose on
-  // their envelopes, derived from the shared getArticleToc helper. Rendered only
-  // for the ranked pages so a consumer can gauge each top page's depth (how many
-  // sections it has) alongside its link popularity without a second fetch.
-  // Gather each ranked page's section count and revision history in a single pass
-  // over the ranked list. These were two separate loops over `ranked`; the history
-  // read is folded into the render pass so the list is traversed once. History is
-  // read before the no-page guard so every ranked entry still gets a history entry
-  // (the render/sectionCount step is what requires a resolved page), keeping the
-  // output byte-identical.
   const sectionCountBySlug: Record<string, number> = {};
   const historyBySlug: Record<string, ReturnType<typeof historyForSlug>> = {};
   const wordCountBySlug: Record<string, number> = {};
-  for (const entry of ranked) {
-    historyBySlug[entry.slug] = historyForSlug(entry.slug);
-    const page = pageBySlug[entry.slug];
-    if (!page) continue;
-    const { headings } = await render(page);
-    sectionCountBySlug[entry.slug] = getArticleToc(headings).length;
-    wordCountBySlug[entry.slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
-  }
+  await Promise.all(
+    ranked.map(async (entry) => {
+      historyBySlug[entry.slug] = historyForSlug(entry.slug);
+      const page = pageBySlug[entry.slug];
+      if (!page) return;
+      const { headings } = await render(page);
+      sectionCountBySlug[entry.slug] = getArticleToc(headings).length;
+      wordCountBySlug[entry.slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
+    }),
+  );
 
   const body = JSON.stringify(
     {

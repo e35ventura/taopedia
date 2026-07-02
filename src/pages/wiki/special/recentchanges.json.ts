@@ -53,21 +53,17 @@ export const GET: APIRoute = async ({ site }) => {
   // feed-member pages instead of indexing the whole collection up front.
   const pageBySlug = await contentPagesBySlug(feedMemberSlugs);
 
-  // sectionCount is the changed article's table-of-contents section count — the
-  // same figure toc.json exposes as `count` and info.json / history.json expose
-  // on their envelopes, derived from the shared getArticleToc helper. Rendered
-  // only for the changed articles in the feed so a change-feed consumer can gauge
-  // each article's depth without a second fetch. Cached per slug because an
-  // article can appear in multiple changes.
   const wordCountBySlug: Record<string, number> = {};
   const sectionCountBySlug: Record<string, number> = {};
-  for (const slug of feedMemberSlugs) {
-    const page = pageBySlug[slug];
-    if (!page) continue;
-    const { headings } = await render(page);
-    sectionCountBySlug[slug] = getArticleToc(headings).length;
-    wordCountBySlug[slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
-  }
+  await Promise.all(
+    [...feedMemberSlugs].map(async (slug) => {
+      const page = pageBySlug[slug];
+      if (!page) return;
+      const { headings } = await render(page);
+      sectionCountBySlug[slug] = getArticleToc(headings).length;
+      wordCountBySlug[slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
+    }),
+  );
   // revisionCount/firstEdited/lastEdited are the changed article's own commit-
   // history stats (history is newest-first) — the same trio info.json /
   // allpages.json expose per article, and mostlinkedpages.json / subnets.json /
