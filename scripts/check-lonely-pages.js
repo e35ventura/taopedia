@@ -88,15 +88,18 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
 const wikiDir = path.join(projectRoot, 'dist', 'wiki');
 const distFile = path.join(wikiDir, 'special', 'lonelypages.json');
+const htmlFile = path.join(wikiDir, 'special', 'lonelypages', 'index.html');
 const backlinksFile = path.join(projectRoot, 'public', 'data', 'backlinks.json');
 const slugmapFile = path.join(projectRoot, 'public', 'data', 'slugmap.json');
 const linkgraphFile = path.join(projectRoot, 'public', 'data', 'linkgraph.json');
 assert.ok(fs.existsSync(distFile), 'dist/wiki/special/lonelypages.json not found; run the build first');
+assert.ok(fs.existsSync(htmlFile), 'dist/wiki/special/lonelypages/index.html not found; run the build first');
 assert.ok(fs.existsSync(backlinksFile), 'public/data/backlinks.json not found; run the build first');
 assert.ok(fs.existsSync(slugmapFile), 'public/data/slugmap.json not found; run the build first');
 assert.ok(fs.existsSync(linkgraphFile), 'public/data/linkgraph.json not found; run the build first');
 
 const data = JSON.parse(fs.readFileSync(distFile, 'utf8'));
+const html = fs.readFileSync(htmlFile, 'utf8');
 const backlinksData = JSON.parse(fs.readFileSync(backlinksFile, 'utf8'));
 const slugmap = JSON.parse(fs.readFileSync(slugmapFile, 'utf8'));
 const linkgraphData = JSON.parse(fs.readFileSync(linkgraphFile, 'utf8'));
@@ -104,6 +107,26 @@ const linkgraphData = JSON.parse(fs.readFileSync(linkgraphFile, 'utf8'));
 const realTitleBySlug = {};
 for (const [slug, entry] of Object.entries(slugmap)) realTitleBySlug[slug] = entry?.title ?? slug;
 const expected = buildLonelyPages({ titleBySlug: realTitleBySlug, backlinks: backlinksData });
+
+assert.match(html, /<h1[^>]*>\s*Lonely pages\s*<\/h1>/, 'lonely pages HTML report must render the Lonely pages heading');
+const htmlRows = [...html.matchAll(/<tr[^>]*class="mw-lonelypages-row"[^>]*>([\s\S]*?)<\/tr>/g)].map(([, block]) => {
+  const href = (block.match(/mw-lonelypages-title[^>]*href="([^"]+)"/) || [])[1];
+  const count = Number((block.match(/<td class="mw-lonelypages-outbound"[^>]*>(\d+)<\/td>/) || [])[1]);
+  return { href, count };
+});
+assert.equal(htmlRows.length, expected.length, 'lonely pages HTML report must list every orphaned article exactly once');
+htmlRows.forEach((row, i) => {
+  assert.equal(row.href, `/wiki/${expected[i].slug}/`, `HTML row ${i} must link to the expected orphaned article`);
+  assert.equal(
+    row.count,
+    getArticleReferences({ slug: expected[i].slug, linkGraph: linkgraphData, titleBySlug: realTitleBySlug }).length,
+    `HTML row ${i} outbound reference count must match the published outbound-reference count`,
+  );
+});
+assert.ok(
+  fs.readFileSync(path.join(projectRoot, 'dist', 'sitemap.xml'), 'utf8').includes('/wiki/special/lonelypages/'),
+  'sitemap.xml must include /wiki/special/lonelypages/',
+);
 
 assert.ok(typeof data.site === 'string' && /^https?:\/\//.test(data.site), `site must be a URL string (got ${JSON.stringify(data.site)})`);
 assert.equal(data.lonelypagesJsonUrl, `${data.site}/wiki/special/lonelypages.json`, 'lonelypagesJsonUrl must be the canonical self-link');

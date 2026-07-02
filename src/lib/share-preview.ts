@@ -19,6 +19,12 @@ const specialPages: SpecialPageMeta[] = [
     label: 'Topic directory',
   },
   {
+    name: 'lonelypages',
+    title: 'Lonely pages',
+    description: 'Orphaned Taopedia articles with zero published inbound links, ranked alphabetically.',
+    label: 'Maintenance report',
+  },
+  {
     name: 'mostlinkedpages',
     title: 'Most linked pages',
     description:

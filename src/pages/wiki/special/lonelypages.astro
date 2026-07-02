@@ -1,0 +1,107 @@
+---
+import WikiLayout from '../../../layouts/WikiLayout.astro';
+import { buildLonelyPages } from '../../../../scripts/lonely-pages.js';
+import { getArticleReferences } from '../../../lib/article-references.js';
+import { publishedSummaryBySlug, publishedTitleBySlug } from '../../../lib/article-metadata';
+
+const backlinksModules = import.meta.glob('../../../../public/data/backlinks.json', { eager: true }) as Record<
+  string,
+  { default?: Record<string, Array<{ from: string }>> }
+>;
+const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
+const linkgraphModules = import.meta.glob('../../../../public/data/linkgraph.json', { eager: true }) as Record<
+  string,
+  { default?: Record<string, Array<{ target?: string }>> }
+>;
+const linkgraphData = Object.values(linkgraphModules)[0]?.default ?? {};
+
+const titleBySlug = publishedTitleBySlug();
+const summaryBySlug = publishedSummaryBySlug();
+const lonelyPages = buildLonelyPages({ titleBySlug, backlinks: backlinksData }).map((entry) => ({
+  ...entry,
+  summary: summaryBySlug[entry.slug] || '',
+  referencesCount: getArticleReferences({ slug: entry.slug, linkGraph: linkgraphData, titleBySlug }).length,
+}));
+---
+
+<WikiLayout
+  title="Lonely pages"
+  description="Orphaned Taopedia articles with zero published inbound links, ranked alphabetically."
+>
+  <div class="mw-body-content">
+    <h1 class="firstHeading">Lonely pages</h1>
+
+    <div class="mw-parser-output">
+      <p>
+        Orphaned articles with no published inbound links from other Taopedia pages. The outbound
+        references column helps distinguish true dead ends from articles that still link out to the
+        rest of the knowledge base.
+      </p>
+
+      {lonelyPages.length === 0 ? (
+        <p>No lonely pages found.</p>
+      ) : (
+        <table class="mw-lonelypages">
+          <thead>
+            <tr>
+              <th scope="col">Article</th>
+              <th scope="col" class="mw-lonelypages-outbound">Outbound references</th>
+            </tr>
+          </thead>
+          <tbody>
+            {lonelyPages.map((entry) => (
+              <tr class="mw-lonelypages-row">
+                <td>
+                  <a class="mw-lonelypages-title" href={`/wiki/${entry.slug}/`}>{entry.title}</a>
+                  {entry.summary && <div class="mw-lonelypages-summary">{entry.summary}</div>}
+                </td>
+                <td class="mw-lonelypages-outbound">{entry.referencesCount}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  </div>
+</WikiLayout>
+
+<style>
+  .mw-lonelypages {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 14px;
+  }
+  .mw-lonelypages th,
+  .mw-lonelypages td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border-color-subtle);
+    text-align: left;
+    vertical-align: top;
+  }
+  .mw-lonelypages th {
+    color: var(--color-base-subtle);
+    font-weight: 600;
+  }
+  .mw-lonelypages-title {
+    font-weight: 600;
+  }
+  .mw-lonelypages-summary {
+    margin-top: 6px;
+    color: var(--color-base-subtle);
+    font-size: 13px;
+  }
+  .mw-lonelypages-outbound {
+    width: 140px;
+    white-space: nowrap;
+  }
+  @media (max-width: 640px) {
+    .mw-lonelypages th,
+    .mw-lonelypages td {
+      padding: 8px 10px;
+    }
+    .mw-lonelypages-outbound {
+      width: 110px;
+    }
+  }
+</style>
