@@ -39,34 +39,19 @@ export const GET: APIRoute = async ({ site }) => {
   const subnetSlugs = new Set(subnets.map((subnet) => subnet.slug));
   const pageBySlug = await contentPagesBySlug(subnetSlugs);
 
-  // sectionCount is the subnet article's table-of-contents section count — the
-  // same figure toc.json exposes as `count` and info.json / history.json expose
-  // on their envelopes, derived from the shared getArticleToc helper. Rendered
-  // only for the registry's subnet articles so a subnet dashboard can gauge each
-  // subnet's depth (how many sections it documents) without a second fetch.
-  // Gather each subnet's section count and revision history in a single pass over
-  // the registry list. These were two separate loops over `subnets`; the history
-  // read is folded into the render pass so the list is traversed once. History is
-  // read before the no-page guard so every subnet still gets a history entry (the
-  // render/sectionCount step is what requires a resolved page), keeping output
-  // byte-identical.
   const sectionCountBySlug: Record<string, number> = {};
   const historyBySlug: Record<string, ReturnType<typeof historyForSlug>> = {};
-  // wordCount is only ever read by subnet.slug below, for the registry's subnet
-  // articles (a subset of the full page collection — e.g. 128 of ~350) — not
-  // every published article. Previously tokenized for the full collection up
-  // front; gated into this same subnets-only loop that already scopes
-  // sectionCount, the same compute-only-for-used-members pattern #1213 / #1232 /
-  // #1240 use elsewhere.
   const wordCountBySlug: Record<string, number> = {};
-  for (const subnet of subnets) {
-    historyBySlug[subnet.slug] = historyForSlug(subnet.slug);
-    const page = pageBySlug[subnet.slug];
-    if (!page) continue;
-    const { headings } = await render(page);
-    sectionCountBySlug[subnet.slug] = getArticleToc(headings).length;
-    wordCountBySlug[subnet.slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
-  }
+  await Promise.all(
+    subnets.map(async (subnet) => {
+      historyBySlug[subnet.slug] = historyForSlug(subnet.slug);
+      const page = pageBySlug[subnet.slug];
+      if (!page) return;
+      const { headings } = await render(page);
+      sectionCountBySlug[subnet.slug] = getArticleToc(headings).length;
+      wordCountBySlug[subnet.slug] = (page.body ?? '').trim().split(/\s+/).filter(Boolean).length;
+    }),
+  );
 
   const body = JSON.stringify(
     {
