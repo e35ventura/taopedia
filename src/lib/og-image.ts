@@ -1,7 +1,7 @@
 import { Resvg } from '@resvg/resvg-js';
 import fs from 'fs';
 import path from 'path';
-import { escapeHtml, wrapText, parseSubnet } from './og-text.js';
+import { escapeHtml, wrapText, parseSubnet, fitFontSize } from './og-text.js';
 
 const width = 1200;
 const height = 630;
@@ -40,6 +40,16 @@ const TITLE_BASELINE = 250;
 const TITLE_LINE_HEIGHT = 76;
 const TITLE_MAX_LINES = 3;
 const TITLE_MAX_CHARS = 24;
+const TITLE_FONT_SIZE = 68;
+const TITLE_FONT_WEIGHT = 700;
+// Widest a title line may render before it collides with the card's right edge.
+// The header rule spans x=92..1108, so the title block shares that 1016px span;
+// a line measured wider than this is auto-shrunk to fit (see the render below).
+const TITLE_MAX_WIDTH = 1108 - TITLE_X;
+// Readability floor for the auto-shrink. The character-capped longest possible
+// line (TITLE_MAX_CHARS wide glyphs) still fits well above this, so the floor is
+// a guard, not a size that itself clips.
+const TITLE_MIN_FONT_SIZE = 40;
 
 const DESC_X = 94;
 const DESC_LINE_HEIGHT = 36;
@@ -58,21 +68,30 @@ interface OgImageOptions {
   home?: boolean;
 }
 
-// Measure the rendered width of a chip label with the same renderer and font
-// that will draw it, then memoize it (the chip font is fixed, so the cache key is
-// just the text). The box is sized to the measured glyph width instead of an
-// estimated character count, so it fits in any font environment — the measurement
-// pass and the final render resolve the exact same font. Falls back to a coarse
-// estimate only if the renderer cannot report a bounding box.
-const chipWidthCache = new Map<string, number>();
-function measureChipWidth(text: string): number {
-  const cached = chipWidthCache.get(text);
+// Measure the rendered width of a string with the same renderer and font that
+// will draw it, then memoize it. The box is sized to the measured glyph width
+// instead of an estimated character count, so it fits in any font environment —
+// the measurement pass and the final render resolve the exact same font. Falls
+// back to a coarse estimate only if the renderer cannot report a bounding box.
+const textWidthCache = new Map<string, number>();
+function measureTextWidth(
+  text: string,
+  fontFamily: string,
+  fontSize: number,
+  fontWeight: number,
+): number {
+  const key = `${fontSize}|${fontWeight}|${fontFamily}|${text}`;
+  const cached = textWidthCache.get(key);
   if (cached !== undefined) return cached;
-  const probe = `<svg xmlns="http://www.w3.org/2000/svg" width="2000" height="${CHIP_FONT_SIZE * 3}"><text x="0" y="${CHIP_FONT_SIZE * 2}" font-family="${FONT_SANS}" font-size="${CHIP_FONT_SIZE}" font-weight="${CHIP_FONT_WEIGHT}">${escapeHtml(text)}</text></svg>`;
+  const probe = `<svg xmlns="http://www.w3.org/2000/svg" width="4000" height="${fontSize * 3}"><text x="0" y="${fontSize * 2}" font-family="${fontFamily}" font-size="${fontSize}" font-weight="${fontWeight}">${escapeHtml(text)}</text></svg>`;
   const bbox = new Resvg(probe).innerBBox();
-  const measured = bbox ? Math.ceil(bbox.width) : Math.ceil(text.length * CHIP_FONT_SIZE * 0.62);
-  chipWidthCache.set(text, measured);
+  const measured = bbox ? Math.ceil(bbox.width) : Math.ceil(text.length * fontSize * 0.62);
+  textWidthCache.set(key, measured);
   return measured;
+}
+
+function measureChipWidth(text: string): number {
+  return measureTextWidth(text, FONT_SANS, CHIP_FONT_SIZE, CHIP_FONT_WEIGHT);
 }
 
 // A bordered "chip" like the site's topic pills, sized to its measured text.
@@ -123,10 +142,22 @@ export function renderOgImage({ title, description, label = TAGLINE, home = fals
   const { descriptionStart, lineBudget } = layoutDescription(titleLines.length);
   const descriptionLines = description && lineBudget > 0 ? wrapText(description, DESC_MAX_CHARS, lineBudget) : [];
 
+  // wrapText breaks the title by character count, which assumes an average glyph
+  // width. A line of unusually wide glyphs (all-caps, a "WWWW"-style single-word
+  // title, or a wide non-Latin script) can still reach past the card edge at the
+  // character budget, so measure the widest rendered line and shrink the title to
+  // fit — the same measured-width discipline the chip uses. Line positions are
+  // unchanged (they depend on line count, not size), so nothing else shifts.
+  const widestTitleLine = titleLines.reduce(
+    (widest, line) => Math.max(widest, measureTextWidth(line, FONT_SERIF, TITLE_FONT_SIZE, TITLE_FONT_WEIGHT)),
+    0
+  );
+  const titleFontSize = fitFontSize(widestTitleLine, TITLE_MAX_WIDTH, TITLE_FONT_SIZE, TITLE_MIN_FONT_SIZE);
+
   const titleSvg = titleLines
     .map(
       (line, index) =>
-        `<text x="${TITLE_X}" y="${TITLE_BASELINE + index * TITLE_LINE_HEIGHT}" font-family="${FONT_SERIF}" font-size="68" font-weight="700" fill="${COLOR_BASE}">${escapeHtml(line)}</text>`
+        `<text x="${TITLE_X}" y="${TITLE_BASELINE + index * TITLE_LINE_HEIGHT}" font-family="${FONT_SERIF}" font-size="${titleFontSize}" font-weight="${TITLE_FONT_WEIGHT}" fill="${COLOR_BASE}">${escapeHtml(line)}</text>`
     )
     .join('');
 
