@@ -39,6 +39,18 @@ assert.match(
   'Seo head must declare og:image:height as 630 (matches the generated OG PNG height)',
 );
 
+// og:image:type completes the structured og:image group (type/width/height/alt).
+// The OG routes (src/pages/og/**) always render and serve PNG bytes
+// (Content-Type: image/png), so the declared type is fixed. Crawlers that
+// pre-validate an image's format from metadata — rather than sniffing the
+// fetched bytes — use this to decode the card without a probe request; dropping
+// it leaves the group inconsistent (dimensions declared, format guessed).
+assert.match(
+  seo,
+  /<meta\s+property="og:image:type"\s+content="image\/png"\s*\/>/,
+  'Seo head must declare og:image:type as image/png (matches the PNG the OG routes serve)',
+);
+
 // twitter:card must explicitly request the large-image card style. Omitting it
 // (or changing it) silently downgrades X/Twitter previews to the small
 // "summary" card that crops the OG preview to a tiny thumbnail.
