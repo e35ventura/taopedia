@@ -1,0 +1,86 @@
+---
+import WikiLayout from '../../../layouts/WikiLayout.astro';
+import { listWantedPages, wantedPageTitleBySlug } from '../../../lib/wanted-pages-context';
+
+const titleBySlug = wantedPageTitleBySlug();
+const wantedPages = listWantedPages();
+---
+
+<WikiLayout
+  title="Wanted pages"
+  description="Missing articles referenced from published Taopedia pages, ranked by how many distinct articles request them."
+>
+  <div class="mw-body-content">
+    <h1 class="firstHeading">Wanted pages</h1>
+
+    <div class="mw-parser-output">
+      <p>
+        Missing article targets referenced from published Taopedia pages, ranked by how many distinct
+        articles request them.
+      </p>
+
+      {wantedPages.length === 0 ? (
+        <p>No wanted pages right now. Every published internal link target resolves to an existing article.</p>
+      ) : (
+        <ol class="mw-wantedpages">
+          {wantedPages.map((entry) => (
+            <li class="mw-wantedpages-row">
+              <div class="mw-wantedpages-main">
+                <span class="mw-wantedpages-slug">{entry.slug}</span>
+                <span class="mw-wantedpages-count">
+                  {entry.count} {entry.count === 1 ? 'requester' : 'requesters'}
+                </span>
+              </div>
+              <div class="mw-wantedpages-requesters">
+                Requested by{' '}
+                {entry.requestedBy.map((slug, index) => (
+                  <>
+                    {index > 0 && ', '}
+                    <a href={`/wiki/${slug}/`}>{titleBySlug[slug] ?? slug}</a>
+                  </>
+                ))}
+              </div>
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
+  </div>
+</WikiLayout>
+
+<style>
+  .mw-wantedpages {
+    margin: 16px 0;
+    padding-left: 32px;
+  }
+
+  .mw-wantedpages-row {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color-subtle);
+  }
+
+  .mw-wantedpages-main {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .mw-wantedpages-slug {
+    font-weight: 600;
+    word-break: break-word;
+  }
+
+  .mw-wantedpages-count {
+    color: var(--color-base-subtle);
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .mw-wantedpages-requesters {
+    margin-top: 4px;
+    color: var(--color-base-subtle);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+</style>

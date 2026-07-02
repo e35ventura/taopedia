@@ -49,6 +49,13 @@ const specialPages: SpecialPageMeta[] = [
     description: 'A registry of every numbered Bittensor subnet documented on Taopedia, ordered by netuid.',
     label: 'Subnet directory',
   },
+  {
+    name: 'wantedpages',
+    title: 'Wanted pages',
+    description:
+      'Missing articles referenced from published Taopedia pages, ranked by how many distinct articles request them.',
+    label: 'Missing-page report',
+  },
 ];
 
 export function listSpecialPageMeta() {
