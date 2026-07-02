@@ -57,9 +57,25 @@ const featuredPages = featuredSlugs
 // into the full Special:Subnets directory. Reuses the same buildSubnets() helper
 // that powers Special:Subnets and subnets.json, so the homepage can never
 // disagree with them on netuid, name, or slug. Refs #521.
-const featuredSubnets = buildSubnets({ pages: pagesFromSlugMap(slugMap), getPageSlug })
+const allSubnets = buildSubnets({ pages: pagesFromSlugMap(slugMap), getPageSlug });
+const featuredSubnets = allSubnets
   .filter((subnet) => !/deprecated/i.test(subnet.name))
   .slice(0, 6);
+
+// "Taopedia at a glance" — the headline scale of the knowledge base, shown at
+// the top of the landing page. The hero mentions only the article count in
+// passing; a reader otherwise can't tell how broad the wiki is without leaving
+// for Special:Statistics. Surface the three figures the directory already
+// tracks, each straight from the build-time artifacts so the band can never
+// disagree with the pages it links to: total Articles (every published page,
+// the same count Special:AllPages lists), Topics (categories with at least one
+// article — the same totalTopics definition Special:Statistics reports), and
+// Subnets (the full buildSubnets() roster behind Special:Subnets). Refs #521.
+const siteStats = [
+  { label: 'Articles', value: sortedPages.length, href: '/wiki/special/allpages' },
+  { label: 'Topics', value: categoryIndex.size, href: '/wiki/special/categories' },
+  { label: 'Subnets', value: allSubnets.length, href: '/wiki/special/subnets' },
+];
 
 // Most recently updated articles, newest first — the one piece of information
 // the landing page otherwise never shows (it carries no dates at all). Reuses
@@ -297,6 +313,40 @@ const initialLetter = alphabet[0] ?? '#';
         color: var(--color-link);
         font-size: 13px;
         text-decoration: none;
+      }
+
+      .stat-band {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .stat-item {
+        display: block;
+        padding: 18px 14px;
+        border: 1px solid var(--border-color-subtle);
+        background: var(--background-color-interactive);
+        color: var(--color-base);
+        text-decoration: none;
+        text-align: center;
+      }
+
+      .stat-value {
+        display: block;
+        font-family: var(--font-family-serif);
+        font-size: 32px;
+        font-weight: 400;
+        line-height: 1.1;
+        color: var(--color-link);
+      }
+
+      .stat-label {
+        display: block;
+        margin-top: 6px;
+        font-size: 13px;
+        color: var(--color-base-subtle);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
       }
 
       .topic-grid,
@@ -544,6 +594,21 @@ const initialLetter = alphabet[0] ?? '#';
             <a href="/wiki/yuma_consensus/">Yuma Consensus</a>
             <a href="/wiki/dynamic_tao/">Dynamic TAO</a>
           </div>
+        </div>
+      </section>
+
+      <section class="home-section home-glance" aria-label="Taopedia at a glance">
+        <div class="section-heading">
+          <h2>Taopedia At A Glance</h2>
+          <a href="/wiki/special/statistics">Full statistics</a>
+        </div>
+        <div class="stat-band">
+          {siteStats.map((stat) => (
+            <a class="stat-item" href={stat.href}>
+              <span class="stat-value">{stat.value.toLocaleString('en-US')}</span>
+              <span class="stat-label">{stat.label}</span>
+            </a>
+          ))}
         </div>
       </section>
 
