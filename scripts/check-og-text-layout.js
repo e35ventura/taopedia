@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { escapeHtml, splitLongWords, wrapText, parseSubnet } from '../src/lib/og-text.js';
+import { escapeHtml, splitLongWords, wrapText, parseSubnet, fitFontSize } from '../src/lib/og-text.js';
 
 // --- parseSubnet: split "Subnet N: Name" so the card shows an "N" badge + name ---
 assert.deepEqual(parseSubnet('Subnet 12: Compute Horde'), { netuid: 12, name: 'Compute Horde' });
@@ -124,5 +124,22 @@ for (const line of ellipsisAtBudgetEmoji) {
   assert.ok(line.length <= 24, `ellipsized emoji line over budget: "${line}" (${line.length})`);
 }
 assert.equal(ellipsisAtBudgetEmoji[2], '\u{1F984}'.repeat(11) + '…');
+
+// --- fitFontSize: shrink the title so a wide line stays inside the card ---
+// A line already within the available width keeps the base size.
+assert.equal(fitFontSize(800, 1016, 68), 68);
+assert.equal(fitFontSize(1016, 1016, 68), 68, 'a line exactly at the budget is not shrunk');
+// A wider line is scaled down so measured * scale <= available.
+const fitted = fitFontSize(1600, 1016, 68);
+assert.ok(fitted < 68, 'an overwide line must shrink');
+assert.ok((1600 * fitted) / 68 <= 1016, 'the shrunk line must fit the available width');
+assert.equal(fitted, Math.floor(68 * (1016 / 1600)));
+// The readability floor is respected even for a pathologically wide line...
+assert.equal(fitFontSize(100000, 1016, 68, 40), 40);
+// ...but the floor never enlarges a line that fits.
+assert.equal(fitFontSize(500, 1016, 68, 40), 68);
+// Degenerate measurements fall back to the base size rather than 0/NaN.
+assert.equal(fitFontSize(0, 1016, 68), 68);
+assert.equal(fitFontSize(1600, 0, 68), 68);
 
 console.log('OG text layout check passed');

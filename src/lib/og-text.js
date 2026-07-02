@@ -51,6 +51,23 @@ export function splitLongWords(words, maxChars) {
   return result;
 }
 
+// Shrink a font size so a measured line fits the available width. `wrapText`
+// breaks lines by character count, which assumes an average glyph width, so a
+// line of unusually wide glyphs (an all-caps or "WWWW"-style single-word title,
+// or a wide non-Latin script) can still overrun the card even at the character
+// budget. Given the widest rendered line's measured width, this returns the
+// largest size (<= baseSize) at which that line fits `availableWidth`, floored
+// at `minSize` for readability. A line already within budget keeps `baseSize`.
+// Kept here, pure and unit-testable; the actual width measurement lives in the
+// renderer (og-image.ts) next to Resvg, mirroring how the chip is sized.
+export function fitFontSize(measuredWidth, availableWidth, baseSize, minSize = 0) {
+  if (!(measuredWidth > 0) || !(availableWidth > 0) || measuredWidth <= availableWidth) {
+    return baseSize;
+  }
+  const scaled = Math.floor(baseSize * (availableWidth / measuredWidth));
+  return Math.max(minSize, Math.min(baseSize, scaled));
+}
+
 // Wrap text to at most `maxLines` lines of at most `maxChars` characters. When
 // the text doesn't fit, the last rendered line is truncated with an ellipsis.
 export function wrapText(text, maxChars, maxLines) {
