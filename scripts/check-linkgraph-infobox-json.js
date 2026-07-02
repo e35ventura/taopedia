@@ -81,6 +81,7 @@ try {
     coldkeys: { title: 'Coldkeys', infoboxTitle: 'Coldkey' },
     subnet: { title: 'Subnet' },
     network_min_lock_cost: { title: 'Network Min Lock Cost' },
+    weights_rate_limit: { title: 'Weights Rate Limit' },
     hotkeys: { title: 'Hotkeys', infoboxTitle: 'Hotkey' },
     mev_maximal_extractable_value: {
       title: 'MEV (Maximal Extractable Value)',
@@ -148,6 +149,16 @@ try {
     }),
     ['network_min_lock_cost'],
     'linkgraph should recover camel-cased article aliases from unresolved plain-text Related rows',
+  );
+  assert.deepEqual(
+    resolveBuildLinkTargets({
+      target: 'WeightsRateLimit / CommitmentRateLimit',
+      slugAliases,
+      slugMap,
+      requireExisting: true,
+    }),
+    ['weights_rate_limit'],
+    'linkgraph should give each split Related part the same camel-cased alias recovery as the whole value (WeightsRateLimit resolves; CommitmentRateLimit has no article and is dropped)',
   );
   assert.deepEqual(
     resolveBuildLinkTargets({
