@@ -347,17 +347,31 @@ export function resolveBuildLinkTargets({ target, slugAliases, slugMap, requireE
   if (!requireExisting) return resolvedTarget ? [resolvedTarget] : [];
   if (!allowSplitTargets) return [];
 
-  for (const aliasKey of relatedAliasKeys(target)) {
-    const aliasTarget = slugAliases.get(aliasKey);
-    if (aliasTarget && slugMap[aliasTarget]) {
-      return [aliasTarget];
+  // Resolve a single related concept to an existing article slug: try the
+  // direct slug first, then the camelCase / singular alias recovery.
+  const resolveExistingRelated = (value) => {
+    const direct = resolveTargetSlug(value, slugAliases);
+    if (slugMap[direct]) return direct;
+    for (const aliasKey of relatedAliasKeys(value)) {
+      const aliasTarget = slugAliases.get(aliasKey);
+      if (aliasTarget && slugMap[aliasTarget]) return aliasTarget;
     }
-  }
+    return '';
+  };
 
+  const wholeAlias = resolveExistingRelated(target);
+  if (wholeAlias) return [wholeAlias];
+
+  // Each split part is itself a single related concept, so give it the SAME
+  // alias recovery the whole value got above. Without this a compound term
+  // written camelCase inside a "/"- or "and"-separated list (e.g.
+  // "WeightsRateLimit / CommitmentRateLimit") never links, even though its
+  // article ("weights_rate_limit") exists and the identical value used on its
+  // own resolves fine via the whole-value alias path.
   return [...new Set(
     splitPlainTextRelatedTargets(target)
-      .map((part) => resolveTargetSlug(part, slugAliases))
-      .filter((part) => slugMap[part]),
+      .map((part) => resolveExistingRelated(part))
+      .filter(Boolean),
   )];
 }
 
