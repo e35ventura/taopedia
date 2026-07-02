@@ -19,6 +19,13 @@ const specialPages: SpecialPageMeta[] = [
     label: 'Topic directory',
   },
   {
+    name: 'lonelypages',
+    title: 'Lonely pages',
+    description:
+      'Orphaned articles across the Taopedia Bittensor knowledge base — published pages that no other article links to.',
+    label: 'Orphaned-page report',
+  },
+  {
     name: 'mostlinkedpages',
     title: 'Most linked pages',
     description:

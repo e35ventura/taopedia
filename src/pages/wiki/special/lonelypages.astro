@@ -1,0 +1,75 @@
+---
+import WikiLayout from '../../../layouts/WikiLayout.astro';
+import { publishedTitleBySlug } from '../../../lib/article-metadata';
+import { buildLonelyPages } from '../../../../scripts/lonely-pages.js';
+
+// Special:LonelyPages — the browsable partner to lonelypages.json: published
+// articles that NO other published article links to (zero inbound links), the
+// exact complement of Special:MostLinkedPages. Both surfaces derive their
+// selection and ordering from the SAME shared builder (scripts/lonely-pages.js)
+// over the SAME public/data/backlinks.json the machine-readable endpoint reads,
+// so the HTML page and JSON companion stay in lockstep. Loaded via glob so a
+// missing link graph (e.g. a dev run before the build) degrades to an empty list.
+const titleBySlug = publishedTitleBySlug();
+
+const backlinksModules = import.meta.glob('../../../../public/data/backlinks.json', { eager: true }) as Record<
+  string,
+  { default?: Record<string, Array<{ from: string }>> }
+>;
+const backlinksData = Object.values(backlinksModules)[0]?.default ?? {};
+
+const lonelyPages = buildLonelyPages({ titleBySlug, backlinks: backlinksData });
+---
+
+<WikiLayout
+  title="Lonely pages"
+  description="Orphaned articles across the Taopedia Bittensor knowledge base — published pages that no other article links to."
+>
+  <div class="mw-body-content">
+    <h1 class="firstHeading">Lonely pages</h1>
+
+    <div class="mw-parser-output">
+      <p>
+        Orphaned articles that no other published article links to. Wiring these into the link graph
+        from related pages makes them reachable while browsing, not just from search.
+      </p>
+
+      {lonelyPages.length === 0 ? (
+        <p>No lonely pages right now. Every published article has at least one incoming link from another article.</p>
+      ) : (
+        <ol class="mw-lonelypages">
+          {lonelyPages.map((entry) => (
+            <li class="mw-lp-row">
+              <a class="mw-lp-title" href={`/wiki/${entry.slug}/`}>{entry.title}</a>
+              <a class="mw-lp-links" href={`/wiki/${entry.slug}/backlinks/`}>No incoming links</a>
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
+  </div>
+</WikiLayout>
+
+<style>
+  .mw-lonelypages {
+    margin: 16px 0;
+    padding-left: 32px;
+  }
+  .mw-lp-row {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border-color-subtle);
+    font-size: 14px;
+  }
+  .mw-lp-title {
+    font-weight: 600;
+  }
+  .mw-lp-links {
+    margin-left: auto;
+    font-size: 13px;
+    white-space: nowrap;
+    color: var(--color-base-subtle);
+  }
+</style>

@@ -175,6 +175,40 @@ data.pages.forEach((row, i) => {
   }
 });
 
+// ---- 3) Built HTML route: the browsable Special:LonelyPages page ------------
+//
+// The human-readable Special:LonelyPages route is the canonical browsable partner
+// to lonelypages.json. Keep the built page aligned with the JSON route: same
+// heading, same empty state, and the expected article + backlinks links for each
+// orphan, all ordered by the same shared buildLonelyPages ranking.
+const distHtml = path.join(wikiDir, 'special', 'lonelypages', 'index.html');
+assert.ok(fs.existsSync(distHtml), 'dist/wiki/special/lonelypages/index.html not found; run the build first');
+const html = fs.readFileSync(distHtml, 'utf8');
+
+assert.match(
+  html,
+  /<h1[^>]*class="firstHeading"[^>]*>Lonely pages<\/h1>/,
+  'lonelypages HTML page must render the Lonely pages heading',
+);
+if (expected.length === 0) {
+  assert.match(
+    html,
+    /No lonely pages right now\./,
+    'lonelypages HTML page must render the empty-state copy when the report is empty',
+  );
+} else {
+  for (const entry of expected) {
+    assert.ok(
+      html.includes(`href="/wiki/${entry.slug}/"`),
+      `lonelypages HTML page must link to the orphaned article /wiki/${entry.slug}/`,
+    );
+    assert.ok(
+      html.includes(`/wiki/${entry.slug}/backlinks/`),
+      `lonelypages HTML page must link to the orphan's backlinks page /wiki/${entry.slug}/backlinks/`,
+    );
+  }
+}
+
 console.log(
-  `Lonely pages check passed (${data.pages.length} orphaned pages from the built endpoint match the link graph; lonely + most-linked partition all ${Object.keys(realTitleBySlug).length} published articles)`,
+  `Lonely pages check passed (${data.pages.length} orphaned pages from the built endpoint match the link graph; lonely + most-linked partition all ${Object.keys(realTitleBySlug).length} published articles; HTML route aligned)`,
 );
