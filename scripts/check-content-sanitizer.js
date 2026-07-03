@@ -943,6 +943,15 @@ infoboxRowRejects('metamask://wc?uri=wc%3Aabc%402', 'metamask:// rejected in an 
 infoboxRowRejects('phantom://connect?app_url=https%3A%2F%2Fevil.example', 'phantom:// rejected in an infobox row value');
 accepts('Trust: a foundation of staking, and Phantom is a Solana wallet, are described here only as prose.', 'benign wallet-name prose (colon then space, no //)');
 accepts('MetaMask, Rainbow, Zerion, SafePal, Exodus, and Ledger Live wallets are described here only as prose.', 'benign wallet-name prose (no // authority)');
+// novawallet:// subwallet:// talisman:// are the Substrate/Polkadot-ecosystem wallet app deep
+// links — the on-theme counterpart to metamask://…/phantom:// for a Bittensor (Substrate-chain)
+// wiki. Same wallet-drain phishing surface; the //-authority form keeps wallet-name prose safe.
+rejects('See [x](novawallet://wc?uri=wc%3Aabc%402).', 'plain novawallet:// (Nova Wallet) deep link');
+rejects('See [x](subwallet://wc?uri=wc%3Aabc%402).', 'plain subwallet:// (SubWallet) deep link');
+rejects('See [x](talisman://wc?uri=wc%3Aabc%402).', 'plain talisman:// (Talisman) deep link');
+rejects('See [x](novaw&#97;llet://wc?uri=wc%3Aabc%402).', 'entity-obfuscated novawallet:// (obfuscated scan path)');
+infoboxRowRejects('subwallet://wc?uri=wc%3Aabc%402', 'subwallet:// rejected in an infobox row value');
+accepts('Nova Wallet: a Polkadot mobile wallet, SubWallet, and Talisman are described here only as prose.', 'benign Substrate wallet-name prose (colon then space, no //)');
 // payto: (RFC 8905) and upi: (UPI deep link) are bank / instant-payment app-launch URI
 // schemes — a clicked link opens the reader's banking / payment app pre-filled with the
 // attacker's payee and amount (fund redirection on a fiat/bank rail, distinct from the
