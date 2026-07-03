@@ -666,13 +666,43 @@ const initialLetter = alphabet[0] ?? '#';
         }
       }
 
+      // A shareable letter is a single A–Z that actually has an article group.
+      // Guarding on an existing group means a stray hash (e.g. the "#content"
+      // skip-link target) or a letter with no articles is ignored, leaving the
+      // current selection untouched.
+      function letterFromHash() {
+        const raw = decodeURIComponent((location.hash || '').replace(/^#/, '')).toUpperCase();
+        return /^[A-Z]$/.test(raw) && letterGroups.some((group) => group.dataset.letter === raw)
+          ? raw
+          : null;
+      }
+
       letterButtons.forEach((button) => {
         button.addEventListener('click', () => {
           const letter = button.dataset.indexLetter;
           if (letter) {
             selectLetter(letter);
+            // Persist the chosen letter in the URL hash so the article index
+            // survives a reload and can be shared/deep-linked, matching the
+            // URL-state behaviour of the search facets (#1955). replaceState
+            // (not a hash assignment) keeps it out of the back-button history
+            // and never scrolls the page.
+            history.replaceState(null, '', '#' + letter);
           }
         });
+      });
+
+      // Honour an incoming #<letter> on first load, and keep the index in sync
+      // when the hash changes via back/forward navigation.
+      const initialLetter = letterFromHash();
+      if (initialLetter) {
+        selectLetter(initialLetter);
+      }
+      window.addEventListener('hashchange', () => {
+        const letter = letterFromHash();
+        if (letter) {
+          selectLetter(letter);
+        }
       });
     </script>
 
